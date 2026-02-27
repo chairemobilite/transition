@@ -1,5 +1,18 @@
 @use "settings";
 
+/* Theme: Default theme will be from the browser's system preferences. */
+:root {
+  color-scheme: light dark;
+}
+
+:root[data-color-scheme="light"] {
+  color-scheme: light;
+}
+
+:root[data-color-scheme="dark"] {
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -8,7 +21,6 @@ html {
   font-size: 62.5%;
   padding: 0;
   height: 100%;
-  color-scheme: dark;
 }
 
 body {
@@ -23,7 +35,6 @@ body {
   margin: 0;
   min-width: 320px;
   height: 100%;
-  color-scheme: dark;
 }
 
 a {

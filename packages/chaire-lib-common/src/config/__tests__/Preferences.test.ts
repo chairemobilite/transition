@@ -59,6 +59,14 @@ test('Test set preferences', () => {
     expect(Preferences.get('foo.bar')).toBe('foobar');
 });
 
+test.each([
+    { value: false, expected: false },
+    { value: true, expected: true }
+])('get("isDarkTheme") reflects isDarkTheme preference (value: $value, expected: $expected)', ({ value, expected }) => {
+    Preferences.set('isDarkTheme', value);
+    expect(Preferences.get('isDarkTheme')).toBe(expected);
+});
+
 describe('Updating preferences', () => {
     // Test adding an arbitrary object to the preferences
     const prefData = {
@@ -346,4 +354,38 @@ describe('Preferences listener', () => {
         expect(prefChangedListener).not.toHaveBeenCalled();
     });
 
+    // set() emits only for isDarkTheme (not for arbitrary paths like 'foo.bar'), so theme UI
+    // can update immediately when toggling dark mode before save; other prefs only notify on save/load/undo/redo
+    test.each([
+        {
+            path: 'foo.bar',
+            value: 'baz',
+            expectEmit: false
+        },
+        {
+            path: 'isDarkTheme',
+            value: false,
+            expectEmit: true,
+            expectedPayload: { isDarkTheme: false }
+        }
+    ])('Listen on set (path: $path, expectEmit: $expectEmit)', ({ path, value, expectEmit, expectedPayload }) => {
+        Preferences.addChangeListener(prefChangedListener);
+        Preferences.set(path, value);
+        if (expectEmit) {
+            expect(prefChangedListener).toHaveBeenCalledTimes(1);
+            expect(prefChangedListener).toHaveBeenCalledWith(expectedPayload);
+        } else {
+            expect(prefChangedListener).not.toHaveBeenCalled();
+        }
+    });
+
+    // undo() emits so theme and subscribers reflect the restored state (redo/cancelEditing same path)
+    test('Listen on undo', () => {
+        Preferences.addChangeListener(prefChangedListener);
+        Preferences.startEditing();
+        Preferences.set('isDarkTheme', false);
+        expect(prefChangedListener).toHaveBeenCalledTimes(1);
+        Preferences.undo();
+        expect(prefChangedListener).toHaveBeenCalledTimes(2);
+    });
 });

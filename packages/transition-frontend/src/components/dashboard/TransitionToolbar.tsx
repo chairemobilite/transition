@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import React, { use, useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Menu, { MenuItem } from 'rc-menu';
 
 import 'rc-menu/assets/index.css';
@@ -15,362 +15,309 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { loadLayersAndCollections } from '../../services/dashboard/LayersAndCollectionsService';
 import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import { ThemeContext } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 
-interface TransitionToolbarState {
-    coordinates?: [number, number];
-    layersVisibility: { [key: string]: boolean };
-    cacheNeedsSaving: boolean;
-    trRoutingStarted: boolean;
-    nodesNeedUpdate: boolean;
-    dataNeedsUpdate: boolean;
-}
+const Toolbar: React.FunctionComponent<LayoutSectionProps> = (_props) => {
+    const { t } = useTranslation(['transit', 'main', 'od', 'notifications']);
+    // Get the current theme (light or dark)
+    const theme = use(ThemeContext);
+    const iconVariant = theme === 'dark' ? 'white' : 'black';
 
-class Toolbar extends React.Component<LayoutSectionProps & WithTranslation, TransitionToolbarState> {
-    constructor(props: LayoutSectionProps & WithTranslation) {
-        super(props);
+    const [coordinates, setCoordinates] = useState<[number, number] | undefined>(undefined);
+    const [layersVisibility, setLayersVisibility] = useState<{ [key: string]: boolean }>({});
+    const [cacheNeedsSaving, setCacheNeedsSaving] = useState(false);
+    const [trRoutingStarted, setTrRoutingStarted] = useState(false);
+    const [nodesNeedUpdate, setNodesNeedUpdate] = useState(false);
+    const [dataNeedsUpdate, setDataNeedsUpdate] = useState(false);
 
-        this.state = {
-            layersVisibility: {},
-            cacheNeedsSaving: false,
-            trRoutingStarted: false,
-            nodesNeedUpdate: false,
-            dataNeedsUpdate: false
-        };
-    }
+    const checkTrRoutingStatus = useCallback(() => {
+        serviceLocator.socketEventManager.emit('service.trRouting.status', {}, (response: { status: string }) => {
+            setTrRoutingStarted(response.status === 'started');
+        });
+    }, []);
 
-    componentDidMount() {
+    useEffect(() => {
         // TODO Replace with proper API calls for better typing support
-        serviceLocator.eventManager.on('map.updateMouseCoordinates', this.onUpdateCoordinates);
-        serviceLocator.eventManager.on('map.showLayer', this.onShowLayer);
-        serviceLocator.eventManager.on('map.hideLayer', this.onHideLayer);
-        serviceLocator.eventManager.on('map.updatedEnabledLayers', this.onUpdateLayers);
-        serviceLocator.socketEventManager.on('cache.dirty', this.onCacheDirty);
-        serviceLocator.socketEventManager.on('cache.clean', this.onCacheClean);
-        serviceLocator.socketEventManager.on('data.updated', this.onDataUpdated);
-        serviceLocator.socketEventManager.on('service.trRouting.started', this.onTrRoutingStarted);
-        serviceLocator.socketEventManager.on('service.trRouting.stopped', this.onTrRoutingStopped);
-        serviceLocator.socketEventManager.on('connect', this.checkTrRoutingStatus);
-        serviceLocator.socketEventManager.on('transferableNodes.dirty', this.onNodesNeedUpdate);
-        serviceLocator.eventManager.on('transferableNodes.dirty', this.onNodesNeedUpdate);
-        serviceLocator.eventManager.on('transferableNodes.clean', this.onNodesUpdated);
-        this.checkTrRoutingStatus();
-    }
-
-    componentWillUnmount() {
-        serviceLocator.eventManager.off('map.updateMouseCoordinates', this.onUpdateCoordinates);
-        serviceLocator.eventManager.off('map.showLayer', this.onShowLayer);
-        serviceLocator.eventManager.off('map.hideLayer', this.onHideLayer);
-        serviceLocator.eventManager.off('map.updatedEnabledLayers', this.onUpdateLayers);
-        serviceLocator.socketEventManager.off('cache.dirty', this.onCacheDirty);
-        serviceLocator.socketEventManager.off('cache.clean', this.onCacheClean);
-        serviceLocator.socketEventManager.off('data.updated', this.onDataUpdated);
-        serviceLocator.socketEventManager.off('service.trRouting.started', this.onTrRoutingStarted);
-        serviceLocator.socketEventManager.off('service.trRouting.stopped', this.onTrRoutingStopped);
-        serviceLocator.socketEventManager.off('connect', this.checkTrRoutingStatus);
-        serviceLocator.socketEventManager.off('transferableNodes.dirty', this.onNodesNeedUpdate);
-        serviceLocator.eventManager.off('transferableNodes.dirty', this.onNodesNeedUpdate);
-        serviceLocator.eventManager.off('transferableNodes.clean', this.onNodesUpdated);
-    }
-
-    onUpdateLayers = () => {
-        const layersVisibility = {};
-        serviceLocator.layerManager._enabledLayers.forEach((layerName) => {
-            layersVisibility[layerName] = serviceLocator.layerManager.layerIsVisible(layerName);
-        });
-        this.setState((_oldState) => {
-            return {
-                layersVisibility
-            };
-        });
-    };
-
-    onShowLayer = (layerName: string) => {
-        if (this.state.layersVisibility[layerName] === false) {
-            this.setState((oldState) => {
-                const newLayersVisibility = { ...oldState.layersVisibility };
-                newLayersVisibility[layerName] = true;
-                return {
-                    layersVisibility: newLayersVisibility
-                };
+        const onUpdateCoordinates = (coords: [number, number]) => setCoordinates(coords);
+        const onShowLayer = (layerName: string) => {
+            setLayersVisibility((prev) => {
+                if (prev[layerName] === false) {
+                    const next = { ...prev };
+                    next[layerName] = true;
+                    return next;
+                }
+                return prev;
             });
+        };
+        const onHideLayer = (layerName: string) => {
+            setLayersVisibility((prev) => {
+                if (prev[layerName] === true) {
+                    const next = { ...prev };
+                    next[layerName] = false;
+                    return next;
+                }
+                return prev;
+            });
+        };
+        const onUpdateLayers = () => {
+            const visibility: { [key: string]: boolean } = {};
+            serviceLocator.layerManager._enabledLayers.forEach((layerName) => {
+                visibility[layerName] = serviceLocator.layerManager.layerIsVisible(layerName);
+            });
+            setLayersVisibility(visibility);
+        };
+        const onCacheDirty = () => setCacheNeedsSaving(true);
+        const onCacheClean = () => setCacheNeedsSaving(false);
+        const onDataUpdated = () => setDataNeedsUpdate(true);
+        const onTrRoutingStarted = () => setTrRoutingStarted(true);
+        const onTrRoutingStopped = () => setTrRoutingStarted(false);
+        const onNodesNeedUpdate = () => setNodesNeedUpdate(true);
+        const onNodesUpdated = () => setNodesNeedUpdate(false);
+
+        serviceLocator.eventManager.on('map.updateMouseCoordinates', onUpdateCoordinates);
+        serviceLocator.eventManager.on('map.showLayer', onShowLayer);
+        serviceLocator.eventManager.on('map.hideLayer', onHideLayer);
+        serviceLocator.eventManager.on('map.updatedEnabledLayers', onUpdateLayers);
+        serviceLocator.socketEventManager.on('cache.dirty', onCacheDirty);
+        serviceLocator.socketEventManager.on('cache.clean', onCacheClean);
+        serviceLocator.socketEventManager.on('data.updated', onDataUpdated);
+        serviceLocator.socketEventManager.on('service.trRouting.started', onTrRoutingStarted);
+        serviceLocator.socketEventManager.on('service.trRouting.stopped', onTrRoutingStopped);
+        serviceLocator.socketEventManager.on('connect', checkTrRoutingStatus);
+        serviceLocator.socketEventManager.on('transferableNodes.dirty', onNodesNeedUpdate);
+        serviceLocator.eventManager.on('transferableNodes.dirty', onNodesNeedUpdate);
+        serviceLocator.eventManager.on('transferableNodes.clean', onNodesUpdated);
+
+        checkTrRoutingStatus();
+
+        return () => {
+            serviceLocator.eventManager.off('map.updateMouseCoordinates', onUpdateCoordinates);
+            serviceLocator.eventManager.off('map.showLayer', onShowLayer);
+            serviceLocator.eventManager.off('map.hideLayer', onHideLayer);
+            serviceLocator.eventManager.off('map.updatedEnabledLayers', onUpdateLayers);
+            serviceLocator.socketEventManager.off('cache.dirty', onCacheDirty);
+            serviceLocator.socketEventManager.off('cache.clean', onCacheClean);
+            serviceLocator.socketEventManager.off('data.updated', onDataUpdated);
+            serviceLocator.socketEventManager.off('service.trRouting.started', onTrRoutingStarted);
+            serviceLocator.socketEventManager.off('service.trRouting.stopped', onTrRoutingStopped);
+            serviceLocator.socketEventManager.off('connect', checkTrRoutingStatus);
+            serviceLocator.socketEventManager.off('transferableNodes.dirty', onNodesNeedUpdate);
+            serviceLocator.eventManager.off('transferableNodes.dirty', onNodesNeedUpdate);
+            serviceLocator.eventManager.off('transferableNodes.clean', onNodesUpdated);
+        };
+    }, [checkTrRoutingStatus]);
+
+    const _restartTrRouting = useCallback(
+        (parameters: Record<string, unknown> = {}) => {
+            serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 0.0 });
+            serviceLocator.socketEventManager.emit(
+                'service.trRouting.restart',
+                parameters,
+                (response: { status: string }) => {
+                    if (response.status !== 'started' && response.status !== 'no_restart_required') {
+                        serviceLocator.eventManager.emit('error', {
+                            name: 'RestartTrRoutingError',
+                            error: response.status
+                        });
+                    }
+                    serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 1.0 });
+                    checkTrRoutingStatus();
+                }
+            );
+        },
+        [checkTrRoutingStatus]
+    );
+
+    const fetchData = useCallback(async () => {
+        try {
+            await loadLayersAndCollections({
+                serviceLocator,
+                agencyCollection: serviceLocator.collectionManager.get('agencies'),
+                scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
+                serviceCollection: serviceLocator.collectionManager.get('services'),
+                lineCollection: serviceLocator.collectionManager.get('lines'),
+                pathCollection: serviceLocator.collectionManager.get('paths'),
+                nodeCollection: serviceLocator.collectionManager.get('nodes'),
+                placeCollection: serviceLocator.collectionManager.get('places'),
+                simulationCollection: serviceLocator.collectionManager.get('simulations'),
+                dataSourceCollection: serviceLocator.collectionManager.get('dataSources')
+            });
+        } catch (error) {
+            console.error('Error loading layers and collections:', error);
+        } finally {
+            setDataNeedsUpdate(false);
         }
-    };
+    }, []);
 
-    onHideLayer = (layerName: string) => {
-        if (this.state.layersVisibility[layerName] === true) {
-            this.setState((oldState) => {
-                const newLayersVisibility = { ...oldState.layersVisibility };
-                newLayersVisibility[layerName] = false;
-                return {
-                    layersVisibility: newLayersVisibility
-                };
-            });
-        }
-    };
-
-    onUpdateCoordinates = (coordinates: [number, number]) => {
-        this.setState({
-            coordinates
-        });
-    };
-
-    onCacheDirty = () => {
-        this.setState({
-            cacheNeedsSaving: true
-        });
-    };
-
-    onCacheClean = () => {
-        this.setState({
-            cacheNeedsSaving: false
-        });
-    };
-
-    onDataUpdated = () => {
-        this.setState({ dataNeedsUpdate: true });
-    };
-
-    fetchData = () => {
-        loadLayersAndCollections({
-            serviceLocator,
-            agencyCollection: serviceLocator.collectionManager.get('agencies'),
-            scenarioCollection: serviceLocator.collectionManager.get('scenarios'),
-            serviceCollection: serviceLocator.collectionManager.get('services'),
-            //garageCollection: serviceLocator.collectionManager.get('garages'),
-            //unitCollection: serviceLocator.collectionManager.get('units'),
-            lineCollection: serviceLocator.collectionManager.get('lines'),
-            pathCollection: serviceLocator.collectionManager.get('paths'),
-            nodeCollection: serviceLocator.collectionManager.get('nodes'),
-            placeCollection: serviceLocator.collectionManager.get('places'),
-            simulationCollection: serviceLocator.collectionManager.get('simulations'),
-            dataSourceCollection: serviceLocator.collectionManager.get('dataSources')
-        });
-        this.setState({ dataNeedsUpdate: false });
-    };
-
-    onTrRoutingStarted = () => {
-        this.setState({
-            trRoutingStarted: true
-        });
-    };
-
-    onTrRoutingStopped = () => {
-        this.setState({
-            trRoutingStarted: false
-        });
-    };
-
-    onNodesNeedUpdate = () => {
-        this.setState({
-            nodesNeedUpdate: true
-        });
-    };
-
-    onNodesUpdated = () => {
-        this.setState({
-            nodesNeedUpdate: false
-        });
-    };
-
-    checkTrRoutingStatus = () => {
-        serviceLocator.socketEventManager.emit('service.trRouting.status', {}, (response: { status: any }) => {
-            this.setState({
-                trRoutingStarted: response.status === 'started'
-            });
-        });
-    };
-
-    saveAllCache = () => {
+    const saveAllCache = useCallback(() => {
         serviceLocator.eventManager.emit('progress', { name: 'SavingAllCache', progress: 0.0 });
         serviceLocator.socketEventManager.emit('cache.saveAll', () => {
             serviceLocator.eventManager.emit('progress', { name: 'SavingAllCache', progress: 1.0 });
-            this._restartTrRouting({ doNotStartIfStopped: true });
+            _restartTrRouting({ doNotStartIfStopped: true });
         });
-    };
+    }, [_restartTrRouting]);
 
-    saveAndUpdateNodes = () => {
+    const saveAndUpdateNodes = useCallback(() => {
         serviceLocator.socketEventManager.emit(
             'transitNodes.updateTransferableNodes',
             (status: Status.Status<number>) => {
                 if (Status.isStatusOk(status)) {
-                    this.setState({ nodesNeedUpdate: false });
+                    setNodesNeedUpdate(false);
                 } else {
                     console.error(`Error updating transferrable nodes: ${status.error}`);
-                    serviceLocator.eventManager.emit('progress', { name: 'UpdatingTransferableNodes', progress: 1.0 });
+                    serviceLocator.eventManager.emit('progress', {
+                        name: 'UpdatingTransferableNodes',
+                        progress: 1.0
+                    });
                 }
             }
         );
-    };
+    }, []);
 
-    _restartTrRouting = (parameters = {}) => {
-        serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 0.0 });
-        serviceLocator.socketEventManager.emit('service.trRouting.restart', parameters, (response) => {
-            if (response.status !== 'started' && response.status !== 'no_restart_required') {
-                serviceLocator.eventManager.emit('error', { name: 'RestartTrRoutingError', error: response.status });
-            }
-            serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 1.0 });
-            this.checkTrRoutingStatus();
-        });
-    };
+    const restartTrRouting = useCallback(() => {
+        _restartTrRouting({});
+    }, [_restartTrRouting]);
 
-    restartTrRouting = () => {
-        this._restartTrRouting({});
-    };
+    return (
+        <React.Fragment>
+            {coordinates && coordinates.length === 2 && (
+                <div className="tr__top-menu-buttons-container _small _pale">
+                    <span style={{ width: '8rem' }}>{roundToDecimals(coordinates[0], 5)!.toFixed(5)},</span>
+                    <span style={{ width: '7rem' }}>{roundToDecimals(coordinates[1], 5)!.toFixed(5)}</span>
+                </div>
+            )}
 
-    render() {
-        return (
-            <React.Fragment>
-                {this.state.coordinates && this.state.coordinates.length === 2 && (
-                    <div className="tr__top-menu-buttons-container _small _pale">
-                        <span style={{ width: '8rem' }}>
-                            {roundToDecimals(this.state.coordinates[0], 5)!.toFixed(5)},
-                        </span>
-                        <span style={{ width: '7rem' }}>
-                            {roundToDecimals(this.state.coordinates[1], 5)!.toFixed(5)}
-                        </span>
-                    </div>
+            <Menu className="tr__top-menu-buttons-container">
+                {dataNeedsUpdate && (
+                    <MenuItem
+                        key="tr__top-menu-button-fetch-data"
+                        title={t('transit:FetchNewData')}
+                        className="tr__top-menu-button"
+                        onClick={fetchData}
+                    >
+                        <img
+                            className="_icon"
+                            src={'/dist/images/icons/interface/download_cloud_yellow.svg'}
+                            alt={t('transit:FetchNewData')}
+                            title={t('transit:FetchNewData')}
+                        />
+                    </MenuItem>
+                )}
+                {layersVisibility.transitPaths === true && (
+                    <MenuItem
+                        key="tr__top-menu-button-hide-paths"
+                        title={t('transit:transitPath:HidePaths')}
+                        className="tr__top-menu-button"
+                        onClick={() => serviceLocator.eventManager.emit('map.hideLayer', 'transitPaths')}
+                    >
+                        <img
+                            className="_icon"
+                            src={`/dist/images/icons/transit/paths_visible_${iconVariant}.svg`}
+                            alt={t('transit:transitPath:HidePaths')}
+                            title={t('transit:transitPath:HidePaths')}
+                        />
+                    </MenuItem>
+                )}
+                {layersVisibility.transitPaths === false && (
+                    <MenuItem
+                        key="tr__top-menu-button-show-paths"
+                        title={t('transit:transitPath:ShowPaths')}
+                        className="tr__top-menu-button"
+                        onClick={() => serviceLocator.eventManager.emit('map.showLayer', 'transitPaths')}
+                    >
+                        <img
+                            className="_icon"
+                            src={`/dist/images/icons/transit/paths_hidden_${iconVariant}.svg`}
+                            alt={t('transit:transitPath:ShowPaths')}
+                            title={t('transit:transitPath:ShowPaths')}
+                        />
+                    </MenuItem>
+                )}
+                {layersVisibility.transitNodes === true && (
+                    <MenuItem
+                        key="tr__top-menu-button-hide-nodes"
+                        title={t('transit:transitNode:HideNodes')}
+                        className="tr__top-menu-button"
+                        onClick={() => serviceLocator.eventManager.emit('map.hideLayer', 'transitNodes')}
+                    >
+                        <img
+                            className="_icon"
+                            src={`/dist/images/icons/transit/nodes_visible_${iconVariant}.svg`}
+                            alt={t('transit:transitNode:HideNodes')}
+                            title={t('transit:transitNode:HideNodes')}
+                        />
+                    </MenuItem>
+                )}
+                {layersVisibility.transitNodes === false && (
+                    <MenuItem
+                        key="tr__top-menu-button-show-nodes"
+                        title={t('transit:transitNode:ShowNodes')}
+                        className="tr__top-menu-button"
+                        onClick={() => serviceLocator.eventManager.emit('map.showLayer', 'transitNodes')}
+                    >
+                        <img
+                            className="_icon"
+                            src={`/dist/images/icons/transit/nodes_hidden_${iconVariant}.svg`}
+                            alt={t('transit:transitNode:ShowNodes')}
+                            title={t('transit:transitNode:ShowNodes')}
+                        />
+                    </MenuItem>
                 )}
 
-                <Menu className="tr__top-menu-buttons-container">
-                    {this.state.dataNeedsUpdate && (
-                        <MenuItem
-                            key="tr__top-menu-button-fetch-data"
-                            title={this.props.t('transit:FetchNewData')}
-                            className="tr__top-menu-button"
-                            onClick={this.fetchData}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/interface/download_cloud_yellow.svg'}
-                                alt={this.props.t('transit:FetchNewData')}
-                                title={this.props.t('transit:FetchNewData')}
-                            />
-                        </MenuItem>
-                    )}
-                    {this.state.layersVisibility.transitPaths === true && (
-                        <MenuItem
-                            key="tr__top-menu-button-hide-paths"
-                            title={this.props.t('transit:transitPath:HidePaths')}
-                            className="tr__top-menu-button"
-                            onClick={function () {
-                                serviceLocator.eventManager.emit('map.hideLayer', 'transitPaths');
-                            }}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/transit/paths_visible_white.svg'}
-                                alt={this.props.t('transit:transitPath:HidePaths')}
-                                title={this.props.t('transit:transitPath:HidePaths')}
-                            />
-                        </MenuItem>
-                    )}
-                    {this.state.layersVisibility.transitPaths === false && (
-                        <MenuItem
-                            key="tr__top-menu-button-show-paths"
-                            title={this.props.t('transit:transitPath:ShowPaths')}
-                            className="tr__top-menu-button"
-                            onClick={function () {
-                                serviceLocator.eventManager.emit('map.showLayer', 'transitPaths');
-                            }}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/transit/paths_hidden_white.svg'}
-                                alt={this.props.t('transit:transitPath:ShowPaths')}
-                                title={this.props.t('transit:transitPath:ShowPaths')}
-                            />
-                        </MenuItem>
-                    )}
-                    {this.state.layersVisibility.transitNodes === true && (
-                        <MenuItem
-                            key="tr__top-menu-button-hide-nodes"
-                            title={this.props.t('transit:transitNode:HideNodes')}
-                            className="tr__top-menu-button"
-                            onClick={function () {
-                                serviceLocator.eventManager.emit('map.hideLayer', 'transitNodes');
-                            }}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/transit/nodes_visible_white.svg'}
-                                alt={this.props.t('transit:transitNode:HideNodes')}
-                                title={this.props.t('transit:transitNode:HideNodes')}
-                            />
-                        </MenuItem>
-                    )}
-                    {this.state.layersVisibility.transitNodes === false && (
-                        <MenuItem
-                            key="tr__top-menu-button-show-nodes"
-                            title={this.props.t('transit:transitNode:ShowNodes')}
-                            className="tr__top-menu-button"
-                            onClick={function () {
-                                serviceLocator.eventManager.emit('map.showLayer', 'transitNodes');
-                            }}
-                        >
-                            <img
-                                className="_icon"
-                                src={'/dist/images/icons/transit/nodes_hidden_white.svg'}
-                                alt={this.props.t('transit:transitNode:ShowNodes')}
-                                title={this.props.t('transit:transitNode:ShowNodes')}
-                            />
-                        </MenuItem>
-                    )}
+                <MenuItem
+                    key="tr__top-menu-button-save-and-update-nodes"
+                    title={t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
+                    className="tr__top-menu-button"
+                    onClick={saveAndUpdateNodes}
+                >
+                    <img
+                        className="_icon"
+                        src={
+                            nodesNeedUpdate
+                                ? '/dist/images/icons/transit/transfer_refresh_yellow.svg'
+                                : `/dist/images/icons/transit/transfer_refresh_${iconVariant}.svg`
+                        }
+                        alt={t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
+                        title={t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
+                    />
+                </MenuItem>
+                <MenuItem
+                    key="tr__top-menu-button-save-all-cache"
+                    title={t('main:SaveAllData')}
+                    className="tr__top-menu-button"
+                    onClick={saveAllCache}
+                >
+                    <img
+                        className="_icon"
+                        src={
+                            cacheNeedsSaving
+                                ? '/dist/images/icons/interface/download_cloud_yellow.svg'
+                                : `/dist/images/icons/interface/download_cloud_${iconVariant}.svg`
+                        }
+                        alt={t('main:SaveAllData')}
+                        title={t('main:SaveAllData')}
+                    />
+                </MenuItem>
+                <MenuItem
+                    key="tr__top-menu-button-restart-tr-routing"
+                    title={t('main:RestartTrRouting')}
+                    className="tr__top-menu-button"
+                    onClick={restartTrRouting}
+                >
+                    <img
+                        className="_icon"
+                        src={
+                            !trRoutingStarted
+                                ? '/dist/images/icons/interface/restart_routing_yellow.svg'
+                                : `/dist/images/icons/interface/restart_routing_${iconVariant}.svg`
+                        }
+                        alt={t('main:RestartTrRouting')}
+                        title={t('main:RestartTrRouting')}
+                    />
+                </MenuItem>
+            </Menu>
+        </React.Fragment>
+    );
+};
 
-                    <MenuItem
-                        key="tr__top-menu-button-save-and-update-nodes"
-                        title={this.props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
-                        className="tr__top-menu-button"
-                        onClick={this.saveAndUpdateNodes}
-                    >
-                        <img
-                            className="_icon"
-                            src={
-                                this.state.nodesNeedUpdate
-                                    ? '/dist/images/icons/transit/transfer_refresh_yellow.svg'
-                                    : '/dist/images/icons/transit/transfer_refresh_white.svg'
-                            }
-                            alt={this.props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
-                            title={this.props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
-                        />
-                    </MenuItem>
-                    <MenuItem
-                        key="tr__top-menu-button-save-all-cache"
-                        title={this.props.t('main:SaveAllData')}
-                        className="tr__top-menu-button"
-                        onClick={this.saveAllCache}
-                    >
-                        <img
-                            className="_icon"
-                            src={
-                                this.state.cacheNeedsSaving
-                                    ? '/dist/images/icons/interface/download_cloud_yellow.svg'
-                                    : '/dist/images/icons/interface/download_cloud_white.svg'
-                            }
-                            alt={this.props.t('main:SaveAllData')}
-                            title={this.props.t('main:SaveAllData')}
-                        />
-                    </MenuItem>
-                    <MenuItem
-                        key="tr__top-menu-button-restart-tr-routing"
-                        title={this.props.t('main:RestartTrRouting')}
-                        className="tr__top-menu-button"
-                        onClick={this.restartTrRouting}
-                    >
-                        <img
-                            className="_icon"
-                            src={
-                                !this.state.trRoutingStarted
-                                    ? '/dist/images/icons/interface/restart_routing_yellow.svg'
-                                    : '/dist/images/icons/interface/restart_routing_white.svg'
-                            }
-                            alt={this.props.t('main:RestartTrRouting')}
-                            title={this.props.t('main:RestartTrRouting')}
-                        />
-                    </MenuItem>
-                </Menu>
-            </React.Fragment>
-        );
-    }
-}
-
-export default withTranslation(['transit', 'main', 'od', 'notifications'])(Toolbar);
+export default Toolbar;

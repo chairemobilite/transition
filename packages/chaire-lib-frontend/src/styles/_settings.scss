@@ -1,63 +1,64 @@
 // Colors
-$background-color:   rgb(29, 31, 33);
-$text-default-color: rgba(216, 239, 253, 0.7);
-$text-active-color:  rgba(216, 239, 253,1.0);
-$link-default-color: rgba(80, 195, 253, 0.7);
-$link-active-color:  rgba(140, 217, 255, 0.8);
-$overlay-white:      rgba(216, 239, 253, 0.05);
-$overlay-dark:       rgb(3, 7, 12);
-$overlay-active:     rgb(0, 46, 114);
-$border-white:       rgba(255,255,255,0.2);
-
-$input: rgba(164, 213, 255, 0.85);
-$input-disabled: rgba(163, 179, 193, 0.85);
-$blue: rgba(0, 143, 214, 1.0);
-$blue-semi-transparent: rgba(0, 143, 214, 0.5);
-$blue-very-transparent: rgba(0, 143, 214, 0.2);
-$dark-blue: rgba(51, 90, 124, 1.0);
-$radio: rgba(73, 64, 44, 0.7);
-$label: rgba(207, 224, 232, 0.85);
-$error: rgba(206, 93, 93, 1.0);
-$red: rgba(206, 93, 93, 1.0);
-$dark-red: rgba(130, 43, 43, 1.0);
-$orange: rgba(240, 122, 26, 1.0);
-$green: rgba(131, 170, 39, 1.0);
-$dark-green: rgba(70, 100, 9, 1.0);
-
-// Button colors
-$button-green: #468024;
-$button-green-gradient-top: #9bc95f;
-$button-green-gradient-bottom: #5f8f38;
-$button-green-border: #e2f0cc;
-$button-red: #921617;
-$button-red-gradient-top: #d97a5f;
-$button-red-gradient-bottom: #b9312e;
-$button-red-border: #ecdcd8;
-$button-blue: #264d9b;
-$button-blue-gradient-top: #6486bd;
-$button-blue-gradient-bottom: #42578d;
-$button-blue-border: #d1dbe5;
-$button-grey: #5c5c5c;
-$button-grey-gradient-top: #8b8b8b;
-$button-grey-gradient-bottom: #595959;
-$button-grey-border: #dfdfdf;
+$background-color: light-dark(rgb(248, 249, 251), rgb(29, 31, 33));
+$text-default-color: light-dark(rgba(33, 37, 41, 0.88), rgba(216, 239, 253, 0.7));
+$text-active-color: light-dark(rgb(33, 37, 41), rgba(216, 239, 253, 1));
+$link-default-color: light-dark(rgb(0, 90, 156), rgba(80, 195, 253, 0.7));
+$link-active-color: light-dark(rgb(0, 65, 120), rgba(140, 217, 255, 0.8));
+$overlay-white: light-dark(rgba(0, 0, 0, 0.04), rgba(216, 239, 253, 0.05));
+$overlay-dark: light-dark(rgb(235, 237, 240), rgb(3, 7, 12));
+$overlay-active: light-dark(rgba(0, 90, 156, 0.12), rgb(0, 46, 114));
+$border-white: light-dark(rgba(0, 0, 0, 0.12), rgba(255, 255, 255, 0.2));
 
 // Form colors
-$input-background: rgba(0,0,0,1.0);
-$invalid-background: rgba(36, 2, 2, 1.0);
-$invalid-border: rgba(214, 77, 77, 0.9);
+$input: light-dark(rgba(33, 37, 41, 0.95), rgba(164, 213, 255, 0.85));
+$input-disabled: light-dark(rgba(33, 37, 41, 0.5), rgba(163, 179, 193, 0.85));
+$blue: light-dark(rgb(0, 95, 184), rgba(0, 143, 214, 1));
+$blue-semi-transparent: light-dark(rgba(0, 95, 184, 0.5), rgba(0, 143, 214, 0.5));
+$blue-very-transparent: light-dark(rgba(0, 95, 184, 0.2), rgba(0, 143, 214, 0.2));
+$dark-blue: light-dark(rgb(30, 60, 95), rgba(51, 90, 124, 1));
+$radio: light-dark(rgba(33, 37, 41, 0.9), rgba(73, 64, 44, 0.7));
+$label: light-dark(rgba(33, 37, 41, 0.9), rgba(207, 224, 232, 0.85));
+$error: light-dark(rgb(180, 40, 40), rgba(206, 93, 93, 1));
+$red: light-dark(rgb(180, 40, 40), rgba(206, 93, 93, 1));
+$dark-red: light-dark(rgb(120, 30, 30), rgba(130, 43, 43, 1));
+$orange: light-dark(rgb(200, 85, 10), rgba(240, 122, 26, 1));
+$green: light-dark(rgb(60, 120, 30), rgba(131, 170, 39, 1));
+$dark-green: light-dark(rgb(40, 80, 15), rgba(70, 100, 9, 1));
+
+// Button colors
+$button-green: light-dark(#3d701f, #468024);
+$button-green-gradient-top: light-dark(#7ab34d, #9bc95f);
+$button-green-gradient-bottom: light-dark(#4a7b2a, #5f8f38);
+$button-green-border: light-dark(#5f8f38, #e2f0cc);
+$button-red: light-dark(#7a1212, #921617);
+$button-red-gradient-top: light-dark(#c45a4a, #d97a5f);
+$button-red-gradient-bottom: light-dark(#8b2019, #b9312e);
+$button-red-border: light-dark(#b9312e, #ecdcd8);
+$button-blue: light-dark(#1e3d82, #264d9b);
+$button-blue-gradient-top: light-dark(#4a6ba8, #6486bd);
+$button-blue-gradient-bottom: light-dark(#1e3a7a, #42578d);
+$button-blue-border: light-dark(#42578d, #d1dbe5);
+$button-grey: light-dark(#4a4a4a, #5c5c5c);
+$button-grey-gradient-top: light-dark(#6b6b6b, #8b8b8b);
+$button-grey-gradient-bottom: light-dark(#3d3d3d, #595959);
+$button-grey-border: light-dark(#6b6b6b, #dfdfdf);
+
+// Form colors
+$input-background: light-dark(rgb(255, 255, 255), rgba(0, 0, 0, 1));
+$invalid-background: light-dark(rgba(255, 220, 220, 0.5), rgba(36, 2, 2, 1));
+$invalid-border: light-dark(rgba(180, 40, 40, 0.7), rgba(214, 77, 77, 0.9));
 
 // Panel colors
-$section-heading-backgroud: rgba(51, 90, 124, 0.3);
+$section-heading-backgroud: light-dark(rgba(0, 90, 156, 0.08), rgba(51, 90, 124, 0.3));
 
 // Font Size
-$font-size-xlarge:  2.6rem;
-$font-size-large:  2.2rem;
+$font-size-xlarge: 2.6rem;
+$font-size-large: 2.2rem;
 $font-size-medium-large: 1.9rem;
 $font-size-medium: 1.7rem;
-$font-size-small:  1.6rem;
-$font-size-xsmall:  1.5rem;
-$font-size-xxsmall:  1.4rem;
+$font-size-small: 1.6rem;
+$font-size-xsmall: 1.5rem;
+$font-size-xxsmall: 1.4rem;
 
 // Spacing
 $xxxxs-size: 0.1rem;
