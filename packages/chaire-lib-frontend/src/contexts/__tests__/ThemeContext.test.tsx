@@ -89,9 +89,7 @@ describe('ThemeContext', () => {
 
         test('Context updates when matchMedia change listener is invoked', () => {
             systemPrefersDark = false;
-            (Preferences.get as jest.Mock).mockImplementation((path: string) =>
-                path === 'isDarkTheme' ? undefined : undefined
-            );
+            (Preferences.get as jest.Mock).mockImplementation(() => undefined);
             Object.defineProperty(window, 'matchMedia', {
                 value: jest.fn().mockImplementation(() => ({
                     get matches() {

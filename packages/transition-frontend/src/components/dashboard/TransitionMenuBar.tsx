@@ -18,12 +18,14 @@ import config from 'chaire-lib-common/lib/config/shared/project.config';
 const MenuBar: React.FunctionComponent<LayoutSectionProps> = (props) => {
     const { t } = useTranslation(['transit', 'main', 'form']);
     // Get the sections configuration
-    const sectionsConfig = config.sections;
+    const sectionsConfig = config.sections ?? {};
 
     // Get the current theme (light or dark)
     const theme = use(ThemeContext);
-    const sectionIcon = (sectionShortname: string) =>
-        theme === 'dark' ? sectionsConfig[sectionShortname].iconWhite : sectionsConfig[sectionShortname].iconBlack;
+    const sectionIcon = (sectionShortname: string): string => {
+        const section = sectionsConfig[sectionShortname];
+        return theme === 'dark' ? section.iconWhite : section.iconBlack;
+    };
 
     const onClickHandler = function (e) {
         e.preventDefault();
