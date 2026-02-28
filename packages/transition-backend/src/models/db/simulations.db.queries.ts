@@ -22,6 +22,7 @@ import {
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationAttributes, SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
+import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 
 const tableName = 'tr_simulations';
 
@@ -71,8 +72,8 @@ const attributesParser = ({
                 transitNetworkDesignParameters === undefined &&
                 simulationParameters !== undefined &&
                 simulationParameters !== null
-                    ? simulationParameters
-                    : transitNetworkDesignParameters
+                    ? (simulationParameters as TransitNetworkDesignParameters)
+                    : (transitNetworkDesignParameters as TransitNetworkDesignParameters)
         },
         ...rest
     };

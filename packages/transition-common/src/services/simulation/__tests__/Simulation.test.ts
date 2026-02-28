@@ -165,7 +165,7 @@ test('should construct new simulations and set default algorithm values', functi
     attributes.data.algorithmConfiguration = {
         // Using 'mockAlgorithm' as mock algorithm type, cast to any for test to compile
         type: 'mockAlgorithm' as any,
-        config: {}
+        config: {} as any
     }
     const simulation1 = new Simulation(attributes, true);
     expect(Object.keys(simulation1.attributes.data.algorithmConfiguration?.config || {}).length).toEqual(Object.keys(stubAlgorithm.getOptions()).length);
