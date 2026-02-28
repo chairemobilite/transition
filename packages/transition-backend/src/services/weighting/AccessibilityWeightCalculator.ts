@@ -20,7 +20,7 @@ import {
     WeightingRoutingMode,
     AccessibilityWeights,
     WeightDecayInputType
-} from './types';
+} from 'transition-common/lib/services/weighting/types';
 import {
     getPOIsWithinBirdDistanceFromPlaces,
     getPOIsWithinBirdDistanceFromNodes

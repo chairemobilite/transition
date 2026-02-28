@@ -17,7 +17,7 @@ import {
     DecayInputValue,
     MIN_DISTANCE_METERS,
     MIN_TRAVEL_TIME_SECONDS
-} from './types';
+} from 'transition-common/lib/services/weighting/types';
 
 /**
  * Calculator for distance and time decay functions used in gravity-based
