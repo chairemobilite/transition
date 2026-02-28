@@ -272,8 +272,8 @@ export default class OdTripSimulation implements SimulationMethod {
             scenarioId: scenarioId
         };
 
-        // Fetch memcached information from global job
-        const memcachedServer = this.jobWrapper.getMemcachedInstance()?.getServer();
+        // Memcached: from config (external server) if set, otherwise from app-started instance
+        const memcachedServer = this.jobWrapper.getMemcachedServer();
 
         // Create the batch routing job as a child of the current job
         const routingJob: ExecutableJob<BatchRouteJobType> = await this.jobWrapper.job.createChildJob({

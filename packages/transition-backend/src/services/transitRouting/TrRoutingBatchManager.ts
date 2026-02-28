@@ -81,8 +81,9 @@ export class TrRoutingBatchManager {
             // Make sure TrRouting is stopped before restarting
             await TrRoutingProcessManager.stopBatch();
 
-            // Determine memcached server: options > start new one
-            let memcachedServer = options?.memcachedServer;
+            // Determine memcached server: options > config > start new one
+            const configMemcachedServer = serverConfig.routing?.transit?.engines?.trRouting?.batch?.memcachedServer;
+            let memcachedServer = options?.memcachedServer ?? configMemcachedServer;
 
             if (!memcachedServer) {
                 // Start our own memcached instance

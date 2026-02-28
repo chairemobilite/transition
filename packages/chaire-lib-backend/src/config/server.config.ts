@@ -46,6 +46,14 @@ export type TrRoutingConfig = {
          */
         maxFileSizeKB?: number;
     };
+    /**
+     * Memcached server URL for trRouting batch (e.g. 'localhost:11212').
+     * Used only for the batch engine. When set, the application will not start
+     * or stop memcached; it will use this existing server so cache persists
+     * between trRouting restarts. When not set, a memcached instance is started
+     * and stopped with each batch job.
+     */
+    memcachedServer?: string;
     // FIXME Do we need to configure a host here? If so, we need to properly
     // support it in both batch and single calculation
 };

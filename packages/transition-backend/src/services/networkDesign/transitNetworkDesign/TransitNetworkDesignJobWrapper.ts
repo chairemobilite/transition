@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 
 import config from 'chaire-lib-backend/lib/config/server.config';
+import serverConfig from 'chaire-lib-backend/lib/config/ServerConfig';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -127,6 +128,12 @@ export class TransitNetworkDesignJobWrapper<
 
     getMemcachedInstance = (): MemcachedInstance | undefined | null => {
         return this.memcachedInstance;
+    };
+
+    /** Memcached server URL for trRouting: config if set (external), else app-started instance when the job started one. */
+    getMemcachedServer = (): string | undefined => {
+        const batchConfig = serverConfig.getTrRoutingConfig('batch') as { memcachedServer?: string };
+        return batchConfig.memcachedServer ?? this.memcachedInstance?.getServer();
     };
 
     loadServerData = async (socket: EventEmitter): Promise<void> => {

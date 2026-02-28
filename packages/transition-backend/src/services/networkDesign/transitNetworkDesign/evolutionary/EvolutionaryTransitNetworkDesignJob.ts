@@ -49,6 +49,7 @@ import {
     loadAndSaveServicesToCache
 } from '../../../capnpCache/dbToCache';
 import MemcachedProcessManager from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
+import serverConfig from 'chaire-lib-backend/lib/config/serverConfig';
 
 const CANDIDATE_LINES_RESULTS_CSV_FILE_PREFIX = 'ndCandidateLinesResults';
 const CANDIDATE_SIMULATION_RESULTS_CSV_FILE_PREFIX = 'ndCandidateSimulationResults';
@@ -201,6 +202,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         return this.currentIteration > (this.options.numberOfGenerations || 0);
     };
     private _startMemcached = async (): Promise<void> => {
+        if (serverConfig.getTrRoutingConfig('batch').memcachedServer) {
+            return;
+        }
         const instance = await MemcachedProcessManager.start();
         if (instance) {
             this.memcachedInstance = instance;
