@@ -380,6 +380,7 @@
         "New": "Nouveau parcours",
         "Edit": "Parcours",
         "Delete": "Supprimer le parcours",
+        "FitBoundsToPath": "Ajuster les limites de la carte au parcours",
         "ConfirmDelete": "Confirmez-vous que vous désirez bien supprimer ce parcours? les horaires associés seront désactivés",
         "ImportFromGeojson": "Importer des parcours (GEOJSON)",
         "InternalId": "ID interne",
