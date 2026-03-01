@@ -57,8 +57,8 @@ const defaultSectionsConfig = {
     },
     networkDesign: {
         localizedTitle: 'transit:networkDesign:NetworkDesign',
-        iconWhite: '/dist/images/icons/interface/networkDesign_white.svg',
-        iconBlack: '/dist/images/icons/interface/networkDesign_black.svg', // FIXME This file is missing, need to create it
+        iconWhite: '/dist/images/icons/interface/simulation_white.svg',
+        iconBlack: '/dist/images/icons/interface/simulation_black.svg',
         enabled: true // TODO Do not enable yet in main branche!! Until everything is well documented and functional
     },
     gtfsImport: {

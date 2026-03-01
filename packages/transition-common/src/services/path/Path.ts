@@ -1279,11 +1279,17 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return null;
     }
 
+    /**
+     * Sum of node weights along this path (from node_weights / properties.data.weight or attributes.data.weight).
+     * Used with cycle time for vehicle attribution in network design (higher weight × cycle time → more vehicles).
+     */
     getTotalWeight() {
         let totalWeight = 0;
         (this.attributes.nodes || []).forEach((nodeId) => {
-            const nodeWeight = _get(this._collectionManager?.get('nodes').getById(nodeId), 'properties.data.weight', 1);
-            totalWeight += nodeWeight;
+            const node = this._collectionManager?.get('nodes').getById(nodeId);
+            const nodeWeight =
+                (node && (_get(node, 'attributes.data.weight') ?? _get(node, 'properties.data.weight'))) || 1;
+            totalWeight += typeof nodeWeight === 'number' && Number.isFinite(nodeWeight) ? nodeWeight : 0;
         });
         return totalWeight;
     }

@@ -115,8 +115,12 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes });
         jobProgressEmitter.emit('executableJob.updated', { id, name: attributes.name });
         const job = new ExecutableJob<TData>({ id, status: 'pending', internal_data: {}, ...attributes });
+        const jobDir = job.getJobFileDirectory();
+        if (!fs.existsSync(jobDir)) {
+            fs.mkdirSync(jobDir, { recursive: true });
+        }
         toCopy.forEach(({ filePath, jobFileName }) =>
-            fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
+            fileManager.copyFileAbsolute(filePath, `${jobDir}/${jobFileName}`, true)
         );
         return job;
     }
