@@ -150,6 +150,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
 
         // todo: update this for other modes:
         // TODO: Get the actual number of vehicles for this scenario, may not be exactly the same as nbOfVehicles
+        // TODO: type the attributes coorectly for simulations, because BatchCalculationParameters does not include nbOfVehicles
         const operatingHourlyCost =
             ((this.job.attributes.data.parameters.transitRoutingAttributes as any).nbOfVehicles || 1) * 120;
 
