@@ -887,6 +887,23 @@
         "errors": {
             "MissingDemandCsvFile": "Missing demand csv file"
         },
+        "nodeWeighting": {
+            "decayParameters": "Decay parameters",
+            "decayTypeLabel": "Decay type",
+            "decayType": {
+                "power": "Power",
+                "exponential": "Exponential",
+                "gamma": "Gamma",
+                "combined": "Combined",
+                "logistic": "Logistic"
+            },
+            "decayBeta": "Decay beta",
+            "errors": {
+                "decayTypeInvalid": "Decay type must be one of: power, exponential, gamma, combined, logistic.",
+                "decayBetaRequired": "Beta is required for this decay type.",
+                "decayBetaInvalid": "Beta must be greater than 0."
+            }
+        },
         "evolutionaryAlgorithm": {
             "LineAndNumberOfVehiclesGASimulation": "Genetic algorithm with lines and number of vehicles",
             "PopulationSizeMin": "Minimum population size",

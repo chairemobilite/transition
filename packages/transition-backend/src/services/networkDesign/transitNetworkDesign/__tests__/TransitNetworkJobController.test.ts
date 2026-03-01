@@ -12,19 +12,33 @@ import {
 } from '../TransitNetworkJobController';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import { ExecutableJobUtils } from '../../../executableJob/ExecutableJobUtils';
-import type { EvolutionaryTransitNetworkDesignJob } from '../evolutionary/types';
+import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
+import {
+    type EvolutionaryTransitNetworkDesignJob,
+    NODE_WEIGHTS_OUTPUT_FILENAME
+} from '../evolutionary/types';
 
 jest.mock('../../../executableJob/ExecutableJob');
 jest.mock('../../../executableJob/ExecutableJobUtils');
+jest.mock('chaire-lib-backend/lib/utils/filesystem/fileManager', () => ({
+    fileManager: {
+        fileExistsAbsolute: jest.fn()
+    }
+}));
 
 const mockLoadTask = ExecutableJob.loadTask as jest.MockedFunction<typeof ExecutableJob.loadTask>;
 const mockCreateJob = ExecutableJob.createJob as jest.MockedFunction<typeof ExecutableJob.createJob>;
 const mockPrepareJobFiles = ExecutableJobUtils.prepareJobFiles as jest.MockedFunction<
     typeof ExecutableJobUtils.prepareJobFiles
 >;
+const mockFileExistsAbsolute = fileManager.fileExistsAbsolute as jest.MockedFunction<
+    typeof fileManager.fileExistsAbsolute
+>;
 
 function makeOdTripParams(overrides: {
-    demandCsvFile?: { location: 'upload'; filename: string; uploadFilename: string };
+    demandCsvFile?:
+        | { location: 'upload'; filename: string; uploadFilename: string }
+        | { location: 'job'; jobId: number; fileKey: string };
     nodeWeighting?: {
         weightingEnabled: boolean;
         weightingSource: 'sameFile' | 'separateFile';
@@ -73,6 +87,7 @@ describe('TransitNetworkJobController', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockPrepareJobFiles.mockResolvedValue('/resolved/path/file.csv');
+        mockFileExistsAbsolute.mockReturnValue(false);
     });
 
     describe('getParametersFromTransitNetworkDesignJob', () => {
@@ -151,52 +166,84 @@ describe('TransitNetworkJobController', () => {
     });
 
     describe('createAndEnqueueTransitNetworkDesignJob', () => {
-        test('adds nodeWeight file to inputFiles when node weighting enabled with separateFile', async () => {
-            const params = makeOdTripParams({
-                nodeWeighting: {
-                    weightingEnabled: true,
-                    weightingSource: 'separateFile',
-                    weightingFileAttributes: {
-                        fileAndMapping: {
-                            csvFile: {
-                                location: 'upload',
-                                filename: 'weighting_poi.csv',
-                                uploadFilename: 'weighting_upload.csv'
+        test.each<
+            [
+                string,
+                {
+                    nodeWeighting: {
+                        weightingEnabled: boolean;
+                        weightingSource: 'sameFile' | 'separateFile';
+                        weightingFileAttributes?:
+                            | {
+                                fileAndMapping: {
+                                    csvFile: {
+                                        location: 'upload';
+                                        filename: string;
+                                        uploadFilename: string;
+                                    };
+                                };
+                            }
+                            | undefined;
+                    };
+                    expectedCalls: number;
+                    expectNodeWeight: boolean;
+                }
+            ]
+        >([
+            [
+                'adds nodeWeight file when node weighting enabled with separateFile',
+                {
+                    nodeWeighting: {
+                        weightingEnabled: true,
+                        weightingSource: 'separateFile',
+                        weightingFileAttributes: {
+                            fileAndMapping: {
+                                csvFile: {
+                                    location: 'upload',
+                                    filename: 'weighting_poi.csv',
+                                    uploadFilename: 'weighting_upload.csv'
+                                }
                             }
                         }
-                    }
+                    },
+                    expectedCalls: 2,
+                    expectNodeWeight: true
                 }
-            }) as any;
-            let capturedInputFiles: Record<string, unknown> = {};
-            mockCreateJob.mockImplementation(async (opts: any) => {
-                capturedInputFiles = opts.inputFiles ?? {};
-                return { enqueue: jest.fn(), refresh: jest.fn() } as any;
-            });
-
-            await createAndEnqueueTransitNetworkDesignJob(params, eventEmitter, userId);
-
-            // Once for transitDemand, once for nodeWeight (separate weighting file)
-            expect(mockPrepareJobFiles).toHaveBeenCalledTimes(2);
-            expect(capturedInputFiles).toHaveProperty('transitDemand');
-            expect(capturedInputFiles).toHaveProperty('nodeWeight');
-        });
-
-        test('does not add nodeWeight file when node weighting disabled', async () => {
-            const params = makeOdTripParams({
-                nodeWeighting: {
-                    weightingEnabled: false,
-                    weightingSource: 'separateFile',
-                    weightingFileAttributes: {
-                        fileAndMapping: {
-                            csvFile: {
-                                location: 'upload',
-                                filename: 'poi.csv',
-                                uploadFilename: 'poi_upload.csv'
+            ],
+            [
+                'does not add nodeWeight file when node weighting disabled',
+                {
+                    nodeWeighting: {
+                        weightingEnabled: false,
+                        weightingSource: 'separateFile',
+                        weightingFileAttributes: {
+                            fileAndMapping: {
+                                csvFile: {
+                                    location: 'upload',
+                                    filename: 'poi.csv',
+                                    uploadFilename: 'poi_upload.csv'
+                                }
                             }
                         }
-                    }
+                    },
+                    expectedCalls: 1,
+                    expectNodeWeight: false
                 }
-            }) as any;
+            ],
+            [
+                'does not add nodeWeight file when weightingSource is sameFile',
+                {
+                    nodeWeighting: {
+                        weightingEnabled: true,
+                        weightingSource: 'sameFile',
+                        weightingFileAttributes: undefined
+                    },
+                    expectedCalls: 1,
+                    expectNodeWeight: false
+                }
+            ]
+        ])('%s', async (_name, { nodeWeighting, expectedCalls, expectNodeWeight }) => {
+            const params = makeOdTripParams({ nodeWeighting }) as any;
             let capturedInputFiles: Record<string, unknown> = {};
             mockCreateJob.mockImplementation(async (opts: any) => {
                 capturedInputFiles = opts.inputFiles ?? {};
@@ -205,28 +252,37 @@ describe('TransitNetworkJobController', () => {
 
             await createAndEnqueueTransitNetworkDesignJob(params, eventEmitter, userId);
 
+            expect(mockPrepareJobFiles).toHaveBeenCalledTimes(expectedCalls);
             expect(capturedInputFiles).toHaveProperty('transitDemand');
-            expect(capturedInputFiles).not.toHaveProperty('nodeWeight');
+            if (expectNodeWeight) {
+                expect(capturedInputFiles).toHaveProperty('nodeWeight');
+            } else {
+                expect(capturedInputFiles).not.toHaveProperty('nodeWeight');
+            }
         });
 
-        test('does not add nodeWeight file when weightingSource is sameFile', async () => {
+        test('adds nodeWeightsOutput to inputFiles when cloning so createJob copies it (same flow as demand)', async () => {
+            const sourceJobId = 999;
+            const sourceJobDir = '/userData/10/999/';
             const params = makeOdTripParams({
-                nodeWeighting: {
-                    weightingEnabled: true,
-                    weightingSource: 'sameFile',
-                    weightingFileAttributes: undefined as any
-                }
+                demandCsvFile: { location: 'job', jobId: sourceJobId, fileKey: 'transitDemand' }
             }) as any;
+            const mockSourceJob = {
+                attributes: { user_id: userId },
+                getJobFileDirectory: () => sourceJobDir,
+                getFilePath: () => sourceJobDir + 'transit_demand.csv'
+            };
+            mockLoadTask.mockResolvedValue(mockSourceJob as any);
             let capturedInputFiles: Record<string, unknown> = {};
             mockCreateJob.mockImplementation(async (opts: any) => {
                 capturedInputFiles = opts.inputFiles ?? {};
                 return { enqueue: jest.fn(), refresh: jest.fn() } as any;
             });
+            mockFileExistsAbsolute.mockReturnValue(true);
 
             await createAndEnqueueTransitNetworkDesignJob(params, eventEmitter, userId);
 
-            expect(capturedInputFiles).toHaveProperty('transitDemand');
-            expect(capturedInputFiles).not.toHaveProperty('nodeWeight');
+            expect(capturedInputFiles).toHaveProperty('nodeWeightsOutput', sourceJobDir + NODE_WEIGHTS_OUTPUT_FILENAME);
         });
     });
 });

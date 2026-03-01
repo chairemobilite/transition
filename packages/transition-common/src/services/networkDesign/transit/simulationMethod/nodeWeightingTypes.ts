@@ -21,7 +21,11 @@ export type NodeWeightingPoiCsvAttributes = {
     weight?: string;
 };
 
-/** Default weight for a POI row when the weight column is missing or unmapped. */
+/** Default weight for a POI row when the weight column is missing or unmapped.
+ * Since this is an intrinsic weight associated with a single POI or trip destination,
+ * we can set it to 1 even if the weighting process can give a total weight for a node < 1
+ * after applying the decay function to the intrinsic weight
+ */
 export const NODE_WEIGHTING_DEFAULT_POI_WEIGHT = 1;
 
 export type NodeWeightingPoiFileAttributes = CsvFileAndMapping<NodeWeightingPoiCsvAttributes>;

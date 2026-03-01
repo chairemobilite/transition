@@ -293,9 +293,14 @@ describe('OdTripSimulationDescriptor', () => {
             }
         ];
 
+        const transitRoutingValidationCases = transitRoutingOptionSpecs.flatMap(
+            ({ optionKey, validationCases }) =>
+                validationCases.map(([value, expected]) => ({ optionKey, value, expected }))
+        );
+
         test.each(transitRoutingOptionSpecs)(
-            'should configure and validate $optionKey',
-            ({ optionKey, i18nName, type, defaultUndefined, validationCases }) => {
+            'should configure $optionKey',
+            ({ optionKey, i18nName, type, defaultUndefined }) => {
                 const option = transitOptions[optionKey];
                 expect(option.i18nName).toBe(i18nName);
                 expect(option.type).toBe(type);
@@ -306,9 +311,14 @@ describe('OdTripSimulationDescriptor', () => {
                     expect(option.default).toBeDefined();
                     expect(typeof option.default).toBe('number');
                 }
-                for (const [value, expected] of validationCases) {
-                    expect(option.validate(value)).toBe(expected);
-                }
+            }
+        );
+
+        test.each(transitRoutingValidationCases)(
+            'validates $optionKey value $value => $expected',
+            ({ optionKey, value, expected }) => {
+                const option = transitOptions[optionKey];
+                expect(option.validate(value)).toBe(expected);
             }
         );
 
@@ -611,7 +621,7 @@ describe('OdTripSimulationDescriptor', () => {
             [
                 string,
                 Partial<OdTripSimulationOptions>,
-                { valid: boolean; errorsLength?: number }
+                { valid: boolean; errorsLength?: number; expectedErrorSubstring?: string }
             ]
         >([
             [
@@ -659,7 +669,10 @@ describe('OdTripSimulationDescriptor', () => {
                         decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS
                     }
                 },
-                { valid: false }
+                {
+                    valid: false,
+                    expectedErrorSubstring: 'weightingFileRequired'
+                }
             ],
             [
                 'nodeWeighting separateFile and weightingFileAttributes valid',
@@ -697,8 +710,15 @@ describe('OdTripSimulationDescriptor', () => {
             expect(result.valid).toBe(expected.valid);
             if (expected.errorsLength !== undefined) {
                 expect(result.errors).toHaveLength(expected.errorsLength);
-            } else {
+            } else if (expected.valid === false) {
                 expect(result.errors.length).toBeGreaterThan(0);
+                if (expected.expectedErrorSubstring !== undefined) {
+                    expect(
+                        result.errors.some((e) =>
+                            String(e).includes(expected.expectedErrorSubstring as string)
+                        )
+                    ).toBe(true);
+                }
             }
         });
     });

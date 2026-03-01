@@ -887,6 +887,23 @@
         "errors": {
             "MissingDemandCsvFile": "Le fichier CSV de demande est manquant"
         },
+        "nodeWeighting": {
+            "decayParameters": "Paramètres de décroissance",
+            "decayTypeLabel": "Type de décroissance",
+            "decayType": {
+                "power": "Puissance",
+                "exponential": "Exponentielle",
+                "gamma": "Gamma",
+                "combined": "Combinée",
+                "logistic": "Logistique"
+            },
+            "decayBeta": "Bêta de décroissance",
+            "errors": {
+                "decayTypeInvalid": "Le type de décroissance doit être parmi : power, exponential, gamma, combined, logistic.",
+                "decayBetaRequired": "Le paramètre bêta est requis pour ce type de décroissance.",
+                "decayBetaInvalid": "Le bêta doit être strictement supérieur à 0."
+            }
+        },
         "evolutionaryAlgorithm": {
             "LineAndNumberOfVehiclesGASimulation": "Algorithme génétique avec lignes et nombre de véhicules",
             "PopulationSizeMin": "Taille minimale de la population",

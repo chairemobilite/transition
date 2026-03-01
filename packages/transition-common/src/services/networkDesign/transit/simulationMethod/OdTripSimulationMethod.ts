@@ -11,6 +11,7 @@ import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm'
 import { CsvFieldMappingDescriptor, CsvFileAndFieldMapper, CsvFileAndMapping } from '../../../csv';
 import { demandFieldDescriptors } from '../../../transitDemand/TransitOdDemandFromCsv';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { DECAY_TYPES_WITH_BETA, DECAY_TYPE_VALUES, type DecayFunctionType } from '../../../weighting/types';
 import {
     type NodeWeightingConfig,
     NODE_WEIGHTING_DEFAULT_MAX_WALKING_TIME_SECONDS,
@@ -219,23 +220,21 @@ const transitRoutingAttributesDescriptor = new TransitRoutingAttributesDescripto
 const simulationOptionsDescriptor = new SimulationOptionsDescriptor();
 
 /** Options shape for the decay parameters nested descriptor (power: type + beta; other types add more fields). */
-type DecayParametersOptions = { type: string; beta?: number };
+type DecayParametersOptions = { type: DecayFunctionType; beta?: number };
 
 class DecayFunctionParametersDescriptor implements SimulationAlgorithmDescriptor<DecayParametersOptions> {
     getTranslatableName = (): string => 'transit:networkDesign.nodeWeighting.decayParameters';
 
     getOptions = () => ({
         type: {
-            i18nName: 'transit:networkDesign.nodeWeighting.decayType',
+            i18nName: 'transit:networkDesign.nodeWeighting.decayTypeLabel',
             type: 'select' as const,
-            default: 'power' as const,
-            choices: (_obj: Record<string, unknown>) => [
-                { value: 'power', label: 'transit:networkDesign.nodeWeighting.decayType.power' },
-                { value: 'exponential', label: 'transit:networkDesign.nodeWeighting.decayType.exponential' },
-                { value: 'gamma', label: 'transit:networkDesign.nodeWeighting.decayType.gamma' },
-                { value: 'combined', label: 'transit:networkDesign.nodeWeighting.decayType.combined' },
-                { value: 'logistic', label: 'transit:networkDesign.nodeWeighting.decayType.logistic' }
-            ]
+            default: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS.type as DecayFunctionType,
+            choices: (_obj: Record<string, unknown>) =>
+                DECAY_TYPE_VALUES.map((value) => ({
+                    value,
+                    label: `transit:networkDesign.nodeWeighting.decayType.${value}`
+                }))
         },
         beta: {
             i18nName: 'transit:networkDesign.nodeWeighting.decayBeta',
@@ -245,7 +244,22 @@ class DecayFunctionParametersDescriptor implements SimulationAlgorithmDescriptor
         }
     });
 
-    validateOptions = (): { valid: boolean; errors: TranslatableMessage[] } => ({ valid: true, errors: [] });
+    validateOptions = (options: Partial<DecayParametersOptions>): { valid: boolean; errors: TranslatableMessage[] } => {
+        const errors: TranslatableMessage[] = [];
+        const type = options.type;
+        if (type !== undefined && !DECAY_TYPE_VALUES.includes(type)) {
+            errors.push('transit:networkDesign.nodeWeighting.errors.decayTypeInvalid');
+        }
+        if (type !== undefined && DECAY_TYPES_WITH_BETA.includes(type)) {
+            const beta = options.beta;
+            if (beta === undefined || beta === null) {
+                errors.push('transit:networkDesign.nodeWeighting.errors.decayBetaRequired');
+            } else if (typeof beta !== 'number' || beta <= 0) {
+                errors.push('transit:networkDesign.nodeWeighting.errors.decayBetaInvalid');
+            }
+        }
+        return { valid: errors.length === 0, errors };
+    };
 }
 
 class NodeWeightingOptionsDescriptor implements SimulationAlgorithmDescriptor<NodeWeightingConfig> {
