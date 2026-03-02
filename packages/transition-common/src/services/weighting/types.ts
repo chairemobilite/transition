@@ -8,7 +8,7 @@
 import GeoJSON from 'geojson';
 
 /** All decay function type values (for validation and choice lists). */
-export const DECAY_TYPE_VALUES = ['power', 'exponential', 'gamma', 'combined', 'logistic'];
+export const DECAY_TYPE_VALUES = ['power', 'exponential', 'gamma', 'combined', 'logistic'] as const;
 
 /**
  * Type of decay function to use (shared for config and calculation).

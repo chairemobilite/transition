@@ -29,6 +29,8 @@ export type EvolutionaryTransitNetworkDesignJobType = {
     name: 'evolutionaryTransitNetworkDesign';
     data: {
         parameters: EvolutionaryTransitNetworkDesignJobParameters;
+        /** Optional user-facing name for the job (shown in the job list). */
+        description?: string;
         results?: {
             generations: ResultSerialization[];
             scenarioIds: string[];

@@ -230,7 +230,7 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         // Prepare the cache data for this job
         // FIXME Add checkpoint here
         console.time(`Preparing cache directory for job ${jobId}`);
-        this.prepareCacheDirectory();
+        await this.prepareCacheDirectory();
         console.timeEnd(`Preparing cache directory for job ${jobId}`);
 
         // FIXME Use a seed from the job data?
@@ -367,32 +367,47 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             await this._loadAndPrepareData();
         } else {
             await this._loadAndPrepareDataFromCache();
+            // Recompute population size from current config so that changes
+            // made while the job was paused take effect on the next generation.
+            const updatedPopulationSize = randomInRange(
+                [this.options.populationSizeMin, this.options.populationSizeMax],
+                random
+            );
+            this.job.attributes.internal_data.populationSize = updatedPopulationSize;
         }
 
         await startMemcachedPromise; // Delayed await to let things start in parallel of data prep
         const algorithmResults = this.job.attributes.data.results!;
+
+        // When resuming from a checkpoint (pause/resume or continuing a completed
+        // job), the checkpointed generation will be re-simulated and its result
+        // re-pushed. Trim existing results to avoid duplicates.
+        const checkpoint = this.job.attributes.internal_data?.checkpoint;
+        if (checkpoint !== undefined && checkpoint > 0 && algorithmResults.generations.length >= checkpoint) {
+            algorithmResults.generations = algorithmResults.generations.slice(0, checkpoint - 1);
+        }
 
         let previousGeneration: LineAndNumberOfVehiclesGeneration | undefined = undefined;
         try {
             do {
                 previousGeneration = await this._prepareOrResumeGeneration(previousGeneration);
 
-                // FIXME Handle checkpointing with simulations that can be long
-                // Simulate the generation
-                await previousGeneration.simulate();
+                // Simulate the generation; returns false if interrupted by pause/cancel
+                const simulationCompleted = await previousGeneration.simulate();
+                if (!simulationCompleted) {
+                    break;
+                }
 
-                // TODO For now, we keep the best of each generation, but we
-                // should be smarter about it, knowing that the end of the
-                // simulation can follow various rules, like a number of
-                // generation or convergence of results. edit: Now that we save
-                // results to db at each generation, we may not even need this.
-                // See if runtime messages are useful or not.
-                algorithmResults.generations.push(previousGeneration.serializeBestResult());
-                await this.addMessages({
-                    infos: [
-                        `Completed generation ${this.currentIteration} with best results: ${JSON.stringify(previousGeneration.serializeBestResult())}.`
-                    ]
-                });
+                const bestResult = previousGeneration.serializeBestResult();
+                algorithmResults.generations.push(bestResult);
+                const methodKeys = Object.keys(bestResult.result.results);
+                const firstMethodResult = methodKeys.length > 0 ? bestResult.result.results[methodKeys[0]] : undefined;
+                const bestFitness = firstMethodResult?.fitness ?? NaN;
+                const totalTrips = (firstMethodResult?.results as { totalCount?: number } | undefined)?.totalCount ?? 0;
+                const perTrip = totalTrips > 0 ? (bestFitness / totalTrips).toFixed(4) : '--';
+                const summary = `Generation ${this.currentIteration}: fitness=${bestFitness}, fitness/trip=${perTrip}, trips=${totalTrips}, lines=${bestResult.numberOfLines}, vehicles=${bestResult.numberOfVehicles}`;
+                console.log(summary);
+                await this.addMessages({ infos: [summary] });
                 this.job.attributes.data.results = algorithmResults;
                 // Await saving simulation to avoid race condition if next generation is very fast
                 await this.job.save(this.executorOptions.progressEmitter);

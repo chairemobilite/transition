@@ -10,10 +10,15 @@ import {
     AccessibilityMapSimulationDescriptor,
     type AccessibilityMapSimulationOptions
 } from './AccessibilityMapSimulationMethod';
-import { OdTripSimulationDescriptor, type OdTripSimulationOptions } from './OdTripSimulationMethod';
+import {
+    OdTripSimulationDescriptor,
+    OdTripSimulationDescriptorForNetworkDesign,
+    type OdTripSimulationOptions
+} from './OdTripSimulationMethod';
 
 export type { AccessibilityMapSimulationOptions } from './AccessibilityMapSimulationMethod';
 export type { OdTripSimulationOptions } from './OdTripSimulationMethod';
+export { nodeWeightingOptionsDescriptor, standaloneNodeWeightingOptionsDescriptor } from './OdTripSimulationMethod';
 
 /**
  * Define the registry of all simulation methods
@@ -53,6 +58,13 @@ const SIMULATION_METHOD_DESCRIPTORS: {
     AccessibilityMapSimulation: new AccessibilityMapSimulationDescriptor()
 };
 
+const SIMULATION_METHOD_DESCRIPTORS_FOR_NETWORK_DESIGN: {
+    [K in SimulationMethodType]: SimulationAlgorithmDescriptor<SimulationMethodRegistry[K]>;
+} = {
+    OdTripSimulation: new OdTripSimulationDescriptorForNetworkDesign(),
+    AccessibilityMapSimulation: new AccessibilityMapSimulationDescriptor()
+};
+
 /**
  * Get the descriptor object that describe the various options for a specific
  * simulation method type and validates them
@@ -63,6 +75,16 @@ export const getSimulationMethodDescriptor = <T extends SimulationMethodType>(
     methodType: T
 ): SimulationAlgorithmDescriptor<SimulationMethodRegistry[T]> => {
     return SIMULATION_METHOD_DESCRIPTORS[methodType];
+};
+
+/**
+ * Get the descriptor for the network design form (reduced node weighting: only "enabled" and upload in form).
+ * Use this in ConfigureSimulationMethodForm instead of getSimulationMethodDescriptor.
+ */
+export const getSimulationMethodDescriptorForNetworkDesign = <T extends SimulationMethodType>(
+    methodType: T
+): SimulationAlgorithmDescriptor<SimulationMethodRegistry[T]> => {
+    return SIMULATION_METHOD_DESCRIPTORS_FOR_NETWORK_DESIGN[methodType];
 };
 
 /**

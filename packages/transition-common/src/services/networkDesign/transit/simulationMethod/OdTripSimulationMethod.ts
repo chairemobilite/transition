@@ -11,12 +11,21 @@ import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm'
 import { CsvFieldMappingDescriptor, CsvFileAndFieldMapper, CsvFileAndMapping } from '../../../csv';
 import { demandFieldDescriptors } from '../../../transitDemand/TransitOdDemandFromCsv';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
-import { DECAY_TYPES_WITH_BETA, DECAY_TYPE_VALUES, type DecayFunctionType } from '../../../weighting/types';
+import {
+    DECAY_TYPES_WITH_BETA,
+    DECAY_TYPE_VALUES,
+    type DecayFunctionType,
+    type DecayFunctionParameters
+} from '../../../weighting/types';
 import {
     type NodeWeightingConfig,
+    type NodeWeightingPoiFileAttributes,
+    type NodeWeightingOdFileAttributes,
+    type WeightingInputType,
     NODE_WEIGHTING_DEFAULT_MAX_WALKING_TIME_SECONDS,
     NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS,
     nodeWeightingPoiMappingDescriptors,
+    getNodeWeightingMappingDescriptors,
     NodeWeightingPoiFromCsv
 } from './nodeWeightingTypes';
 
@@ -262,7 +271,7 @@ class DecayFunctionParametersDescriptor implements SimulationAlgorithmDescriptor
     };
 }
 
-class NodeWeightingOptionsDescriptor implements SimulationAlgorithmDescriptor<NodeWeightingConfig> {
+export class NodeWeightingOptionsDescriptor implements SimulationAlgorithmDescriptor<NodeWeightingConfig> {
     getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.nodeWeighting';
 
     getOptions = () => ({
@@ -271,17 +280,8 @@ class NodeWeightingOptionsDescriptor implements SimulationAlgorithmDescriptor<No
             type: 'boolean' as const,
             default: false
         },
-        weightingSource: {
-            i18nName: 'transit:networkDesign.nodeWeighting.weightingSource',
-            type: 'select' as const,
-            default: 'sameFile' as const,
-            choices: (_obj: Record<string, unknown>) => [
-                { value: 'sameFile', label: 'transit:networkDesign.nodeWeighting.weightingSource.sameFile' },
-                { value: 'separateFile', label: 'transit:networkDesign.nodeWeighting.weightingSource.separateFile' }
-            ]
-        },
         odWeightingPoints: {
-            i18nName: 'transit:networkDesign.nodeWeighting.odWeightingPoints',
+            i18nName: 'transit:networkDesign.nodeWeighting.odWeightingPointsLabel',
             type: 'select' as const,
             default: 'both' as const,
             choices: (_obj: Record<string, unknown>) => [
@@ -313,7 +313,91 @@ class NodeWeightingOptionsDescriptor implements SimulationAlgorithmDescriptor<No
     validateOptions = (): { valid: boolean; errors: TranslatableMessage[] } => ({ valid: true, errors: [] });
 }
 
-const nodeWeightingOptionsDescriptor = new NodeWeightingOptionsDescriptor();
+/** Exported for standalone node weighting form (Nodes section). */
+export const nodeWeightingOptionsDescriptor = new NodeWeightingOptionsDescriptor();
+
+/**
+ * Minimal node weighting options for the network design form only.
+ * Shows only "Node weighting enabled"; decay, source, max walking time and file are configured in the Nodes section.
+ */
+export type MinimalNodeWeightingFormValue = { weightingEnabled: boolean };
+
+class MinimalNodeWeightingOptionsDescriptor implements SimulationAlgorithmDescriptor<MinimalNodeWeightingFormValue> {
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.nodeWeighting';
+
+    getOptions = () => ({
+        weightingEnabled: {
+            i18nName: 'transit:networkDesign.nodeWeighting.weightingEnabled',
+            type: 'boolean' as const,
+            default: false
+        }
+    });
+
+    validateOptions = (): { valid: boolean; errors: TranslatableMessage[] } => ({ valid: true, errors: [] });
+}
+
+const minimalNodeWeightingOptionsDescriptor = new MinimalNodeWeightingOptionsDescriptor();
+
+/**
+ * Form value type for standalone node weighting (Nodes section).
+ * Only the four fields shown in the form; no weightingEnabled or odWeightingPoints.
+ */
+export type StandaloneNodeWeightingFormValue = {
+    weightingInputType: WeightingInputType;
+    maxWalkingTimeSeconds: number;
+    decayFunctionParameters: DecayFunctionParameters;
+    /** POI format when weightingInputType is 'poi'; OD format (origin/destination columns) when odOrigins/odDestinations/odBoth. */
+    weightingFileAttributes: NodeWeightingPoiFileAttributes | NodeWeightingOdFileAttributes;
+};
+
+/**
+ * Descriptor for the standalone node weighting form (Nodes section).
+ * Omits "Node weighting enabled"; replaces source + OD points with a single "input file type" radio.
+ */
+export class StandaloneNodeWeightingOptionsDescriptor
+implements SimulationAlgorithmDescriptor<StandaloneNodeWeightingFormValue> {
+    getTranslatableName = (): string => 'transit:networkDesign.nodeWeighting.NodeWeightingSectionTitle';
+
+    getOptions = () => ({
+        weightingInputType: {
+            i18nName: 'transit:networkDesign.nodeWeighting.weightingInputTypeLabel',
+            type: 'select' as const,
+            default: 'poi' as const,
+            choices: (_obj: Record<string, unknown>) => [
+                { value: 'poi', label: 'transit:networkDesign.nodeWeighting.weightingInputType.poi' },
+                { value: 'odOrigins', label: 'transit:networkDesign.nodeWeighting.weightingInputType.odOrigins' },
+                {
+                    value: 'odDestinations',
+                    label: 'transit:networkDesign.nodeWeighting.weightingInputType.odDestinations'
+                },
+                { value: 'odBoth', label: 'transit:networkDesign.nodeWeighting.weightingInputType.odBoth' }
+            ]
+        },
+        maxWalkingTimeSeconds: {
+            i18nName: 'transit:networkDesign.nodeWeighting.maxWalkingTimeSeconds',
+            type: 'seconds' as const,
+            askAs: 'minutes' as const,
+            default: NODE_WEIGHTING_DEFAULT_MAX_WALKING_TIME_SECONDS,
+            validate: (value: number) => value > 0
+        },
+        decayFunctionParameters: {
+            i18nName: 'transit:networkDesign.nodeWeighting.decayParameters',
+            type: 'nested' as const,
+            descriptor: new DecayFunctionParametersDescriptor()
+        },
+        weightingFileAttributes: {
+            i18nName: 'transit:networkDesign.nodeWeighting.weightingFileAttributes',
+            type: 'csvFile' as const,
+            importFileName: 'node_weighting_poi.csv',
+            getMappingDescriptors: (context: Record<string, unknown>) =>
+                getNodeWeightingMappingDescriptors((context.weightingInputType as WeightingInputType) ?? 'poi')
+        }
+    });
+
+    validateOptions = (): { valid: boolean; errors: TranslatableMessage[] } => ({ valid: true, errors: [] });
+}
+
+export const standaloneNodeWeightingOptionsDescriptor = new StandaloneNodeWeightingOptionsDescriptor();
 
 /**
  * Descriptor class for the OD trip simulation method options. It documents the
@@ -369,14 +453,27 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
             }
         }
 
-        // Validate node weighting when enabled with separate file (weighting file required)
-        const nw = options.nodeWeighting;
-        if (nw?.weightingEnabled && nw.weightingSource === 'separateFile') {
-            if (nw.weightingFileAttributes === undefined) {
+        // Validate node weighting when enabled
+        const nodeWeighting = options.nodeWeighting;
+        if (nodeWeighting?.weightingEnabled) {
+            if (nodeWeighting.maxWalkingTimeSeconds === undefined || nodeWeighting.maxWalkingTimeSeconds <= 0) {
                 valid = false;
-                errors.push('transit:networkDesign.nodeWeighting.errors.weightingFileRequired');
-            } else {
-                const poiMapper = new NodeWeightingPoiFromCsv(nw.weightingFileAttributes);
+                errors.push('transit:networkDesign.nodeWeighting.errors.maxWalkingTimeSecondsInvalid');
+            }
+
+            // Validate decay parameters
+            const decayDescriptor = new DecayFunctionParametersDescriptor();
+            const decayValidation = decayDescriptor.validateOptions(nodeWeighting.decayFunctionParameters ?? {});
+            if (!decayValidation.valid) {
+                valid = false;
+                errors.push(...decayValidation.errors);
+            }
+
+            // Validate weighting file when present
+            if (nodeWeighting.weightingFileAttributes !== undefined) {
+                const poiMapper = new NodeWeightingPoiFromCsv(
+                    nodeWeighting.weightingFileAttributes as NodeWeightingPoiFileAttributes
+                );
                 if (!poiMapper.isValid()) {
                     valid = false;
                     errors.push(...poiMapper.getErrors());
@@ -384,6 +481,60 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
             }
         }
 
+        return { valid, errors };
+    };
+}
+
+/**
+ * OD Trip descriptor for the network design form only.
+ * Node weighting shows only "Node weighting enabled"; upload of node weights file is handled by the form.
+ */
+export class OdTripSimulationDescriptorForNetworkDesign
+implements SimulationAlgorithmDescriptor<OdTripSimulationOptions> {
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.Title';
+
+    getOptions = () => ({
+        demandAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.demandAttributes',
+            type: 'csvFile' as const,
+            mappingDescriptors: odDemandFieldDescriptors,
+            importFileName: 'transit_od_trips.csv',
+            required: true
+        },
+        transitRoutingAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.transitRoutingAttributes',
+            type: 'nested' as const,
+            descriptor: transitRoutingAttributesDescriptor
+        },
+        evaluationOptions: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.simulationOptions',
+            type: 'nested' as const,
+            descriptor: simulationOptionsDescriptor
+        },
+        nodeWeighting: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.nodeWeighting',
+            type: 'nested' as const,
+            descriptor: minimalNodeWeightingOptionsDescriptor
+        }
+    });
+
+    validateOptions = (
+        options: Partial<OdTripSimulationOptions>
+    ): { valid: boolean; errors: TranslatableMessage[] } => {
+        let valid = true;
+        const errors: TranslatableMessage[] = [];
+
+        if (options.demandAttributes !== undefined) {
+            const demandFieldMappers = new TransitOdTripSimulationDemandFromCsv(
+                options.demandAttributes as OdTripSimulationDemandFromCsvAttributes
+            );
+            if (!demandFieldMappers.isValid()) {
+                valid = false;
+                errors.push(...demandFieldMappers.getErrors());
+            }
+        }
+
+        // Node weighting: only weightingEnabled is shown; no validation of decay/source/file here
         return { valid, errors };
     };
 }

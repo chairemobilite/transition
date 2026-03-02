@@ -145,15 +145,19 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
     return result.completed;
 };
 
-const wrapEvolutionaryTransitNetworkDesign = async (task: EvolutionaryTransitNetworkDesignJob): Promise<boolean> => {
+const wrapEvolutionaryTransitNetworkDesign = async (
+    task: EvolutionaryTransitNetworkDesignJob
+): Promise<'success' | 'paused' | 'failed'> => {
     // TODO Validate input files like other tasks
     const { status } = await runEvolutionaryTransitNetworkDesignJob(task, {
         progressEmitter: newProgressEmitter(task),
         isCancelled: getTaskCancelledFct(task)
     });
     console.log(`Evolutionary transit network design job ${task.attributes.id} completed with status ${status}`);
-    // TODO Handle results here
-    return status === 'success';
+    if (status === 'paused') {
+        return 'paused';
+    }
+    return status === 'success' ? 'success' : 'failed';
 };
 
 // Exported for unit tests
@@ -181,13 +185,17 @@ export const wrapTaskExecution = async (id: number) => {
         // Set the status to in progress
         task.setInProgress();
         await task.save(taskListener);
-        let taskResultStatus = true;
+        let taskResultStatus: 'success' | 'paused' | 'failed' = 'success';
         switch (task.attributes.name) {
         case 'batchRoute':
-            taskResultStatus = await wrapBatchRoute(task as ExecutableJob<BatchRouteJobType>);
+            taskResultStatus = (await wrapBatchRoute(task as ExecutableJob<BatchRouteJobType>))
+                ? 'success'
+                : 'failed';
             break;
         case 'batchAccessMap':
-            taskResultStatus = await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
+            taskResultStatus = (await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>))
+                ? 'success'
+                : 'failed';
             break;
         case 'evolutionaryTransitNetworkDesign':
             taskResultStatus = await wrapEvolutionaryTransitNetworkDesign(
@@ -196,10 +204,12 @@ export const wrapTaskExecution = async (id: number) => {
             break;
         default:
             console.log(`Unknown task ${task.attributes.name}`);
-            taskResultStatus = false;
+            taskResultStatus = 'failed';
         }
-        if (taskResultStatus) {
+        if (taskResultStatus === 'success') {
             task.setCompleted();
+        } else if (taskResultStatus === 'paused') {
+            task.setPaused();
         } else {
             task.setFailed();
         }

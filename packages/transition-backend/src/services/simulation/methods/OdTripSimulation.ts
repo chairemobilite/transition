@@ -270,7 +270,8 @@ export default class OdTripSimulation implements SimulationMethod {
         // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
         const batchParams: BatchCalculationParameters = {
             ...this.options.transitRoutingAttributes,
-            routingModes: ['transit', 'walking', 'driving'], //We need walking and driving for the fallback calculation
+            // Transit for routable trips; walking for access/egress and for non-routable fallback (taxi fitness). Driving is not needed — travel times come from transit results.
+            routingModes: ['transit', 'walking'],
             withAlternatives: false,
             withGeometries: false,
             detailed: false,

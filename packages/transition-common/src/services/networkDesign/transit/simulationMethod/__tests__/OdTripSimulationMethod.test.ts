@@ -10,6 +10,7 @@ import {
     OdTripSimulationOptions
 } from '../OdTripSimulationMethod';
 import {
+    type NodeWeightingConfig,
     NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS,
     NODE_WEIGHTING_DEFAULT_MAX_WALKING_TIME_SECONDS
 } from '../nodeWeightingTypes';
@@ -465,10 +466,6 @@ describe('OdTripSimulationDescriptor', () => {
             expect(weightingOptions.weightingEnabled.type).toBe('boolean');
             expect(weightingOptions.weightingEnabled.default).toBe(false);
 
-            expect(weightingOptions).toHaveProperty('weightingSource');
-            expect(weightingOptions.weightingSource.type).toBe('select');
-            expect(weightingOptions.weightingSource.default).toBe('sameFile');
-
             expect(weightingOptions).toHaveProperty('odWeightingPoints');
             expect(weightingOptions.odWeightingPoints.type).toBe('select');
             expect(weightingOptions.odWeightingPoints.default).toBe('both');
@@ -498,20 +495,6 @@ describe('OdTripSimulationDescriptor', () => {
             expect(decayOptions.type.default).toBe('power');
             expect(decayOptions).toHaveProperty('beta');
             expect(decayOptions.beta.default).toBe(NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS.beta);
-        });
-
-        test('nodeWeighting weightingSource choices should include sameFile and separateFile', () => {
-            const options = descriptor.getOptions();
-            const choices = options.nodeWeighting.descriptor.getOptions().weightingSource.choices({});
-
-            expect(choices).toContainEqual({
-                label: 'transit:networkDesign.nodeWeighting.weightingSource.sameFile',
-                value: 'sameFile'
-            });
-            expect(choices).toContainEqual({
-                label: 'transit:networkDesign.nodeWeighting.weightingSource.separateFile',
-                value: 'separateFile'
-            });
         });
 
         test('nodeWeighting odWeightingPoints choices should include origins, destinations, both', () => {
@@ -635,7 +618,6 @@ describe('OdTripSimulationDescriptor', () => {
                     demandAttributes: defaultDemandAttributes,
                     nodeWeighting: {
                         weightingEnabled: false,
-                        weightingSource: 'sameFile',
                         odWeightingPoints: 'both',
                         maxWalkingTimeSeconds: 1200,
                         decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS
@@ -644,12 +626,11 @@ describe('OdTripSimulationDescriptor', () => {
                 { valid: true, errorsLength: 0 }
             ],
             [
-                'nodeWeighting enabled with sameFile and demand present',
+                'nodeWeighting enabled with demand present',
                 {
                     demandAttributes: defaultDemandAttributes,
                     nodeWeighting: {
                         weightingEnabled: true,
-                        weightingSource: 'sameFile',
                         odWeightingPoints: 'both',
                         maxWalkingTimeSeconds: 1200,
                         decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS
@@ -658,29 +639,11 @@ describe('OdTripSimulationDescriptor', () => {
                 { valid: true, errorsLength: 0 }
             ],
             [
-                'nodeWeighting separateFile and weightingFileAttributes missing',
+                'nodeWeighting with weightingFileAttributes valid',
                 {
                     demandAttributes: defaultDemandAttributes,
                     nodeWeighting: {
                         weightingEnabled: true,
-                        weightingSource: 'separateFile',
-                        odWeightingPoints: 'both',
-                        maxWalkingTimeSeconds: 1200,
-                        decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS
-                    }
-                },
-                {
-                    valid: false,
-                    expectedErrorSubstring: 'weightingFileRequired'
-                }
-            ],
-            [
-                'nodeWeighting separateFile and weightingFileAttributes valid',
-                {
-                    demandAttributes: defaultDemandAttributes,
-                    nodeWeighting: {
-                        weightingEnabled: true,
-                        weightingSource: 'separateFile',
                         odWeightingPoints: 'both',
                         maxWalkingTimeSeconds: 1200,
                         decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS,
@@ -704,6 +667,38 @@ describe('OdTripSimulationDescriptor', () => {
                     }
                 },
                 { valid: true, errorsLength: 0 }
+            ],
+            [
+                'nodeWeighting enabled with maxWalkingTimeSeconds <= 0',
+                {
+                    demandAttributes: defaultDemandAttributes,
+                    nodeWeighting: {
+                        weightingEnabled: true,
+                        odWeightingPoints: 'both',
+                        maxWalkingTimeSeconds: 0,
+                        decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS
+                    }
+                },
+                {
+                    valid: false,
+                    expectedErrorSubstring: 'maxWalkingTimeSecondsInvalid'
+                }
+            ],
+            [
+                'nodeWeighting enabled with maxWalkingTimeSeconds < 0',
+                {
+                    demandAttributes: defaultDemandAttributes,
+                    nodeWeighting: {
+                        weightingEnabled: true,
+                        odWeightingPoints: 'both',
+                        maxWalkingTimeSeconds: -1,
+                        decayFunctionParameters: NODE_WEIGHTING_DEFAULT_DECAY_PARAMETERS
+                    }
+                },
+                {
+                    valid: false,
+                    expectedErrorSubstring: 'maxWalkingTimeSecondsInvalid'
+                }
             ]
         ])('should return %s', (_label, options, expected) => {
             const result = descriptor.validateOptions(options);

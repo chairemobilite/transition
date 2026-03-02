@@ -17,6 +17,7 @@ import {
     type EvolutionaryTransitNetworkDesignJob,
     NODE_WEIGHTS_OUTPUT_FILENAME
 } from '../evolutionary/types';
+import type { NodeWeightingConfig } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/nodeWeightingTypes';
 
 jest.mock('../../../executableJob/ExecutableJob');
 jest.mock('../../../executableJob/ExecutableJobUtils');
@@ -39,13 +40,7 @@ function makeOdTripParams(overrides: {
     demandCsvFile?:
         | { location: 'upload'; filename: string; uploadFilename: string }
         | { location: 'job'; jobId: number; fileKey: string };
-    nodeWeighting?: {
-        weightingEnabled: boolean;
-        weightingSource: 'sameFile' | 'separateFile';
-        weightingFileAttributes?: {
-            fileAndMapping: { csvFile: { location: 'upload'; filename: string; uploadFilename: string } };
-        };
-    };
+    nodeWeighting?: NodeWeightingConfig;
 }) {
     const demandCsvFile = overrides.demandCsvFile ?? {
         location: 'upload' as const,
@@ -99,9 +94,11 @@ describe('TransitNetworkJobController', () => {
 
             const result = await getParametersFromTransitNetworkDesignJob(jobId, userId);
 
-            expect(result.simulationMethod.type).toBe('OdTripSimulation');
+            expect(result.parameters.simulationMethod.type).toBe('OdTripSimulation');
             const config =
-                result.simulationMethod.type === 'OdTripSimulation' ? result.simulationMethod.config : undefined;
+                result.parameters.simulationMethod.type === 'OdTripSimulation'
+                    ? result.parameters.simulationMethod.config
+                    : undefined;
             expect(config?.demandAttributes.fileAndMapping.csvFile).toEqual({
                 location: 'job',
                 jobId,
@@ -109,19 +106,29 @@ describe('TransitNetworkJobController', () => {
             });
         });
 
-        test('rewrites weighting file ref to nodeWeight when weightingSource is separateFile', async () => {
+        test('rewrites weighting file ref to nodeWeight when weightingFileAttributes present', async () => {
             const params = makeOdTripParams({
                 nodeWeighting: {
                     weightingEnabled: true,
-                    weightingSource: 'separateFile',
+                    odWeightingPoints: 'both',
+                    maxWalkingTimeSeconds: 1200,
+                    decayFunctionParameters: { type: 'power', beta: 1.5 },
                     weightingFileAttributes: {
+                        type: 'csv',
                         fileAndMapping: {
+                            fieldMappings: {
+                                projection: '4326',
+                                pointLat: 'lat',
+                                pointLon: 'lon',
+                                weight: 'weight'
+                            },
                             csvFile: {
                                 location: 'upload',
                                 filename: 'poi.csv',
                                 uploadFilename: 'poi_upload.csv'
                             }
-                        }
+                        },
+                        csvFields: ['lat', 'lon', 'weight']
                     }
                 }
             });
@@ -132,20 +139,24 @@ describe('TransitNetworkJobController', () => {
             const result = await getParametersFromTransitNetworkDesignJob(jobId, userId);
 
             const config =
-                result.simulationMethod.type === 'OdTripSimulation' ? result.simulationMethod.config : undefined;
-            expect(config?.nodeWeighting?.weightingFileAttributes?.fileAndMapping.csvFile).toEqual({
+                result.parameters.simulationMethod.type === 'OdTripSimulation'
+                    ? result.parameters.simulationMethod.config
+                    : undefined;
+            const nodeWeighting = config?.nodeWeighting;
+            expect(nodeWeighting?.weightingFileAttributes?.fileAndMapping.csvFile).toEqual({
                 location: 'job',
                 jobId,
                 fileKey: 'nodeWeight'
             });
         });
 
-        test('does not set weighting file ref when weightingSource is sameFile', async () => {
+        test('does not set weighting file ref when weightingFileAttributes absent', async () => {
             const params = makeOdTripParams({
                 nodeWeighting: {
                     weightingEnabled: true,
-                    weightingSource: 'sameFile',
-                    weightingFileAttributes: undefined as any
+                    odWeightingPoints: 'both',
+                    maxWalkingTimeSeconds: 1200,
+                    decayFunctionParameters: { type: 'power', beta: 1.5 }
                 }
             });
             const jobAttrs = makeJobAttributes(jobId, userId, params);
@@ -155,13 +166,27 @@ describe('TransitNetworkJobController', () => {
             const result = await getParametersFromTransitNetworkDesignJob(jobId, userId);
 
             const config =
-                result.simulationMethod.type === 'OdTripSimulation' ? result.simulationMethod.config : undefined;
+                result.parameters.simulationMethod.type === 'OdTripSimulation'
+                    ? result.parameters.simulationMethod.config
+                    : undefined;
             expect(config?.demandAttributes.fileAndMapping.csvFile).toEqual({
                 location: 'job',
                 jobId,
                 fileKey: 'transitDemand'
             });
             expect(config?.nodeWeighting?.weightingFileAttributes).toBeUndefined();
+        });
+
+        test('returns existingFileNames from job resources.files', async () => {
+            const params = makeOdTripParams({});
+            const jobAttrs = makeJobAttributes(jobId, userId, params);
+            (jobAttrs as any).resources = { files: { transitDemand: 'demand.csv', nodeWeight: 'poi.csv' } };
+            const mockJob = { attributes: jobAttrs } as unknown as EvolutionaryTransitNetworkDesignJob;
+            mockLoadTask.mockResolvedValue(mockJob);
+
+            const result = await getParametersFromTransitNetworkDesignJob(jobId, userId);
+
+            expect(result.existingFileNames).toEqual({ transitDemand: 'demand.csv', nodeWeight: 'poi.csv' });
         });
     });
 
@@ -170,40 +195,36 @@ describe('TransitNetworkJobController', () => {
             [
                 string,
                 {
-                    nodeWeighting: {
-                        weightingEnabled: boolean;
-                        weightingSource: 'sameFile' | 'separateFile';
-                        weightingFileAttributes?:
-                            | {
-                                fileAndMapping: {
-                                    csvFile: {
-                                        location: 'upload';
-                                        filename: string;
-                                        uploadFilename: string;
-                                    };
-                                };
-                            }
-                            | undefined;
-                    };
+                    nodeWeighting: NodeWeightingConfig;
                     expectedCalls: number;
                     expectNodeWeight: boolean;
                 }
             ]
         >([
             [
-                'adds nodeWeight file when node weighting enabled with separateFile',
+                'adds nodeWeight file when node weighting enabled with weightingFileAttributes',
                 {
                     nodeWeighting: {
                         weightingEnabled: true,
-                        weightingSource: 'separateFile',
+                        odWeightingPoints: 'both',
+                        maxWalkingTimeSeconds: 1200,
+                        decayFunctionParameters: { type: 'power', beta: 1.5 },
                         weightingFileAttributes: {
+                            type: 'csv',
                             fileAndMapping: {
+                                fieldMappings: {
+                                    projection: '4326',
+                                    pointLat: 'lat',
+                                    pointLon: 'lon',
+                                    weight: 'weight'
+                                },
                                 csvFile: {
                                     location: 'upload',
                                     filename: 'weighting_poi.csv',
                                     uploadFilename: 'weighting_upload.csv'
                                 }
-                            }
+                            },
+                            csvFields: ['lat', 'lon', 'weight']
                         }
                     },
                     expectedCalls: 2,
@@ -215,15 +236,25 @@ describe('TransitNetworkJobController', () => {
                 {
                     nodeWeighting: {
                         weightingEnabled: false,
-                        weightingSource: 'separateFile',
+                        odWeightingPoints: 'both',
+                        maxWalkingTimeSeconds: 1200,
+                        decayFunctionParameters: { type: 'power', beta: 1.5 },
                         weightingFileAttributes: {
+                            type: 'csv',
                             fileAndMapping: {
+                                fieldMappings: {
+                                    projection: '4326',
+                                    pointLat: 'lat',
+                                    pointLon: 'lon',
+                                    weight: 'weight'
+                                },
                                 csvFile: {
                                     location: 'upload',
                                     filename: 'poi.csv',
                                     uploadFilename: 'poi_upload.csv'
                                 }
-                            }
+                            },
+                            csvFields: ['lat', 'lon', 'weight']
                         }
                     },
                     expectedCalls: 1,
@@ -231,12 +262,13 @@ describe('TransitNetworkJobController', () => {
                 }
             ],
             [
-                'does not add nodeWeight file when weightingSource is sameFile',
+                'does not add nodeWeight file when no weightingFileAttributes',
                 {
                     nodeWeighting: {
                         weightingEnabled: true,
-                        weightingSource: 'sameFile',
-                        weightingFileAttributes: undefined
+                        odWeightingPoints: 'both',
+                        maxWalkingTimeSeconds: 1200,
+                        decayFunctionParameters: { type: 'power', beta: 1.5 }
                     },
                     expectedCalls: 1,
                     expectNodeWeight: false
@@ -247,7 +279,11 @@ describe('TransitNetworkJobController', () => {
             let capturedInputFiles: Record<string, unknown> = {};
             mockCreateJob.mockImplementation(async (opts: any) => {
                 capturedInputFiles = opts.inputFiles ?? {};
-                return { enqueue: jest.fn(), refresh: jest.fn() } as any;
+                return {
+                    attributes: { id: jobId },
+                    enqueue: jest.fn(),
+                    refresh: jest.fn()
+                } as any;
             });
 
             await createAndEnqueueTransitNetworkDesignJob(params, eventEmitter, userId);
@@ -276,12 +312,17 @@ describe('TransitNetworkJobController', () => {
             let capturedInputFiles: Record<string, unknown> = {};
             mockCreateJob.mockImplementation(async (opts: any) => {
                 capturedInputFiles = opts.inputFiles ?? {};
-                return { enqueue: jest.fn(), refresh: jest.fn() } as any;
+                return {
+                    attributes: { id: jobId },
+                    enqueue: jest.fn(),
+                    refresh: jest.fn()
+                } as any;
             });
             mockFileExistsAbsolute.mockReturnValue(true);
 
             await createAndEnqueueTransitNetworkDesignJob(params, eventEmitter, userId);
 
+            expect(mockFileExistsAbsolute).toHaveBeenCalledWith(sourceJobDir + NODE_WEIGHTS_OUTPUT_FILENAME);
             expect(capturedInputFiles).toHaveProperty('nodeWeightsOutput', sourceJobDir + NODE_WEIGHTS_OUTPUT_FILENAME);
         });
     });

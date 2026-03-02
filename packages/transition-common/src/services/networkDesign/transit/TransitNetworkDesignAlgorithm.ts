@@ -108,8 +108,11 @@ export type SimulationAlgorithmOptionByType =
       }
     | {
           type: 'csvFile';
-          mappingDescriptors: CsvFieldMappingDescriptor[];
           importFileName: string;
+          /** Static mapping descriptors. Use getMappingDescriptors when descriptors depend on other form fields. */
+          mappingDescriptors?: CsvFieldMappingDescriptor[];
+          /** Dynamic mapping descriptors from current form context (e.g. weighting input type). */
+          getMappingDescriptors?: (context: Record<string, unknown>) => CsvFieldMappingDescriptor[];
       }
     | {
           type: 'custom';
