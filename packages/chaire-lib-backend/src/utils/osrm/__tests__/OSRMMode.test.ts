@@ -70,7 +70,7 @@ describe('OSRM Mode tests', () => {
 
         const result = await aMode.route(params);
         expect(mockedFetch).toHaveBeenCalledTimes(1);
-        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/route/v1/walking/-73,45;-73.1,45.1?alternatives=false&steps=false&annotations=false&continue_straight=default&geometries=geojson&overview=full', undefined);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/route/v1/walking/-73,45;-73.1,45.1?alternatives=false&steps=false&annotations=false&continue_straight=default&geometries=geojson&overview=full', {"headers": {"Accept-Encoding": "identity"}});
 
 
     });
@@ -154,7 +154,7 @@ describe('OSRM Mode tests', () => {
         mockedFetch.mockResolvedValue(response);
         const result = await aMode.route(params);
         expect(mockedFetch).toHaveBeenCalledTimes(1);
-        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/route/v1/walking/-73,45;-73.1,45.1?alternatives=false&steps=false&annotations=false&continue_straight=default&geometries=geojson&overview=full', undefined);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/route/v1/walking/-73,45;-73.1,45.1?alternatives=false&steps=false&annotations=false&continue_straight=default&geometries=geojson&overview=full', {"headers": {"Accept-Encoding": "identity"}});
 
         //Check result
         expect(Status.unwrap(result)).toHaveProperty('waypoints');
@@ -268,7 +268,7 @@ describe('OSRM Mode tests', () => {
 
         const result = await aMode.match(params);
         expect(mockedFetch).toHaveBeenCalledTimes(1);
-        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/match/v1/busUrban/-73.576361,45.454669;-73.576504,45.454872?radiuses=17;17&timestamps=0;189&steps=true&annotations=false&gaps=ignore&geometries=geojson&overview=full', undefined);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/match/v1/busUrban/-73.576361,45.454669;-73.576504,45.454872?radiuses=17;17&timestamps=0;189&steps=true&annotations=false&gaps=ignore&geometries=geojson&overview=full', {"headers": {"Accept-Encoding": "identity"}});
 
         //Check result
         expect(Status.unwrap(result)).toHaveProperty('tracepoints');
@@ -348,7 +348,7 @@ describe('OSRM Mode tests', () => {
         const EXPECTED_QUERY = 'http://localhost:5000/table/v1/walking/-73.663473,45.611544;-73.663473,45.611544;-73.663473,45.611544;-73.663083,45.612892;-73.660853,45.612142?sources=0&annotations=duration,distance';
 
         expect(mockedFetch).toHaveBeenCalledTimes(1);
-        expect(mockedFetch).toHaveBeenCalledWith(EXPECTED_QUERY, undefined);
+        expect(mockedFetch).toHaveBeenCalledWith(EXPECTED_QUERY, {"headers": {"Accept-Encoding": "identity"}});
 
 
         //Check result
@@ -402,7 +402,7 @@ describe('OSRM Mode tests', () => {
         const EXPECTED_QUERY = 'http://localhost:5000/table/v1/walking/-73.663473,45.611544;-73.663473,45.611544;-73.663473,45.611544;-73.663083,45.612892;-73.660853,45.612142?destinations=0&annotations=duration,distance';
 
         expect(mockedFetch).toHaveBeenCalledTimes(1);
-        expect(mockedFetch).toHaveBeenCalledWith(EXPECTED_QUERY, undefined);
+        expect(mockedFetch).toHaveBeenCalledWith(EXPECTED_QUERY, {"headers": {"Accept-Encoding": "identity"}});
 
         //Check result
         expect(Status.unwrap(result)).toHaveProperty('query');

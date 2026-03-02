@@ -22,6 +22,12 @@ type OSRMServiceTypes = 'route' | 'nearest' | 'table' | 'match' | 'trip' | 'tile
 
 type OSRMOptions = osrm.MatchOptions | osrm.RouteOptions | osrm.TableOptions;
 
+const COMMON_FETCH_OPTIONS = {
+    headers: {
+        'Accept-Encoding': 'identity' // Adding header to disable gzip negociation
+    }
+};
+
 /*
 Represent a configured routing mode for OSRM.
 
@@ -87,7 +93,7 @@ class OSRMMode {
 
         const routeQuery = this.buildOsrmQuery('route', params.points, optionKeys, parameters);
 
-        const response = await fetch(routeQuery);
+        const response = await fetch(routeQuery, COMMON_FETCH_OPTIONS);
 
         const routingResultJson = await response.json();
 
@@ -128,7 +134,7 @@ class OSRMMode {
 
         const matchQuery = this.buildOsrmQuery('match', params.points, optionKeys, parameters);
 
-        const response = await fetch(matchQuery);
+        const response = await fetch(matchQuery, COMMON_FETCH_OPTIONS);
 
         const routingResultJson = await response.json();
 
@@ -166,7 +172,7 @@ class OSRMMode {
 
         const tableFromQuery = this.buildOsrmQuery('table', features, optionKeys, options);
 
-        const response = await fetch(tableFromQuery);
+        const response = await fetch(tableFromQuery, COMMON_FETCH_OPTIONS);
 
         const routingResultJson = await response.json();
 
@@ -223,7 +229,7 @@ class OSRMMode {
 
         const tableToQuery = this.buildOsrmQuery('table', features, optionKeys, options);
 
-        const response = await fetch(tableToQuery);
+        const response = await fetch(tableToQuery, COMMON_FETCH_OPTIONS);
 
         const routingResultJson = await response.json();
 
