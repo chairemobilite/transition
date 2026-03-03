@@ -12,6 +12,7 @@ import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/I
 
 export interface AccessibilityMapStatsComponentProps {
     accessibilityPolygons: GeoJSON.FeatureCollection;
+    calculatePopulation?: boolean;
 }
 
 const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapStatsComponentProps> = (
@@ -113,65 +114,105 @@ const AccessibilityMapStatsComponent: React.FunctionComponent<AccessibilityMapSt
         );
 
         return (
-            <table className="_statistics" key={properties.durationMinutes}>
-                <tbody>
-                    <tr>
-                        <th className="_header" colSpan={2}>
-                            {t('transit:transitRouting:AccessibilityMapAreaTitle', {
-                                n: Math.round(properties.durationMinutes)
-                            })}
-                        </th>
-                    </tr>
-                    <tr>
-                        <th>{t('transit:transitRouting:AccessibilityMapAreaSquareKm')}</th>
-                        <td>{(Math.round(properties.areaSqKm * 100) / 100).toLocaleString(language)}</td>
-                    </tr>
-                    {typeof properties.population === 'number' && (
+            <React.Fragment key={properties.durationMinutes}>
+                <table className="_statistics">
+                    <tbody>
                         <tr>
-                            <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
-                            <td>{properties.population.toLocaleString(language)}</td>
+                            <th className="_header" colSpan={2}>
+                                {t('transit:transitRouting:AccessibilityMapAreaTitle', {
+                                    n: Math.round(properties.durationMinutes)
+                                })}
+                            </th>
                         </tr>
-                    )}
-                    {categoryTotal > 0 && (
-                        <React.Fragment>
+                        <tr>
+                            <th>{t('transit:transitRouting:AccessibilityMapAreaSquareKm')}</th>
+                            <td>{(Math.round(properties.areaSqKm * 100) / 100).toLocaleString(language)}</td>
+                        </tr>
+                        {typeof properties.populationData?.population === 'number' && (
                             <tr>
-                                <th colSpan={2} className="_header" data-tooltip-id="accessible-POI-header">
-                                    {t('transit:transitRouting:NumberOfAccessiblePOIsInNMinutesByCategory', {
-                                        n: Math.round(properties.durationMinutes)
-                                    })}
-                                </th>
+                                <th>{t('transit:transitRouting:AccessibilityMapPopulation')}</th>
+                                <td>
+                                    {properties.populationData?.population?.toLocaleString(language)}
+                                    {properties.populationData?.dataSourceAreaRatio < 0.99 && (
+                                        <React.Fragment>
+                                            &nbsp;
+                                            <span
+                                                className="apptr__form-warning-message"
+                                                data-tooltip-id={`data-source-incomplete-area-warning-${properties.durationMinutes}`}
+                                            >
+                                                &#9888;
+                                                {/* Warning sign: ⚠ */}
+                                            </span>
+                                            <Tooltip
+                                                id={`data-source-incomplete-area-warning-${properties.durationMinutes}`}
+                                                opacity={1}
+                                                style={{ maxWidth: '90%', zIndex: 100 }}
+                                            >
+                                                <span className="apptr__form-warning-message">
+                                                    {t('transit:transitRouting:DataSourceWarningPopup', {
+                                                        percentage: (
+                                                            Math.round(
+                                                                properties.populationData?.dataSourceAreaRatio *
+                                                                    100 *
+                                                                    10
+                                                            ) / 10
+                                                        ).toLocaleString(language)
+                                                    })}
+                                                </span>
+                                            </Tooltip>
+                                        </React.Fragment>
+                                    )}
+                                </td>
                             </tr>
-                            <tr>
-                                <th colSpan={2}>
-                                    <div style={{ margin: 0 }}>
-                                        <Collapsible
-                                            trigger={
-                                                <div>
-                                                    {t('transit:transitRouting:TotalPOIs')}&nbsp;
-                                                    <span style={{ color: textEmphasizedColor }}>{categoryTotal}</span>
+                        )}
+                        {categoryTotal > 0 && (
+                            <React.Fragment>
+                                <tr>
+                                    <th colSpan={2} className="_header" data-tooltip-id="accessible-POI-header">
+                                        {t('transit:transitRouting:NumberOfAccessiblePOIsInNMinutesByCategory', {
+                                            n: Math.round(properties.durationMinutes)
+                                        })}
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th colSpan={2}>
+                                        <div style={{ margin: 0 }}>
+                                            <Collapsible
+                                                trigger={
+                                                    <div>
+                                                        {t('transit:transitRouting:TotalPOIs')}&nbsp;
+                                                        <span style={{ color: textEmphasizedColor }}>
+                                                            {categoryTotal}
+                                                        </span>
+                                                    </div>
+                                                }
+                                                triggerStyle={{ backgroundColor: collapsibleBackgroundColor }}
+                                                open={false}
+                                                transitionTime={100}
+                                            >
+                                                <div style={{ backgroundColor: collapsibleBackgroundColor }}>
+                                                    <div>{accessiblePlacesCountByCategory}</div>
+                                                    {accessiblePlacesCountByDetailedCategory.length > 0 &&
+                                                        detailedCategoryCollapsible}
+                                                    <br></br>
                                                 </div>
-                                            }
-                                            triggerStyle={{ backgroundColor: collapsibleBackgroundColor }}
-                                            open={false}
-                                            transitionTime={100}
-                                        >
-                                            <div style={{ backgroundColor: collapsibleBackgroundColor }}>
-                                                <div>{accessiblePlacesCountByCategory}</div>
-                                                {accessiblePlacesCountByDetailedCategory.length > 0 &&
-                                                    detailedCategoryCollapsible}
-                                                <br></br>
-                                            </div>
-                                        </Collapsible>
-                                    </div>
-                                </th>
-                            </tr>
-                        </React.Fragment>
-                    )}
-                </tbody>
+                                            </Collapsible>
+                                        </div>
+                                    </th>
+                                </tr>
+                            </React.Fragment>
+                        )}
+                    </tbody>
+                </table>
                 <Tooltip id="accessible-POI-header" opacity={1} style={{ maxWidth: '90%', zIndex: 100 }}>
                     <span>{t('transit:transitRouting:AccessiblePOIsPopup')}</span>
                 </Tooltip>
-            </table>
+                {props.calculatePopulation && properties.populationData?.population === null && (
+                    <div className="apptr__form-warning-message">
+                        {t('transit:transitRouting:DataSourceNullWarningPopup')}
+                    </div>
+                )}
+            </React.Fragment>
         );
     });
     return <div className="tr__form-section">{featureStats}</div>;
