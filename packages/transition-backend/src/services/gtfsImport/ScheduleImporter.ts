@@ -12,7 +12,7 @@ import pQueue from 'p-queue';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { hoursToSeconds, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsInternalData, StopTime, Frequencies, Period } from './GtfsImportTypes';
+import { GtfsInternalData, StopTime, Frequencies, Period, ProgressEmitFn } from './GtfsImportTypes';
 import Schedule, { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
 import linesDbQueries from '../../models/db/transitLines.db.queries';
@@ -108,7 +108,8 @@ const generateAndImportSchedules = async (
     tripByGtfsLineId: { [key: string]: TripAndStopTimes[] },
     importData: GtfsInternalData,
     collectionManager: CollectionManager,
-    generateFrequencyBasedSchedules = false
+    generateFrequencyBasedSchedules = false,
+    emitProgress?: ProgressEmitFn
 ): Promise<
     { status: 'success'; warnings: TranslatableMessage[] } | { status: 'failed'; errors: TranslatableMessage[] }
 > => {
@@ -116,6 +117,10 @@ const generateAndImportSchedules = async (
 
     const gtfsLineIds = Object.keys(tripByGtfsLineId);
     const promiseQueue = new pQueue({ concurrency: 1 });
+
+    const totalLines = gtfsLineIds.length;
+    const emitInterval = Math.max(1, Math.floor(totalLines / 100));
+    let processedLines = 0;
 
     const schedulesForLine = gtfsLineIds.map(async (gtfsLineId) => {
         const lineId = importData.lineIdsByRouteGtfsId[gtfsLineId];
@@ -152,6 +157,13 @@ const generateAndImportSchedules = async (
                     console.error('Too many errors importing schedules, aborting.');
                     throw { errors: warnings };
                 }
+            }
+            processedLines++;
+            if (emitProgress && processedLines % emitInterval === 0) {
+                emitProgress({
+                    name: 'ImportingSchedules',
+                    progress: Math.min(0.99, processedLines / totalLines)
+                });
             }
         });
     });

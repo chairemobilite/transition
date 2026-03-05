@@ -19,6 +19,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 import { GtfsObjectPreparator } from './GtfsObjectPreparator';
 import { getNodesInBirdDistanceFromPoint } from '../nodes/NodeCollectionUtils';
+import { ProgressEmitFn } from './GtfsImportTypes';
 
 export class StopImporter implements GtfsObjectPreparator<StopImportData> {
     private _filePath: string;
@@ -86,7 +87,11 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
      * @return {*}  {Promise<{ [key: string]: Node }>}
      * @memberof StopImporter
      */
-    async import(stops: StopImportData[], importData: GtfsImportData): Promise<{ [key: string]: Node }> {
+    async import(
+        stops: StopImportData[],
+        importData: GtfsImportData,
+        emitProgress?: ProgressEmitFn
+    ): Promise<{ [key: string]: Node }> {
         const importedStops: { [key: string]: Node } = {};
         const defaultNodesColor = importData.nodes_color;
 
@@ -98,6 +103,14 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
 
         // Split the nodes to import into already existing nodes to update and new nodes
         const promiseQueue = new PQueue({ concurrency: 1 });
+        const totalStops = stops.length;
+        const emitInterval = Math.max(1, Math.floor(totalStops / 100));
+        let processedStops = 0;
+
+        // Fraction of progress allocated to stop processing;
+        // the rest covers the node save phase which takes much less time than processing
+        const processingWeight = 0.85;
+
         const promiseProducer = async (stopData: StopImportData) => {
             // FIXME When radius is 0, KDBush sometimes does not return a node
             // even if one at the exact same location exists, so we force the
@@ -134,6 +147,13 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
                 updatedNodesById[newNode.getId()] = newNode;
                 importedStops[stopData.stop.stop_id] = newNode;
             }
+            processedStops++;
+            if (emitProgress && processedStops % emitInterval === 0) {
+                emitProgress({
+                    name: 'ImportingStops',
+                    progress: Math.min(processingWeight, (processedStops / totalStops) * processingWeight)
+                });
+            }
             return true;
         };
 
@@ -147,8 +167,21 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
         // TODO: Update the radius of nodes to make sure all of their included stops are inside the radius.
 
         // TODO: Batch update/create nodes when a method is readily available for it
-        const updatePromises = Object.keys(updatedNodesById).map(async (key) =>
-            promiseQueue.add(async () => updatedNodesById[key].save(serviceLocator.socketEventManager))
+        const nodeKeys = Object.keys(updatedNodesById);
+        const totalNodes = nodeKeys.length;
+        const saveEmitInterval = Math.max(1, Math.floor(totalNodes / 20)); // Emits 20 times
+        let savedNodes = 0;
+        const updatePromises = nodeKeys.map(async (key) =>
+            promiseQueue.add(async () => {
+                await updatedNodesById[key].save(serviceLocator.socketEventManager);
+                savedNodes++;
+                if (emitProgress && savedNodes % saveEmitInterval === 0) {
+                    emitProgress({
+                        name: 'ImportingStops',
+                        progress: Math.min(0.99, processingWeight + (savedNodes / totalNodes) * (1 - processingWeight))
+                    });
+                }
+            })
         );
         await Promise.allSettled(updatePromises);
 
