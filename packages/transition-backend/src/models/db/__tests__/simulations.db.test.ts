@@ -27,7 +27,7 @@ const newObjectAttributes = {
         transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
             nbOfVehicles: 9
-        }
+        } as any // Cast as any instead of defining all variables, these queries will be removed shortly anyway
     },
     isEnabled: true
 };

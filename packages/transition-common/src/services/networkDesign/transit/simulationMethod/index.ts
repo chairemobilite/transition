@@ -33,7 +33,7 @@ export type SimulationMethodType = keyof SimulationMethodRegistry;
  */
 export type SimulationMethodConfigurationByType<T extends SimulationMethodType> = {
     type: T;
-    config: Partial<SimulationMethodRegistry[T]>;
+    config: SimulationMethodRegistry[T];
 };
 
 /**
