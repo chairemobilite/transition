@@ -23,6 +23,9 @@ import { LineServices } from '../../evolutionaryAlgorithm/internalTypes';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { MemcachedInstance } from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
 
+import { TrRoutingBatchManager, TrRoutingBatchStartResult } from '../../transitRouting/TrRoutingBatchManager';
+import { FakeTrRoutingBatchManager } from '../../transitRouting/FakeTrRoutingBatchManager';
+
 // Type to extract parameters from a job data type
 type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: { parameters: infer P } } ? P : never;
 
@@ -46,6 +49,7 @@ export class TransitNetworkDesignJobWrapper<
     private _lineServices: LineServices | undefined = undefined;
     private _collectionManager: CollectionManager | undefined = undefined;
     protected memcachedInstance: MemcachedInstance | undefined | null = undefined;
+    private _trRoutingBatchStartResult: TrRoutingBatchStartResult | undefined = undefined;
 
     constructor(
         private wrappedJob: ExecutableJob<TJobType>,
@@ -129,6 +133,21 @@ export class TransitNetworkDesignJobWrapper<
         return this.memcachedInstance;
     };
 
+    setTrRoutingBatchStartResult(startResult: TrRoutingBatchStartResult) {
+        this._trRoutingBatchStartResult = startResult;
+    }
+
+    getFakeTrRoutingBatchManager(progressEmitter: EventEmitter): TrRoutingBatchManager {
+        if (this._trRoutingBatchStartResult) {
+            return new FakeTrRoutingBatchManager(
+                progressEmitter,
+                this._trRoutingBatchStartResult.threadCount,
+                this._trRoutingBatchStartResult.port
+            );
+        } else {
+            throw new Error('Fake trRoutingBatchManager not set yet');
+        }
+    }
     loadServerData = async (socket: EventEmitter): Promise<void> => {
         const collectionManager = new CollectionManager(undefined);
         const lines = new LineCollection([], {});
