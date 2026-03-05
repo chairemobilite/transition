@@ -299,11 +299,18 @@ export default class OdTripSimulation implements SimulationMethod {
             // I would normally do routingJob.run() here, but it was not implemented like that :P
 
             // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
-            const batchJobExecutor = new TrRoutingBatchExecutor(routingJob, {
-                // Child job needs its own progress emitter to avoid conflicts with the parent's
-                progressEmitter: new EventEmitter(),
-                isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
-            });
+
+            // Child job needs its own progress emitter to avoid conflicts with the parent's
+            const childProgressEmitter = new EventEmitter();
+
+            const batchJobExecutor = new TrRoutingBatchExecutor(
+                routingJob,
+                {
+                    progressEmitter: childProgressEmitter,
+                    isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
+                },
+                this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
+            );
             const execResults = await batchJobExecutor.run();
             if (execResults.completed === true) {
                 const facPerField = this.options.demandAttributes.fileAndMapping.fieldMappings.expansionFactor;
