@@ -80,8 +80,8 @@ const NotificationArea: React.FC = () => {
     // TODO: Add an 'x' to remove a notification from the area manually.
     return (
         <div className="tr__top-menu-notifications">
-            {Object.values(notifications).map((notification: UiNotification) => (
-                <div key={notification.message} className="tr__flash-message-container">
+            {Object.entries(notifications).map(([name, notification]) => (
+                <div key={name} className="tr__flash-message-container">
                     {notification.type === 'progress' && <Loader size={16} color="#ffffff" />}
                     <p className={`_${notification.color}`}>{notification.message}</p>
                 </div>
