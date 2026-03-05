@@ -39,7 +39,9 @@ import pathsDbQueries from '../../models/db/transitPaths.db.queries';
 const generateAndImportPaths = async (
     tripByGtfsLineId: { [key: string]: TripData[] },
     importData: GtfsInternalData,
-    collectionManager: any
+    collectionManager: any,
+    // Reports a 0→1 fraction; the caller maps it into the appropriate named step sub-range.
+    onProgress?: (fraction: number) => void
 ): Promise<
     | { status: 'success'; pathIdsByTripId: { [key: string]: string }; warnings: TranslatableMessage[] }
     | { status: 'failed'; errors: TranslatableMessage[] }
@@ -52,6 +54,10 @@ const generateAndImportPaths = async (
         const gtfsRouteIds = Object.keys(tripByGtfsLineId);
 
         const promiseQueue = new pQueue({ concurrency: 1 });
+
+        const totalLines = gtfsRouteIds.length;
+        const emitInterval = Math.max(1, Math.floor(totalLines / 100));
+        let processedLines = 0;
 
         let newPaths: Path[] = [];
         const pathsForLinePromises = gtfsRouteIds.map(async (gtfsLineId) => {
@@ -81,6 +87,12 @@ const generateAndImportPaths = async (
                         text: GtfsMessages.PathGenerationErrorForLine,
                         params: { lineShortName: line.attributes.shortname || gtfsLineId }
                     });
+                }
+                processedLines++;
+                if (onProgress && processedLines % emitInterval === 0) {
+                    onProgress(Math.min(0.99, processedLines / totalLines));
+                    // Yield to the event loop so socket.io can flush progress to the client
+                    await new Promise((resolve) => setImmediate(resolve));
                 }
             });
         });
