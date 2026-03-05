@@ -92,9 +92,14 @@ export class TrRoutingBatchExecutor {
         private options: {
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
-        }
+        },
+        batchManager?: TrRoutingBatchManager
     ) {
-        this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
+        if (batchManager) {
+            this.batchManager = batchManager;
+        } else {
+            this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
+        }
     }
 
     run = async (): Promise<TransitBatchCalculationResult> => {

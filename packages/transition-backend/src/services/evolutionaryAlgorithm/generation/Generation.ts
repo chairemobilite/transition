@@ -18,6 +18,7 @@ import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetwo
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ResultSerialization } from '../candidate/types';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { TrRoutingBatchManager } from '../../transitRouting/TrRoutingBatchManager';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
@@ -104,6 +105,15 @@ abstract class Generation {
         console.time(` generation ${this.generationNumber}: simulated candidates`);
         console.log(`  generation ${this.generationNumber}: simulating candidates`);
 
+        // Start TrRouting for the generation
+        const memcachedServer = this.jobWrapper.getMemcachedInstance()?.getServer();
+        const realBatchManager = new TrRoutingBatchManager(new EventEmitter());
+        const startResults = await realBatchManager.startBatch(
+            1000, // TODO Fake high number to get above maxparallelCalculator
+            { cacheDirectoryPath: this.jobWrapper.getCacheDirectory(), memcachedServer }
+        );
+        this.jobWrapper.setTrRoutingBatchStartResult(startResults);
+
         const candidatesCount = this.getSize();
         const validCandidates = this.getCandidates().filter((candidate) => candidate.getScenario() !== undefined);
         if (validCandidates.length < this.jobWrapper.parameters.algorithmConfiguration.config.populationSizeMin) {
@@ -130,7 +140,7 @@ abstract class Generation {
         await promiseQueue.onIdle();
         console.log('done with promises');
         this.sortCandidates();
-
+        await realBatchManager.stopBatch();
         console.timeEnd(` generation ${this.generationNumber}: simulated candidates`);
 
         this.logger.doLog(this);
