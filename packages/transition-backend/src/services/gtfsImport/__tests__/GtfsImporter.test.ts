@@ -144,13 +144,13 @@ test('Test valid complete workflow with success', async() => {
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
-    }), expect.objectContaining(expectedInternalDataBeforePaths), expect.anything());
+    }), expect.objectContaining(expectedInternalDataBeforePaths), expect.anything(), undefined);
     expect(mockedScheduleImport).toHaveBeenCalledTimes(1);
     expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
     }), expect.objectContaining(Object.assign({}, expectedInternalDataBeforePaths, {
         pathIdsByTripId
-    })), expect.anything(), false);
+    })), expect.anything(), false, undefined);
 });
 
 test('Test path and schedule success, with warnings', async() => {
@@ -177,13 +177,13 @@ test('Test path and schedule success, with warnings', async() => {
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
-    }), expect.anything(), expect.anything());
+    }), expect.anything(), expect.anything(), undefined);
     expect(mockedScheduleImport).toHaveBeenCalledTimes(1);
     expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
     }), expect.objectContaining({
         pathIdsByTripId
-    }), expect.anything(), false);
+    }), expect.anything(), false, undefined);
 });
 
 test('Test path success, but schedule failures', async() => {
@@ -211,13 +211,13 @@ test('Test path success, but schedule failures', async() => {
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
-    }), expect.anything(), expect.anything());
+    }), expect.anything(), expect.anything(), undefined);
     expect(mockedScheduleImport).toHaveBeenCalledTimes(1);
     expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
     }), expect.objectContaining({
         pathIdsByTripId
-    }), expect.anything(), false);
+    }), expect.anything(), false, undefined);
 });
 
 test('Test path failure', async() => {
@@ -237,7 +237,7 @@ test('Test path failure', async() => {
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
         'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
-    }), expect.anything(), expect.anything());
+    }), expect.anything(), expect.anything(), undefined);
     expect(mockedScheduleImport).not.toHaveBeenCalled();
 });
 
