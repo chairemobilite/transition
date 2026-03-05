@@ -19,7 +19,7 @@ import ServiceImporter from './ServiceImporter';
 import LineImporter from './LineImporter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import FrequencyImporter from './FrequencyImporter';
-import { GtfsInternalData } from './GtfsImportTypes';
+import { GtfsInternalData, ProgressEmitFn } from './GtfsImportTypes';
 import ShapeImporter from './ShapeImporter';
 import StopTimeImporter from './StopTimeImporter';
 import TripImporter from './TripImporter';
@@ -64,6 +64,10 @@ const importGtfsData = async (
     let nodesDirty = false;
     let currentStepCompleted = 0;
 
+    const emitProgress: ProgressEmitFn | undefined = progressEmitter
+        ? (data) => progressEmitter.emit('progress', data)
+        : undefined;
+
     const gtfsInternalData: GtfsInternalData = {
         agencyIdsByAgencyGtfsId: {},
         lineIdsByRouteGtfsId: {},
@@ -91,7 +95,8 @@ const importGtfsData = async (
         const { nodeIdsByStopGtfsId, stopCoordinatesByStopId } = await importStops(
             directory,
             parameters,
-            nodeCollection
+            nodeCollection,
+            emitProgress
         );
         gtfsInternalData.nodeIdsByStopGtfsId = nodeIdsByStopGtfsId;
         gtfsInternalData.stopCoordinatesByStopId = stopCoordinatesByStopId;
@@ -187,24 +192,64 @@ const importGtfsData = async (
         progress: (currentStepCompleted / nbImportSteps).toFixed(2)
     });
 
+    const pathsStepWeights = {
+        afterTrips: 0.02,
+        afterShapes: 0.05,
+        afterStopTimes: 0.95,
+        afterFrequencies: 0.96,
+        afterTripData: 0.97
+    };
+    const emitPathsProgress = (progress: number) =>
+        progressEmitter?.emit('progress', { name: 'ImportingPaths', progress });
+
     // Import the paths and schedules from the trip, shape, and stop time data.
     const tripImporter = new TripImporter({ directoryPath: directory });
     gtfsInternalData.tripsToImport = await tripImporter.prepareImportData(gtfsInternalData);
+    emitPathsProgress(pathsStepWeights.afterTrips);
 
     const shapeImporter = new ShapeImporter({ directoryPath: directory });
     const shapes = await shapeImporter.prepareImportData(gtfsInternalData);
     gtfsInternalData.shapeById = ShapeImporter.groupShapesById(shapes);
+    emitPathsProgress(pathsStepWeights.afterShapes);
 
     const stopTimeImporter = new StopTimeImporter({ directoryPath: directory });
-    const stopTimes = await stopTimeImporter.prepareImportData(gtfsInternalData);
-    gtfsInternalData.stopTimesByTripId = StopTimeImporter.groupAndSortByTripId(stopTimes);
+    const stopTimeRange = pathsStepWeights.afterStopTimes - pathsStepWeights.afterShapes;
+    const afterStopTimeParsing = pathsStepWeights.afterShapes + stopTimeRange * 0.85;
+    const stopTimeOnProgress = progressEmitter
+        ? (fraction: number) =>
+            emitPathsProgress(
+                pathsStepWeights.afterShapes + fraction * (afterStopTimeParsing - pathsStepWeights.afterShapes)
+            )
+        : undefined;
+    const stopTimes = await stopTimeImporter.prepareImportData(gtfsInternalData, stopTimeOnProgress);
+    emitPathsProgress(afterStopTimeParsing);
+    const groupOnProgress = progressEmitter
+        ? (fraction: number) =>
+            emitPathsProgress(
+                afterStopTimeParsing + fraction * (pathsStepWeights.afterStopTimes - afterStopTimeParsing)
+            )
+        : undefined;
+    gtfsInternalData.stopTimesByTripId = await StopTimeImporter.groupAndSortByTripId(stopTimes, groupOnProgress);
+    emitPathsProgress(pathsStepWeights.afterStopTimes);
 
     const frequencyImporter = new FrequencyImporter({ directoryPath: directory });
     const frequencies = await frequencyImporter.prepareImportData(gtfsInternalData);
     gtfsInternalData.frequenciesByTripId = FrequencyImporter.groupAndSortByTripId(frequencies);
+    emitPathsProgress(pathsStepWeights.afterFrequencies);
 
     const allTrips = ScheduleImporter.prepareTripData(gtfsInternalData);
-    const pathResult = await PathImporter.generateAndImportPaths(allTrips, gtfsInternalData, collectionManager);
+    emitPathsProgress(pathsStepWeights.afterTripData);
+
+    const pathOnProgress = progressEmitter
+        ? (fraction: number) =>
+            emitPathsProgress(pathsStepWeights.afterTripData + fraction * (1.0 - pathsStepWeights.afterTripData))
+        : undefined;
+    const pathResult = await PathImporter.generateAndImportPaths(
+        allTrips,
+        gtfsInternalData,
+        collectionManager,
+        pathOnProgress
+    );
     progressEmitter?.emit('progress', { name: 'ImportingPaths', progress: 1.0 });
     currentStepCompleted++;
     if (pathResult.status === 'success') {
@@ -222,7 +267,8 @@ const importGtfsData = async (
             allTrips,
             gtfsInternalData,
             collectionManager,
-            parameters.generateFrequencyBasedSchedules === true
+            parameters.generateFrequencyBasedSchedules === true,
+            emitProgress
         );
         progressEmitter?.emit('progress', { name: 'ImportingSchedules', progress: 1.0 });
         currentStepCompleted++;
@@ -244,7 +290,8 @@ const importGtfsData = async (
 const importStops = async (
     directory: string,
     parameters: GtfsImportData,
-    nodeCollection: NodeCollection
+    nodeCollection: NodeCollection,
+    emitProgress?: ProgressEmitFn
 ): Promise<{
     nodeIdsByStopGtfsId: { [key: string]: string };
     stopCoordinatesByStopId: { [key: string]: [number, number] };
@@ -253,7 +300,7 @@ const importStops = async (
 
     const stopImporter = new StopImporter({ directoryPath: directory, nodes: nodeCollection });
     const nodesImportData = await stopImporter.prepareImportData();
-    const importedNodes = await stopImporter.import(nodesImportData, parameters);
+    const importedNodes = await stopImporter.import(nodesImportData, parameters, emitProgress);
     const nodeIdsByStopGtfsId = {};
     const stopCoordinatesByStopId = {};
     Object.keys(importedNodes).forEach((key) => {

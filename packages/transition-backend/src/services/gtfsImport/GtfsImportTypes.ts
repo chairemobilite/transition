@@ -86,3 +86,12 @@ export interface GtfsInternalData {
  */
 export const formatColor = (color: string | undefined, defaultColor?: string) =>
     color !== undefined ? `${color.startsWith('#') ? '' : '#'}${color}` : defaultColor;
+
+/**
+ * Callback to emit progress updates during GTFS import steps.
+ *
+ * @param data.name The import step identifier (e.g. 'ImportingStops', 'ImportingSchedules')
+ * @param data.progress A value between 0 and 1 indicating progress within the step
+ * @param data.customText Optional descriptive text to display instead of the percentage
+ */
+export type ProgressEmitFn = (data: { name: string; progress: number; customText?: string }) => void;
