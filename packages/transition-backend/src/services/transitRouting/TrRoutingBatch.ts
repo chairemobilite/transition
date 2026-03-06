@@ -207,7 +207,7 @@ export class TrRoutingBatchExecutor {
                 await resultsDbQueries.createMany(remaining);
             }
             console.log('Batch odTrip routing completed for job %d', this.job.id);
-            checkpointTracker.completed();
+            await checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
 
@@ -330,6 +330,13 @@ export class TrRoutingBatchExecutor {
                 tripIndex: odTripIndex,
                 data: routingResult
             });
+            // Immediately flush if we get above 100
+            if (this.resultBuffer.length > 100) {
+                const toFlush = this.resultBuffer.splice(0);
+                if (toFlush.length > 0) {
+                    await resultsDbQueries.createMany(toFlush);
+                }
+            }
             options.logAfter(odTripIndex);
 
             return routingResult;

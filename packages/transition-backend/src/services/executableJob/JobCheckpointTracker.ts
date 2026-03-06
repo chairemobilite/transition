@@ -18,7 +18,7 @@ import { EventEmitter } from 'events';
 export class CheckpointTracker {
     private indexes: number[] = [];
     private lastCheckpointIdx: number;
-
+    private doEmitPromises: Promise<void>[] = [];
     /**
      * Constructor
      * @param chunkSize Number of steps in a chunk.
@@ -92,14 +92,15 @@ export class CheckpointTracker {
             console.log('Emitting checkpoint at index ', checkpoint);
             this.progressEmitter.emit('checkpoint', checkpoint);
         };
-        doEmit().catch((err) => console.error(`CheckpointTracker: error before checkpoint ${checkpoint}:`, err));
+        this.doEmitPromises.push(doEmit().catch((err) => console.error(`CheckpointTracker: error before checkpoint ${checkpoint}:`, err)));
     }
 
     /**
      * Call when all steps have been completed. If the last chunk is not full,
      * it will emit a 'checkpoint' event with the last index handled.
      */
-    completed = (): void => {
+    completed = async ():  Promise<void> => {
+        await Promise.all(this.doEmitPromises);
         const lastChunkIndex = this.lastCheckpointIdx + 1;
         const lastChunkSize = this.indexes[lastChunkIndex];
         if (lastChunkSize !== undefined && lastChunkSize > 0) {
