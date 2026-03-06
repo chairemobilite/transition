@@ -7,6 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
 import { lineString as turfLineString } from '@turf/turf';
+import EventEmitter from 'events';
 
 import { prepareServices } from '../ServicePreparation';
 import Line from 'transition-common/lib/services/line/Line';
@@ -15,10 +16,13 @@ import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionMan
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Schedule, { SchedulePeriodTrip } from 'transition-common/lib/services/schedules/Schedule';
-import SimulationRun from '../../../simulation/SimulationRun';
 import Service from 'transition-common/lib/services/service/Service';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import { LineServices } from '../../internalTypes';
+import { EvolutionaryTransitNetworkDesignJobParameters, EvolutionaryTransitNetworkDesignJobType } from '../../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { ExecutableJob } from '../../../executableJob/ExecutableJob';
+import jobsDbQueries from '../../../../models/db/jobs.db.queries';
+import { createMockJobExecutor } from '../../../networkDesign/transitNetworkDesign/__tests__/MockTransitNetworkDesignJobWrapper';
 
 const mockedScheduleGeneration = jest.fn().mockReturnValue({ trips: [] }) as jest.MockedFunction<typeof Schedule.prototype.generateForPeriod>;
 Schedule.prototype.generateForPeriod = mockedScheduleGeneration;
@@ -27,9 +31,8 @@ const collectionManager = new CollectionManager(undefined, {});
 
 const lineId = uuidV4();
 const loopLineId = uuidV4();
-const simulationId = uuidV4();
 
-const outboundPath = new Path({  
+const outboundPath = new Path({
     id          : uuidV4(),
     internal_id : 'InternalId test 1',
     is_frozen   : false,
@@ -53,12 +56,12 @@ const outboundPath = new Path({
         bar: 'foo',
         operatingTimeWithLayoverTimeSeconds: 50 * 60,
         nodeTypes: [
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine"
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine'
         ]
     }
 }, false);
@@ -71,7 +74,7 @@ const inboundPath = new Path({
     line_id     : lineId,
     name        : 'North',
     direction   : 'inbound',
-    description : "Description path 2",
+    description : 'Description path 2',
     integer_id  : 2,
     geography   : turfLineString([[-73.5, 45.4], [-73.6, 45.5], [-73.7, 45.3]]).geometry,
     nodes       : [uuidV4(), uuidV4(), uuidV4(), uuidV4(), uuidV4()],
@@ -87,16 +90,16 @@ const inboundPath = new Path({
         bar2: 'foo2',
         operatingTimeWithLayoverTimeSeconds: 55 * 60,
         nodeTypes: [
-        "manual",
-        "engine",
-        "manual",
-        "engine",
-        "manual"
+            'manual',
+            'engine',
+            'manual',
+            'engine',
+            'manual'
         ]
     }
 }, false);
 
-const loopPath = new Path({  
+const loopPath = new Path({
     id          : uuidV4(),
     internal_id : 'InternalId test 1',
     is_frozen   : false,
@@ -120,18 +123,18 @@ const loopPath = new Path({
         bar: 'foo',
         operatingTimeWithLayoverTimeSeconds: 50 * 60,
         nodeTypes: [
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine",
-            "engine"
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine',
+            'engine'
         ]
     }
 }, false);
 
 collectionManager.add('paths', new PathCollection([inboundPath.toGeojson(), outboundPath.toGeojson(), loopPath.toGeojson()], {}));
-const line = new Line({  
+const line = new Line({
     id                       : lineId,
     internal_id              : 'InternalId test 1',
     is_frozen                : false,
@@ -148,12 +151,12 @@ const line = new Line({
     is_autonomous            : false,
     scheduleByServiceId      : { },
     data                     : {
-      foo: 'bar',
-      bar: 'foo'
+        foo: 'bar',
+        bar: 'foo'
     }
 }, false, collectionManager);
 
-const loopLine = new Line({  
+const loopLine = new Line({
     id                       : loopLineId,
     internal_id              : 'InternalId test 1',
     is_frozen                : false,
@@ -170,60 +173,123 @@ const loopLine = new Line({
     is_autonomous            : false,
     scheduleByServiceId      : { },
     data                     : {
-      foo: 'bar',
-      bar: 'foo'
+        foo: 'bar',
+        bar: 'foo'
     }
 }, false, collectionManager);
 
-const existingService = new Service({name: `simulation_${line.toString()}_${2}`, simulation_id: simulationId }, false);
+const existingService = new Service({ name: 'existingService' }, false);
 const serviceCollection = new ServiceCollection([existingService], {});
+
+// Mock the job loader
+jest.mock('../../../../models/db/jobs.db.queries');
+const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
+const jobId = 1;
+const mockJobAttributes = {
+    id: jobId,
+    name: 'evolutionaryTransitNetworkDesign' as const,
+    user_id: 123,
+    status: 'pending' as const,
+    internal_data: {},
+    data: {
+        parameters: {
+
+        } as Partial<EvolutionaryTransitNetworkDesignJobParameters>
+    },
+    resources: {
+        files: {
+            input: 'something.csv'
+        }
+    }
+};
+
+const getJobExecutor = async (parameters: Partial<EvolutionaryTransitNetworkDesignJobParameters>) => {
+    const testJobParameters = _cloneDeep(mockJobAttributes);
+    testJobParameters.data.parameters = parameters;
+    mockJobsDbQueries.read.mockResolvedValueOnce(testJobParameters);
+    const job = await ExecutableJob.loadTask(1);
+
+    // Use the mock executor instead of the real one
+    return createMockJobExecutor(job as ExecutableJob<EvolutionaryTransitNetworkDesignJobType>);
+};
 
 beforeEach(() => {
     mockedScheduleGeneration.mockClear();
-})
+});
 
 describe('Test with a single line', () => {
 
     const maxTimeBetweenPassages = 15;
     const minTimeBetweenPassages = 5;
-    const simulationRun = new SimulationRun({
-        seed: '235132',
-        data: {
-            routingAttributes: {
-                maxTotalTravelTimeSeconds: 1000
-            },
-            transitNetworkDesignParameters: {
-                maxTimeBetweenPassages,
-                minTimeBetweenPassages,
-                nbOfVehicles: 9,
-                simulatedAgencies: ['arbitrary']
-            },
-            algorithmConfiguration: {
-                type: 'evolutionaryAlgorithm',
-                config: {
-                    populationSizeMin: 3,
-                    populationSizeMax: 4,
-                    numberOfElites: 1,
-                    numberOfRandoms: 0,
-                    crossoverNumberOfCuts: 1,
-                    crossoverProbability: 0.3,
-                    mutationProbability: 0.5,
-                    tournamentSize: 2,
-                    tournamentProbability: 0.6
-                }
+    const defaultJobParameters: EvolutionaryTransitNetworkDesignJobParameters = {
+        transitNetworkDesignParameters: {
+            maxTimeBetweenPassages,
+            minTimeBetweenPassages,
+            nbOfVehicles: 9,
+            numberOfLinesMin: 0,
+            numberOfLinesMax: 0,
+            nonSimulatedServices: [],
+            simulatedAgencies: ['arbitrary'],
+            linesToKeep: []
+        },
+        algorithmConfiguration: {
+            type: 'evolutionaryAlgorithm',
+            config: {
+                populationSizeMin: 3,
+                populationSizeMax: 4,
+                numberOfElites: 1,
+                numberOfRandoms: 0,
+                crossoverNumberOfCuts: 1,
+                crossoverProbability: 0.3,
+                mutationProbability: 0.5,
+                tournamentSize: 2,
+                tournamentProbability: 0.6,
+                shuffleGenes: false,
+                keepGenerations: 0,
+                keepCandidates: 0,
+                numberOfGenerations: 5
             }
         },
-        status: 'pending' as const,
-        simulation_id: simulationId,
-        results: {},
-        options: {
-            numberOfThreads: 1,
-            fitnessSorter: 'maximize',
-            functions: {},
-            trRoutingStartingPort: 14000
+        simulationMethod: {
+            type: 'OdTripSimulation',
+            config: {
+                demandAttributes: {
+                    type: 'csv',
+                    fileAndMapping: {
+                        csvFile: {
+                            location: 'upload',
+                            filename: '',
+                            uploadFilename: ''
+                        },
+                        fieldMappings: {
+                            id: '',
+                            originLat: '',
+                            originLon: '',
+                            destinationLat: '',
+                            destinationLon: '',
+                            projection: ''
+                        }
+                    },
+                    csvFields: []
+                },
+                transitRoutingAttributes: {
+                    minWaitingTimeSeconds: undefined,
+                    maxTransferTravelTimeSeconds: undefined,
+                    maxAccessEgressTravelTimeSeconds: undefined,
+                    maxWalkingOnlyTravelTimeSeconds: undefined,
+                    maxFirstWaitingTimeSeconds: undefined,
+                    maxTotalTravelTimeSeconds: undefined,
+                    walkingSpeedMps: undefined,
+                    walkingSpeedFactor: undefined
+                },
+                evaluationOptions: {
+                    sampleRatio: 0,
+                    odTripFitnessFunction: '',
+                    fitnessFunction: ''
+                }
+            }
         }
-    }, true);
-
+    };
     const defaultTripAttributes: Partial<SchedulePeriodTrip> = {
         schedule_period_id: 1,
         path_id: outboundPath.getId(),
@@ -267,19 +333,68 @@ describe('Test with a single line', () => {
                 ])
             ],
             expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
-                // 1 new generated service
-                expect(services.getFeatures().length).toEqual(1);
-                expect(services.getFeatures()[0].attributes).toEqual(expect.objectContaining({
-                    name: `simulation_${line.toString()}_2`,
-                    simulation_id: simulationId
+                // the existing service + 1 new generated service
+                expect(services.getFeatures().length).toEqual(2);
+                expect(services.getFeatures()[1].attributes).toEqual(expect.objectContaining({
+                    name: `networkDesign_${line.toString()}_2`,
+                    data: { forJob: jobId}
                 }));
                 expect(lineServices[line.getId()]).toBeDefined();
                 expect(Object.keys(lineServices).length).toEqual(1);
-                expect(lineServices[line.getId()][0]).toBeDefined();
                 expect(lineServices[line.getId()].length).toEqual(1);
-                expect(lineServices[line.getId()][0].service.attributes).toEqual(expect.objectContaining({
-                    name: `simulation_${line.toString()}_2`,
-                    simulation_id: simulationId
+                expect(lineServices[line.getId()][0]).toEqual(expect.objectContaining({
+                    service: expect.objectContaining({
+                        _attributes: expect.objectContaining({
+                            name: `networkDesign_${line.toString()}_2`,
+                            data: { forJob: jobId}
+                        })
+                    }),
+                    numberOfVehicles: 2
+                }));
+            }
+        },
+        {
+            name: 'Generate services for one line, inbound, outbound, existing service',
+            lineCollection: new LineCollection([line], {}),
+            serviceCollection: new ServiceCollection([new Service({ name: `networkDesign_${line.toString()}_2`, data: { forJob: jobId } }, false)], {}),
+            generatedSchedules: [
+                // time between trips too high, inbound/outbound trips
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 1, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2 }
+                ]),
+                // This schedule is acceptable
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() },
+                    { departure_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + maxTimeBetweenPassages * 60 + 2 }
+                ]),
+                // minimum time between trips too low
+                buildInboundOutboundTrips([
+                    { departure_time_seconds: 6 * 60 * 60, arrival_time_seconds: 6 * 60 * 60 + 1 },
+                    { departure_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 - 10, arrival_time_seconds: 6 * 60 * 60 + minTimeBetweenPassages * 60 + 2 },
+                    { departure_time_seconds: 6 * 60 * 60 + 10 * 60, arrival_time_seconds: 6 * 60 * 60 + 10 * 60 + 1, path_id: inboundPath.getId() }
+                ])
+            ],
+            expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
+                // only one existing service
+                expect(services.getFeatures().length).toEqual(1);
+                expect(services.getFeatures()[0].attributes).toEqual(expect.objectContaining({
+                    name: `networkDesign_${line.toString()}_2`,
+                    data: { forJob: jobId}
+                }));
+                expect(lineServices[line.getId()]).toBeDefined();
+                expect(Object.keys(lineServices).length).toEqual(1);
+                expect(lineServices[line.getId()].length).toEqual(1);
+                expect(lineServices[line.getId()][0]).toEqual(expect.objectContaining({
+                    service: expect.objectContaining({
+                        _attributes: expect.objectContaining({
+                            name: `networkDesign_${line.toString()}_2`,
+                            data: { forJob: jobId}
+                        })
+                    }),
+                    numberOfVehicles: 2
                 }));
             }
         },
@@ -305,8 +420,8 @@ describe('Test with a single line', () => {
                 ])
             ],
             expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
-                // 1 new generated feature
-                expect(services.getFeatures().length).toEqual(1);
+                // 1 existing + 1 new generated feature
+                expect(services.getFeatures().length).toEqual(2);
                 expect(lineServices[loopLine.getId()]).toBeDefined();
                 expect(Object.keys(lineServices).length).toEqual(1);
                 expect(lineServices[loopLine.getId()][0]).toBeDefined();
@@ -332,20 +447,20 @@ describe('Test with a single line', () => {
                 ])
             ],
             expectations: ({ lineServices, services }: { lineServices: LineServices; services: ServiceCollection }) => {
-                // One existing feature + 2 new generated
-                expect(services.getFeatures().length).toEqual(2);
+                // One existing feature + 2 new generated features
+                expect(services.getFeatures().length).toEqual(3);
                 // Find services by their names
-                const service1Vehicle = services.getFeatures().find(s => s.attributes.name === `simulation_${line.toString()}_1`);
-                const service2Vehicle = services.getFeatures().find(s => s.attributes.name === `simulation_${line.toString()}_2`);
+                const service1Vehicle = services.getFeatures().find(s => s.attributes.name === `networkDesign_${line.toString()}_1`);
+                const service2Vehicle = services.getFeatures().find(s => s.attributes.name === `networkDesign_${line.toString()}_2`);
                 expect(service1Vehicle).toBeDefined();
                 expect(service2Vehicle).toBeDefined(); 
                 expect(service1Vehicle!.attributes).toEqual(expect.objectContaining({
-                    name: `simulation_${line.toString()}_1`,
-                    simulation_id: simulationId
+                    name: `networkDesign_${line.toString()}_1`,
+                    data: { forJob: jobId}
                 }));
                 expect(service2Vehicle!.attributes).toEqual(expect.objectContaining({
-                    name: `simulation_${line.toString()}_2`,
-                    simulation_id: simulationId
+                    name: `networkDesign_${line.toString()}_2`,
+                    data: { forJob: jobId}
                 }));
 
                 // Validate line services
@@ -355,18 +470,20 @@ describe('Test with a single line', () => {
                 expect(lineServicesForLine[0]).toEqual(expect.objectContaining({
                     service: expect.objectContaining({
                         _attributes: expect.objectContaining({
-                            name: `simulation_${line.toString()}_1`,
-                            simulation_id: simulationId
+                            name: `networkDesign_${line.toString()}_1`,
+                            data: { forJob: jobId}
                         })
-                    })
+                    }),
+                    numberOfVehicles: 1
                 }));
                 expect(lineServicesForLine[1]).toEqual(expect.objectContaining({
                     service: expect.objectContaining({
                         _attributes: expect.objectContaining({
-                            name: `simulation_${line.toString()}_2`,
-                            simulation_id: simulationId
+                            name: `networkDesign_${line.toString()}_2`,
+                            data: { forJob: jobId}
                         })
-                    })
+                    }),
+                    numberOfVehicles: 2
                 }));
             }
         },
@@ -376,7 +493,9 @@ describe('Test with a single line', () => {
         generatedSchedules.forEach((schedule) => {
             mockedScheduleGeneration.mockReturnValueOnce(schedule);
         });
-        const { lineServices, services } = await prepareServices(lineCollection, serviceCollection, simulationRun);
+        const jobExecutor = await getJobExecutor(defaultJobParameters);
+        const { lineServices, services } = await prepareServices(lineCollection, serviceCollection, jobExecutor);
+
         expect(mockedScheduleGeneration).toHaveBeenCalledTimes(generatedSchedules.length);
         expectations({ lineServices, services });
     });
