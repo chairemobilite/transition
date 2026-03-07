@@ -86,6 +86,49 @@ test('roundSecondsToNearestMinute', function() {
     expect(DateTimeUtils.roundSecondsToNearestMinute(Math.PI)).toBe(60);
 });
 
+test('roundSecondsToNearestQuarterMinute with ceil', function() {
+    // interval = 15 (ceil)
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(0)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(15)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(14)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(16)).toBe(30);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(59)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(60)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(61)).toBe(75);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(725)).toBe(735);
+    // edge cases
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(Infinity)).toBe(Infinity);
+});
+
+test('roundSecondsToNearestQuarterMinute with floor', function() {
+    // interval = 15 (floor)
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(0, Math.floor)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(15, Math.floor)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(14, Math.floor)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(16, Math.floor)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(59, Math.floor)).toBe(45);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(60, Math.floor)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(61, Math.floor)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(725, Math.floor)).toBe(720);
+    // edge cases
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(Infinity, Math.floor)).toBe(Infinity);
+});
+
+test('roundSecondsToNearestQuarterMinute with round', function() {
+    // interval = 15 (round)
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(0, Math.round)).toBe(0);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(15, Math.round)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(14, Math.round)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(16, Math.round)).toBe(15);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(59, Math.round)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(60, Math.round)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(61, Math.round)).toBe(60);
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(725, Math.round)).toBe(720);
+    // edge cases
+    expect(DateTimeUtils.roundSecondsToNearestQuarterMinute(Infinity, Math.round)).toBe(Infinity);
+});
+
+
 
 describe('toXXhrYYminZZsec', () => {
     // Mock translation function to simply return the key

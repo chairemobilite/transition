@@ -226,6 +226,11 @@ const roundSecondsToNearestMinute = function (seconds: number, rounding = Math.c
     return rounding(seconds / 60) * 60;
 };
 
+// returns value as seconds, rounded, ceiled or floored to the nearest 15 seconds:
+const roundSecondsToNearestQuarterMinute = function (seconds: number, rounding = Math.ceil): number {
+    return rounding(seconds / 15) * 15;
+};
+
 export {
     secondsSinceMidnightToTimeStr,
     decimalHourToTimeStr,
@@ -241,5 +246,6 @@ export {
     toXXhrYYminZZsec,
     timeStrToSecondsSinceMidnight,
     intTimeToSecondsSinceMidnight,
-    roundSecondsToNearestMinute
+    roundSecondsToNearestMinute,
+    roundSecondsToNearestQuarterMinute
 };
