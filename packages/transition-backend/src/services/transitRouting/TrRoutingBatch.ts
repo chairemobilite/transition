@@ -335,8 +335,8 @@ export class TrRoutingBatchExecutor {
                 tripIndex: odTripIndex,
                 data: routingResult
             });
-            // Immediately flush if we get above 100
-            if (this.resultBuffer.length > 100) {
+            // Immediately flush if we get above 200
+            if (this.resultBuffer.length > 200) {
                 const toFlush = this.resultBuffer.splice(0);
                 if (toFlush.length > 0) {
                     await resultsDbQueries.createMany(toFlush);
