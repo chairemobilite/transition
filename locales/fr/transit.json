@@ -672,7 +672,7 @@
             "DataError": "Les données en cache pour la calculateur de chemin sont invalides. Essayez de sauvegarder les données à nouveau. Si le problème persiste, contactez les administrateurs.",
             "ErrorForMode": "Le calcul de chemin pour le mode '{{mode}}' a échoué. Aucun résultat n'a été retourné.",
             "TransitBatchRouteCannotBeCalculatedBecauseError": "Une erreur s'est produite lors des calculs multiples. Veuillez vérifier le fichier d'entrée et les paramètres et ré-essayer. Si le problème persiste, contactez les administrateurs.",
-            "InvalidDepartureOrArrivalTime": "Le temps de départ ou d'arrivée est invalide", 
+            "InvalidDepartureOrArrivalTime": "Le temps de départ ou d'arrivée est invalide",
             "InvalidOriginDestinationCoordinates": "Les coordonnées d'origine et de destination sont invalides",
             "InvalidOriginCoordinates": "Les coordonnées de l'origine sont invalides",
             "InvalidDestinationCoordinates": "Les coordonnées de la destination sont invalides",
@@ -842,6 +842,133 @@
             "ErrorExportingGtfs": "Une erreur s'est produite lors de la génération de l'archive GTFS."
         }
     },
+    "networkDesign": {
+        "NetworkDesign": "Conception de réseau",
+        "SimulationMethod": "Méthode de simulation",
+        "List": "Conception de réseau de transport collectif",
+        "New": "Nouvelle conception de réseau",
+        "ReplayJob": "Nouvelle conception de réseau à partir de celle-ci",
+        "ConfigureNetworkParameters": "Configurer les paramètres du réseau à concevoir",
+        "ConfigureAlgorithm": "Configurer l'algorithme de conception de réseau",
+        "ConfigureSimulationMethod": "Configurer la méthode de simulation",
+        "ConfirmJob": "Exécuter la conception de réseau",
+        "AlgorithmConfiguration": "Configuration de l'algorithme",
+        "Algorithm": "Algorithme sélectionné",
+        "NetworkDesignParameters": "Paramètres du réseau à concevoir",
+        "TransitNetworkDesignParameters": "Paramètres de la conception de réseau de TC",
+        "parameters": {
+            "NumberOfLinesMin": "Nombre minimal de lignes",
+            "NumberOfLinesMax": "Nombre maximal de lignes",
+            "VehiclesCount": "Nombre de véhicules (flotte)",
+            "MaxIntervalMinutes": "Intervalle maximal (minutes)",
+            "MinIntervalMinutes": "Intervalle minimal (minutes)",
+            "NonSimulatedServices": "Services non simulés à utiliser",
+            "LineSetAgencies": "Agences de l'ensemble de lignes",
+            "KeepLines": "Toujours conserver ces lignes",
+            "NumberOfLinesMinRequired": "Le nombre minimal de lignes est requis",
+            "NumberOfLinesMaxRequired": "Le nombre maximal de lignes est requis",
+            "VehiclesCountRequired": "Le nombre de véhicules (flotte) est requis",
+            "MaxIntervalMinutesRequired": "L'intervalle maximal (minutes) est requis",
+            "MinIntervalMinutesRequired": "L'intervalle minimal (minutes) est requis",
+            "LineSetAgenciesRequired": "Les agences de l'ensemble de lignes sont requises",
+            "NumberOfLinesInvalid": "Le nombre minimal de lignes doit être supérieur à 0",
+            "NumberOfLinesMaxInvalid": "Le nombre maximal de lignes doit être supérieur à 0",
+            "VehiclesCountInvalid": "Le nombre de véhicules doit être supérieur à 0",
+            "MaxIntervalMinutesInvalid": "L'intervalle maximal doit être supérieur à 3 minutes",
+            "MinIntervalMinutesInvalid": "L'intervalle minimal doit être supérieur à 3 minutes",
+            "help": {
+                "MaxIntervalMinutes": "Le temps maximum entre les départs sur une ligne. Pour un service optimal, il est suggéré de le garder en-dessous de 15 minutes. Des temps jusqu'à 60 minutes sont acceptés.",
+                "MinIntervalMinutes": "Le temps minimal entre les départs sur une ligne. La valeur minimale devrait être supérieure à 3. Moins que ça n'aurait pas d'effet sur les calculs.",
+                "NonSimulatedServices": "Services existants qui seront conservés pour les calculs des différents scénarios à simuler, mais non modifiés par l'algorithme de conception de réseau",
+                "LineSetAgencies": "Agences à partir desquelles les lignes du réseau à concevoir seront sélectionnées",
+                "KeepLines": "Lignes des agences du réseau à concevoir qui seront conservées dans tous les scénarios. Ces lignes sont incluses dans le nombre de lignes du réseau à concevoir."
+            }
+        },
+        "errors": {
+            "MissingDemandCsvFile": "Le fichier CSV de demande est manquant"
+        },
+        "evolutionaryAlgorithm": {
+            "LineAndNumberOfVehiclesGASimulation": "Algorithme génétique avec lignes et nombre de véhicules",
+            "PopulationSizeMin": "Taille minimale de la population",
+            "PopulationSizeMax": "Taille maximale de la population",
+            "NumberOfElites": "Nombre d'élites par génération",
+            "NumberOfRandoms": "Nombre d'aléatoires par génération",
+            "CrossoverNumberOfCuts": "Nombre de coupures d'entrecroisement",
+            "CrossoverProbability": "Probabilité d'entrecroisement",
+            "MutationProbability": "Probabilité de mutation",
+            "TournamentSize": "Taille du tournoi de sélection",
+            "TournamentProbability": "Probabilité du tournoi",
+            "NumberOfGenerations": "Nombre de générations",
+            "ShuffleGenes": "Mélanger les gènes avant la reproduction",
+            "KeepGenerations": "Nombre de générations à conserver",
+            "KeepCandidates": "Nombre de candidats à conserver",
+            "PopulationSizeMinInvalid": "La taille minimale de la population doit être supérieure à 0",
+            "PopulationSizeMaxInvalid": "La taille maximale de la population doit être supérieure à 0",
+            "NumberOfElitesInvalid": "Le nombre d'élites par génération doit être supérieur à 0",
+            "NumberOfRandomsInvalid": "Le nombre d'aléatoires par génération doit être supérieur ou égal à 0",
+            "CrossoverNumberOfCutsInvalid": "Le nombre de coupures d'entrecroisement doit être supérieur à 0",
+            "CrossoverProbabilityInvalid": "La probabilité d'entrecroisement doit être entre 0 et 1",
+            "MutationProbabilityInvalid": "La probabilité de mutation doit être entre 0 et 1",
+            "TournamentSizeInvalid": "La taille du tournoi de sélection doit être supérieure à 0",
+            "TournamentProbabilityInvalid": "La probabilité du tournoi doit être entre 0 et 1",
+            "NumberOfGenerationsInvalid": "Le nombre de générations doit être supérieur à 0",
+            "KeepGenerationsInvalid": "Le nombre de générations à conserver doit être supérieur à 0",
+            "KeepCandidatesInvalid": "Le nombre de candidats à conserver doit être supérieur à 0",
+            "help": {
+                "PopulationSizeMin": "Nombre minimal de candidats dans chaque génération",
+                "PopulationSizeMax": "Nombre maximal de candidats dans chaque génération",
+                "NumberOfElites": "Nombre de meilleurs candidats à copier directement dans la génération suivante",
+                "NumberOfRandoms": "Nombre de nouveaux candidats entièrement aléatoires à ajouter dans chaque génération",
+                "CrossoverNumberOfCuts": "Nombre de points où les gènes des parents sont coupés pour créer des enfants",
+                "CrossoverProbability": "Probabilité qu'un couple de parents subisse l'entrecroisement pour créer des enfants",
+                "MutationProbability": "Probabilité qu'un gène subisse une mutation, ie soit modifié aléatoirement. Pour cet algorithme, une probabilité de 8% (0.08) est suggérée.",
+                "TournamentSize": "Nombre de candidats parmi les meilleurs de la génération qui s'affronteront pour la reproduction après chaque génération.",
+                "TournamentProbability": "La probabilité initiale qu'il y ait un tournoi pour la sélection des parents plutôt que sélectionner le meilleur. Cette probabilité ne doit pas être trop élevée, sinon seuls les meilleurs se reproduiront.",
+                "ShuffleGenes": "Mélanger les gènes évite les effets de proximité dans le chromosome, où 2 lignes positionnées côte à côte auront toujours les mêmes valeurs. Cela aide à diversifier la population.",
+                "KeepGenerations": "Nombre de dernières générations à conserver pour analyse après l'exécution de l'algorithme",
+                "KeepCandidates": "Nombre des meilleurs candidats à conserver pour chacune des générations à conserver"
+            },
+            "errors": {
+                "PopulationSizeMinGreaterThanMax": "La taille de la population minimale est plus grande que la maximale",
+                "CandidatesToKeepGreaterThanPopulation": "Le nombre de candidats à conserver est supérieur à la population",
+                "GenerationsToKeepGreaterThanGenerations": "Le nombre générations à conserver est supérieur au nombre de génération"
+            }
+        },
+        "simulationMethods": {
+            "SelectSimulationFunctions": "Sélectionner les fonctions à utiliser pour la simulation",
+            "odTrips": {
+                "Title": "Chargement OD",
+                "demandAttributes": "Données de demande à utiliser",
+                "transitRoutingAttributes": "Paramètres de routage du transit pour le calcul",
+                "simulationOptions": "Options de simulation",
+                "expansionFactorAttribute": "Colonne pour le facteur d'expansion",
+                "MaxWalkingOnlyTravelTimeMinutes": "Temps de déplacement maximal uniquement à pied (minutes)",
+                "WalkingSpeedMps": "Vitesse de marche (m/s)",
+                "WalkingSpeedFactor": "Facteur de vitesse de marche",
+                "WalkingSpeedFactorHelp": "Facteur à multiplier par la vitesse de marche. Par exemple, une valeur de 0,8 réduira la vitesse de marche de 20 %, tandis qu'une valeur de 1,2 l'augmentera de 20 %.",
+                "OdTripsSampleRatio": "Pourcentage des trajets OD à inclure (entre 0 et 100)",
+                "OdTripsSampleRatioInvalid": "Pourcentage invalide des trajets OD à inclure. Doit être compris entre 0 et 100.",
+                "fitness": {
+                    "odTripFitnessFunction": "Fonction de coût d'un résultat OD",
+                    "travelTimeCost": "Temps de parcours",
+                    "travelTimeWithTransferPenalty": "Temps de parcours + 10 min pénalité par transfert",
+                    "fitnessFunction": "Fonction de coût du scénario",
+                    "hourlyUserPlusOperatingCosts": "Coût usager + opération (horaire)",
+                    "hourlyUserCosts": "Coût usager (horaire)",
+                    "hourlyOperatingCosts": "Coût d'opération (horaire)",
+                    "help": {
+                        "odTripFitnessFunction": "Sélectionnez la fonction de coût pour évaluer chaque trajet OD. La fonction 'temps de parcours + pénalité de transfert' pénalise les trajets avec des correspondances pour favoriser les trajets directs.",
+                        "fitnessFunction": "Sélectionnez la fonction de coût pour évaluer le scénario, à partir des coûts des trajets OD. La fonction 'coût usager + opération' équilibre l'expérience utilisateur avec l'efficacité opérationnelle."
+                    }
+                }
+            },
+            "accessibilityMap": {
+                "Title": "Par carte d'accessibilité",
+                "AccessMapDataSources": "Sources de données pour les lieux",
+                "AccessMapMaxSampleRatio": "Ratio d'échantillonnage maximal à tester (entre 0 et 1)"
+            }
+        }
+    },
     "simulation": {
         "Simulation": "Simulation",
         "Simulations": "Simulations",
@@ -854,25 +981,12 @@
         "NumberOfThreads": "Nombre de processus parallèles",
         "NumberOfLinesMin": "Nombre minimal de lignes",
         "NumberOfLinesMax": "Nombre maximal de lignes",
-        "PopulationSizeMin": "Taille minimale de la population",
-        "PopulationSizeMax": "Taille maximale de la population",
         "VehiclesCount": "Nombre de véhicules (flotte)",
         "MaxIntervalMinutes": "Intervalle maximal (minutes)",
         "MaxIntervalMinutesHelp": "Le temps maximum entre les départs sur une ligne. Pour un service optimal, il est suggéré de le garder en-dessous de 15 minutes. Des temps jusqu'à 60 mintues sont acceptés.",
         "MinIntervalMinutes": "Intervalle minimal (minutes)",
         "MinIntervalMinutesHelp": "Le temps minimal entre les départs sur une ligne. La valeur ne devrait pas être supérieure à 3. Moins que ça n'aurait pas d'effet sur les calculs.",
-        "NumberOfElites": "Nombre d'élites par génération",
-        "NumberOfRandoms": "Nombre d'aléatoires par génération",
-        "CrossoverNumberOfCuts": "Nombre de coupures d'entrecroisement",
-        "CrossoverProbability": "Probabilité d'entrecroisement",
-        "MutationProbability": "Probabilité de mutation",
-        "TournamentSize": "Taille du tournoi de sélection",
-        "TournamentProbability": "Probabilité du tournoi",
-        "ShuffleGenes": "Mélanger les gènes avant la reproduction",
-        "KeepGenerations": "Nombre de générations à conserver",
-        "KeepCandidates": "Nombre de candidats à conserver",
         "OdTripsSampleRatio": "Pourcentage des déplacements OD à inclure",
-        "NumberOfGenerations": "Nombre de générations",
         "Color": "Color",
         "Edit": "Simulation",
         "Delete": "Supprimer la simulation",
@@ -888,7 +1002,6 @@
         "SaveSimulationToCache": "Archiver la simulation",
         "LoadSimulationFromCache": "Importer l'archive de la simulation",
         "routingParameters": "Paramètres des calculs de chemin",
-        "transitNetworkDesignParameters": "Paramètres de la conception de réseau de TC",
         "NonSimulatedServices": "Services non simulés à utiliser",
         "algorithmParameters": "Configuration de l'algorithme",
         "SimulationRuns": "Exécutions de la simulation",
@@ -900,33 +1013,6 @@
         "Results": "Résultats",
         "Parameters": "Paramètres",
         "RuntimeOptions": "Configuration de l'exécution",
-        "simulationClasses": {
-            "LineAndNumberOfVehiclesGASimulation": "Algorithme génétique avec lignes et nombre de véhicules"
-        },
-        "simulationMethods": {
-            "SelectSimulationFunctions": "Sélectionner les fonctions à utiliser pour la simulation",
-            "OdTrips": "Chargement OD",
-            "OdTripsDataSource": "Source de données du chargement OD",
-            "OdTripsSampleRatio": "Ratio d'échantillonnage (entre 0 et 1)",
-            "AccessibilityMap": "Par carte d'accessibilité",
-            "AccessMapDataSources": "Sources de données des points d'intérêt",
-            "AccessMapMaxSampleRatio": "Ratio d'échantillonnage maximal (entre 0 et 1)",
-            "MethodWeight": "Poids du coût pour la fonction de simulation \"{{method}}\"",
-            "MethodWeightError": "Poids invalide. La valeur doit être entre 0 et {{maxWeight}}.",
-            "MustSelectOneFunction": "Vous devez sélectionner au moins une fonction de simulation"
-        },
-        "fitness": {
-            "fitnessSorter": "Sens du tri de la mesure de coût",
-            "maximize": "Maximiser (valeur plus élevée est mieux)",
-            "minimize": "Minimiser (valeur plus faible est mieux)",
-            "odTripFitnessFunction": "Fonction de coût d'un résultat OD",
-            "travelTimeCost": "Temps de parcours",
-            "travelTimeWithTransferPenalty": "Temps de parcours + 10 min pénalité par transfert",
-            "fitnessFunction": "Fonction de coût du scénario",
-            "hourlyUserPlusOperatingCosts": "Coût usager + opération (horaire)",
-            "hourlyUserCosts": "Coût usager (horaire)",
-            "hourlyOperatingCosts": "Coût d'opération (horaire)"
-        },
         "DuplicateSimulation": "Dupliquer la simulation",
         "Copy": "Copie",
         "LineSetAgencies": "Agences de l'ensemble de lignes",
@@ -961,10 +1047,7 @@
             "MinTimeHigherThanMax": "Le temps minimal entre les passages est plus élevé que le temps maximal",
             "MinTimeBetweenPassagesTooHigh": "Le temps minimal entre les passages est trop élevé",
             "UnknownAlgorithm": "L'algorithme sélectionné n'est pas disponible",
-            "SimulatedAgenciesIsEmpty": "Au moins une agence à simuler doit être sélectionnée",
-            "PopulationSizeMinGreaterThanMax": "La taille de la population minimale est plus grande que la maximale",
-            "CandidatesToKeepGreaterThanPopulation": "Le nombre de candidats à conserver est supérieur à la population",
-            "GenerationsToKeepGreaterThanGenerations": "Le nombre générations à conserver est supérieur au nombre de génération"
+            "SimulatedAgenciesIsEmpty": "Au moins une agence à simuler doit être sélectionnée"
         }
     },
     "jobs": {
@@ -1004,6 +1087,13 @@
                 "input": "{{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON"
+            }
+        },
+        "evolutionaryTransitNetworkDesign": {
+            "files": {
+                "transitDemand": "Fichier de demande: {{filename}}",
+                "simulationResults": "Résultats de simulation par candidats",
+                "linesResult": "Lignes candidates"
             }
         }
     },

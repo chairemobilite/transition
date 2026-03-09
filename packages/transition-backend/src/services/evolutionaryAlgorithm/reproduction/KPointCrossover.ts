@@ -4,14 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as AlgoTypes from '../internalTypes';
+import random from 'random';
+
 import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
+import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 
 // chromosome must be an array with the same size for both parents (2 parents are used)
 class KPointCrossover {
     constructor(
         private parents: [NetworkCandidate, NetworkCandidate],
-        private options: AlgoTypes.RuntimeAlgorithmData
+        private options: EvolutionaryAlgorithmOptions,
+        private linesToKeepCount = 0
     ) {
         // Nothing to do
     }
@@ -21,14 +24,14 @@ class KPointCrossover {
 
         const chromosomeLength = parent1.getChromosome().lines.length;
 
-        const numberOfCuts = this.options.options.crossoverNumberOfCuts;
+        const numberOfCuts = this.options.crossoverNumberOfCuts;
         const cutIndexes: number[] = [];
 
         // First cut index should be after the lines to keep
-        const firstCutIndex = this.options.linesToKeep.length;
+        const firstCutIndex = this.linesToKeepCount;
 
         for (let cutIndex = 0; cutIndex < numberOfCuts; cutIndex++) {
-            cutIndexes.push(this.options.randomGenerator.int(firstCutIndex, chromosomeLength - 1));
+            cutIndexes.push(random.int(firstCutIndex, chromosomeLength - 1));
         }
 
         cutIndexes.sort((indexA, indexB) => {

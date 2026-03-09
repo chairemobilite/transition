@@ -5,8 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import {
+    SimulationMethodRegistry,
+    SimulationMethodType
+} from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import { OdTripSimulationFactory } from './OdTripSimulation';
+import { AccessibilityMapSimulationFactory } from './AccessibilityMapSimulation';
 
 /**
  * Interface for simulation method implementations. A simulation method will be
@@ -17,10 +22,7 @@ import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/rou
  * generic
  */
 export interface SimulationMethod {
-    simulate: (
-        scenarioId: string,
-        options: { trRoutingPort: number; transitRoutingParameters: TransitRoutingBaseAttributes }
-    ) => Promise<{ fitness: number; results: unknown }>;
+    simulate: (scenarioId: string) => Promise<{ fitness: number; results: unknown }>;
 }
 
 /**
@@ -34,7 +36,15 @@ export interface SimulationMethod {
  * method
  */
 export interface SimulationMethodFactory<TOptionsType extends Record<string, unknown>> {
-    create: (options: TOptionsType, simulationDataAttributes: SimulationRunDataAttributes) => SimulationMethod;
+    create: (options: TOptionsType, jobWrapper: TransitNetworkDesignJobWrapper) => SimulationMethod;
 
     getDescriptor: () => SimulationAlgorithmDescriptor<TOptionsType>;
 }
+
+// Predefined algorithm factories
+export const SIMULATION_METHODS_FACTORY: {
+    [K in SimulationMethodType]: SimulationMethodFactory<SimulationMethodRegistry[K]>;
+} = {
+    OdTripSimulation: new OdTripSimulationFactory(),
+    AccessibilityMapSimulation: new AccessibilityMapSimulationFactory()
+};
