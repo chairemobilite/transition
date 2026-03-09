@@ -406,14 +406,14 @@ describe('Batch route from checkpoint', () => {
         expect(checkpointListenerMock).toHaveBeenCalledWith(750);
         expect(checkpointListenerMock).toHaveBeenCalledWith(756);
 
-        expect(mockResultCreateMany).toHaveBeenCalledTimes(10); // Once per checkpoint and every 100 entries
+        expect(mockResultCreateMany).toHaveBeenCalledTimes(7); // Once per checkpoint and every 200 entries
         expect(mockResultCreateMany).toHaveBeenNthCalledWith(1, expect.arrayContaining([
             expect.objectContaining({ tripIndex: 0 }),
-            expect.objectContaining({ tripIndex: 99 })
+            expect.objectContaining({ tripIndex: 199 })
         ]));
         expect(mockResultCreateMany).toHaveBeenNthCalledWith(2, expect.arrayContaining([
-            expect.objectContaining({ tripIndex: 101 }),
-            expect.objectContaining({ tripIndex: 199 })
+            expect.objectContaining({ tripIndex: 201 }),
+            expect.objectContaining({ tripIndex: 250 })
         ]));
     });
 
