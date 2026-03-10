@@ -6,12 +6,14 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import AccessibilityComparisonColorPicker from './AccessibilityComparisonColorPicker';
 
 interface ScenarioColorProps {
     intersectionLocationColor: string;
     intersectionPolygonColor: string;
     comparisonPolygon1Color: string;
     comparisonPolygon2Color: string;
+    onValueChange: (colorToChange: string, newColor: string) => void;
 }
 
 export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> = (props: ScenarioColorProps) => {
@@ -19,28 +21,42 @@ export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> 
 
     return (
         <React.Fragment>
-            <div className="tr__form-section">
-                {t('transit:accessibilityComparison:ScenarioLocation')}: &nbsp;
-                <span style={{ color: props.intersectionLocationColor }}>&#9673;</span>
-            </div>
-            <div className="tr__form-section">
-                {t('transit:accessibilityComparison:ScenarioIntersectionPolygon')}: &nbsp;
-                <span style={{ color: props.intersectionPolygonColor }}>&#9673;</span>
-            </div>
-            <div className="tr__form-section">
-                {t('transit:accessibilityComparison:ScenarioNPolygon', {
+            <AccessibilityComparisonColorPicker
+                defaultColor={props.intersectionLocationColor}
+                label={t('transit:accessibilityComparison:ScenarioLocation')}
+                colorValue={props.intersectionLocationColor}
+                onValueChange={(newColor) => {
+                    props.onValueChange('intersectionLocationColor', newColor);
+                }}
+            />
+            <AccessibilityComparisonColorPicker
+                defaultColor={props.intersectionPolygonColor}
+                label={t('transit:accessibilityComparison:ScenarioIntersectionPolygon')}
+                colorValue={props.intersectionPolygonColor}
+                onValueChange={(newColor) => {
+                    props.onValueChange('intersectionPolygonColor', newColor);
+                }}
+            />
+            <AccessibilityComparisonColorPicker
+                defaultColor={props.comparisonPolygon1Color}
+                label={t('transit:accessibilityComparison:ScenarioNPolygon', {
                     scenarioNumber: '1'
                 })}
-                : &nbsp;
-                <span style={{ color: props.comparisonPolygon1Color }}>&#9673;</span>
-            </div>
-            <div className="tr__form-section">
-                {t('transit:accessibilityComparison:ScenarioNPolygon', {
+                colorValue={props.comparisonPolygon1Color}
+                onValueChange={(newColor) => {
+                    props.onValueChange('comparisonPolygon1Color', newColor);
+                }}
+            />
+            <AccessibilityComparisonColorPicker
+                defaultColor={props.comparisonPolygon2Color}
+                label={t('transit:accessibilityComparison:ScenarioNPolygon', {
                     scenarioNumber: '2'
                 })}
-                : &nbsp;
-                <span style={{ color: props.comparisonPolygon2Color }}>&#9673;</span>
-            </div>
+                colorValue={props.comparisonPolygon2Color}
+                onValueChange={(newColor) => {
+                    props.onValueChange('comparisonPolygon2Color', newColor);
+                }}
+            />
         </React.Fragment>
     );
 };
