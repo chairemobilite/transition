@@ -551,6 +551,18 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
         };
     }
 
+    private savePreferenceColor(colorToChange: string, newColor: string) {
+        Preferences.update(
+            { [`transit.routing.transitAccessibilityMap.${colorToChange}`]: newColor },
+            serviceLocator.socketEventManager
+        );
+    }
+
+    private updateColor = (colorToChange: string, newColor: string) => {
+        this.setState({ [colorToChange]: newColor } as any);
+        this.savePreferenceColor(colorToChange, newColor);
+    };
+
     // Takes in a color string of the rgba format and returns a new one with the same rgb values but the inputed alpha value.
     // Necessary for the stats component. We want to pass the polygons colors as props to color some text in the results table, but the colors for those are transparent, while we want to text to be opaque.
     private changeAlphaValue = (rgbaValue: string, alpha: number) => {
@@ -617,6 +629,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
                                 intersectionPolygonColor={this.state.intersectionPolygonColor}
                                 comparisonPolygon1Color={this.state.comparisonPolygon1Color}
                                 comparisonPolygon2Color={this.state.comparisonPolygon2Color}
+                                onValueChange={this.updateColor}
                             />
                         )}
                         {mode === 'locations' && (
@@ -626,6 +639,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
                                 comparisonPolygon1Color={this.state.comparisonPolygon1Color}
                                 comparisonLocation2Color={this.state.comparisonLocation2Color}
                                 comparisonPolygon2Color={this.state.comparisonPolygon2Color}
+                                onValueChange={this.updateColor}
                             />
                         )}
                     </Collapsible>
