@@ -41,6 +41,8 @@ type GenericCsvImportAndMappingFormProps<T extends Record<string, string> = Reco
      * file, when we know how to clean them up.
      */
     importFileName: string;
+    /** When false, do not show validation errors (e.g. required mapping) until user has attempted submit. Default true. */
+    showValidationErrors?: boolean;
 };
 
 /**
@@ -121,6 +123,13 @@ const GenericCsvImportAndMappingForm = <T extends Record<string, string> = Recor
     }, [uploadStatus.status]); // csvFieldMapper should not be a dependency, even if used in the function: the parent is already aware of the change and adding it will create an update loop. This effect just listens to the upload status update.
 
     const csvFileFields = props.csvFieldMapper.getCsvFields();
+    const fileLocation = props.csvFieldMapper.getFileLocation();
+    const displayFileName =
+        fileLocation?.location === 'upload'
+            ? fileLocation.filename
+            : fileLocation?.location === 'job'
+                ? undefined
+                : undefined;
 
     return (
         <div className="tr__form-section">
@@ -135,6 +144,18 @@ const GenericCsvImportAndMappingForm = <T extends Record<string, string> = Recor
                     }}
                 />
             </InputWrapper>
+            {displayFileName && (
+                <p
+                    style={{
+                        marginTop: '0.25rem',
+                        marginBottom: '0.5rem',
+                        fontSize: '0.9em',
+                        color: 'var(--color-secondary)'
+                    }}
+                >
+                    {t('transit:networkDesign.nodeWeighting.ExistingFile')}: {displayFileName}
+                </p>
+            )}
             {loading && <LoadingPage />}
             {!loading && csvFileFields.length !== 0 && (
                 <FieldMappingsSelection
@@ -146,7 +167,7 @@ const GenericCsvImportAndMappingForm = <T extends Record<string, string> = Recor
             )}
             {csvFileFields.length !== 0 && (
                 <React.Fragment>
-                    <FormErrors errors={props.csvFieldMapper.getErrors()} />
+                    {props.showValidationErrors !== false && <FormErrors errors={props.csvFieldMapper.getErrors()} />}
                     {readyToUpload && (
                         <div className="tr__form-buttons-container">
                             <span title={t('transit:batchCalculation:UploadFile')}>

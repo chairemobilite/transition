@@ -1,5 +1,5 @@
 /*
- * Copyright 2025, Polytechnique Montreal and contributors
+ * Copyright 2026, Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
@@ -9,10 +9,19 @@ import GeoJSON from 'geojson';
 
 /** Full documentation on the weighting methodology is available in the docs/weighting directory. */
 
+/** All decay function type values (for validation and choice lists). */
+export const DECAY_TYPE_VALUES = ['power', 'exponential', 'gamma', 'combined', 'logistic'] as const;
+
 /**
- * Type of decay function to use
+ * Type of decay function to use (shared for config and calculation).
  */
-export type DecayFunctionType = 'power' | 'exponential' | 'gamma' | 'combined' | 'logistic';
+export type DecayFunctionType = (typeof DECAY_TYPE_VALUES)[number];
+
+/**
+ * Decay types that use a single `beta` parameter (power, exponential, logistic).
+ * Gamma uses a,b,c; combined uses beta1,beta2.
+ */
+export const DECAY_TYPES_WITH_BETA: DecayFunctionType[] = ['power', 'exponential', 'logistic'];
 
 /**
  * Type of input value (distance or time) for decay function calculations
@@ -29,7 +38,7 @@ export type WeightDecayInputType = 'birdDistance' | 'networkDistance' | 'travelT
 
 /**
  * Routing mode for place weight calculations
- * TODO: Add more modes (cycling, driving) when supported in preferences and use cases
+ * TODO: Add more modes (cycling, driving) when supported in preferences and use cases.
  */
 export type WeightingRoutingMode = 'walking';
 
@@ -55,12 +64,15 @@ export type DecayInputValue =
     | { distanceMeters: number; travelTimeSeconds?: number }
     | { travelTimeSeconds: number; distanceMeters?: number };
 
-/**
- * Minimum value for distance and time to prevent numerical instability in power-law decay functions.
+/** Minimum distance (meters) for numerical stability in power-law decay.
  * Power functions like x^(-beta) approach infinity as x approaches zero.
  */
-export const MIN_DISTANCE_METERS = 100; // 100 meters
-export const MIN_TRAVEL_TIME_SECONDS = 60; // 60 seconds
+export const MIN_DISTANCE_METERS = 100;
+
+/** Minimum travel time (seconds) for numerical stability in power-law decay.
+ * Power functions like x^(-beta) approach infinity as x approaches zero.
+ */
+export const MIN_TRAVEL_TIME_SECONDS = 60;
 
 /**
  * Parameters for power decay function: f(x) = x^(-beta)

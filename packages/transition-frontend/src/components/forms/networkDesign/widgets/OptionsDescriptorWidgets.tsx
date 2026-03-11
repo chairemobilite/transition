@@ -39,6 +39,12 @@ type OptionsEditComponentProps<T extends Record<string, unknown>> = {
     value: T;
     disabled?: boolean;
     onUpdate: (parameters: Partial<T>, isValid: boolean) => void;
+    /** When set (e.g. when replaying a job), existing filenames keyed by backend fileKey for display next to csvFile inputs */
+    existingFileNames?: Record<string, string>;
+    /** When true, use single-column layout (label above input) for all options to avoid overlap in narrow panels */
+    singleColumnLayout?: boolean;
+    /** When false, validation errors (e.g. required mapping fields) are not shown until user attempts save/run. Default true for backward compatibility. */
+    showValidationErrors?: boolean;
 };
 
 type OptionComponentProps = {
@@ -48,6 +54,8 @@ type OptionComponentProps = {
     completeObject: Record<string, unknown>;
     disabled?: boolean;
     onValueChange: (path: string, newValue: { value: any; valid?: boolean }) => void;
+    existingFileNames?: Record<string, string>;
+    showValidationErrors?: boolean;
 };
 const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (props) => {
     const { t } = useTranslation();
@@ -102,26 +110,65 @@ const MultiSelectOptionComponent: React.FunctionComponent<OptionComponentProps> 
 };
 
 const CsvFileOptionComponent: React.FunctionComponent<OptionComponentProps> = (props: OptionComponentProps) => {
+    const { t } = useTranslation(['transit', 'main']);
     const option = props.option;
     if (option.type !== 'csvFile') {
         throw 'CsvFileOptionComponent can only be used with csvFile options';
     }
-    const currentMapping = React.useMemo(
-        () => new CsvFileAndFieldMapper(option.mappingDescriptors, props.value as CsvFileAndMapping),
-        [props.value]
+    const descriptors = React.useMemo(
+        () =>
+            option.getMappingDescriptors !== undefined && option.getMappingDescriptors !== null
+                ? option.getMappingDescriptors(props.completeObject)
+                : (option.mappingDescriptors ?? []),
+        [option, props.completeObject]
     );
+    const currentMapping = React.useMemo(
+        () => new CsvFileAndFieldMapper(descriptors, props.value as CsvFileAndMapping),
+        [descriptors, props.value]
+    );
+    const fileLocation = currentMapping.getFileLocation();
+    const existingFileName =
+        props.existingFileNames && fileLocation?.location === 'job' && fileLocation?.fileKey
+            ? props.existingFileNames[fileLocation.fileKey]
+            : undefined;
 
     return (
-        <GenericCsvImportAndMappingForm
-            csvFieldMapper={currentMapping}
-            onUpdate={(csvFieldMapper: CsvFileAndFieldMapper, isValidAndReady: boolean): void => {
-                props.onValueChange(props.optionKey, {
-                    value: csvFieldMapper.getCurrentFileAndMapping(),
-                    valid: isValidAndReady
-                });
-            }}
-            importFileName={option.importFileName}
-        />
+        <React.Fragment>
+            {existingFileName && (
+                <p style={{ marginBottom: '0.5rem', fontSize: '0.9em', color: 'var(--color-secondary)' }}>
+                    {t('transit:networkDesign:ExistingFile')}: {existingFileName}
+                </p>
+            )}
+            <GenericCsvImportAndMappingForm
+                csvFieldMapper={currentMapping}
+                onUpdate={(csvFieldMapper: CsvFileAndFieldMapper, isValidAndReady: boolean): void => {
+                    let formState;
+                    try {
+                        formState = csvFieldMapper.getFileAndMappingForFormState();
+                    } catch {
+                        const fileLocation = csvFieldMapper.getFileLocation();
+                        if (!fileLocation) {
+                            formState = undefined;
+                        } else {
+                            formState = {
+                                type: 'csv' as const,
+                                fileAndMapping: {
+                                    csvFile: fileLocation,
+                                    fieldMappings: csvFieldMapper.getPartialFieldMappings() as Record<string, string>
+                                },
+                                csvFields: csvFieldMapper.getCsvFields()
+                            };
+                        }
+                    }
+                    props.onValueChange(props.optionKey, {
+                        value: formState,
+                        valid: isValidAndReady
+                    });
+                }}
+                importFileName={option.importFileName}
+                showValidationErrors={props.showValidationErrors !== false}
+            />
+        </React.Fragment>
     );
 };
 
@@ -254,6 +301,7 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
                         valid: isValid
                     });
                 }}
+                existingFileNames={props.existingFileNames}
             />
         );
     }
@@ -284,12 +332,21 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
         props.onUpdate(defaultedOptions, valid);
     }, [props.optionsDescriptor]);
 
+    const showValidationErrors = props.showValidationErrors !== false;
+
+    React.useEffect(() => {
+        if (showValidationErrors) {
+            const { errors: errs } = validateOptionsWithDescriptor(props.value, props.optionsDescriptor);
+            setErrors(errs);
+        }
+    }, [showValidationErrors]);
+
     const onValueChange = (path: string, newValue: { value: any; valid?: boolean }): void => {
         const updatedParameters = { ...props.value, [path]: newValue.value };
         const { valid, errors } = validateOptionsWithDescriptor(updatedParameters, props.optionsDescriptor);
 
         props.onUpdate(updatedParameters, valid);
-        setErrors(errors);
+        setErrors(showValidationErrors ? errors : []);
     };
 
     const optionWidgets = Object.keys(options).map((optionName) => {
@@ -302,6 +359,8 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
                 disabled={props.disabled}
                 option={option}
                 onValueChange={onValueChange}
+                existingFileNames={props.existingFileNames}
+                showValidationErrors={showValidationErrors}
             />
         );
         if (option.type === 'nested' || option.type === 'csvFile') {
@@ -318,7 +377,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
                 smallInput={true}
                 label={t(option.i18nName)}
                 help={option.i18nHelp ? t(option.i18nHelp) : undefined}
-                twoColumns={option.type === 'multiselect' ? false : true}
+                twoColumns={props.singleColumnLayout || option.type === 'multiselect' ? false : true}
             >
                 {component}
             </InputWrapper>
@@ -328,7 +387,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
     return (
         <React.Fragment>
             {optionWidgets}
-            {errors.length > 0 && <FormErrors errors={errors} />}
+            {showValidationErrors && errors.length > 0 && <FormErrors errors={errors} />}
         </React.Fragment>
     );
 };

@@ -70,10 +70,8 @@ export class CheckpointTracker {
         // If the previous checkpoint is completed, then notify for the next
         // checkpoint, otherwise do nothing, we need to wait for the previous to
         // complete first
-        console.log('Maybe notify checkpoint at index', chkIndex, this.lastCheckpointIdx);
         if (this.lastCheckpointIdx === chkIndex - 1) {
             let indexToNotify = chkIndex;
-            // Get the last completed checkpoint
             while (this.indexes[indexToNotify + 1] === this.chunkSize) {
                 indexToNotify++;
             }
@@ -92,14 +90,16 @@ export class CheckpointTracker {
             console.log('Emitting checkpoint at index ', checkpoint);
             this.progressEmitter.emit('checkpoint', checkpoint);
         };
-        this.doEmitPromises.push(doEmit().catch((err) => console.error(`CheckpointTracker: error before checkpoint ${checkpoint}:`, err)));
+        this.doEmitPromises.push(
+            doEmit().catch((err) => console.error(`CheckpointTracker: error before checkpoint ${checkpoint}:`, err))
+        );
     }
 
     /**
      * Call when all steps have been completed. If the last chunk is not full,
      * it will emit a 'checkpoint' event with the last index handled.
      */
-    completed = async ():  Promise<void> => {
+    completed = async (): Promise<void> => {
         await Promise.all(this.doEmitPromises);
         const lastChunkIndex = this.lastCheckpointIdx + 1;
         const lastChunkSize = this.indexes[lastChunkIndex];

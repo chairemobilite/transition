@@ -8,22 +8,31 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
+import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import {
     transitNetworkDesignDescriptor,
     TransitNetworkDesignParameters
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
+import {
+    getDefaultOptionsFromDescriptor,
+    validateOptionsWithDescriptor
+} from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import { getAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import { getSimulationMethodDescriptorForNetworkDesign } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import ConfigureNetworkDesignParametersForm from './stepForms/ConfigureNetworkDesignParametersForm';
 import ConfigureAlgorithmParametersForm from './stepForms/ConfigureAlgorithmParametersForm';
-import ConfigureSimulationMethodForm from './stepForms/ConfigureSimulationMethodForm';
+import ConfigureSimulationMethodForm, { getNodeWeightingEnabled } from './stepForms/ConfigureSimulationMethodForm';
 import ConfirmNetworkDesignForm from './stepForms/ConfirmNetworkDesignForm';
 import NetworkDesignFrontendExecutor from '../../../services/networkDesign/NetworkDesignFrontendExecutor';
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
 import { FormInitialValues, PartialAlgorithmConfiguration, PartialSimulationMethodConfiguration } from './types';
-import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 
 export interface TransitNetworkDesignFormProps {
     initialValues?: FormInitialValues;
     onJobConfigurationCompleted: () => void;
+    /** When config is saved (without running), called with (jobId, parameters) so the panel can update initialValues and keep the form in edit mode. */
+    onConfigSaved?: (jobId: number, parameters: FormInitialValues) => void;
 }
 
 const stepCount = 4;
@@ -49,6 +58,11 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
     const { t } = useTranslation(['transit', 'main']);
     const [currentStep, setCurrentStep] = React.useState(0);
     const [nextEnabled, setNextEnabled] = React.useState(false);
+    const [saveConfigMessage, setSaveConfigMessage] = React.useState<string | undefined>(undefined);
+    const [saveConfigError, setSaveConfigError] = React.useState<string | undefined>(undefined);
+    const [submitError, setSubmitError] = React.useState<string | undefined>(undefined);
+    const [submitValidationErrors, setSubmitValidationErrors] = React.useState<TranslatableMessage[]>([]);
+    const [isSavingConfig, setIsSavingConfig] = React.useState(false);
     const [jobParameters, setJobParameters] = React.useState<FormInitialValues>({
         transitNetworkDesignParameters: getDefaultOptionsFromDescriptor(
             props.initialValues?.transitNetworkDesignParameters || {},
@@ -58,7 +72,10 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
             type: 'evolutionaryAlgorithm',
             config: {}
         },
-        simulationMethod: props.initialValues?.simulationMethod || { type: 'OdTripSimulation', config: {} }
+        simulationMethod: props.initialValues?.simulationMethod || { type: 'OdTripSimulation', config: {} },
+        jobId: props.initialValues?.jobId,
+        existingFileNames: props.initialValues?.existingFileNames,
+        description: props.initialValues?.description
     });
 
     const onNetworkParametersUpdate = (parameters: Partial<TransitNetworkDesignParameters>, isValid: boolean) => {
@@ -76,10 +93,79 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
         setNextEnabled(isValid);
     };
 
-    const incrementStep = () => {
+    /**
+     * Run comprehensive validation across all steps before submitting. Returns
+     * an array of translatable error messages; empty means valid.
+     */
+    const validateForSubmit = async (): Promise<TranslatableMessage[]> => {
+        const errors: TranslatableMessage[] = [];
+
+        const ndResult = validateOptionsWithDescriptor(
+            jobParameters.transitNetworkDesignParameters,
+            transitNetworkDesignDescriptor
+        );
+        errors.push(...ndResult.errors);
+
+        if (jobParameters.algorithmConfiguration.type) {
+            const algoDescriptor = getAlgorithmDescriptor(jobParameters.algorithmConfiguration.type);
+            const algoResult = validateOptionsWithDescriptor(
+                (jobParameters.algorithmConfiguration.config ?? {}) as Record<string, unknown>,
+                algoDescriptor
+            );
+            errors.push(...algoResult.errors);
+        }
+
+        if (jobParameters.simulationMethod.type) {
+            const simDescriptor = getSimulationMethodDescriptorForNetworkDesign(jobParameters.simulationMethod.type);
+            const simResult = validateOptionsWithDescriptor(
+                (jobParameters.simulationMethod.config ?? {}) as Record<string, unknown>,
+                simDescriptor
+            );
+            errors.push(...simResult.errors);
+        }
+
+        if (getNodeWeightingEnabled(jobParameters.simulationMethod)) {
+            const effectiveJobId = jobParameters.jobId ?? props.initialValues?.jobId;
+            if (typeof effectiveJobId !== 'number' || effectiveJobId <= 0) {
+                errors.push('transit:networkDesign.errors.NodeWeightingRequiresSaveFirst');
+            } else {
+                try {
+                    const status = await NetworkDesignFrontendExecutor.getNodeWeightingStatus(effectiveJobId);
+                    if (!status.hasWeightsFile) {
+                        errors.push('transit:networkDesign.errors.NodeWeightingEnabledButFileMissing');
+                    }
+                } catch {
+                    errors.push('transit:networkDesign.errors.NodeWeightingEnabledButFileMissing');
+                }
+            }
+        }
+
+        return errors;
+    };
+
+    const incrementStep = async () => {
         if (currentStep === stepCount - 1) {
-            NetworkDesignFrontendExecutor.execute(jobParameters as TransitNetworkJobConfigurationType);
-            return props.onJobConfigurationCompleted();
+            setSubmitError(undefined);
+            setSubmitValidationErrors([]);
+
+            const validationErrors = await validateForSubmit();
+            if (validationErrors.length > 0) {
+                setSubmitValidationErrors(validationErrors);
+                return;
+            }
+
+            try {
+                const existingJobId = jobParameters.jobId ?? props.initialValues?.jobId;
+                await NetworkDesignFrontendExecutor.execute(
+                    jobParameters as TransitNetworkJobConfigurationType,
+                    typeof existingJobId === 'number' && existingJobId > 0 ? existingJobId : undefined
+                );
+                props.onJobConfigurationCompleted();
+            } catch (error) {
+                console.error('Error executing job', error);
+                setSubmitError(error instanceof Error ? error.message : String(error));
+            }
+            return;
         }
         setCurrentStep(currentStep + 1);
     };
@@ -87,6 +173,44 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
     const decrementStep = () => {
         setCurrentStep(currentStep - 1);
         setNextEnabled(true);
+    };
+
+    const onSaveConfig = async () => {
+        setSaveConfigError(undefined);
+        setSaveConfigMessage(undefined);
+        setIsSavingConfig(true);
+        try {
+            const existingJobId = jobParameters.jobId ?? props.initialValues?.jobId;
+            const savedJobId = await NetworkDesignFrontendExecutor.saveConfig(
+                jobParameters as TransitNetworkJobConfigurationType,
+                typeof existingJobId === 'number' && existingJobId > 0 ? existingJobId : undefined
+            );
+            setSaveConfigMessage(t('transit:networkDesign:ConfigSaved'));
+
+            // Reload parameters from the server so file references point to the
+            // job (location:'job') instead of the transient upload. This ensures
+            // the demand CSV and mapping survive step navigation / remounts.
+            try {
+                const { parameters: reloaded, existingFileNames } =
+                    await NetworkDesignFrontendExecutor.getCalculationParametersForJob(savedJobId);
+                const updatedParams: FormInitialValues = {
+                    ...reloaded,
+                    jobId: savedJobId,
+                    existingFileNames
+                };
+                setJobParameters(updatedParams);
+                props.onConfigSaved?.(savedJobId, updatedParams);
+            } catch {
+                // Fallback: just update jobId without reloading
+                const fallback = { ...jobParameters, jobId: savedJobId };
+                setJobParameters(fallback);
+                props.onConfigSaved?.(savedJobId, fallback);
+            }
+        } catch (err: unknown) {
+            setSaveConfigError(err instanceof Error ? err.message : String(err));
+        } finally {
+            setIsSavingConfig(false);
+        }
     };
 
     return (
@@ -99,6 +223,22 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                 />{' '}
                 {t('transit:networkDesign:New')}
             </h3>
+
+            <div className="tr__form-input-container" style={{ marginBottom: '1rem' }}>
+                <label className="label" htmlFor="tr__form-network-design-job-name">
+                    {t('transit:networkDesign:JobName')}
+                </label>
+                <input
+                    id="tr__form-network-design-job-name"
+                    type="text"
+                    className="apptr__input _input"
+                    value={jobParameters.description ?? ''}
+                    onChange={(e) =>
+                        setJobParameters((prev) => ({ ...prev, description: e.target.value.trim() || undefined }))
+                    }
+                    placeholder={t('transit:networkDesign:JobNamePlaceholder')}
+                />
+            </div>
 
             {currentStep === 0 && (
                 <React.Fragment>
@@ -126,6 +266,8 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                     <ConfigureSimulationMethodForm
                         simulationMethod={jobParameters.simulationMethod}
                         onUpdate={onSimulationMethodUpdate}
+                        jobId={props.initialValues?.jobId ?? jobParameters.jobId}
+                        existingFileNames={jobParameters.existingFileNames}
                     />
                 </React.Fragment>
             )}
@@ -137,12 +279,29 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                 </React.Fragment>
             )}
 
+            {submitValidationErrors.length > 0 && <FormErrors errors={submitValidationErrors} />}
+            {(saveConfigMessage ?? saveConfigError ?? submitError) && (
+                <div style={{ marginTop: '0.5rem', marginBottom: '0.5rem' }}>
+                    {saveConfigMessage && <span style={{ color: 'var(--success)' }}>{saveConfigMessage}</span>}
+                    {saveConfigError && <span style={{ color: 'var(--danger)' }}>{saveConfigError}</span>}
+                    {submitError && <span style={{ color: 'var(--danger)' }}>{submitError}</span>}
+                </div>
+            )}
             <div className="tr__form-buttons-container">
-                <span title={t('main:Cancel')}>
+                <span title={t('transit:networkDesign:SaveConfig')}>
                     <Button
-                        key="cancel"
+                        key="saveConfig"
+                        color="blue"
+                        label={t('transit:networkDesign:SaveConfig')}
+                        onClick={onSaveConfig}
+                        disabled={isSavingConfig}
+                    />
+                </span>
+                <span title={t('main:Close')}>
+                    <Button
+                        key="close"
                         color="grey"
-                        label={t('main:Cancel')}
+                        label={t('main:Close')}
                         onClick={props.onJobConfigurationCompleted}
                     />
                 </span>
