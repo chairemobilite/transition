@@ -55,11 +55,11 @@ describe('Project Configuration', () => {
                 iconWhite: '/dist/images/icons/interface/od_routing_white.svg',
                 iconBlack: '/dist/images/icons/interface/od_routing_black.svg'
             },
-            simulations: {
-                localizedTitle: 'transit:simulation:Simulations',
+            networkDesign: {
+                localizedTitle: 'transit:networkDesign:NetworkDesign',
                 iconWhite: '/dist/images/icons/interface/simulation_white.svg',
                 iconBlack: '/dist/images/icons/interface/simulation_black.svg',
-                enabled: false
+                enabled: true
             },
             gtfsImport: {
                 localizedTitle: 'transit:gtfs:Import',
@@ -143,11 +143,11 @@ describe('Project Configuration', () => {
                     iconWhite: '/dist/images/icons/interface/od_routing_white.svg',
                     iconBlack: '/dist/images/icons/interface/od_routing_black.svg'
                 },
-                simulations: {
-                    localizedTitle: 'transit:simulation:Simulations',
+                networkDesign: {
+                    localizedTitle: 'transit:networkDesign:NetworkDesign',
                     iconWhite: '/dist/images/icons/interface/simulation_white.svg',
                     iconBlack: '/dist/images/icons/interface/simulation_black.svg',
-                    enabled: false
+                    enabled: true
                 },
                 gtfsImport: {
                     localizedTitle: 'transit:gtfs:Import',
