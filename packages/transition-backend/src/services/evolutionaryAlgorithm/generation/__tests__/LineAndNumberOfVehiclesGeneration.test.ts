@@ -41,6 +41,14 @@ const mockedRandomInt = random.integer as jest.MockedFunction<typeof random.inte
 jest.mock('../../../../models/db/jobs.db.queries');
 const mockJobsDbQueries = jobsDbQueries as jest.Mocked<typeof jobsDbQueries>;
 
+// Mock TrRoutingBatchManager so Generation.simulate() does not start real TrRouting
+jest.mock('../../../transitRouting/TrRoutingBatchManager', () => ({
+    TrRoutingBatchManager: jest.fn().mockImplementation(() => ({
+        startBatch: jest.fn().mockResolvedValue({ threadCount: 1, port: 14000 }),
+        stopBatch: jest.fn().mockResolvedValue(undefined)
+    }))
+}));
+
 const line1 = new Line({
     id                       : uuidV4(),
     internal_id              : 'InternalId test 1',
