@@ -10,11 +10,14 @@ import { TFunction } from 'i18next';
 
 import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import { SimulationRuntimeOptions } from 'transition-common/lib/services/simulation/SimulationRun';
-import { SimulationAlgorithmOptionDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import SimulationRunBackend from '../../services/simulation/SimulationRun';
+import { UserDefinedConfigFieldDescriptor } from 'transition-common/lib/utils/userDefinedConfig';
 
+// FIXME: Used only for simulations and we're moving away from it, but consider
+// supporting CLI for UserDefinedConfigFieldDescriptor if necessary and some
+// other tasks want to use that
 const getPromptForDescriptor = async (
-    descriptor: SimulationAlgorithmOptionDescriptor,
+    descriptor: UserDefinedConfigFieldDescriptor,
     options: { t: TFunction; name: string; default?: unknown }
 ): Promise<unknown> => {
     const message = options.t(descriptor.i18nName);
@@ -33,7 +36,8 @@ const getPromptForDescriptor = async (
             default: options.default as boolean | undefined
         });
     case 'select': {
-        const choices = await descriptor.choices();
+        // FIXME: Should we get as parameters a value to pass to choices function?
+        const choices = descriptor.choices({});
         return await select({
             message,
             choices: choices.map(({ value, label }) => ({
@@ -62,7 +66,7 @@ export const editAlgorithmConfiguration = async (
     if (descriptor === undefined) {
         throw 'Unknown or undefined algorithm';
     }
-    const algoOptions = descriptor.getOptions();
+    const algoOptions = descriptor.getFields();
 
     const answers: Record<string, unknown> = {};
     for (const optionKey of Object.keys(algoOptions)) {
