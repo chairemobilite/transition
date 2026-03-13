@@ -16,5 +16,6 @@ const baseConfig = require('../../tests/jest.config.base');
 // Run the db and integration tests
 module.exports = {
     ...baseConfig,
-    'testRegex': ['(/__tests__/.*(db\\.test)\\.(jsx?|tsx?))$','(/__tests__/.*(integration\\.test)\\.(jsx?|tsx?))$']
+    'testRegex': ['(/__tests__/.*(db\\.test)\\.(jsx?|tsx?))$','(/__tests__/.*(integration\\.test)\\.(jsx?|tsx?))$'],
+    globalSetup: '<rootDir>/jest.sequential.setup.js'
 };
