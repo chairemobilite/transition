@@ -50,7 +50,7 @@ const DurationUnitFormatter: React.FunctionComponent<DurationUnitFormatterProps>
                 secondsUnit: 'main:secondAbbr'
             }),
         s: (value) => `${roundToDecimals(value, 2)} ${t('main:secondAbbr')}`,
-        m: (value) => `${roundToDecimals(value / 60, 2)} ${t('main:minuteAbbr')}`,
+        m: (value) => `${Math.round(value / 60)} ${t('main:minuteAbbr')}`,
         h: (value) => `${roundToDecimals(value / 3600, 2)} ${t('main:hourAbbr')}`
     };
 

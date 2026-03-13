@@ -221,11 +221,6 @@ const intTimeToSecondsSinceMidnight = function (intTime) {
     return null;
 };
 
-// returns value as seconds, rounded, ceiled or floored to the nearest 60 seconds:
-const roundSecondsToNearestMinute = function (seconds: number, rounding = Math.ceil): number {
-    return rounding(seconds / 60) * 60;
-};
-
 export {
     secondsSinceMidnightToTimeStr,
     decimalHourToTimeStr,
@@ -240,6 +235,5 @@ export {
     hoursToSeconds,
     toXXhrYYminZZsec,
     timeStrToSecondsSinceMidnight,
-    intTimeToSecondsSinceMidnight,
-    roundSecondsToNearestMinute
+    intTimeToSecondsSinceMidnight
 };

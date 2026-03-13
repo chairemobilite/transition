@@ -55,38 +55,6 @@ test('secondsSinceMidnightToTimeStr', function() {
     expect(DateTimeUtils.secondsSinceMidnightToTimeStr(-87000)).toBe('23:50');
 });
 
-test('roundSecondsToNearestMinute', function() {
-    expect(DateTimeUtils.roundSecondsToNearestMinute(0)).toBe(0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(10)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(-1)).toBe(-0); // it seems Javascript differentiate -0 from 0
-    expect(DateTimeUtils.roundSecondsToNearestMinute(-59)).toBe(-0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(-72)).toBe(-60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(60)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(0, Math.ceil)).toBe(0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(10, Math.ceil)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(-1, Math.ceil)).toBe(-0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(-59, Math.ceil)).toBe(-0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(-72, Math.ceil)).toBe(-60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(60, Math.ceil)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(256, Math.ceil)).toBe(300);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(280, Math.ceil)).toBe(300);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(30, Math.floor)).toBe(0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(1, Math.floor)).toBe(0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(0, Math.floor)).toBe(0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(30, Math.round)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(15, Math.round)).toBe(0);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(45, Math.round)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(60, Math.round)).toBe(60);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(256, Math.round)).toBe(240);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(280, Math.round)).toBe(300);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(Infinity)).toBe(Infinity);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(Infinity, Math.ceil)).toBe(Infinity);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(Infinity, Math.floor)).toBe(Infinity);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(Infinity, Math.round)).toBe(Infinity);
-    expect(DateTimeUtils.roundSecondsToNearestMinute(Math.PI)).toBe(60);
-});
-
-
 describe('toXXhrYYminZZsec', () => {
     // Mock translation function to simply return the key
     const mockT: any = jest.fn().mockImplementation((key: string, options?: any) => key);
