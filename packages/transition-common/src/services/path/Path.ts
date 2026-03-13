@@ -54,6 +54,10 @@ export interface TimeAndDistance {
     travelTimeSeconds: number;
 }
 
+/**
+ * Describes a node change on a path: whether a node was inserted or removed, and at which index.
+ * Used to remap segment indices when preserving travel times after a node edit.
+ */
 export interface TypeNodeChange {
     type: 'insert' | 'remove';
     index: number;
@@ -106,6 +110,10 @@ export interface PathAttributesData {
     customLayoverMinutes?: number;
     totalDistanceMeters?: number;
     temporaryManualRouting?: boolean;
+    /** Tracks the last node insert/remove so the geography generator can remap segment indices. Cleared after geography generation. */
+    _lastNodeChange?: TypeNodeChange;
+    /** Tracks which segment was affected by a waypoint change so its travel time gets recalculated. Cleared after geography generation. */
+    _lastWaypointChangedSegmentIndex?: number;
     [key: string]: unknown;
 }
 export interface PathAttributes extends MapObjectAttributes<GeoJSON.LineString> {
