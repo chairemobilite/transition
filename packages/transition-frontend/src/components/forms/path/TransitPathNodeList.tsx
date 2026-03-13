@@ -85,8 +85,8 @@ const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: Path
                     <li className={'_path-segment-list'} key={'segmentLayover'}>
                         <span className="_path-segment-label-container">
                             <span className="_path-segment-label">
-                                {props.t('transit:transitPath:LayoverTime')}: {layoverTimeSeconds}s (
-                                {Math.ceil(layoverTimeSeconds) / 60} min)
+                                {props.t('transit:transitPath:LayoverTime')}: {Math.ceil(layoverTimeSeconds)}s (
+                                {Math.ceil(layoverTimeSeconds / 60)} min)
                             </span>
                         </span>
                     </li>

@@ -86,7 +86,6 @@ test('roundSecondsToNearestMinute', function() {
     expect(DateTimeUtils.roundSecondsToNearestMinute(Math.PI)).toBe(60);
 });
 
-
 describe('toXXhrYYminZZsec', () => {
     // Mock translation function to simply return the key
     const mockT: any = jest.fn().mockImplementation((key: string, options?: any) => key);

@@ -28,6 +28,10 @@ export class MapObject<
         this._collectionManager = collectionManager;
     }
 
+    get collectionManager() {
+        return this._collectionManager;
+    }
+
     toGeojson(): GeoJSON.Feature<M, T> {
         return {
             id: this.attributes.integer_id || 1,
