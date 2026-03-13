@@ -15,6 +15,30 @@ import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
 } from 'chaire-lib-common/lib/utils/PhysicsUtils';
+import Path, { TimeAndDistance } from './Path';
+
+type PathTimeTotals = {
+    totalDistance: number;
+    totalDwellTimeSeconds: number;
+    totalTravelTimeWithoutDwellTimesSeconds: number;
+    totalTravelTimeWithDwellTimesSeconds: number;
+    totalTravelTimeWithReturnBackSeconds: number;
+};
+
+type StopTimes = {
+    dwellTimeSecondsData: number[];
+    layoverTimeSeconds: number;
+};
+
+type SegmentDuration = {
+    calculatedDuration: number;
+    noDwellTimeDuration: number;
+};
+
+type RoutingResult = {
+    points: Geojson.Feature<Geojson.Point>[];
+    legs: (MapLeg | null)[];
+};
 
 /**
  * Get the coordinates from a geometry
@@ -35,112 +59,232 @@ const getCoordinates = (geometry: Geojson.Geometry): Geojson.Position[] => {
     return [];
 };
 
-const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (MapLeg | null)[]) => {
+/**
+ * Adds a leg's coordinates to the path's coordinate list, skipping duplicates
+ * so the same point isn't added twice in a row.
+ *
+ * @param leg - A routing leg containing steps with geometry
+ * @param globalCoordinates - The path's coordinates so far (modified directly by this function)
+ */
+const appendLegCoordinates = (leg: MapLeg, globalCoordinates: Geojson.Position[]) => {
+    leg.steps.forEach((step) => {
+        const coordinates = getCoordinates(step.geometry);
+        coordinates.forEach((coordinate) => {
+            const lastCoordinate = globalCoordinates[globalCoordinates.length - 1];
+            if (!lastCoordinate || lastCoordinate[0] !== coordinate[0] || lastCoordinate[1] !== coordinate[1]) {
+                globalCoordinates.push(coordinate);
+            }
+        });
+    });
+};
+
+/**
+ * Calculates the travel duration for a single segment, accounting for acceleration and deceleration.
+ *
+ * The running speed is determined by the routing engine setting:
+ * - `'engine'` or no custom speed: uses the raw routing speed (distance / duration from the router).
+ * - Custom `defaultRunningSpeedKmH`: uses that fixed speed instead.
+ *
+ * The final `calculatedDuration` applies a physics-based model
+ * (`durationFromAccelerationDecelerationDistanceAndRunningSpeed`) that factors in the vehicle's
+ * acceleration and deceleration phases for the segment distance at the running speed.
+ *
+ * `noDwellTimeDuration` is the simpler distance/speed duration without acceleration modeling,
+ * used for comparison metrics (e.g. `travelTimeWithoutDwellTimesSeconds`).
+ *
+ * @param path - The path object (provides acceleration, deceleration, routing engine, and speed config)
+ * @param segmentDistance - Segment distance in meters (from routing engine)
+ * @param routedDuration - Segment duration in seconds (from routing engine)
+ * @returns `calculatedDuration` (with accel/decel) and `noDwellTimeDuration` (without)
+ * @throws TrError if the calculated duration is zero or negative
+ */
+const calculateSegmentDuration = (
+    path: Path,
+    segmentDistance: number,
+    routedDuration: number
+): SegmentDuration => {
+    const acceleration = path.getData('defaultAcceleration') as number;
+    const deceleration = path.getData('defaultDeceleration') as number;
+    const routingEngine = path.getData('routingEngine') as string;
+    const defaultRunningSpeed = path.getData('defaultRunningSpeedKmH') as number;
+
+    const runningSpeed =
+        routingEngine === 'engine' || _isBlank(defaultRunningSpeed)
+            ? segmentDistance / routedDuration
+            : kphToMps(defaultRunningSpeed);
+
+    const noDwellTimeDuration =
+        routingEngine === 'engine' || _isBlank(defaultRunningSpeed)
+            ? routedDuration
+            : segmentDistance / runningSpeed;
+
+    const calculatedSegmentDuration = Math.ceil(
+        durationFromAccelerationDecelerationDistanceAndRunningSpeed(
+            acceleration,
+            deceleration,
+            segmentDistance,
+            runningSpeed
+        )
+    );
+    const calculatedDuration = calculatedSegmentDuration !== null ? calculatedSegmentDuration : -1;
+
+    if (calculatedDuration <= 0) {
+        throw new TrError(
+            'Error trying to generate a path geography. There was an error while calculating segment duration.',
+            'PUPDGEO0001',
+            'TransitPathCannotUpdateGeographyBecauseErrorCalculatingSegmentDuration'
+        );
+    }
+
+    const segmentDuration: SegmentDuration = { calculatedDuration, noDwellTimeDuration };
+    return segmentDuration;
+};
+
+/**
+ * Returns the dwell time in seconds for a given node on the path.
+ *
+ * Looks up the node from the collection manager to get its default dwell time, then delegates
+ * to `path.getDwellTimeSecondsAtNode()` which resolves the final value based on the path's
+ * own dwell time configuration and the node-level default as fallback.
+ *
+ * @param path - The path object (provides dwell time config and access to the node collection)
+ * @param nodeId - The ID of the node to get the dwell time for
+ * @returns Dwell time in seconds at this node
+ */
+const getDwellTimeSecondsForNode = (path: Path, nodeId: unknown): number => {
+    const node = (path as any)._collectionManager.get('nodes').getById(nodeId);
+    const nodeDefaultDwellTimeSeconds =
+        node && node.properties && node.properties.default_dwell_time_seconds
+            ? node.properties.default_dwell_time_seconds
+            : undefined;
+    return path.getDwellTimeSecondsAtNode(nodeDefaultDwellTimeSeconds);
+};
+
+/**
+ * Calculates the layover time at the terminus in seconds.
+ *
+ * If the path has a custom layover set (`customLayoverMinutes`), uses that value directly.
+ * Otherwise, computes the layover as a ratio of total travel time (including dwell times),
+ * with a minimum floor, both configured via user preferences.
+ *
+ * @param path - The path object (checked for `customLayoverMinutes` in its data)
+ * @param totalTravelTimeWithDwellTimesSeconds - Total operating time used to compute the default ratio-based layover
+ * @returns Layover time in seconds
+ */
+const calculateLayoverSeconds = (path: Path, totalTravelTimeWithDwellTimesSeconds: number): number => {
+    const customLayoverMinutes: any = path.getData('customLayoverMinutes', null);
+    if (!_isBlank(customLayoverMinutes)) {
+        return customLayoverMinutes * 60;
+    }
+    return roundSecondsToNearestMinute(
+        Math.max(
+            Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
+                totalTravelTimeWithDwellTimesSeconds,
+            Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
+        ),
+        Math.ceil
+    );
+};
+
+/**
+ * Assembles the final path data object from computed totals and segment data.
+ *
+ * Combines per-segment results with path-level totals to produce the data structure stored on the
+ * path. Derives several aggregate metrics:
+ * - `operatingTimeWithoutLayoverTimeSeconds`: total travel time including dwell times at stops
+ * - `operatingTimeWithLayoverTimeSeconds`: adds layover time to operating time
+ * - `totalTravelTimeWithReturnBackSeconds`: operating time with layover (for round-trip consideration)
+ * - Average speeds: without dwell times, with dwell times (operating), and with layover
+ *
+ * @param segmentsData - Per-segment travel time and distance
+ * @param stopTimes - Dwell times at each node and layover time at the terminus
+ * @param totals - Aggregated time and distance totals for the path
+ */
+const buildPathData = (
+    segmentsData: TimeAndDistance[],
+    stopTimes: StopTimes,
+    totals: PathTimeTotals
+) => {
+    return {
+        segments: segmentsData,
+        dwellTimeSeconds: stopTimes.dwellTimeSecondsData,
+        layoverTimeSeconds: stopTimes.layoverTimeSeconds,
+        travelTimeWithoutDwellTimesSeconds: totals.totalTravelTimeWithoutDwellTimesSeconds,
+        totalDistanceMeters: totals.totalDistance,
+        totalDwellTimeSeconds: totals.totalDwellTimeSeconds,
+        operatingTimeWithoutLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds,
+        operatingTimeWithLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds + stopTimes.layoverTimeSeconds,
+        totalTravelTimeWithReturnBackSeconds: totals.totalTravelTimeWithReturnBackSeconds + stopTimes.layoverTimeSeconds,
+        averageSpeedWithoutDwellTimesMetersPerSecond: roundToDecimals(
+            totals.totalDistance / totals.totalTravelTimeWithoutDwellTimesSeconds,
+            2
+        ),
+        operatingSpeedMetersPerSecond: roundToDecimals(totals.totalDistance / totals.totalTravelTimeWithDwellTimesSeconds, 2),
+        operatingSpeedWithLayoverMetersPerSecond: roundToDecimals(
+            totals.totalDistance / (totals.totalTravelTimeWithDwellTimesSeconds + stopTimes.layoverTimeSeconds),
+            2
+        ),
+        from_gtfs: false
+    };
+};
+
+/**
+ * Builds the path's coordinate geometry and per-segment data from routing legs.
+ *
+ * Iterates over routing legs (one per waypoint-to-waypoint sub-route) and aggregates them into
+ * node-to-node segments. For each completed segment, calculates duration and distance from the
+ * routing engine results.
+ *
+ * A trailing segment that ends at a waypoint (not a node) is included in the geometry but excluded
+ * from duration totals.
+ *
+ * @param path - The path object (provides node IDs, speed config, dwell time settings)
+ * @param routing - Routing results (points and legs between them)
+ * @returns Segment geometry, per-segment time/distance data, and dwell times
+ */
+const buildSegmentsAndGeometry = (
+    path: Path,
+    routing: RoutingResult
+) => {
     const globalCoordinates: Geojson.Position[] = [];
     let segmentCoordinatesStartIndex = 0;
     const segments: number[] = [];
-    const segmentsData: { distanceMeters: number; travelTimeSeconds: number }[] = [];
+    const segmentsData: TimeAndDistance[] = [];
+    const noDwellTimeDurations: number[] = [];
     const nodeIds = path.get('nodes', []);
-
-    let nextNodeIndex = 1;
-    let totalDistance = 0;
-    let totalDwellTimeSeconds = 0;
-    let totalTravelTimeWithoutDwellTimesSeconds = 0;
-    let totalTravelTimeWithDwellTimesSeconds = 0;
-    let totalTravelTimeWithReturnBackSeconds = 0;
     const dwellTimeSecondsData = [0]; // 0 for the first node, we calculate layover separately
+    let nextNodeIndex = 1;
     let segmentDuration = 0;
     let segmentDistance = 0;
 
-    for (let i = 0; i < legs.length; i++) {
-        const leg = legs[i];
-        const nextIsNode = points[i + 1].properties?.isNode;
+    for (let i = 0; i < routing.legs.length; i++) {
+        const leg = routing.legs[i];
+        const nextIsNode = routing.points[i + 1].properties?.isNode;
         if (!leg) {
             continue;
         }
 
-        if (points[i].properties?.isNode) {
+        if (routing.points[i].properties?.isNode) {
             segmentCoordinatesStartIndex = globalCoordinates.length > 0 ? globalCoordinates.length - 1 : 0;
         }
 
-        leg.steps
-            .map((step) => getCoordinates(step.geometry))
-            .forEach((coordinates) =>
-                coordinates.forEach((coordinate) => {
-                    const lastCoordinate = globalCoordinates[globalCoordinates.length - 1];
-                    if (!lastCoordinate || lastCoordinate[0] !== coordinate[0] || lastCoordinate[1] !== coordinate[1]) {
-                        globalCoordinates.push(coordinate);
-                    }
-                })
-            );
+        appendLegCoordinates(leg, globalCoordinates);
 
         segmentDuration += Math.ceil(leg.duration);
         segmentDistance += Math.ceil(leg.distance);
 
-        // Path cannot finish at a waypoint, so this last segment si not part of the total calculations.
-        if (i === legs.length - 1 && !nodeIds[nextNodeIndex]) {
-            // last leg is to a waypoint (missing node at the end)
+        // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
+        if (i === routing.legs.length - 1 && !(nodeIds as any[])[nextNodeIndex]) {
             segments.push(segmentCoordinatesStartIndex);
-            segmentsData.push({
-                travelTimeSeconds: segmentDuration,
-                distanceMeters: segmentDistance
-            });
-        } else if (nextIsNode && nodeIds[nextNodeIndex]) {
-            // we can create the segment
-            // FIXME: Move those ifs to their own methods
-            const node = path._collectionManager.get('nodes').getById(nodeIds[nextNodeIndex]);
-            const nodeDefaultDwellTimeSeconds =
-                node && node.properties && node.properties.default_dwell_time_seconds
-                    ? node.properties.default_dwell_time_seconds
-                    : undefined;
-            const dwellTimeSeconds: number = path.getDwellTimeSecondsAtNode(nodeDefaultDwellTimeSeconds);
-            const acceleration = path.getData('defaultAcceleration');
-            const deceleration = path.getData('defaultDeceleration');
-            // noDwellTimeDuration is the time if the vehicle does not stop at all
-            let noDwellTimeDuration = 0;
-
-            const routingEngine = path.getData('routingEngine');
-            const defaultRunningSpeed = path.getData('defaultRunningSpeedKmH');
-            const runningSpeed =
-                routingEngine === 'engine' || _isBlank(defaultRunningSpeed)
-                    ? segmentDistance / segmentDuration
-                    : kphToMps(defaultRunningSpeed);
-
-            noDwellTimeDuration =
-                routingEngine === 'engine' || _isBlank(defaultRunningSpeed)
-                    ? segmentDuration
-                    : segmentDistance / runningSpeed; // no acceleration/deceleration
-
-            const calculatedSegmentDuration = Math.ceil(
-                durationFromAccelerationDecelerationDistanceAndRunningSpeed(
-                    acceleration,
-                    deceleration,
-                    segmentDistance,
-                    runningSpeed
-                )
-            );
-            segmentDuration = calculatedSegmentDuration !== null ? calculatedSegmentDuration : -1;
-
-            if (segmentDuration <= 0) {
-                throw new TrError(
-                    'Error trying to generate a path geography. There was an error while calculating segment duration.',
-                    'PUPDGEO0001',
-                    'TransitPathCannotUpdateGeographyBecauseErrorCalculatingSegmentDuration'
-                );
-            }
+            segmentsData.push({ travelTimeSeconds: segmentDuration, distanceMeters: segmentDistance });
+        } else if (nextIsNode && (nodeIds as any[])[nextNodeIndex]) {
+            const duration: SegmentDuration = calculateSegmentDuration(path, segmentDistance, segmentDuration);
+            const dwellTimeSeconds = getDwellTimeSecondsForNode(path, (nodeIds as any[])[nextNodeIndex]);
 
             segments.push(segmentCoordinatesStartIndex);
-            segmentsData.push({
-                travelTimeSeconds: segmentDuration,
-                distanceMeters: segmentDistance
-            });
-            totalDistance += segmentDistance;
-            totalTravelTimeWithDwellTimesSeconds += segmentDuration + dwellTimeSeconds;
-            totalTravelTimeWithoutDwellTimesSeconds += noDwellTimeDuration;
-            totalDwellTimeSeconds += dwellTimeSeconds;
-            totalTravelTimeWithReturnBackSeconds += segmentDuration + dwellTimeSeconds;
+            segmentsData.push({ travelTimeSeconds: duration.calculatedDuration, distanceMeters: segmentDistance });
+            noDwellTimeDurations.push(duration.noDwellTimeDuration);
             dwellTimeSecondsData.push(dwellTimeSeconds);
-
             // reset for next segment:
             segmentDuration = 0;
             segmentDistance = 0;
@@ -148,47 +292,63 @@ const handleLegs = (path: any, points: Geojson.Feature<Geojson.Point>[], legs: (
         }
     }
 
+    return { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData };
+};
+
+const adjustTimesAndComputeTotals = (
+    path: Path,
+    segmentsData: TimeAndDistance[],
+    noDwellTimeDurations: number[],
+    dwellTimeSecondsData: number[]
+) => {
+    let totalDistance = 0;
+    let totalDwellTimeSeconds = 0;
+    let totalTravelTimeWithoutDwellTimesSeconds = 0;
+    let totalTravelTimeWithDwellTimesSeconds = 0;
+    let totalTravelTimeWithReturnBackSeconds = 0;
+
+    for (let s = 0; s < segmentsData.length; s++) {
+        // Skip the last segment if it ends at a waypoint (not a node) — it's not part of the totals
+        if (s >= noDwellTimeDurations.length) {
+            break;
+        }
+        const dwellTime = dwellTimeSecondsData[s + 1] || 0;
+        totalDistance += segmentsData[s].distanceMeters || 0;
+        totalTravelTimeWithDwellTimesSeconds += segmentsData[s].travelTimeSeconds + dwellTime;
+        totalTravelTimeWithoutDwellTimesSeconds += noDwellTimeDurations[s];
+        totalDwellTimeSeconds += dwellTime;
+        totalTravelTimeWithReturnBackSeconds += segmentsData[s].travelTimeSeconds + dwellTime;
+    }
+
     totalTravelTimeWithoutDwellTimesSeconds = roundSecondsToNearestMinute(
         totalTravelTimeWithoutDwellTimesSeconds,
         Math.ceil
-    ); // ceil to nearest minute
-    totalTravelTimeWithDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithDwellTimesSeconds, Math.ceil); // ceil to nearest minute
-    totalTravelTimeWithReturnBackSeconds = roundSecondsToNearestMinute(totalTravelTimeWithReturnBackSeconds, Math.ceil); // ceil to nearest minute
-    const customLayoverMinutes = path.getData('customLayoverMinutes', null);
-    const layoverTimeSeconds = !_isBlank(customLayoverMinutes)
-        ? customLayoverMinutes * 60
-        : roundSecondsToNearestMinute(
-            Math.max(
-                Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
-                      totalTravelTimeWithDwellTimesSeconds,
-                Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
-            ),
-            Math.ceil
-        ); // ceil to nearest minute
+    );
+    totalTravelTimeWithDwellTimesSeconds = roundSecondsToNearestMinute(totalTravelTimeWithDwellTimesSeconds, Math.ceil);
+    totalTravelTimeWithReturnBackSeconds = roundSecondsToNearestMinute(totalTravelTimeWithReturnBackSeconds, Math.ceil);
 
-    const newData = {
-        segments: segmentsData,
-        dwellTimeSeconds: dwellTimeSecondsData,
-        layoverTimeSeconds: layoverTimeSeconds,
-        travelTimeWithoutDwellTimesSeconds: totalTravelTimeWithoutDwellTimesSeconds,
-        totalDistanceMeters: totalDistance,
-        totalDwellTimeSeconds: totalDwellTimeSeconds,
-        operatingTimeWithoutLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds,
-        operatingTimeWithLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
-        totalTravelTimeWithReturnBackSeconds: totalTravelTimeWithReturnBackSeconds + layoverTimeSeconds,
-        averageSpeedWithoutDwellTimesMetersPerSecond: roundToDecimals(
-            totalDistance / totalTravelTimeWithoutDwellTimesSeconds,
-            2
-        ),
-        operatingSpeedMetersPerSecond: roundToDecimals(totalDistance / totalTravelTimeWithDwellTimesSeconds, 2),
-        operatingSpeedWithLayoverMetersPerSecond: roundToDecimals(
-            totalDistance / (totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds),
-            2
-        ),
-        from_gtfs: false
+    const layoverTimeSeconds = calculateLayoverSeconds(path, totalTravelTimeWithDwellTimesSeconds);
+
+    const totals: PathTimeTotals = {
+        totalDistance,
+        totalDwellTimeSeconds,
+        totalTravelTimeWithoutDwellTimesSeconds,
+        totalTravelTimeWithDwellTimesSeconds,
+        totalTravelTimeWithReturnBackSeconds
     };
 
-    path.set('geography', { type: 'LineString', coordinates: globalCoordinates }); // to trigger history save. We should create transactions to set one history step for the whole update here
+    const stopTimes: StopTimes = { dwellTimeSecondsData, layoverTimeSeconds };
+
+    return buildPathData(segmentsData, stopTimes, totals);
+};
+
+const handleLegs = (path: Path, routing: RoutingResult) => {
+    const { globalCoordinates, segments, segmentsData, noDwellTimeDurations, dwellTimeSecondsData } =
+        buildSegmentsAndGeometry(path, routing);
+
+    const newData = adjustTimesAndComputeTotals(path, segmentsData, noDwellTimeDurations, dwellTimeSecondsData);
+
+    path.set('geography', { type: 'LineString', coordinates: globalCoordinates });
     path.attributes.segments = segments;
     path.attributes.data = Object.assign(path.attributes.data, newData);
 };
@@ -263,7 +423,8 @@ export const generatePathGeographyFromRouting = (
     }
 
     try {
-        handleLegs(path, points.features, legResults);
+        const routing: RoutingResult = { points: points.features, legs: legResults };
+        handleLegs(path, routing);
     } catch (error) {
         throw new TrError(
             'Error trying to generate a path geography:' + error,
