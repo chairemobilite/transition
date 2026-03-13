@@ -8,12 +8,14 @@ import { TransitObjectStub, GenericCollectionStub } from '../../__tests__/Transi
 import { generatePathGeographyFromRouting } from '../PathGeographyGenerator';
 import { pathGeographyUtils as PathGeographyUtils } from '../PathGeographyUtils';
 import { TestUtils } from 'chaire-lib-common/lib/test';
-import { roundSecondsToNearestMinute } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+
+// Intentionally different from DEFAULT_DWELL_TIME to test that node-level overrides take precedence over the path default
+const NODE4_DWELL_TIME = 120;
 
 const node1: any = TestUtils.makePoint([-73.745618, 45.368994], { routing_radius_meters: 50, id: 'node1' }, { id: 1 });
 const node2: any = TestUtils.makePoint([-73.742861, 45.361682], { routing_radius_meters: 100, id: 'node2' }, { id: 2 });
 const node3: any = TestUtils.makePoint([-73.738927, 45.361852], { routing_radius_meters: 10, id: 'node3' }, { id: 3 });
-const node4: any = TestUtils.makePoint([-73.731251, 45.368103], { routing_radius_meters: 50, id: 'node4', default_dwell_time_seconds: 20 }, { id: 4 });
+const node4: any = TestUtils.makePoint([-73.731251, 45.368103], { routing_radius_meters: 50, id: 'node4', default_dwell_time_seconds: NODE4_DWELL_TIME }, { id: 4 });
 const node5: any = TestUtils.makePoint([-73.734788, 45.372252], { id: 'node5' }, { id: 5 });
 const node6: any = TestUtils.makePoint([-73.749821, 45.373132], { id: 'node6' }, { id: 6 });
 
@@ -48,6 +50,10 @@ class TransitPathStub extends TransitObjectStub {
     constructor(attributes: any) {
         super(attributes);
         this._collectionManager = collectionManager;
+    }
+
+    get collectionManager() {
+        return this._collectionManager;
     }
 
     getLine(): TransitObjectStub | undefined {
@@ -110,23 +116,23 @@ test('Generate From Routing Total Calculations', async() => {
         type: 'LineString' as const,
         coordinates: [node1.geometry.coordinates, node4.geometry.coordinates]
     });
-    let expectedNoDwellTimes = [66.67];
+    let expectedNoDwellTimes = [Math.ceil(66.67)];
     let expectedTravelTimes = [82];
     let expectedDistances = [1000];
-    const expectedDwellTime = 20;
+    const expectedDwellTime = NODE4_DWELL_TIME;
     let expectedTotalTime = expectedTravelTimes.reduce(sum, 0);
     let expectedTotalDistance = expectedDistances.reduce(sum, 0);
-    let expectedNoDwellTime = roundSecondsToNearestMinute(expectedNoDwellTimes.reduce(sum, 0), Math.ceil);
-    let expectedOperatingTime = roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil);
+    let expectedNoDwellTime = expectedNoDwellTimes.reduce(sum, 0);
+    let expectedOperatingTime = expectedTotalTime + expectedDwellTime;
     expect(simplePath.attributes.data.segments).toEqual([{
         travelTimeSeconds: expectedTravelTimes[0],
         distanceMeters: expectedDistances[0]
     }]);
 
     expect(simplePath.attributes.data).toEqual(expect.objectContaining({
-        dwellTimeSeconds: [0, 20],
+        dwellTimeSeconds: [0, NODE4_DWELL_TIME],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
         operatingTimeWithoutLayoverTimeSeconds: expectedOperatingTime,
@@ -169,17 +175,17 @@ test('Generate From Routing Total Calculations', async() => {
     expectedDistances = [1000];
     expectedTotalTime = expectedTravelTimes.reduce(sum, 0);
     expectedTotalDistance = expectedDistances.reduce(sum, 0);
-    expectedNoDwellTime = roundSecondsToNearestMinute(expectedNoDwellTimes.reduce(sum, 0), Math.ceil);
-    expectedOperatingTime = roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil);
+    expectedNoDwellTime = expectedNoDwellTimes.reduce(sum, 0);
+    expectedOperatingTime = expectedTotalTime + expectedDwellTime;
     expect(simplePath.attributes.data.segments).toEqual([{
         travelTimeSeconds: expectedTravelTimes[0],
         distanceMeters: expectedDistances[0]
     }]);
 
     expect(simplePath.attributes.data).toEqual(expect.objectContaining({
-        dwellTimeSeconds: [0, 20],
+        dwellTimeSeconds: [0, NODE4_DWELL_TIME],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
         operatingTimeWithoutLayoverTimeSeconds: expectedOperatingTime,
@@ -258,10 +264,10 @@ test('Generate From Routing Simple Use Cases', async() => {
         type: 'LineString' as const,
         coordinates: [node1.geometry.coordinates, waypoint1, node4.geometry.coordinates, node6.geometry.coordinates]
     });
-    const expectedNoDwellTimes = [100, 66.67];
+    const expectedNoDwellTimes = [100, Math.ceil(66.67)];
     const expectedTravelTime = [115, 82];
     const expectedDistances = [1500, 1000];
-    const expectedDwellTime = 45;
+    const expectedDwellTime = NODE4_DWELL_TIME + 25;
     const expectedTotalTime = expectedTravelTime.reduce(sum, 0);
     const expectedTotalDistance = expectedDistances.reduce(sum, 0);
     const expectedNoDwellTime = expectedNoDwellTimes.reduce(sum, 0);
@@ -274,17 +280,17 @@ test('Generate From Routing Simple Use Cases', async() => {
     }]);
 
     expect(simplePath.attributes.data).toEqual(expect.objectContaining({
-        dwellTimeSeconds: [0, 20, 25],
+        dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds: roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil),
-        operatingTimeWithLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil) + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil) + LAYOVER_TIME,
-        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil)),
-        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
-        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
+        operatingTimeWithoutLayoverTimeSeconds: expectedDwellTime + expectedTotalTime,
+        operatingTimeWithLayoverTimeSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
+        totalTravelTimeWithReturnBackSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
+        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, expectedNoDwellTime),
+        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime),
+        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime + LAYOVER_TIME)
     }));
 });
 
@@ -406,13 +412,13 @@ test('Generate From Routing', async() => {
     expect(complexPath.attributes.segments).toBeTruthy();
     expect(complexPath.attributes.segments.length).toEqual(3);
     expect(complexPath.attributes.segments).toEqual([0, 2, 4]);
-    const expectedNoDwellTimes = [200, 166.67, 100];
+    const expectedNoDwellTimes = [200, Math.ceil(166.67), 100];
     const expectedTravelTime = [262, 229];
     const expectedDistances = [3000, 2500];
-    const expectedDwellTime = 45;
+    const expectedDwellTime = NODE4_DWELL_TIME + 25;
     const expectedTotalTime = expectedTravelTime.reduce(sum, 0);
     const expectedTotalDistance = expectedDistances.reduce(sum, 0);
-    const expectedNoDwellTime = roundSecondsToNearestMinute(expectedNoDwellTimes.reduce(sum, 0), Math.ceil);
+    const expectedNoDwellTime = expectedNoDwellTimes.reduce(sum, 0);
     expect(complexPath.attributes.data.segments).toEqual([{
         travelTimeSeconds: expectedTravelTime[0],
         distanceMeters: expectedDistances[0]
@@ -425,17 +431,17 @@ test('Generate From Routing', async() => {
     }]);
 
     expect(complexPath.attributes.data).toEqual(expect.objectContaining({
-        dwellTimeSeconds: [0, 20, 25],
+        dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
         layoverTimeSeconds: LAYOVER_TIME,
-        travelTimeWithoutDwellTimesSeconds:roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil),
+        travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil),
-        operatingTimeWithLayoverTimeSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil) + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: roundSecondsToNearestMinute(expectedDwellTime + expectedTotalTime, Math.ceil)+ LAYOVER_TIME,
-        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedNoDwellTime, Math.ceil)),
-        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil)),
-        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance,roundSecondsToNearestMinute(expectedTotalTime + expectedDwellTime, Math.ceil) + LAYOVER_TIME)
+        operatingTimeWithoutLayoverTimeSeconds: expectedDwellTime + expectedTotalTime,
+        operatingTimeWithLayoverTimeSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
+        totalTravelTimeWithReturnBackSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
+        averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, expectedNoDwellTime),
+        operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime),
+        operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime + LAYOVER_TIME)
     }));
 });
 
@@ -567,7 +573,7 @@ test('Generate From Routing with insert node at beginning', async() => {
                 { travelTimeSeconds: 115, distanceMeters: 1500 },
                 { travelTimeSeconds: 82, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 20, 25],
+            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
             _lastNodeChange: { type: 'insert' as const, index: 0 }
         }
     }) as any;
@@ -639,7 +645,7 @@ test('Generate From Routing with insert node in middle', async() => {
                 { travelTimeSeconds: 200, distanceMeters: 1500 },
                 { travelTimeSeconds: 150, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 20, 25],
+            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
             _lastNodeChange: { type: 'insert' as const, index: 1 }
         }
     }) as any;
@@ -713,7 +719,7 @@ test('Generate From Routing with remove node', async() => {
                 { travelTimeSeconds: 200, distanceMeters: 1500 },
                 { travelTimeSeconds: 150, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 25, 20, 25],
+            dwellTimeSeconds: [0, 25, NODE4_DWELL_TIME, 25],
             _lastNodeChange: { type: 'remove' as const, index: 1 }
         }
     }) as any;
@@ -751,7 +757,7 @@ test('Generate From Routing with remove node', async() => {
     expect(pathWithOldData.attributes.data.segments.length).toEqual(2);
     // Seg 0 maps to -1 (merged), seg 1 maps to old 2 (via newIndex+1)
     expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(150);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds).toEqual([0, 20, 25]);
+    expect(pathWithOldData.attributes.data.dwellTimeSeconds).toEqual([0, NODE4_DWELL_TIME, 25]);
 });
 
 test('Generate From Routing with remove first node', async() => {
@@ -778,7 +784,7 @@ test('Generate From Routing with remove first node', async() => {
                 { travelTimeSeconds: 200, distanceMeters: 1500 },
                 { travelTimeSeconds: 150, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 25, 20, 25],
+            dwellTimeSeconds: [0, 25, NODE4_DWELL_TIME, 25],
             _lastNodeChange: { type: 'remove' as const, index: 0 }
         }
     }) as any;
@@ -842,7 +848,7 @@ test('Generate From Routing with insert node at end', async() => {
                 { travelTimeSeconds: 115, distanceMeters: 1500 },
                 { travelTimeSeconds: 82, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 20, 25],
+            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
             _lastNodeChange: { type: 'insert' as const, index: 3 }
         }
     }) as any;
@@ -917,7 +923,7 @@ test('Generate From Routing with remove last node', async() => {
                 { travelTimeSeconds: 150, distanceMeters: 1000 },
                 { travelTimeSeconds: 95, distanceMeters: 1200 },
             ],
-            dwellTimeSeconds: [0, 20, 25, 25],
+            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25, 25],
             _lastNodeChange: { type: 'remove' as const, index: 3 }
         }
     }) as any;
@@ -956,7 +962,7 @@ test('Generate From Routing with remove last node', async() => {
     // Seg 0 maps to old 0, seg 1 maps to old 1 (both unchanged)
     expect(pathWithOldData.attributes.data.segments[0].travelTimeSeconds).toEqual(200);
     expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(150);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds).toEqual([0, 20, 25]);
+    expect(pathWithOldData.attributes.data.dwellTimeSeconds).toEqual([0, NODE4_DWELL_TIME, 25]);
 });
 
 test('Generate From Routing with old dwell time zero adjusts ratio', async() => {
@@ -1018,11 +1024,10 @@ test('Generate From Routing with old dwell time zero adjusts ratio', async() => 
     expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
     expect(pathWithOldData.attributes.data.segments.length).toEqual(2);
     // Old dwell time was 0, so previousTime - dwellTimeSeconds is used for ratio
-    // Segment 0: old index 0, oldDwellTime=0 → ratio uses (200 - 20) / calculatedDuration
-    // The stored time should be previousTime - newDwellTime = 200 - 20 = 180
-    expect(pathWithOldData.attributes.data.segments[0].travelTimeSeconds).toEqual(Math.ceil(200 - 20));
+    // Segment 0 starts at the first node (dwell always 0), so no subtraction happens
+    expect(pathWithOldData.attributes.data.segments[0].travelTimeSeconds).toEqual(200);
     // New dwell times should be fresh (not restored from old 0s)
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds[1]).toEqual(20); // node4 has default_dwell_time_seconds: 20
+    expect(pathWithOldData.attributes.data.dwellTimeSeconds[1]).toEqual(NODE4_DWELL_TIME);
 });
 
 test('Generate From Routing with waypoint change recalculates affected segment only', async() => {
@@ -1049,7 +1054,7 @@ test('Generate From Routing with waypoint change recalculates affected segment o
                 { travelTimeSeconds: 115, distanceMeters: 1500 },
                 { travelTimeSeconds: 82, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 20, 25],
+            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
             _lastWaypointChangedSegmentIndex: 0
         }
     }) as any;
@@ -1127,7 +1132,7 @@ test('Generate From Routing with waypoint change on last segment', async() => {
                 { travelTimeSeconds: 115, distanceMeters: 1500 },
                 { travelTimeSeconds: 82, distanceMeters: 1000 },
             ],
-            dwellTimeSeconds: [0, 20, 25],
+            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
             _lastWaypointChangedSegmentIndex: 1
         }
     }) as any;
