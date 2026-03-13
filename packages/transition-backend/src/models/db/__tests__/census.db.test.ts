@@ -8,15 +8,27 @@ import { v4 as uuidV4 } from 'uuid';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import dbQueries from '../census.db.queries';
+import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import zonesDbQueries from 'chaire-lib-backend/lib/models/db/zones.db.queries';
 import { Zone as ObjectClass } from 'chaire-lib-common/lib/services/zones/Zone';
 import { Polygon } from 'geojson';
+import { DataSourceAttributes } from 'chaire-lib-common/lib/services/dataSource/DataSource';
+
+const dataSourceId = uuidV4();
+const dataSourceAttributes = {
+    id: dataSourceId,
+    type: 'zones',
+    shortname: 'TDS',
+    name: 'Test datasource',
+    data: {}
+};
 
 // The two zones are squares that are side by side
 const id1 = uuidV4();
 const newObjectAttributes = {  
     id: id1,
     internal_id: 'test',
+    dataSourceId: dataSourceId,
     geography: { type: 'Polygon' as const, coordinates: [ [ [-73, 45], [-73, 46], [-72, 46], [-72, 45], [-73, 45] ] ] }
 };
 
@@ -24,6 +36,7 @@ const id2 = uuidV4();
 const newObjectAttributes2 = {
     id: id2,
     internal_id: 'test2',
+    dataSourceId: dataSourceId,
     geography: { type: 'Polygon' as const, coordinates: [[[-72, 45], [-72, 46], [-71, 46], [-71, 45], [-72, 45]]]}
 };
 
@@ -31,6 +44,9 @@ beforeAll(async () => {
     jest.setTimeout(10000);
     await dbQueries.truncate();
     await zonesDbQueries.truncate();
+    await dataSourceDbQueries.truncate();
+
+    await dataSourceDbQueries.create(dataSourceAttributes as DataSourceAttributes);
     const newObject = new ObjectClass(newObjectAttributes, true);
     await zonesDbQueries.create(newObject.attributes);
     const newObject2 = new ObjectClass(newObjectAttributes2, true);
@@ -40,6 +56,7 @@ beforeAll(async () => {
 afterAll(async() => {
     await dbQueries.truncate();
     await zonesDbQueries.truncate();
+    await dataSourceDbQueries.truncate();
     await knex.destroy();
 });
 
@@ -83,8 +100,24 @@ describe('census', () => {
             coordinates: [[[-73, 45], [-73, 46], [-71.5, 46], [-71.5, 45], [-73, 45]]]
         };
 
-        const population = await dbQueries.getPopulationInPolygon(polygon);
-        expect(population).toEqual(123456 + 500 / 2);
+        const population = await dbQueries.getPopulationInPolygon(polygon, 'Test datasource');
+        expect(population.population).toEqual(123456 + 500 / 2);
+        expect(population.dataSourceAreaRatio).toEqual(1);
+
+    });
+
+    test('population partially outside data source', async () => {
+
+        // Half of the polygon covers half the first zone and half of it is outside.
+        // Thus, the population should be half the first zone with a dataSourceAreaRatio of 0.5
+        const polygon: Polygon = {
+            type: 'Polygon',
+            coordinates: [[[-73.5, 45], [-73.5, 46], [-72.5, 46], [-72.5, 45], [-73.5, 45]]]
+        };
+
+        const population = await dbQueries.getPopulationInPolygon(polygon, 'Test datasource');
+        expect(population.population).toEqual(123456 / 2);
+        expect(population.dataSourceAreaRatio).toEqual(0.5);
 
     });
 
@@ -95,8 +128,22 @@ describe('census', () => {
             coordinates: [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
         };
 
-        const population = await dbQueries.getPopulationInPolygon(polygon);
-        expect(population).toBeNull();
+        const population = await dbQueries.getPopulationInPolygon(polygon, 'Test datasource');
+        expect(population.population).toBeNull();
+        expect(population.dataSourceAreaRatio).toEqual(0);
+
+    });
+
+    test('try to get population with data source not in db', async () => {
+
+        const polygon: Polygon = {
+            type: 'Polygon',
+            coordinates: [[[-73, 45], [-73, 46], [-71.5, 46], [-71.5, 45], [-73, 45]]]
+        };
+
+        const population = await dbQueries.getPopulationInPolygon(polygon, 'other datasource');
+        expect(population.population).toBeNull();
+        expect(population.dataSourceAreaRatio).toEqual(0);
 
     });
 });

@@ -33,6 +33,7 @@ type AccessibilityMapAPIQueryResponse = {
     walkingSpeedMps: number;
     calculatePois: boolean;
     calculatePopulation: boolean;
+    populationDataSourceName?: string;
 };
 
 type AccessibilityMapAPIResultResponse = {
@@ -47,6 +48,7 @@ type AccessibilityMapAPIResultResponse = {
                 areaSqM: number;
                 accessiblePlacesCountByCategory?: { [key in PlaceCategory]: number };
                 accessiblePlacesCountByDetailedCategory?: { [key in PlaceDetailedCategory]: number };
+                populationData?: { population: number | null; dataSourceAreaRatio: number };
             };
         }>;
     };
@@ -90,7 +92,8 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
             maxTransferTravelTimeSeconds: queryParams.maxTransferTravelTimeSeconds!,
             walkingSpeedMps: queryParams.walkingSpeedMps!,
             calculatePois: queryParams.calculatePois!,
-            calculatePopulation: queryParams.calculatePopulation!
+            calculatePopulation: queryParams.calculatePopulation!,
+            populationDataSourceName: queryParams.populationDataSourceName || undefined
         };
     }
 
@@ -111,7 +114,7 @@ export default class AccessibilityMapAPIResponse extends APIResponseBase<
                                 accessiblePlacesCountByCategory: feature.properties!.accessiblePlacesCountByCategory,
                                 accessiblePlacesCountByDetailedCategory:
                                       feature.properties!.accessiblePlacesCountByDetailedCategory,
-                                population: feature.properties!.population
+                                populationData: feature.properties!.populationData
                             }
                         }))
                     }
