@@ -4,13 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
-import { bbox as turfBbox } from '@turf/turf';
 
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Path from 'transition-common/lib/services/path/Path';
 import TransitPathNodeButton from './TransitPathNodeButton';
-import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
@@ -20,20 +19,25 @@ interface PathListProps extends WithTranslation {
 }
 
 const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: PathListProps) => {
-    React.useEffect(() => {
-        if (props.selectedPath) {
-            const geography = props.selectedPath.attributes.geography;
-            if (geography) {
-                setTimeout(() => {
-                    const bbox = turfBbox(geography);
-                    serviceLocator.eventManager.emit('map.fitBounds', [
-                        [bbox[0], bbox[1]],
-                        [bbox[2], bbox[3]]
-                    ]); // getBoundsForCoordinates(geography.coordinates));
-                }, 300);
-            }
+    const pathId = props.selectedPath.getId();
+
+    // This panel shrinks the map container when it mounts. The
+    // fitBoundsIfNotVisible call must happen here (not in the path
+    // selection handler) so that the panel is already in the DOM.
+    // The event handler calls map.resize() to force MapLibre to
+    // measure the new container size before computing visibility.
+    //
+    // Dep array intentionally uses only pathId: geography is an
+    // attribute of the path and doesn't change independently, so
+    // re-running on path ID change is sufficient. Including the
+    // Path object or its geography would cause spurious re-runs
+    // because the object reference can change on every render.
+    useEffect(() => {
+        const geography = props.selectedPath.attributes.geography;
+        if (geography && geography.coordinates && geography.coordinates.length >= 2) {
+            serviceLocator.eventManager.emit('map.fitBoundsIfNotVisible', geography);
         }
-    }, []);
+    }, [pathId]);
 
     const nodesGeojsonFeatures = props.selectedPath.nodesGeojsons();
 
