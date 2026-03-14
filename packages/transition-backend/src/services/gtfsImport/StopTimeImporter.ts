@@ -7,6 +7,8 @@
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
 
+import fs from 'fs';
+
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
@@ -14,6 +16,29 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GtfsInternalData, StopTimeImportData, StopTime } from './GtfsImportTypes';
 
 import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+
+/** Estimate line count from file size assuming ~55 bytes per stop_times.txt row. */
+const estimateLineCount = (filePath: string): number => {
+    const avgBytesPerLine = 55;
+    const size = fs.statSync(filePath).size;
+    return Math.max(1, Math.round(size / avgBytesPerLine));
+};
+
+/** Count newline bytes in a file by streaming raw buffers. 100-200ms for 1M lines. */
+const countFileLines = (filePath: string): Promise<number> => {
+    return new Promise((resolve, reject) => {
+        let count = 0;
+        fs.createReadStream(filePath)
+            .on('data', (chunk) => {
+                const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+                for (let i = 0; i < buf.length; i++) {
+                    if (buf[i] === '\n'.charCodeAt(0)) count++;
+                }
+            })
+            .on('end', () => resolve(count))
+            .on('error', (err) => reject(err));
+    });
+};
 
 export class StopTimeImporter
 implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>> {
@@ -32,19 +57,35 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
     }
 
     async prepareImportData(
-        importData?: GtfsInternalData
+        importData?: GtfsInternalData,
+        // Reports a 0→1 fraction; the caller maps it into the appropriate named step sub-range.
+        onProgress?: (fraction: number) => void
     ): Promise<(StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>)[]> {
         if (!importData || !importData.tripsToImport || importData.tripsToImport.length === 0) {
             console.log('Not importing stop times, because there are no trips to import');
             return [];
         }
+        let totalRows = 0;
+        if (onProgress && fs.existsSync(this._filePath)) {
+            try {
+                totalRows = Math.max(1, (await countFileLines(this._filePath)) - 1); // subtract header row
+            } catch {
+                totalRows = estimateLineCount(this._filePath);
+            }
+        }
+        const emitInterval = Math.max(1, Math.floor(totalRows / 100));
+        let processedRows = 0;
         const tripIds = this.getTripIdsToImport(importData.tripsToImport);
         const stopTimes: StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>[] = [];
         await parseCsvFile(
             this._filePath,
             (data, rowNum) => {
+                processedRows++;
                 if (rowNum % 100000 === 0) {
                     console.log(`reading row number ${rowNum}`);
+                }
+                if (onProgress && totalRows > 0 && processedRows % emitInterval === 0) {
+                    onProgress(Math.min(0.99, processedRows / totalRows));
                 }
                 // Ignore for trips not to import
                 if (!tripIds[data.trip_id]) {
@@ -149,9 +190,11 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
         return stopTimes as StopTime[];
     };
 
-    static groupAndSortByTripId(
-        stopTimes: (StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>)[]
-    ): StopTimeImportData {
+    static async groupAndSortByTripId(
+        stopTimes: (StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>)[],
+        // Reports a 0→1 fraction; the caller maps it into the appropriate named step sub-range.
+        onProgress?: (fraction: number) => void
+    ): Promise<StopTimeImportData> {
         const partialStopTimeData: {
             [key: string]: (StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>)[];
         } = {};
@@ -163,10 +206,19 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
         const stopTimeData: StopTimeImportData = {};
 
         // Sort the trip's stop times by sequence number and interpolate their times
-        Object.keys(partialStopTimeData).forEach((key) => {
+        const tripKeys = Object.keys(partialStopTimeData);
+        const totalTrips = tripKeys.length;
+        const emitInterval = Math.max(1, Math.floor(totalTrips / 100));
+        for (let i = 0; i < tripKeys.length; i++) {
+            const key = tripKeys[i];
             partialStopTimeData[key].sort((stopTimeA, stopTimeB) => stopTimeA.stop_sequence - stopTimeB.stop_sequence);
             stopTimeData[key] = this.interpolateStopTimes(partialStopTimeData[key]);
-        });
+            if (onProgress && (i + 1) % emitInterval === 0) {
+                onProgress(Math.min(0.99, (i + 1) / totalTrips));
+                // Yield to the event loop so socket.io can flush progress to the client
+                await new Promise((resolve) => setImmediate(resolve));
+            }
+        }
         return stopTimeData;
     }
 }
