@@ -30,6 +30,7 @@ export type SimulationStats = {
     nonRoutableHourlyCost: number;
     totalTravelTimeSecondsFromTrRouting: number;
     countByNumberOfTransfers: { [key: number]: number };
+    differentialUsersHourlyCost: number;
 };
 
 /**
@@ -133,6 +134,9 @@ const fitnessFunctions: { [key: string]: FitnessFunction } = {
     },
     hourlyOperatingCosts: function (stats: SimulationStats) {
         return stats.operatingHourlyCost;
+    },
+    differentialUserCosts: function (stats: SimulationStats) {
+        return stats.differentialUsersHourlyCost;
     }
 };
 
