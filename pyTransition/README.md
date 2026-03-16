@@ -166,6 +166,10 @@ This method allows users to send accessibility map parameters to the Transition 
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Walking speed, in km/h\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***with_geojson***&ensp;:&ensp;*bool*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If True, the returned JSON file will contain geometry information for the strokes and polygons of the accessibility map.\
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***calculate_population***&ensp;:&ensp;*bool*\
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If True, the returned JSON file will contain the "population" key for each polygon feature.\
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***calculate_pois***&ensp;:&ensp;*bool*\
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If True, the returned JSON file will contain the "accessiblePlacesCountByCategory" and the "accessiblePlacesCountByDetailedCategory" key for each polygon feature, with the count of accessible POIs in each category and detailed category respectively.\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***url***&ensp;:&ensp;*string*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\

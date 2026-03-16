@@ -224,9 +224,68 @@ class TestTransition(unittest.TestCase):
                 walking_speed_kmh=1,
                 with_geojson=True,
             )
+            expected_params = self.test_accessibility_params.copy()
+            expected_params['calculatePois'] = False
+            expected_params['calculatePopulation'] = False
             self.assertTrue(m.called_once)
             self.assertEqual(res, {"key": "value"})
-            self.assertEqual(m.last_request.json(), self.test_accessibility_params)
+            self.assertEqual(m.last_request.json(), expected_params)
+
+    def test_request_accessibility_map_with_pois(self):
+        with requests_mock.Mocker() as m:
+            m.post(f"{self.test_url}/api/v1/accessibility", json={"key": "value"}, status_code=200)
+            res = self.test_transition_instance.request_accessibility_map(
+                coordinates=[0, 0],
+                scenario_id="scenario-id",
+                departure_or_arrival_choice="Departure",
+                departure_or_arrival_time=time(0, 0, 0),
+                n_polygons=1,
+                delta_minutes=1,
+                delta_interval_minutes=1,
+                max_total_travel_time_minutes=1,
+                min_waiting_time_minutes=1,
+                max_access_egress_travel_time_minutes=1,
+                max_transfer_travel_time_minutes=1,
+                max_first_waiting_time_minutes=1,
+                walking_speed_kmh=1,
+                with_geojson=True,
+                calculate_pois=True,
+                calculate_population=False
+            )
+            expected_params = self.test_accessibility_params.copy()
+            expected_params['calculatePois'] = True
+            expected_params['calculatePopulation'] = False
+            self.assertTrue(m.called_once)
+            self.assertEqual(res, {"key": "value"})
+            self.assertEqual(m.last_request.json(), expected_params)
+
+    def test_request_accessibility_map_with_population(self):
+        with requests_mock.Mocker() as m:
+            m.post(f"{self.test_url}/api/v1/accessibility", json={"key": "value"}, status_code=200)
+            res = self.test_transition_instance.request_accessibility_map(
+                coordinates=[0, 0],
+                scenario_id="scenario-id",
+                departure_or_arrival_choice="Departure",
+                departure_or_arrival_time=time(0, 0, 0),
+                n_polygons=1,
+                delta_minutes=1,
+                delta_interval_minutes=1,
+                max_total_travel_time_minutes=1,
+                min_waiting_time_minutes=1,
+                max_access_egress_travel_time_minutes=1,
+                max_transfer_travel_time_minutes=1,
+                max_first_waiting_time_minutes=1,
+                walking_speed_kmh=1,
+                with_geojson=True,
+                calculate_pois=False,
+                calculate_population=True
+            )
+            expected_params = self.test_accessibility_params.copy()
+            expected_params['calculatePois'] = False
+            expected_params['calculatePopulation'] = True
+            self.assertTrue(m.called_once)
+            self.assertEqual(res, {"key": "value"})
+            self.assertEqual(m.last_request.json(), expected_params)
 
     def test_request_accessibility_map_error(self):
         with requests_mock.Mocker() as m:
@@ -249,8 +308,11 @@ class TestTransition(unittest.TestCase):
                 walking_speed_kmh=1,
                 with_geojson=True,
             )
+            expected_params = self.test_accessibility_params.copy()
+            expected_params['calculatePois'] = False
+            expected_params['calculatePopulation'] = False
             self.assertTrue(m.called_once)
-            self.assertEqual(m.last_request.json(), self.test_accessibility_params)
+            self.assertEqual(m.last_request.json(), expected_params)
 
     def test_request_routing_result(self):
         with requests_mock.Mocker() as m:
