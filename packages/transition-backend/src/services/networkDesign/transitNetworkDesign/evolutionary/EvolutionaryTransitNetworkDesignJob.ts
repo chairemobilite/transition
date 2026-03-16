@@ -372,6 +372,8 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         await startMemcachedPromise; // Delayed await to let things start in parallel of data prep
         const algorithmResults = this.job.attributes.data.results!;
 
+        await this.runBaseScenario();
+
         let previousGeneration: LineAndNumberOfVehiclesGeneration | undefined = undefined;
         try {
             do {
@@ -525,7 +527,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             simulationMethod: '',
             fitnessScore: undefined,
             routedCount: undefined,
-            nonRoutedCount: undefined
+            nonRoutedCount: undefined,
+            usersHourlyCost: undefined,
+            differentialUsersHourlyCost: undefined
         };
 
         // Register the output files and create streams
@@ -575,7 +579,12 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 simulationMethod: row.simulation_method,
                 fitnessScore: parseFloat(row.fitness_score),
                 routedCount: typeof row.data?.routedCount === 'number' ? row.data.routedCount : undefined,
-                nonRoutedCount: typeof row.data?.nonRoutedCount === 'number' ? row.data.nonRoutedCount : undefined
+                nonRoutedCount: typeof row.data?.nonRoutedCount === 'number' ? row.data.nonRoutedCount : undefined,
+                usersHourlyCost: typeof row.data?.usersHourlyCost === 'number' ? row.data.usersHourlyCost : undefined,
+                differentialUsersHourlyCost:
+                    typeof row.data?.differentialUsersHourlyCost === 'number'
+                        ? row.data.differentialUsersHourlyCost
+                        : undefined
             };
             simulationsCsvStream.write(unparse([csvAttributes], { header: false }) + '\n');
         }

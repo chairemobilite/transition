@@ -5,8 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import EventEmitter from 'events';
+import random from 'random';
+import _cloneDeep from 'lodash/cloneDeep';
 import fs from 'fs';
 import path from 'path';
+import { unparse } from 'papaparse';
 
 import config from 'chaire-lib-backend/lib/config/server.config';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -25,6 +28,20 @@ import { MemcachedInstance } from 'chaire-lib-backend/lib/utils/processManagers/
 
 import { TrRoutingBatchManager, TrRoutingBatchStartResult } from '../../transitRouting/TrRoutingBatchManager';
 import { FakeTrRoutingBatchManager } from '../../transitRouting/FakeTrRoutingBatchManager';
+import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { OdTripSimulationOptions } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
+import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
+import { OdTripSimulationDemandFromCsvAttributes } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
+import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
+import { TrRoutingBatchExecutor } from '../../transitRouting/TrRoutingBatch';
+import { OdTripComparisonFitnessVisitor } from '../../simulation/methods/OdTripSimulation';
+import {
+    getNonRoutableOdTripFitnessFunction,
+    getOdTripFitnessFunction
+} from '../../simulation/methods/OdTripSimulationFitnessFunctions';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 // Type to extract parameters from a job data type
 type ExtractParameters<TJobType extends JobDataType> = TJobType extends { data: { parameters: infer P } } ? P : never;
@@ -50,6 +67,7 @@ export class TransitNetworkDesignJobWrapper<
     private _collectionManager: CollectionManager | undefined = undefined;
     protected memcachedInstance: MemcachedInstance | undefined | null = undefined;
     private _trRoutingBatchStartResult: TrRoutingBatchStartResult | undefined = undefined;
+    private _originalFitnesses: number[] | undefined = undefined;
 
     constructor(
         private wrappedJob: ExecutableJob<TJobType>,
@@ -297,4 +315,205 @@ export class TransitNetworkDesignJobWrapper<
         };
         await this.wrappedJob.save();
     }
+
+    private async getBaseScenarioJobId(): Promise<ExecutableJob<BatchRouteJobType>> {
+        // See if a job already exists, if so, load and return it
+        await this.job.refresh();
+        const batchRoutingJobId = (this.job.attributes.internal_data as any).baseScenarioBatchRoutingJobId;
+        if (batchRoutingJobId) {
+            const batchRoutingJob = await ExecutableJob.loadTask<BatchRouteJobType>(batchRoutingJobId);
+            if (batchRoutingJob) {
+                console.log(
+                    `Found existing batch routing job for base scenario with id ${batchRoutingJobId}, resuming it`
+                );
+                return batchRoutingJob;
+            }
+        }
+
+        const parameters = this.wrappedJob.attributes.data.parameters;
+
+        const scenarioToCompare = parameters.transitNetworkDesignParameters.scenarioToCompare;
+        if (scenarioToCompare === undefined) {
+            throw new TrError('A scenario to compare with the current scenario must be selected', 'SIOMSCEN005');
+        }
+
+        // For the simulation method, run on 100% of the sample
+        const methodOptions = parameters.simulationMethod;
+
+        // FIXME The rest of this method was copy pasted and adapted from
+        // OdTripSimulation. If we decide to keep differential fitness, we
+        // should refactor the simulation methods, such that we can re-use code
+        // between here and the various simulation methods (not just the od trip
+        // simulation).
+        const odTripSimulationOptions = methodOptions.config as OdTripSimulationOptions;
+
+        // Need to build a BatchCalculationParameters for the BatchRouteJobType
+        // It's composed TransitRoutingQueryAttributes plus the withGeometries, detailed flag
+        // The TransitRoutingQueryAttributes is a RoutingQueryAttributes + TransitQueryAttributes
+        // The TransitQueryAttributes is a TransitRoutingBaseAttributes (coming from options.transitRoutingAttributes)
+        // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
+        const batchParams: BatchCalculationParameters = {
+            ...odTripSimulationOptions.transitRoutingAttributes,
+            routingModes: ['transit', 'walking', 'driving'], //We need walking and driving for the fallback calculation
+            withAlternatives: false,
+            withGeometries: false,
+            detailed: false,
+            scenarioId: scenarioToCompare
+        };
+
+        // Fetch memcached information from global job
+        const memcachedServer = this.getMemcachedInstance()?.getServer();
+
+        // We use arbitrary times between 8 and 9 am for the simulation, to better capture the differences between scenarios. The time field and format are defined here
+        const demandAttributes = _cloneDeep(
+            odTripSimulationOptions.demandAttributes
+        ) as OdTripSimulationDemandFromCsvAttributes;
+        const demandFieldMapping = demandAttributes.fileAndMapping
+            .fieldMappings as TransitDemandFromCsvRoutingAttributes;
+        // Add the time, time type and format to the demand attributes, as they are not defined or even required in the main job
+        demandFieldMapping.time = 'time';
+        demandFieldMapping.timeFormat = 'secondsSinceMidnight';
+        demandFieldMapping.timeType = 'departure';
+
+        // Create the batch routing job as a child of the current job
+        const routingJob: ExecutableJob<BatchRouteJobType> = await this.job.createChildJob({
+            name: 'batchRoute', //TODO Is this important, can I rename it do something else ???
+            data: {
+                parameters: {
+                    demandAttributes: demandFieldMapping,
+                    transitRoutingAttributes: batchParams,
+                    // Use normal cache directory for this batch job
+                    trRoutingJobParameters: { memcachedServer }
+                }
+            },
+            resources: {
+                // Input file will be prepared later
+                files: { input: 'transit_demand_for_base_scenario.csv' }
+            }
+        });
+
+        // FIXME Copied form OdTripSimulation and hardcoding for now
+        const sampleOdTripFileForJob = (): Promise<void> => {
+            return new Promise<void>((resolve, reject) => {
+                // Complete input file from the parent job
+                const csvStream = this.job.getReadStream('transitDemand');
+
+                // Prepare the sampled file for the child job
+                const writeStream = routingJob.getWriteStream('input');
+                let needWriteHeader = true;
+                parseCsvFileFromStream(
+                    csvStream,
+                    (line) => {
+                        // Give a random trip time in the time range, in seconds since midnight
+                        line['time'] = random.integer(
+                            8 * 3600, // FIXME Magic, but will be refactored if we keep the differential fitness
+                            9 * 3600
+                        );
+                        // Need to manually add the trailing newline since papaparse
+                        // unparse does not add it automatically
+                        writeStream.write(unparse([line], { header: needWriteHeader, newline: '\n' }) + '\n');
+                        needWriteHeader = false;
+                    },
+                    { header: true }
+                )
+                    .then(() => {
+                        writeStream.end(() => {
+                            resolve();
+                        });
+                    })
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        };
+        // Create the input file for the batch routing job with all data
+        await sampleOdTripFileForJob();
+
+        // Job ready to run, save it in internal_data of the parent job so it can be accessed by the simulation method
+        await this.job.refresh();
+        // FIXME Type this if we keep this
+        (this.job.attributes.internal_data as any).baseScenarioBatchRoutingJobId = routingJob.id;
+        this.job.save(this.executorOptions.progressEmitter);
+        return routingJob;
+    }
+
+    // Run the simulation on the base scenario, on 100% of the sample, if a scenario is set
+    // FIXME This is only for the OdTripSimulation, it does not belong in this
+    // class. When refactoring to main, we should provide a way for simulation
+    // methods to do some once-in-a-job task like this and care for their own
+    // fougères after (ie the original fitnesses)
+    runBaseScenario = async (): Promise<number[] | undefined> => {
+        const parameters = this.wrappedJob.attributes.data.parameters;
+        if (parameters.transitNetworkDesignParameters.shouldCompareWithCurrentScenario !== true) {
+            return undefined;
+        }
+
+        const scenarioToCompare = parameters.transitNetworkDesignParameters.scenarioToCompare;
+        if (_isBlank(scenarioToCompare)) {
+            throw new TrError(
+                'A scenario to compare with the current scenario must be selected',
+                'SIOMSCEN005',
+                'transit:simulation:errors:CompareWithCurrentScenarioInvalid'
+            );
+        }
+
+        // Works only for odTripSimulation method
+        const methodOptions = parameters.simulationMethod;
+        if (methodOptions.type !== 'OdTripSimulation') {
+            console.log('Base scenario simulation is only implemented for OdTripSimulation method, skipping');
+            return undefined;
+        }
+
+        // Child job needs its own progress emitter to avoid conflicts with the parent's
+        const routingJob = await this.getBaseScenarioJobId();
+
+        const childProgressEmitter = new EventEmitter();
+
+        const batchJobExecutor = new TrRoutingBatchExecutor(routingJob, {
+            progressEmitter: childProgressEmitter,
+            isCancelled: this.executorOptions.isCancelled
+        });
+
+        if (routingJob.status === 'completed') {
+            console.log('Batch routing job for base scenario simulation already completed, skipping');
+        } else {
+            // Run the job and wait for it to complete.
+            console.log('Starting batch routing job for base scenario simulation');
+            console.time('Batch routing job for base scenario simulation');
+
+            // Set in progress and run the job.
+            routingJob.setInProgress();
+            routingJob.save(this.executorOptions.progressEmitter);
+            const execResults = await batchJobExecutor.run();
+            if (execResults.completed !== true) {
+                throw new Error('Batch routing job for base scenario simulation did not complete successfully');
+            }
+
+            // Set the job as completed
+            // FIXME refresh/update/save should be done by a single function
+            await routingJob.refresh();
+            routingJob.setCompleted();
+            routingJob.save(this.executorOptions.progressEmitter);
+            console.timeEnd('Batch routing job for base scenario simulation');
+        }
+
+        // Visit the job to get the fitness scores for all values
+        const odTripSimulationOptions = this.job.attributes.data.parameters.simulationMethod
+            .config as OdTripSimulationOptions;
+        const visitor = new OdTripComparisonFitnessVisitor({
+            odTripFitnessFunction: getOdTripFitnessFunction(
+                odTripSimulationOptions.evaluationOptions.odTripFitnessFunction
+            ),
+            // FIXME This is hardcoded in the OdTripSimulation too
+            nonRoutableOdTripFitnessFunction: getNonRoutableOdTripFitnessFunction('taxi')
+        });
+        this._originalFitnesses = await batchJobExecutor.handleResults(visitor);
+    };
+
+    getOriginalFitness = (index: number): number | undefined => {
+        if (this._originalFitnesses === undefined) {
+            return undefined;
+        }
+        return this._originalFitnesses[index];
+    };
 }
