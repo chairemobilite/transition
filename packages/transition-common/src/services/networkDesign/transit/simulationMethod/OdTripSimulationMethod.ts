@@ -173,6 +173,10 @@ class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTri
                 {
                     label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyOperatingCosts',
                     value: 'hourlyOperatingCosts'
+                },
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.differentialUserCosts',
+                    value: 'differentialUserCosts'
                 }
             ]
         }

@@ -37,6 +37,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 const timeCsvColumnHeader = 'time';
+const originalIndexCsvColumnHeader = 'originalIndex';
 // Simulate trips between 8am and 9am, we do not need full day simulation for OD trip based simulation
 const simulationTimeRangeStartSeconds = 8 * 3600; // 8am
 const simulationTimeRangeEndSeconds = 9 * 3600; // 9am
@@ -50,10 +51,53 @@ export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSi
         new OdTripSimulation(options, jobWrapper);
 }
 
+// TODO Custom to store the fitnesses of the original OD trips, to be able to compare with the base scenario in a differential fitness way. Maybe should be moved to its own file if it gets more complex
+export class OdTripComparisonFitnessVisitor implements BatchRouteResultVisitor<number[]> {
+    private fitnesses: number[] = [];
+
+    constructor(
+        private options: {
+            odTripFitnessFunction: OdTripFitnessFunction;
+            nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
+        }
+    ) {
+        // Nothing to do
+    }
+
+    visitTripResult = async (odTripResult: OdTripRouteResult) => {
+        const transitResult = odTripResult.results?.transit;
+        if (transitResult && transitResult.error === undefined) {
+            const route = transitResult.paths[0];
+
+            if (route.totalTravelTime === 0) {
+                // TODO should be a error case which would be able by the nonRoutablecase
+                // for now just warn and skip
+                console.warn('odTrip.travelTimeSeconds == 0');
+                return;
+            }
+            const userCost = this.options.odTripFitnessFunction(route);
+            this.fitnesses.push(userCost);
+        } else {
+            const userCost = this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {});
+            this.fitnesses.push(userCost);
+        }
+    };
+
+    end = () => {
+        // Nothing to finalize
+    };
+
+    getResult(): number[] {
+        return this.fitnesses;
+    }
+}
+
 // Od trip fitness visitor to calculate simulation results
 // TODO Consider moving to its own file if it gets more complex
 export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationStats> {
     private usersCost = 0;
+    // Sum of the differential fitness of sampled OD trips. Will be equal to usersCost if no original scenario is set
+    private differentialUserCost = 0;
     private totalRoutableUsersCost = 0;
     private totalNonRoutableUsersCost = 0;
     private transfersCount = 0;
@@ -72,6 +116,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
             odTripFitnessFunction: OdTripFitnessFunction;
             nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
             expansionFactorField?: string;
+            getOriginalFitness: (index) => number | undefined;
         }
     ) {
         // Nothing to do
@@ -103,6 +148,9 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
     visitTripResult = async (odTripResult: OdTripRouteResult) => {
         const transitResult = odTripResult.results?.transit;
         const expansionFactor = this.getExpansionFactor(odTripResult);
+        // FIXME Better formalize match between original index and demand index
+        // Original fitness in base scenario, use 0 if undefined to use only the new fitness
+        const originalFitness = this.options.getOriginalFitness(parseInt(odTripResult.internalId)) || 0;
         if (transitResult && transitResult.error === undefined) {
             const route = transitResult.paths[0];
 
@@ -112,8 +160,11 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
                 console.warn('odTrip.travelTimeSeconds == 0');
                 return;
             }
-            const userCost = expansionFactor * this.options.odTripFitnessFunction(route);
+            const currentTripFitness = this.options.odTripFitnessFunction(route);
+            const differentialFitness = currentTripFitness - originalFitness;
+            const userCost = expansionFactor * currentTripFitness;
             this.usersCost += userCost;
+            this.differentialUserCost += expansionFactor * differentialFitness;
             this.transfersCount += expansionFactor * route.numberOfTransfers;
             this.noTransferCount += route.numberOfTransfers === 0 ? expansionFactor : 0;
             this.routedCount += expansionFactor;
@@ -130,11 +181,13 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
                 this.countByNumberOfTransfers[route.numberOfTransfers] += expansionFactor;
             }
         } else {
-            const userCost =
-                this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {}) * expansionFactor;
+            const currentTripFitness = this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {});
+            const differentialFitness = currentTripFitness - originalFitness;
+            const userCost = currentTripFitness * expansionFactor;
             this.totalCount += expansionFactor;
             this.nonRoutedCount += expansionFactor;
             this.usersCost += userCost;
+            this.differentialUserCost += expansionFactor * differentialFitness;
             this.totalNonRoutableUsersCost += userCost;
         }
     };
@@ -176,7 +229,8 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
             routableHourlyCost: Math.round(this.totalRoutableUsersCost / durationHours),
             nonRoutableHourlyCost: Math.round(this.totalNonRoutableUsersCost / durationHours),
             totalTravelTimeSecondsFromTrRouting: 0, // TODO Is that used
-            countByNumberOfTransfers: this.countByNumberOfTransfers
+            countByNumberOfTransfers: this.countByNumberOfTransfers,
+            differentialUsersHourlyCost: Math.round(this.differentialUserCost / durationHours)
         };
     }
 }
@@ -203,7 +257,7 @@ export default class OdTripSimulation implements SimulationMethod {
         let needWriteHeader = true;
         return parseCsvFileFromStream(
             csvStream,
-            (line) => {
+            (line, rowNumber) => {
                 // FIXME Since this is random, there is no guarantee that
                 // the sampled file will be exactly the sample ratio. Since
                 // the file can be large, we cannot load it in memory. We
@@ -220,6 +274,8 @@ export default class OdTripSimulation implements SimulationMethod {
                         simulationTimeRangeStartSeconds,
                         simulationTimeRangeEndSeconds
                     );
+                    // Set the index of the original line in the file, to be able to match results with original demand in case of differential fitness
+                    line[originalIndexCsvColumnHeader] = rowNumber - 1;
                     // Need to manually add the trailing newline since papaparse
                     // unparse does not add it automatically
                     writeStream.write(unparse([line], { header: needWriteHeader, newline: '\n' }) + '\n');
@@ -259,6 +315,7 @@ export default class OdTripSimulation implements SimulationMethod {
         demandFieldMapping.time = timeCsvColumnHeader;
         demandFieldMapping.timeFormat = 'secondsSinceMidnight';
         demandFieldMapping.timeType = 'departure';
+        demandFieldMapping.id = originalIndexCsvColumnHeader; // We use the original index in the file as id, to be able to match results with original demand in case of differential fitness
         return demandFieldMapping;
     }
 
@@ -323,7 +380,8 @@ export default class OdTripSimulation implements SimulationMethod {
                 const fitnessVisitor = new OdTripFitnessVisitor(routingJob, {
                     odTripFitnessFunction: this.odTripFitnessFunction,
                     nonRoutableOdTripFitnessFunction: this.nonRoutableOdTripFitnessFunction,
-                    expansionFactorField: facPerField
+                    expansionFactorField: facPerField,
+                    getOriginalFitness: this.jobWrapper.getOriginalFitness
                 });
                 const results = await batchJobExecutor.handleResults(fitnessVisitor);
                 const fitness = this.fitnessFunction(results);

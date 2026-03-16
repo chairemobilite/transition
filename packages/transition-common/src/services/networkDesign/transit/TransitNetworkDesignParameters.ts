@@ -10,6 +10,8 @@ import Agency from '../../agency/Agency';
 import Service from '../../service/Service';
 import Line from '../../line/Line';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import Scenario from '../../scenario/Scenario';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export type TransitNetworkDesignParameters = {
     /** Maximum number of minutes between passages */
@@ -32,6 +34,8 @@ export type TransitNetworkDesignParameters = {
     simulatedAgencies: string[];
     /** Lines to keep for all scenarios */
     linesToKeep: string[];
+    shouldCompareWithCurrentScenario?: boolean;
+    scenarioToCompare?: string;
 };
 
 export const MIN_TIME_BETWEEN_PASSAGES = 3;
@@ -98,6 +102,12 @@ export const validateTransitNetworkDesignParameters = (
     if (agencies === undefined || agencies.length === 0) {
         valid = false;
         errors.push('transit:simulation:errors:SimulatedAgenciesIsEmpty');
+    }
+
+    const shouldCompareWithCurrentScenario = parameters.shouldCompareWithCurrentScenario;
+    if (shouldCompareWithCurrentScenario === true && _isBlank(parameters.scenarioToCompare)) {
+        valid = false;
+        errors.push('transit:simulation:errors:CompareWithCurrentScenarioInvalid');
     }
 
     return { valid, errors };
@@ -193,6 +203,25 @@ export class TransitNetworkDesignDescriptor implements SimulationAlgorithmDescri
                         }));
                     });
                 }
+            },
+            shouldCompareWithCurrentScenario: {
+                i18nName: 'transit:networkDesign.parameters.ShouldCompareWithCurrentScenario',
+                i18nHelp: 'transit:networkDesign.parameters.help.ShouldCompareWithCurrentScenario',
+                type: 'boolean' as const,
+                default: false
+            },
+            scenarioToCompare: {
+                i18nName: 'transit:networkDesign.parameters.ScenarioToCompare',
+                type: 'select' as const,
+                required: false,
+                choices: () =>
+                    serviceLocator.collectionManager
+                        .get('scenarios')
+                        ?.getFeatures()
+                        .map((scenario: Scenario) => ({
+                            value: scenario.getId(),
+                            label: scenario.attributes.name || scenario.getId()
+                        })) || []
             }
         };
     }

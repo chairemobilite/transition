@@ -890,12 +890,15 @@
             "VehiclesCountInvalid": "Le nombre de véhicules doit être supérieur à 0",
             "MaxIntervalMinutesInvalid": "L'intervalle maximal doit être supérieur à 3 minutes",
             "MinIntervalMinutesInvalid": "L'intervalle minimal doit être supérieur à 3 minutes",
+            "ShouldCompareWithCurrentScenario": "Comparer avec un scénario actuel",
+            "ScenarioToCompare": "Scénario à comparer",
             "help": {
                 "MaxIntervalMinutes": "Le temps maximum entre les départs sur une ligne. Pour un service optimal, il est suggéré de le garder en-dessous de 15 minutes. Des temps jusqu'à 60 minutes sont acceptés.",
                 "MinIntervalMinutes": "Le temps minimal entre les départs sur une ligne. La valeur minimale devrait être supérieure à 3. Moins que ça n'aurait pas d'effet sur les calculs.",
                 "NonSimulatedServices": "Services existants qui seront conservés pour les calculs des différents scénarios à simuler, mais non modifiés par l'algorithme de conception de réseau",
                 "LineSetAgencies": "Agences à partir desquelles les lignes du réseau à concevoir seront sélectionnées",
-                "KeepLines": "Lignes des agences du réseau à concevoir qui seront conservées dans tous les scénarios. Ces lignes sont incluses dans le nombre de lignes du réseau à concevoir."
+                "KeepLines": "Lignes des agences du réseau à concevoir qui seront conservées dans tous les scénarios. Ces lignes sont incluses dans le nombre de lignes du réseau à concevoir.",
+                "ShouldCompareWithCurrentScenario": "Comparer les résultats de la conception de réseau avec un scénario actuel pour voir les différences en termes de temps de parcours et d'accessibilité. Si cette option est sélectionnée, le scénario à comparer doit être sélectionné."
             }
         },
         "errors": {
@@ -970,6 +973,7 @@
                     "hourlyUserPlusOperatingCosts": "Coût usager + opération (horaire)",
                     "hourlyUserCosts": "Coût usager (horaire)",
                     "hourlyOperatingCosts": "Coût d'opération (horaire)",
+                    "differentialUserCosts": "Différence de coût usager avec le scénario actuel (horaire)",
                     "help": {
                         "odTripFitnessFunction": "Sélectionnez la fonction de coût pour évaluer chaque trajet OD. La fonction 'temps de parcours + pénalité de transfert' pénalise les trajets avec des correspondances pour favoriser les trajets directs.",
                         "fitnessFunction": "Sélectionnez la fonction de coût pour évaluer le scénario, à partir des coûts des trajets OD. La fonction 'coût usager + opération' équilibre l'expérience utilisateur avec l'efficacité opérationnelle."
@@ -1061,7 +1065,8 @@
             "MinTimeHigherThanMax": "Le temps minimal entre les passages est plus élevé que le temps maximal",
             "MinTimeBetweenPassagesTooHigh": "Le temps minimal entre les passages est trop élevé",
             "UnknownAlgorithm": "L'algorithme sélectionné n'est pas disponible",
-            "SimulatedAgenciesIsEmpty": "Au moins une agence à simuler doit être sélectionnée"
+            "SimulatedAgenciesIsEmpty": "Au moins une agence à simuler doit être sélectionnée",
+            "CompareWithCurrentScenarioInvalid": "Un scénario doit être sélectionné pour comparer avec le scénario actuel"
         }
     },
     "jobs": {
