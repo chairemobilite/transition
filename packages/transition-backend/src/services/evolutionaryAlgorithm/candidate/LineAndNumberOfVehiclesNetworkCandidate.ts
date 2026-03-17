@@ -176,7 +176,6 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     };
 
     async simulate(): Promise<CandidateResult> {
-        console.log('start simulating candidate');
         const scenario = this.scenario;
         if (scenario === undefined) {
             throw new TrError('Undefined scenario!', 'GALNCND003');
@@ -187,7 +186,6 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             results: (await this.simulateScenario(scenario)).results
         };
         this.result = result;
-        console.log('done simulating candidate');
         return result;
     }
 
