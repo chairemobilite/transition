@@ -50,6 +50,28 @@ export type OdTripFitnessFunction = (odTrip: TrRoutingRoute) => number;
 export type NonRoutableTripFitnessFunction = (tripResults: RoutingResultsByMode) => number;
 
 /**
+ * Returns non-optimized travel time in seconds for a trRouting route.
+ *
+ * For departure-based queries, this is arrivalTime - requestedDepartureTime
+ * (includes initial delay before actually leaving).
+ *
+ * For arrival-based queries, this is reconstructed from totalTravelTime plus
+ * the extra slack between actual and requested arrival.
+ *
+ * NOTE ABOUT PREVIOUS IMPLEMENTATION:
+ * Historically, fitness used `totalTravelTime + firstWaitingTime`.
+ * Since `totalTravelTime` already includes first waiting time in trRouting
+ * responses, the minimum wait at first stop could be effectively counted twice.
+ * We now use non-optimized travel time only once to avoid this double-counting.
+ */
+const getNonOptimizedTravelTimeSeconds = (odTrip: TrRoutingRoute): number => {
+    if (odTrip.timeOfTripType === 'departure') {
+        return Math.max(0, odTrip.arrivalTime - odTrip.timeOfTrip);
+    }
+    return Math.max(0, odTrip.totalTravelTime + (odTrip.timeOfTrip - odTrip.arrivalTime));
+};
+
+/**
  * Fitness sorters for genetic algorithms
  */
 export const fitnessSorters: { [key: string]: FitnessSorter } = {
@@ -66,15 +88,13 @@ export const fitnessSorters: { [key: string]: FitnessSorter } = {
  */
 const odTripFitnessFunctions: { [key: string]: OdTripFitnessFunction } = {
     travelTimeCost: function (odTrip: TrRoutingRoute) {
-        const travelTime = odTrip.totalTravelTime || 0;
-        const lostTime = odTrip.firstWaitingTime || 0;
-        return (10 * travelTime) / 3600 + lostTime / 3600;
+        const travelTime = getNonOptimizedTravelTimeSeconds(odTrip);
+        return (10 * travelTime) / 3600;
     },
     travelTimeWithTransferPenalty: function (odTrip: TrRoutingRoute) {
-        const travelTime = odTrip.totalTravelTime || 0;
+        const travelTime = getNonOptimizedTravelTimeSeconds(odTrip);
         const transfers = odTrip.numberOfTransfers || 0;
-        const lostTime = odTrip.firstWaitingTime || 0;
-        return (10 * (travelTime + transfers * 300)) / 3600 + lostTime / 3600;
+        return (10 * (travelTime + transfers * 300)) / 3600;
     }
 };
 
