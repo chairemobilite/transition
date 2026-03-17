@@ -264,6 +264,21 @@ class LineAndNumberOfVehiclesGeneration extends Generation {
         return this.candidates as LineAndNumberOfVehiclesNetworkCandidate[];
     }
 
+    /**
+     * Get the per-trip normalized fitness for a candidate's method result.
+     * Dividing by totalCount makes fitness comparable across runs with
+     * different demand sample ratios (e.g. 5% vs 100%).
+     */
+    private getNormalizedFitness(candidate: NetworkCandidate, methodId: string): number {
+        const methodResult = candidate.getResult().results[methodId];
+        const stats = methodResult.results as { totalCount?: number } | undefined;
+        const totalCount = stats?.totalCount;
+        if (typeof totalCount === 'number' && totalCount > 0) {
+            return methodResult.fitness / totalCount;
+        }
+        return methodResult.fitness;
+    }
+
     // TODO Sorting candidates and calculating totalFitness maybe should not be
     // part of the evolutionary algorithm code, but we may need to extract some
     // result types. For now, it's the only algorithm we have, so keep it here
@@ -280,20 +295,21 @@ class LineAndNumberOfVehiclesGeneration extends Generation {
         // method is defined as the power of the actual rank order and the
         // weight of the method.
         const candidateWithRanks = candidates.map((candidate) => ({ ranks: {}, candidate }));
-        // For each method, sort the candidate with ranks by the fitness, then add the rank
+        // For each method, sort the candidate with ranks by the normalized
+        // per-trip fitness so that candidates simulated with different demand
+        // sample ratios are ranked fairly.
         methodIds.forEach((methodId) => {
-            // TODO The fitness sorter should be specified for each method as fitness order may vary
             candidateWithRanks.sort((candidateA, candidateB) =>
                 this.fitnessSorter(
-                    candidateA.candidate.getResult().results[methodId].fitness,
-                    candidateB.candidate.getResult().results[methodId].fitness
+                    this.getNormalizedFitness(candidateA.candidate, methodId),
+                    this.getNormalizedFitness(candidateB.candidate, methodId)
                 )
             );
             const methodWeight = 1;
             let prevRank = -1;
             let prevFitness = -1;
             candidateWithRanks.forEach((candidate, index) => {
-                const fitness = candidate.candidate.getResult().results[methodId].fitness;
+                const fitness = this.getNormalizedFitness(candidate.candidate, methodId);
                 const rank = fitness === prevFitness ? prevRank : index;
                 candidate.ranks[methodId] = Math.pow(rank + 1, methodWeight);
                 prevRank = rank;
