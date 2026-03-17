@@ -67,7 +67,8 @@ export class TransitNetworkDesignJobWrapper<
     private _collectionManager: CollectionManager | undefined = undefined;
     protected memcachedInstance: MemcachedInstance | undefined | null = undefined;
     private _trRoutingBatchStartResult: TrRoutingBatchStartResult | undefined = undefined;
-    private _originalFitnesses: number[] | undefined = undefined;
+    // For each OD trip of the array, saves 2 numbers: the fitness score for the base scenario, as well as the non-routed fitness score that will be constant for all scenarios.
+    private _originalFitnesses: [number | undefined, number][] | undefined = undefined;
 
     constructor(
         private wrappedJob: ExecutableJob<TJobType>,
@@ -316,7 +317,7 @@ export class TransitNetworkDesignJobWrapper<
         await this.wrappedJob.save();
     }
 
-    private async getBaseScenarioJobId(): Promise<ExecutableJob<BatchRouteJobType>> {
+    private async getBaseScenarioJob(scenarioId: string | undefined): Promise<ExecutableJob<BatchRouteJobType>> {
         // See if a job already exists, if so, load and return it
         await this.job.refresh();
         const batchRoutingJobId = (this.job.attributes.internal_data as any).baseScenarioBatchRoutingJobId;
@@ -331,11 +332,6 @@ export class TransitNetworkDesignJobWrapper<
         }
 
         const parameters = this.wrappedJob.attributes.data.parameters;
-
-        const scenarioToCompare = parameters.transitNetworkDesignParameters.scenarioToCompare;
-        if (scenarioToCompare === undefined) {
-            throw new TrError('A scenario to compare with the current scenario must be selected', 'SIOMSCEN005');
-        }
 
         // For the simulation method, run on 100% of the sample
         const methodOptions = parameters.simulationMethod;
@@ -354,11 +350,12 @@ export class TransitNetworkDesignJobWrapper<
         // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
         const batchParams: BatchCalculationParameters = {
             ...odTripSimulationOptions.transitRoutingAttributes,
-            routingModes: ['transit', 'walking', 'driving'], //We need walking and driving for the fallback calculation
+            // Calculate walking and driving for all, add transit if there's a comparison scenario to use
+            routingModes: scenarioId === undefined ? ['walking', 'driving'] : ['transit', 'walking', 'driving'],
             withAlternatives: false,
             withGeometries: false,
             detailed: false,
-            scenarioId: scenarioToCompare
+            scenarioId: scenarioId
         };
 
         // Fetch memcached information from global job
@@ -437,19 +434,21 @@ export class TransitNetworkDesignJobWrapper<
         return routingJob;
     }
 
-    // Run the simulation on the base scenario, on 100% of the sample, if a scenario is set
+    // Run the simulation on the base scenario, on 100% of the sample, if a
+    // scenario is set. This also runs the walking and driving modes for all od
+    // trips, so there is no need to calculate them at each simulation and it
+    // saves on total calculation time.
+    //
     // FIXME This is only for the OdTripSimulation, it does not belong in this
     // class. When refactoring to main, we should provide a way for simulation
     // methods to do some once-in-a-job task like this and care for their own
     // fougères after (ie the original fitnesses)
     runBaseScenario = async (): Promise<number[] | undefined> => {
         const parameters = this.wrappedJob.attributes.data.parameters;
-        if (parameters.transitNetworkDesignParameters.shouldCompareWithCurrentScenario !== true) {
-            return undefined;
-        }
-
+        const shouldCompareWithScenario = parameters.transitNetworkDesignParameters.shouldCompareWithCurrentScenario;
         const scenarioToCompare = parameters.transitNetworkDesignParameters.scenarioToCompare;
-        if (_isBlank(scenarioToCompare)) {
+
+        if (shouldCompareWithScenario === true && _isBlank(scenarioToCompare)) {
             throw new TrError(
                 'A scenario to compare with the current scenario must be selected',
                 'SIOMSCEN005',
@@ -465,7 +464,7 @@ export class TransitNetworkDesignJobWrapper<
         }
 
         // Child job needs its own progress emitter to avoid conflicts with the parent's
-        const routingJob = await this.getBaseScenarioJobId();
+        const routingJob = await this.getBaseScenarioJob(shouldCompareWithScenario ? scenarioToCompare : undefined);
 
         const childProgressEmitter = new EventEmitter();
 
@@ -505,12 +504,13 @@ export class TransitNetworkDesignJobWrapper<
                 odTripSimulationOptions.evaluationOptions.odTripFitnessFunction
             ),
             // FIXME This is hardcoded in the OdTripSimulation too
-            nonRoutableOdTripFitnessFunction: getNonRoutableOdTripFitnessFunction('taxi')
+            nonRoutableOdTripFitnessFunction: getNonRoutableOdTripFitnessFunction('taxi'),
+            hasTransit: shouldCompareWithScenario === true
         });
         this._originalFitnesses = await batchJobExecutor.handleResults(visitor);
     };
 
-    getOriginalFitness = (index: number): number | undefined => {
+    getOriginalFitness = (index: number): [number | undefined, number] | undefined => {
         if (this._originalFitnesses === undefined) {
             return undefined;
         }

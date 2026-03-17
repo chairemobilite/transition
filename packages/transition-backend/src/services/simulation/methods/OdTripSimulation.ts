@@ -52,13 +52,14 @@ export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSi
 }
 
 // TODO Custom to store the fitnesses of the original OD trips, to be able to compare with the base scenario in a differential fitness way. Maybe should be moved to its own file if it gets more complex
-export class OdTripComparisonFitnessVisitor implements BatchRouteResultVisitor<number[]> {
-    private fitnesses: number[] = [];
+export class OdTripComparisonFitnessVisitor implements BatchRouteResultVisitor<[number | undefined, number][]> {
+    private fitnesses: [number | undefined, number][] = [];
 
     constructor(
         private options: {
             odTripFitnessFunction: OdTripFitnessFunction;
             nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
+            hasTransit: boolean;
         }
     ) {
         // Nothing to do
@@ -66,6 +67,7 @@ export class OdTripComparisonFitnessVisitor implements BatchRouteResultVisitor<n
 
     visitTripResult = async (odTripResult: OdTripRouteResult) => {
         const transitResult = odTripResult.results?.transit;
+        const nonRoutableUserCost = this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {});
         if (transitResult && transitResult.error === undefined) {
             const route = transitResult.paths[0];
 
@@ -76,10 +78,10 @@ export class OdTripComparisonFitnessVisitor implements BatchRouteResultVisitor<n
                 return;
             }
             const userCost = this.options.odTripFitnessFunction(route);
-            this.fitnesses.push(userCost);
+            this.fitnesses.push([userCost, nonRoutableUserCost]);
         } else {
-            const userCost = this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {});
-            this.fitnesses.push(userCost);
+            // Set the original fitness to undefined if the option to compare with transit scenarion is not set, otherwise, use the nonRouteable user cost as original fitness
+            this.fitnesses.push([this.options.hasTransit ? nonRoutableUserCost : undefined, nonRoutableUserCost]);
         }
     };
 
@@ -87,7 +89,7 @@ export class OdTripComparisonFitnessVisitor implements BatchRouteResultVisitor<n
         // Nothing to finalize
     };
 
-    getResult(): number[] {
+    getResult(): [number | undefined, number][] {
         return this.fitnesses;
     }
 }
@@ -116,7 +118,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
             odTripFitnessFunction: OdTripFitnessFunction;
             nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
             expansionFactorField?: string;
-            getOriginalFitness: (index) => number | undefined;
+            getOriginalFitness: (index: number) => [number | undefined, number] | undefined;
         }
     ) {
         // Nothing to do
@@ -150,7 +152,9 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
         const expansionFactor = this.getExpansionFactor(odTripResult);
         // FIXME Better formalize match between original index and demand index
         // Original fitness in base scenario, use 0 if undefined to use only the new fitness
-        const originalFitness = this.options.getOriginalFitness(parseInt(odTripResult.internalId)) || 0;
+        const [originalFitness, nonRoutedFitness] = this.options.getOriginalFitness(
+            parseInt(odTripResult.internalId)
+        ) || [0, 0];
         if (transitResult && transitResult.error === undefined) {
             const route = transitResult.paths[0];
 
@@ -161,7 +165,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
                 return;
             }
             const currentTripFitness = this.options.odTripFitnessFunction(route);
-            const differentialFitness = currentTripFitness - originalFitness;
+            const differentialFitness = currentTripFitness - (originalFitness || 0);
             const userCost = expansionFactor * currentTripFitness;
             this.usersCost += userCost;
             this.differentialUserCost += expansionFactor * differentialFitness;
@@ -181,8 +185,8 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
                 this.countByNumberOfTransfers[route.numberOfTransfers] += expansionFactor;
             }
         } else {
-            const currentTripFitness = this.options.nonRoutableOdTripFitnessFunction(odTripResult.results || {});
-            const differentialFitness = currentTripFitness - originalFitness;
+            const currentTripFitness = nonRoutedFitness;
+            const differentialFitness = currentTripFitness - (originalFitness || 0);
             const userCost = currentTripFitness * expansionFactor;
             this.totalCount += expansionFactor;
             this.nonRoutedCount += expansionFactor;
@@ -327,7 +331,8 @@ export default class OdTripSimulation implements SimulationMethod {
         // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
         const batchParams: BatchCalculationParameters = {
             ...this.options.transitRoutingAttributes,
-            routingModes: ['transit', 'walking', 'driving'], // We need walking and driving for the fallback calculation
+            // Just transit, walking and driving have been calculated at the start of the job
+            routingModes: ['transit'],
             withAlternatives: false,
             withGeometries: false,
             detailed: false,
