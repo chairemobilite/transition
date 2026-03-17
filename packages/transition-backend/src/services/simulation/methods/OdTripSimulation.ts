@@ -41,6 +41,9 @@ const timeCsvColumnHeader = 'time';
 const simulationTimeRangeStartSeconds = 8 * 3600; // 8am
 const simulationTimeRangeEndSeconds = 9 * 3600; // 9am
 
+/** Operating cost per vehicle per hour (e.g. $/h) used for operatingHourlyCost in simulation stats. */
+const OPERATING_COST_PER_VEHICLE_PER_HOUR = 120;
+
 export class OdTripSimulationFactory implements SimulationMethodFactory<OdTripSimulationOptions> {
     getDescriptor = () => new OdTripSimulationDescriptor();
     create = (options: OdTripSimulationOptions, jobWrapper: TransitNetworkDesignJobWrapper) =>
@@ -104,7 +107,7 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
             const route = transitResult.paths[0];
 
             if (route.totalTravelTime === 0) {
-                // TODO should be a error case which would be able by the nonRoutablecase
+                // TODO should be an error case which would be handled by the non-routable case
                 // for now just warn and skip
                 console.warn('odTrip.travelTimeSeconds == 0');
                 return;
@@ -150,8 +153,10 @@ export class OdTripFitnessVisitor implements BatchRouteResultVisitor<SimulationS
 
         // todo: update this for other modes:
         // TODO: Get the actual number of vehicles for this scenario, may not be exactly the same as nbOfVehicles
-        const operatingHourlyCost =
-            ((this.job.attributes.data.parameters.transitRoutingAttributes as any).nbOfVehicles || 1) * 120;
+        // TODO: type the attributes correctly for simulations, because BatchCalculationParameters does not include nbOfVehicles
+        const transitRoutingAttrs = this.job.attributes.data.parameters
+            .transitRoutingAttributes as BatchCalculationParameters & { nbOfVehicles?: number };
+        const operatingHourlyCost = (transitRoutingAttrs.nbOfVehicles || 1) * OPERATING_COST_PER_VEHICLE_PER_HOUR;
 
         return {
             transfersCount: Math.ceil(this.transfersCount),
@@ -265,7 +270,7 @@ export default class OdTripSimulation implements SimulationMethod {
         // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
         const batchParams: BatchCalculationParameters = {
             ...this.options.transitRoutingAttributes,
-            routingModes: ['transit', 'walking', 'driving'], //We need walking and driving for the fallback calculation
+            routingModes: ['transit', 'walking', 'driving'], // We need walking and driving for the fallback calculation
             withAlternatives: false,
             withGeometries: false,
             detailed: false,
@@ -277,7 +282,7 @@ export default class OdTripSimulation implements SimulationMethod {
 
         // Create the batch routing job as a child of the current job
         const routingJob: ExecutableJob<BatchRouteJobType> = await this.jobWrapper.job.createChildJob({
-            name: 'batchRoute', //TODO Is this important, can I rename it do something else ???
+            name: 'batchRoute', // TODO: Should we rename to batchRouteChild or something similar? Rename in TransitionWorkerPool and services.socketRoutes too (it may be used elsewhere too).
             data: {
                 parameters: {
                     demandAttributes: this.getBatchRouteDemandAttributes(),
