@@ -46,10 +46,7 @@ There are 2 ways to use the Transition class constructor.
 ### get_paths :
 This method allows users to fetch all paths which are currently loaded in the Transition application. In case of a successful request, the paths are returned in JSON format.
 
-**Parameters :**&emsp;***url***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The token used for user authentication.
+**Parameters :**&emsp;&emsp;&ensp;void
 
 **Returns :**&emsp;&emsp;&ensp;***result*** : *GeoJSON*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;All paths currently loaded in the Transition application in GeoJSON format
@@ -60,10 +57,7 @@ This method allows users to fetch all paths which are currently loaded in the Tr
 ### get_nodes :
 This method allows users to fetch all nodes which are currently loaded in the Transition application. In case of a successful request, the nodes are returned in JSON format.
 
-**Parameters :**&emsp;***url***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The token used for user authentication.
+**Parameters :**&emsp;&emsp;&ensp;void
 
 **Returns :**&emsp;&emsp;&ensp;***result*** : *GeoJSON*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;All nodes currently loaded in the Transition application in GeoJSON format.
@@ -74,10 +68,7 @@ This method allows users to fetch all nodes which are currently loaded in the Tr
 ### get_scenarios :
 This method allows users to fetch all scenarios which are currently loaded in the Transition application. In case of a successful request, the scenarios are returned in JSON format. The scenarios are needed in order to request calculations for new routes or accessibility maps.
 
-**Parameters :**&emsp;***url***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The token used for user authentication.
+**Parameters :**&emsp;&emsp;&ensp;void
 
 **Returns :**&emsp;&emsp;&ensp;***result*** : *JSON*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;All scenarios currently loaded in the Transition application in JSON format.
@@ -88,10 +79,7 @@ This method allows users to fetch all scenarios which are currently loaded in th
 ### get_routing_modes :
 This method allows users to fetch all routing modes which are currently loaded in the Transition application. In case of a successful request, a list of routing modes is returned. The routing modes are needed in order to request calculations for new routes.
 
-**Parameters :**&emsp;***url***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The token used for user authentication.
+**Parameters :**&emsp;&emsp;&ensp;void
 
 **Returns :**&emsp;&emsp;&ensp;***result*** : *list*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;All routing modes currently loaded in the Transition application.
@@ -125,10 +113,6 @@ This method allows users to send calculation parameters to the Transition server
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Maximum wait time at first transit stop, in minutes.\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***with_geojson***&ensp;:&ensp;*bool*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If True, the returned JSON file will contain the "pathsGeojson" key for each mode containing the GeoJSON geometry.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***url***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The token used for user authentication. 
 
 **Returns :**&emsp;&emsp;&ensp;***result*** : *JSON*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Route for each transit mode in JSON format.
@@ -170,10 +154,6 @@ This method allows users to send accessibility map parameters to the Transition 
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If True, the returned JSON file will contain the "population" key for each polygon feature.\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***calculate_pois***&ensp;:&ensp;*bool*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;If True, the returned JSON file will contain the "accessiblePlacesCountByCategory" and the "accessiblePlacesCountByDetailedCategory" key for each polygon feature, with the count of accessible POIs in each category and detailed category respectively.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***url***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The server URL where the request is sent.\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;***token***&ensp;:&ensp;*string*\
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;The token used for user authentication.
 
 **Returns :**&emsp;&emsp;&ensp;***result*** : *JSON*\
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;Accessibility map information in JSON format.
