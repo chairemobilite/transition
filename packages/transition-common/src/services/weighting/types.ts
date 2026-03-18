@@ -15,7 +15,13 @@ export const DECAY_TYPE_VALUES = ['power', 'exponential', 'gamma', 'combined', '
 /**
  * Type of decay function to use (shared for config and calculation).
  */
-export type DecayFunctionType = 'power' | 'exponential' | 'gamma' | 'combined' | 'logistic';
+export type DecayFunctionType = (typeof DECAY_TYPE_VALUES)[number];
+
+/**
+ * Decay types that use a single `beta` parameter (power, exponential, logistic).
+ * Gamma uses a,b,c; combined uses beta1,beta2.
+ */
+export const DECAY_TYPES_WITH_BETA: DecayFunctionType[] = ['power', 'exponential', 'logistic'];
 
 /**
  * Type of input value (distance or time) for decay function calculations

@@ -44,6 +44,13 @@ exports[`GenericCsvImportAndMappingForm rendering With current file and mapping 
         type="file"
       />
     </div>
+    <p
+      style="margin-top: 0.25rem; margin-bottom: 0.5rem; font-size: 0.9em; color: var(--color-secondary);"
+    >
+      transit:networkDesign.nodeWeighting.ExistingFile
+      : 
+      test.csv
+    </p>
     <div
       class="apptr__form-input-container _two-columns _small-inputs"
     >
@@ -138,6 +145,13 @@ exports[`GenericCsvImportAndMappingForm rendering With latLon mapping descriptor
         type="file"
       />
     </div>
+    <p
+      style="margin-top: 0.25rem; margin-bottom: 0.5rem; font-size: 0.9em; color: var(--color-secondary);"
+    >
+      transit:networkDesign.nodeWeighting.ExistingFile
+      : 
+      test.csv
+    </p>
     <div
       class="apptr__form-input-container _two-columns _small-inputs"
     >
@@ -262,6 +276,13 @@ exports[`GenericCsvImportAndMappingForm rendering With time mapping descriptor 1
         type="file"
       />
     </div>
+    <p
+      style="margin-top: 0.25rem; margin-bottom: 0.5rem; font-size: 0.9em; color: var(--color-secondary);"
+    >
+      transit:networkDesign.nodeWeighting.ExistingFile
+      : 
+      test.csv
+    </p>
     <div
       class="apptr__form-input-container _two-columns _small-inputs"
     >

@@ -22,14 +22,16 @@ import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
 import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { TransitNetworkDesignJobType } from './types';
+import { NODE_WEIGHTS_OUTPUT_FILENAME } from './evolutionary/types';
+import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
 import { LineServices } from '../../evolutionaryAlgorithm/internalTypes';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { MemcachedInstance } from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 import { TrRoutingBatchManager, TrRoutingBatchStartResult } from '../../transitRouting/TrRoutingBatchManager';
 import { FakeTrRoutingBatchManager } from '../../transitRouting/FakeTrRoutingBatchManager';
 import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { OdTripSimulationOptions } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
 import { BatchRouteJobType } from '../../transitRouting/BatchRoutingJob';
@@ -167,27 +169,126 @@ export class TransitNetworkDesignJobWrapper<
             throw new Error('Fake trRoutingBatchManager not set yet');
         }
     }
-    loadServerData = async (socket: EventEmitter): Promise<void> => {
+
+    loadServerData = async (socket: EventEmitter, onProgress?: (messageKey: string) => void): Promise<void> => {
         const collectionManager = new CollectionManager(undefined);
         const lines = new LineCollection([], {});
         const agencies = new AgencyCollection([], {});
         const services = new ServiceCollection([], {});
         const paths = new PathCollection([], {});
         const nodes = new NodeCollection([], {});
+        onProgress?.('LoadingPaths');
         await paths.loadFromServer(socket);
         collectionManager.add('paths', paths);
+        onProgress?.('LoadingNodes');
         await nodes.loadFromServer(socket);
         collectionManager.add('nodes', nodes);
+        onProgress?.('ApplyingNodeWeights');
+        await this.applyNodeWeightsIfPresent(nodes);
+        onProgress?.('LoadingLines');
         await lines.loadFromServer(socket, collectionManager);
         collectionManager.add('lines', lines);
+        onProgress?.('LoadingAgencies');
         await agencies.loadFromServer(socket, collectionManager);
         collectionManager.add('agencies', agencies);
+        onProgress?.('LoadingServices');
         await services.loadFromServer(socket, collectionManager);
         collectionManager.add('services', services);
         this._lineCollection = lines;
         this._agencyCollection = agencies;
         this._serviceCollection = services;
         this._collectionManager = collectionManager;
+    };
+
+    /**
+     * If node_weights.csv exists in the job directory, parse it and set
+     * properties.data.weight on each matching node in the collection.
+     * When node weighting is enabled but the file is missing, throws so the job fails with a clear error.
+     */
+    private applyNodeWeightsIfPresent = async (nodes: NodeCollection): Promise<void> => {
+        const nodeWeightsPath = path.join(this.wrappedJob.getJobFileDirectory(), NODE_WEIGHTS_OUTPUT_FILENAME);
+        const params = this.parameters as {
+            simulationMethod?: { type?: string; config?: { nodeWeighting?: { weightingEnabled?: boolean } } };
+        };
+        const nodeWeightingEnabled =
+            params.simulationMethod?.type === 'OdTripSimulation' &&
+            params.simulationMethod?.config?.nodeWeighting?.weightingEnabled === true;
+        if (nodeWeightingEnabled && !fs.existsSync(nodeWeightsPath)) {
+            throw new TrError(
+                'Node weighting was enabled but node_weights.csv is missing. Run "Start weighting" from the network design form before running the job.',
+                'TNDJOB001',
+                'transit:networkDesign.errors.NodeWeightingEnabledButFileMissing'
+            );
+        }
+        if (!fs.existsSync(nodeWeightsPath)) {
+            return;
+        }
+        const readStream = fs.createReadStream(nodeWeightsPath);
+        const streamErrorPromise = new Promise<never>((_, reject) => {
+            readStream.once('error', reject);
+        });
+        const nodeWeightsTrError = (): TrError =>
+            new TrError(
+                'Node weights file is missing or could not be read. Run "Start weighting" from the network design form before running the job.',
+                'TNDJOB001',
+                'transit:networkDesign.errors.NodeWeightingEnabledButFileMissing'
+            );
+        try {
+            await Promise.race([
+                parseCsvFile(
+                    readStream,
+                    (row: Record<string, string>) => {
+                        const nodeUuid = row.node_uuid;
+                        const weightStr = row.weight;
+                        if (
+                            nodeUuid === undefined ||
+                            nodeUuid === null ||
+                            weightStr === undefined ||
+                            weightStr === null
+                        ) {
+                            console.warn('Skipping node_weights row: missing node_uuid or weight', {
+                                rawRow: row,
+                                node_uuid: nodeUuid,
+                                weight: weightStr
+                            });
+                            return;
+                        }
+                        const weight = parseFloat(weightStr);
+                        if (!Number.isFinite(weight) || weight <= 0) {
+                            console.warn('Skipping node_weights row: non-finite weight or weight <= 0', {
+                                rawRow: row,
+                                node_uuid: nodeUuid,
+                                weightStr,
+                                parsedWeight: weight
+                            });
+                            return;
+                        }
+                        const feature = nodes.getById(nodeUuid);
+                        if (!feature) {
+                            console.error(
+                                `Node weight from CSV ignored: node not found (nodeUuid=${nodeUuid}, weight=${weight})`
+                            );
+                            return;
+                        }
+                        if (feature.properties) {
+                            feature.properties.data = {
+                                ...(feature.properties.data || {}),
+                                weight
+                            };
+                        }
+                        const withAttrs = feature as { attributes?: { data?: Record<string, unknown> } };
+                        if (withAttrs.attributes?.data !== undefined) {
+                            withAttrs.attributes.data = { ...(withAttrs.attributes.data || {}), weight };
+                        }
+                    },
+                    { header: true }
+                ),
+                streamErrorPromise
+            ]);
+        } catch (error) {
+            console.error('Error reading node weights file:', error);
+            throw nodeWeightsTrError();
+        }
     };
 
     /**
@@ -267,21 +368,30 @@ export class TransitNetworkDesignJobWrapper<
         // directory Add a symbolic link such that mainCacheDirectory + all
         // directory hierarchy points to the job cache directory
         try {
-            // Create the full path structure inside mainCacheDirectory
             const symlinkPath = path.join(mainCacheDirectory, absoluteCacheDirectory);
 
-            // Ensure the parent directory exists
             const symlinkParentDir = path.dirname(symlinkPath);
             if (!fs.existsSync(symlinkParentDir)) {
                 fs.mkdirSync(symlinkParentDir, { recursive: true });
             }
 
-            // Remove existing symlink if it exists
-            if (fs.existsSync(symlinkPath)) {
+            // Use lstatSync to detect existing entries (including dangling
+            // symlinks), since existsSync follows symlinks and returns false
+            // for dangling ones, leaving them in place.
+            try {
+                fs.lstatSync(symlinkPath);
                 fs.unlinkSync(symlinkPath);
+            } catch (error: unknown) {
+                if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+                    console.warn('Unexpected error removing existing symlink:', error);
+                }
             }
 
-            // Create symbolic link pointing to the job cache directory
+            // Ensure the symlink target directory exists
+            if (!fs.existsSync(absoluteCacheDirectory)) {
+                fs.mkdirSync(absoluteCacheDirectory, { recursive: true });
+            }
+
             fs.symlinkSync(absoluteCacheDirectory, symlinkPath, 'dir');
 
             console.log(`Created symbolic link: ${symlinkPath} -> ${absoluteCacheDirectory}`);

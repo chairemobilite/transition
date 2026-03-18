@@ -267,9 +267,13 @@ export class CsvFileAndFieldMapper<
 > extends CsvFieldMapper<T> {
     private _csvFile?: FileConfig;
 
+    /**
+     * @param csvFileAndMapping Optional; when omitted or incomplete (e.g. empty object from a form
+     * with "no file yet"), fileAndMapping may be undefined—use optional chaining to avoid throwing.
+     */
     constructor(mappingDescriptors: CsvFieldMappingDescriptor[], csvFileAndMapping?: CsvFileAndMapping<T> | undefined) {
-        super(mappingDescriptors, csvFileAndMapping?.csvFields, csvFileAndMapping?.fileAndMapping.fieldMappings);
-        if (csvFileAndMapping) {
+        super(mappingDescriptors, csvFileAndMapping?.csvFields, csvFileAndMapping?.fileAndMapping?.fieldMappings);
+        if (csvFileAndMapping?.fileAndMapping?.csvFile) {
             this._csvFile = csvFileAndMapping.fileAndMapping.csvFile;
         }
     }
@@ -334,6 +338,25 @@ export class CsvFileAndFieldMapper<
     }
 
     /**
+     * Get the current CSV file and mapping for form state persistence. Returns
+     * whenever a file is set, even if mapping is incomplete, so the form can
+     * re-render with file + csvFields and show the mapping UI.
+     */
+    getFileAndMappingForFormState(): CsvFileAndMapping<T> | undefined {
+        if (!this._csvFile) {
+            return undefined;
+        }
+        return {
+            type: 'csv',
+            fileAndMapping: {
+                csvFile: _cloneDeep(this._csvFile),
+                fieldMappings: this.getPartialFieldMappings() as T
+            },
+            csvFields: this.getCsvFields()
+        };
+    }
+
+    /**
      * Get the current CSV file and mapping. This function will only return a
      * value when called on valid objects. During the process of filling the
      * mapping, this function may return undefined.
@@ -344,14 +367,7 @@ export class CsvFileAndFieldMapper<
         if (!this._csvFile || this.isValid() === false) {
             return undefined;
         }
-        return {
-            type: 'csv',
-            fileAndMapping: {
-                csvFile: _cloneDeep(this._csvFile),
-                fieldMappings: this.getFieldMappings()
-            },
-            csvFields: this.getCsvFields()
-        };
+        return this.getFileAndMappingForFormState();
     }
 
     /**

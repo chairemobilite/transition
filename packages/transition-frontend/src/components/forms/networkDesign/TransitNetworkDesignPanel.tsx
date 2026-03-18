@@ -9,13 +9,14 @@ import React from 'react';
 import TransitNetworkDesignList from './TransitNetworkDesignList';
 import TransitNetworkDesignForm from './TransitNetworkDesignForm';
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
+import { FormInitialValues } from './types';
 
 const TransitNetworkDesignPanel: React.FunctionComponent = () => {
     const [isNewJob, setIsNewJob] = React.useState(false);
-    const [initialValues, setInitialValues] = React.useState<TransitNetworkJobConfigurationType | undefined>(undefined);
+    const [initialValues, setInitialValues] = React.useState<FormInitialValues | undefined>(undefined);
 
-    const onNewJob = (parameters?: TransitNetworkJobConfigurationType) => {
-        setInitialValues(parameters);
+    const onNewJob = (parameters?: FormInitialValues | TransitNetworkJobConfigurationType, jobId?: number) => {
+        setInitialValues(parameters ? { ...parameters, jobId } : undefined);
         setIsNewJob(true);
     };
 
@@ -31,6 +32,7 @@ const TransitNetworkDesignPanel: React.FunctionComponent = () => {
                 <TransitNetworkDesignForm
                     initialValues={initialValues}
                     onJobConfigurationCompleted={onJobConfigurationCompleted}
+                    onConfigSaved={(jobId, parameters) => setInitialValues({ ...parameters, jobId })}
                 />
             )}
         </div>

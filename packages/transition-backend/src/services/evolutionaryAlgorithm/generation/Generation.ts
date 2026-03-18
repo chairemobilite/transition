@@ -114,7 +114,6 @@ abstract class Generation {
         );
         this.jobWrapper.setTrRoutingBatchStartResult(startResults);
 
-        const candidatesCount = this.getSize();
         const validCandidates = this.getCandidates().filter((candidate) => candidate.getScenario() !== undefined);
         if (validCandidates.length < this.jobWrapper.parameters.algorithmConfiguration.config.populationSizeMin) {
             throw new TrError(
@@ -126,19 +125,32 @@ abstract class Generation {
                 }
             );
         }
-        // Run the simulation for each candidate
-        // Create p-queue with concurrency of 1
+        const { isCancelled } = this.jobWrapper.privexecutorOptions;
+        const totalCandidates = validCandidates.length;
+
         const promiseQueue = new pQueue({ concurrency: 1 });
 
-        for (let i = 0; i < candidatesCount; i++) {
-            // Ignore undefined scenarios
-            if (validCandidates[i].getScenario() !== undefined) {
-                promiseQueue.add(async () => validCandidates[i].simulate());
-            }
+        for (let i = 0; i < totalCandidates; i++) {
+            const candidate = validCandidates[i];
+            const candidateIndex = i + 1;
+            promiseQueue.add(async () => {
+                if (isCancelled()) {
+                    promiseQueue.clear();
+                    return;
+                }
+                console.log(`  simulating candidate ${candidateIndex} / ${totalCandidates}`);
+                await candidate.simulate();
+                console.log(`  done candidate ${candidateIndex} / ${totalCandidates}`);
+            });
         }
 
         await promiseQueue.onIdle();
-        console.log('done with promises');
+
+        if (isCancelled()) {
+            console.log(`Generation ${this.generationNumber} interrupted by pause/cancel.`);
+            return false;
+        }
+
         this.sortCandidates();
         await realBatchManager.stopBatch();
         console.timeEnd(` generation ${this.generationNumber}: simulated candidates`);
