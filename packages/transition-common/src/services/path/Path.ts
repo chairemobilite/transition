@@ -55,6 +55,16 @@ import type { TimeAndDistance } from './PathTypes';
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
 
+export type PeriodSegmentData = {
+    segments: TimeAndDistance[];
+    dwellTimeSeconds: number[];
+    travelTimeWithoutDwellTimesSeconds: number;
+    operatingTimeWithoutLayoverTimeSeconds: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond: number;
+    operatingSpeedMetersPerSecond: number;
+    tripCount: number;
+};
+
 export interface PathAttributesData {
     defaultLayoverRatioOverTotalTravelTime?: number;
     defaultMinLayoverTimeSeconds?: number;
@@ -84,6 +94,7 @@ export interface PathAttributesData {
     gtfs?: {
         shape_id: string;
     };
+    segmentsByPeriod?: { [periodShortname: string]: PeriodSegmentData };
     increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
     // FIXME: Consider putting all those calculated path data in a single object where each is not optional
     operatingTimeWithoutLayoverTimeSeconds?: number;
@@ -816,6 +827,48 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return features;
     }
 
+    /**
+     * Get per-period segment data for the given period shortname.
+     * Falls back to synthesizing from global segments/dwellTimeSeconds if
+     * no per-period data is available.
+     *
+     * @param periodShortname - The period shortname to look up
+     * @returns The period segment data, or undefined if no data is available at all
+     */
+    getSegmentsForPeriod(periodShortname: string): PeriodSegmentData | undefined {
+        const periodData = this.attributes.data.segmentsByPeriod?.[periodShortname];
+        if (periodData) {
+            return periodData;
+        }
+
+        // Fall back to global segments
+        const segments = this.attributes.data.segments;
+        const dwellTimeSeconds = this.attributes.data.dwellTimeSeconds;
+        if (!segments || !dwellTimeSeconds) {
+            return undefined;
+        }
+
+        const totalDistanceMeters = this.attributes.data.totalDistanceMeters ?? 0;
+        const travelTimeWithoutDwellTimesSeconds = this.attributes.data.travelTimeWithoutDwellTimesSeconds ?? 0;
+        const operatingTimeWithoutLayoverTimeSeconds = this.attributes.data.operatingTimeWithoutLayoverTimeSeconds ?? 0;
+
+        return {
+            segments,
+            dwellTimeSeconds,
+            travelTimeWithoutDwellTimesSeconds,
+            operatingTimeWithoutLayoverTimeSeconds,
+            averageSpeedWithoutDwellTimesMetersPerSecond:
+                travelTimeWithoutDwellTimesSeconds > 0
+                    ? Math.round((totalDistanceMeters / travelTimeWithoutDwellTimesSeconds) * 100) / 100
+                    : 0,
+            operatingSpeedMetersPerSecond:
+                operatingTimeWithoutLayoverTimeSeconds > 0
+                    ? Math.round((totalDistanceMeters / operatingTimeWithoutLayoverTimeSeconds) * 100) / 100
+                    : 0,
+            tripCount: 0
+        };
+    }
+
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
@@ -828,6 +881,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
+            segmentsByPeriod: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now
