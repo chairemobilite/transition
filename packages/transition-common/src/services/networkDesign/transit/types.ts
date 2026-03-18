@@ -12,4 +12,6 @@ export type TransitNetworkJobConfigurationType = {
     transitNetworkDesignParameters: TransitNetworkDesignParameters;
     algorithmConfiguration: AlgorithmConfiguration;
     simulationMethod: SimulationMethodConfiguration;
+    /** Optional user-facing name for the job (shown in the job list). */
+    description?: string;
 };

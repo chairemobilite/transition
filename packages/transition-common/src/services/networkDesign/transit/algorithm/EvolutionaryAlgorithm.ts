@@ -100,7 +100,6 @@ export class EvolutionaryAlgorithmDescriptor implements SimulationAlgorithmDescr
         },
         numberOfGenerations: {
             i18nName: 'transit:networkDesign.evolutionaryAlgorithm.NumberOfGenerations',
-            i18nHelp: 'transit:networkDesign.evolutionaryAlgorithm.help.NumberOfGenerations',
             type: 'number' as const,
             validate: (value: number) => value >= 0,
             default: 100

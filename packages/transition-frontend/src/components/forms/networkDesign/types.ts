@@ -32,4 +32,10 @@ export type FormInitialValues = {
     transitNetworkDesignParameters: Partial<TransitNetworkDesignParameters>;
     algorithmConfiguration: PartialAlgorithmConfiguration;
     simulationMethod: PartialSimulationMethodConfiguration;
+    /** When set (e.g. when replaying a job), enables "Start weighting" for that job */
+    jobId?: number;
+    /** When set (e.g. when replaying a job), existing filenames in the job for display next to file inputs */
+    existingFileNames?: Record<string, string>;
+    /** Optional user-facing name for the job (shown in the job list) */
+    description?: string;
 };

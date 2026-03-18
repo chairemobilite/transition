@@ -10,6 +10,7 @@ import { EventEmitter } from 'events';
 
 import { TrRoutingBatchManager } from './TrRoutingBatchManager';
 import routeOdTrip from './TrRoutingOdTrip';
+import { OdTripRouteResult } from './types';
 import { parseOdTripsFromCsvStream } from '../odTrip/odTripProvider';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
@@ -21,7 +22,6 @@ import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
-import { OdTripRouteResult } from './types';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -86,6 +86,8 @@ export class TrRoutingBatchExecutor {
     private errors: TranslatableMessage[] = [];
     private batchManager: TrRoutingBatchManager;
     private resultBuffer: Array<{ jobId: number; tripIndex: number; data: OdTripRouteResult }> = [];
+    private successCount = 0;
+    private errorCounts: Record<string, number> = {};
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
@@ -138,13 +140,14 @@ export class TrRoutingBatchExecutor {
             const benchmarkStart = performance.now();
             let lastLogTime = performance.now();
             let lastLogCount = startIndex;
+            const logInterval = Math.max(progressStep, 1000);
             const logOdTripBefore = (index: number) => {
-                if ((index + 1) % progressStep === 0) {
+                if ((index + 1) % logInterval === 0) {
                     console.log(`Routing odTrip ${index + 1}/${odTripsCount}`);
                 }
             };
             const logOdTripAfter = (index: number) => {
-                if (benchmarkStart >= 0 && index > 0 && index % 100 === 0) {
+                if (benchmarkStart >= 0 && index > 0 && (index + 1) % logInterval === 0) {
                     // Log the calculation speed every 100 calculations. Divide the number of completed calculation (substract startIndex if the task was resumed) by the time taken in seconds. Round to 2 decimals
                     // TODO: Check if we could do all this magic with some function in the performance class
                     const now = performance.now(); // Save now() to not have to call multiple time
@@ -154,7 +157,6 @@ export class TrRoutingBatchExecutor {
                         100;
                     lastLogTime = now;
                     lastLogCount = completedRoutingsCount;
-
                     // Calculate rate since the beginning
                     const globalRate =
                         Math.round((100 * (completedRoutingsCount - startIndex)) / ((now - benchmarkStart) / 1000)) /
@@ -212,6 +214,7 @@ export class TrRoutingBatchExecutor {
                 await resultsDbQueries.createMany(remaining);
             }
             console.log('Batch odTrip routing completed for job %d', this.job.id);
+            this.logRoutingSummary();
             await checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
@@ -278,6 +281,35 @@ export class TrRoutingBatchExecutor {
         }
     };
 
+    private trackRoutingResult(result: OdTripRouteResult): void {
+        const transitResult = result.results?.transit;
+        if (transitResult !== undefined && transitResult.error === undefined && transitResult.paths.length > 0) {
+            this.successCount++;
+        } else {
+            const topLevelCode =
+                typeof result.error === 'object' ? (result.error as { errorCode?: string }).errorCode : undefined;
+            const errorCode = transitResult?.error?.errorCode || topLevelCode || 'UNKNOWN_ERROR';
+            this.errorCounts[errorCode] = (this.errorCounts[errorCode] || 0) + 1;
+        }
+    }
+
+    private logRoutingSummary(): void {
+        const totalErrors = Object.values(this.errorCounts).reduce((sum, count) => sum + count, 0);
+        const total = this.successCount + totalErrors;
+        console.log(`\n=== Batch routing summary for job ${this.job.id} ===`);
+        console.log(`  Total trips: ${total}`);
+        console.log(`  Successful:  ${this.successCount}`);
+        console.log(`  Failed:      ${totalErrors}`);
+        if (totalErrors > 0) {
+            console.log('  Failures by error code:');
+            const sortedErrors = Object.entries(this.errorCounts).sort(([, a], [, b]) => b - a);
+            for (const [code, count] of sortedErrors) {
+                console.log(`    ${code}: ${count}`);
+            }
+        }
+        console.log('===\n');
+    }
+
     private getOdTrips = async (): Promise<{
         odTrips: BaseOdTrip[];
         errors: TranslatableMessage[];
@@ -328,7 +360,7 @@ export class TrRoutingBatchExecutor {
                     }
                 });
             }
-
+            this.trackRoutingResult(routingResult);
             // No await — push to buffer, let the checkpoint listener flush in bulk
             this.resultBuffer.push({
                 jobId: this.job.id,

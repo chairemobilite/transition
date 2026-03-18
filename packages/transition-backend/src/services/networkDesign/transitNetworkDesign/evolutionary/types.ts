@@ -12,6 +12,12 @@ import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/types';
 import { CandidateChromosome, LineLevelOfService } from '../../../evolutionaryAlgorithm/internalTypes';
 
+/**
+ * Fixed filename for the node weights output file (written by "Start weighting", read when job runs).
+ * Input file names (transitDemand, nodeWeight) are not fixed—they come from the upload or source job's resources.
+ */
+export const NODE_WEIGHTS_OUTPUT_FILENAME = 'node_weights.csv';
+
 export type EvolutionaryTransitNetworkDesignJobParameters = {
     transitNetworkDesignParameters: TransitNetworkDesignParameters;
     algorithmConfiguration: AlgorithmConfigurationByType<'evolutionaryAlgorithm'>;
@@ -23,12 +29,21 @@ export type EvolutionaryTransitNetworkDesignJobType = {
     name: 'evolutionaryTransitNetworkDesign';
     data: {
         parameters: EvolutionaryTransitNetworkDesignJobParameters;
+        /** Optional user-facing name for the job (shown in the job list). */
+        description?: string;
         results?: {
             generations: ResultSerialization[];
             scenarioIds: string[];
         };
     };
-    files: { transitDemand: true; nodeWeight: true; linesResult: true; simulationResults: true };
+    files: {
+        transitDemand: true;
+        nodeWeight: true;
+        /** Output of "Start weighting"; copied when cloning from another job. */
+        nodeWeightsOutput: true;
+        linesResult: true;
+        simulationResults: true;
+    };
     internal_data: {
         populationSize?: number;
         dataPrepared?: boolean;

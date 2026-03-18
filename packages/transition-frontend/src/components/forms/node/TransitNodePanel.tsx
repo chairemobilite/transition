@@ -6,6 +6,7 @@
  */
 import React from 'react';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import Collapsible from 'react-collapsible';
 import MathJax from 'react-mathjax';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
@@ -19,6 +20,7 @@ import DocumentationTooltip from '../../parts/DocumentationTooltip';
 import TransitNodeEdit from './TransitNodeEdit';
 import TransitNodeCollectionEdit from './TransitNodeCollectionEdit';
 import NodesImportForm from './TransitNodeImportForm';
+import NodeWeightingSection from './NodeWeightingSection';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import Node from 'transition-common/lib/services/nodes/Node';
 import { deleteUnusedNodes } from '../../../services/transitNodes/transitNodesUtils';
@@ -239,12 +241,11 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
                         iconClass="_icon"
                         label={props.t('transit:transitNode:SaveAllAndUpdateTransferableNodes')}
                         onClick={() => {
-                            // notifications are handled inside saveAndUpdateAll function:
                             serviceLocator.socketEventManager.emit('transitNodes.updateTransferableNodes', () => {
                                 serviceLocator.eventManager.emit('progress', {
                                     name: 'UpdatingTransferableNodes',
                                     progress: 1.0
-                                }); // we need to repeat the notification since it can fail to reach 100%.
+                                });
                             });
                         }}
                     />
@@ -269,11 +270,17 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
             )}
 
             {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
-                <CollectionSaveToCacheButtons collection={state.nodeCollection} labelPrefix={'transit:transitNode'} />
+                <NodeWeightingSection />
             )}
-
-            {state.selectedNodes.length === 0 && !state.selectedNode && !importerSelected && (
-                <CollectionDownloadButtons collection={state.nodeCollection} />
+            <div></div>
+            {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
+                <Collapsible trigger={props.t('form:importExport')} transitionTime={100}>
+                    <CollectionSaveToCacheButtons
+                        collection={state.nodeCollection}
+                        labelPrefix={'transit:transitNode'}
+                    />
+                    <CollectionDownloadButtons collection={state.nodeCollection} />
+                </Collapsible>
             )}
 
             {confirmDeleteModalIsOpened && (
@@ -329,4 +336,4 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
     );
 };
 
-export default withTranslation(['transit', 'main', 'notifications'])(NodePanel);
+export default withTranslation(['transit', 'main', 'notifications', 'form'])(NodePanel);

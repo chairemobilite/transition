@@ -630,8 +630,10 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         return this.isValid;
     }
 
-    // used in simulations to calculate initial needed number of vehicles
-    //   can be used only with lines with two paths (one outbound, one inbound) or one path (loop)
+    /**
+     * Used in network design to attribute vehicles: (total node weight on path) × (cycle time).
+     * Lines with higher weight × cycle time get more vehicles. Only for one path (loop) or two paths (outbound + inbound).
+     */
     getTotalWeightXTravelTimeSeconds() {
         if (this._paths.length === 1) {
             const outboundPath = this._paths[0];
@@ -656,6 +658,82 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                 if (firstPathWeight && secondPathWeight && cycleTimeSeconds) {
                     return (firstPathWeight + secondPathWeight) * cycleTimeSeconds;
                 }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Total node weight along the line (sum over path nodes). Only for simple case: one path (loop)
+     * or two paths (outbound + inbound). Returns null otherwise. Used in network design to show
+     * line weights before simulation.
+     */
+    getTotalNodeWeight(): number | null {
+        if (this._paths.length === 1) {
+            const w = this._paths[0].getTotalWeight();
+            return typeof w === 'number' && Number.isFinite(w) ? w : null;
+        }
+        if (this._paths.length === 2) {
+            const [a, b] = this._paths;
+            const outIn =
+                (a.get('direction') === 'outbound' && b.get('direction') === 'inbound') ||
+                (a.get('direction') === 'inbound' && b.get('direction') === 'outbound');
+            if (outIn) {
+                const w1 = a.getTotalWeight();
+                const w2 = b.getTotalWeight();
+                if (typeof w1 === 'number' && Number.isFinite(w1) && typeof w2 === 'number' && Number.isFinite(w2)) {
+                    return w1 + w2;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Total length in meters (sum of path distances). Only for simple case: one path (loop)
+     * or two paths (outbound + inbound). Returns null otherwise.
+     */
+    getTotalLengthMeters(): number | null {
+        if (this._paths.length === 1) {
+            const d = this._paths[0].attributes.data.totalDistanceMeters;
+            return typeof d === 'number' && Number.isFinite(d) ? d : null;
+        }
+        if (this._paths.length === 2) {
+            const [a, b] = this._paths;
+            const outIn =
+                (a.get('direction') === 'outbound' && b.get('direction') === 'inbound') ||
+                (a.get('direction') === 'inbound' && b.get('direction') === 'outbound');
+            if (outIn) {
+                const d1 = a.attributes.data.totalDistanceMeters;
+                const d2 = b.attributes.data.totalDistanceMeters;
+                if (typeof d1 === 'number' && Number.isFinite(d1) && typeof d2 === 'number' && Number.isFinite(d2)) {
+                    return d1 + d2;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Total cycle time in seconds. Only for simple case: one path (loop) or two paths (outbound + inbound).
+     * Single path: totalTravelTimeWithReturnBackSeconds; two paths: sum of operatingTimeWithoutLayoverTimeSeconds.
+     * Returns null otherwise.
+     */
+    getCycleTimeSeconds(): number | null {
+        if (this._paths.length === 1) {
+            const c = this._paths[0].attributes.data.totalTravelTimeWithReturnBackSeconds;
+            return typeof c === 'number' && Number.isFinite(c) ? c : null;
+        }
+        if (this._paths.length === 2) {
+            const [a, b] = this._paths;
+            const outIn =
+                (a.get('direction') === 'outbound' && b.get('direction') === 'inbound') ||
+                (a.get('direction') === 'inbound' && b.get('direction') === 'outbound');
+            if (outIn) {
+                const c1 = a.attributes.data.operatingTimeWithoutLayoverTimeSeconds ?? 0;
+                const c2 = b.attributes.data.operatingTimeWithoutLayoverTimeSeconds ?? 0;
+                const total = c1 + c2;
+                return Number.isFinite(total) ? total : null;
             }
         }
         return null;
