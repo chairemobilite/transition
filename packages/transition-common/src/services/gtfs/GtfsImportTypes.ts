@@ -8,6 +8,7 @@
 import type * as GtfsTypes from 'gtfs-types';
 
 import { ServiceAttributes } from '../service/Service';
+import { PeriodsGroup } from '../periods/Period';
 
 export interface GtfsAgency extends GtfsTypes.Agency {
     // Make the agency ID required for the Gtfs import
@@ -97,7 +98,7 @@ export interface GtfsImportData {
     services: ServiceImportData[];
     stopAggregationWalkingRadiusSeconds?: number;
     periodsGroupShortname?: string;
-    periodsGroup?: any;
+    periodsGroup?: PeriodsGroup;
     agencies_color?: string;
     nodes_color?: string;
     mergeSameDaysServices?: boolean;

@@ -6,6 +6,7 @@
  */
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
+import { PeriodsGroup } from 'transition-common/lib/services/periods/Period';
 
 /*
  * This file contains types used by the GTFS import, but that are required only
@@ -34,14 +35,6 @@ export interface FrequencyImportData {
     [key: string]: Frequencies[];
 }
 
-// TODO The GTFS import periods are from the preferences? This type should then be somewhere else?
-export interface Period {
-    endAtHour: number;
-    name: { [key: string]: string };
-    shortname: string;
-    startAtHour: number;
-}
-
 export interface GtfsInternalData {
     agencyIdsByAgencyGtfsId: { [key: string]: string };
     lineIdsByRouteGtfsId: { [key: string]: string };
@@ -67,7 +60,7 @@ export interface GtfsInternalData {
     frequenciesByTripId: FrequencyImportData;
     pathIdsByTripId: { [key: string]: string };
     periodsGroupShortname: string;
-    periodsGroup: { name: { [key: string]: string }; periods: Period[] };
+    periodsGroup: PeriodsGroup;
     /**
      * Array of agency IDs for which lines and services that already exist
      * should not be updated. Otherwise, existing objects will be updated
