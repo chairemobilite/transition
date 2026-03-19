@@ -26,21 +26,19 @@ type PathTimeTotals = {
     totalTravelTimeWithReturnBackSeconds: number;
 };
 
-type CurrentSegmentData = {
+type SegmentData = {
     segmentsData: TimeAndDistance[];
-    noDwellTimeDurationsSeconds: number[];
     dwellTimeDurationsSeconds: number[];
-    ratioDifferenceTime: number;
 };
 
-type PreviousSegmentData = {
-    oldSegmentsData: TimeAndDistance[];
-    oldDwellTimesData: number[];
+type ComputedSegmentData = SegmentData & {
+    constantSpeedDurationsSeconds: number[];
+    ratioDifferenceTime: number;
 };
 
 type SegmentChangeInfo = {
     lastNodeChange?: TypeNodeChange;
-    changedSegmentIndex?: number;
+    lastWaypointChangedSegmentIndex?: number;
 };
 
 type StopTimes = {
@@ -49,13 +47,29 @@ type StopTimes = {
 };
 
 type SegmentDuration = {
-    calculatedDurationSeconds: number;
-    noDwellTimeDurationSeconds: number;
+    withStopDurationSeconds: number;
+    constantSpeedDurationSeconds: number;
 };
 
 type RoutingResult = {
     points: Geojson.Feature<Geojson.Point>[];
     legs: (MapLeg | null)[];
+};
+
+type FinalizeSegmentParams = {
+    path: Path;
+    segmentIndex: number;
+    segmentTimeAndDistance: TimeAndDistance;
+    nodeId: string | undefined;
+    previous: SegmentData;
+    changesInfo: SegmentChangeInfo;
+};
+
+type FinalizeSegmentResult = {
+    duration: SegmentDuration;
+    dwellTimeSeconds: number;
+    previousToCalculatedTimeRatio: number;
+    hasRatio: boolean;
 };
 
 /**
@@ -131,12 +145,12 @@ const calculateSegmentDuration = (
             ? segmentDistanceMeters / routedDurationSeconds
             : kphToMps(defaultRunningSpeedKmH);
 
-    const noDwellTimeDurationSeconds =
+    const constantSpeedDurationSeconds =
         routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH)
             ? routedDurationSeconds
             : segmentDistanceMeters / runningSpeedMps;
 
-    const calculatedSegmentDurationSeconds = Math.ceil(
+    const withStopDurationSeconds = Math.ceil(
         durationFromAccelerationDecelerationDistanceAndRunningSpeed(
             acceleration,
             deceleration,
@@ -144,9 +158,8 @@ const calculateSegmentDuration = (
             runningSpeedMps
         )
     );
-    const calculatedDurationSeconds = calculatedSegmentDurationSeconds !== null ? calculatedSegmentDurationSeconds : -1;
 
-    if (calculatedDurationSeconds <= 0) {
+    if (withStopDurationSeconds <= 0) {
         throw new TrError(
             'Error trying to generate a path geography. There was an error while calculating segment duration.',
             'PUPDGEO0001',
@@ -154,58 +167,58 @@ const calculateSegmentDuration = (
         );
     }
 
-    const segmentDuration: SegmentDuration = { calculatedDurationSeconds, noDwellTimeDurationSeconds };
+    const segmentDuration: SegmentDuration = { withStopDurationSeconds, constantSpeedDurationSeconds };
     return segmentDuration;
 };
 
 /**
- * Maps a current segment index to the old segment index after a node insertion.
+ * Maps a current segment index to the previous segment index after a node insertion.
  *
- * When a node is inserted, one old segment is split into two new segments. The mapping:
+ * When a node is inserted, one previous segment is split into two new segments. The mapping:
  * - Before `insertIndex - 1`: index is unchanged (before the split point).
  * - At `insertIndex - 1` or `insertIndex`: these are the two new segments created by the
- *   split (no old equivalent) → returns -1.
- * - After `insertIndex`: shifted by -1 because the old data had one fewer segment.
+ *   split (no previous equivalent) → returns -1.
+ * - After `insertIndex`: shifted by -1 because the previous data had one fewer segment.
  *
- * @param newSegmentIndex - The segment index in the current (post-insertion) path
+ * @param currentSegmentIndex - The segment index in the current (post-insertion) path
  * @param insertIndex - The node index where the new node was inserted
- * @returns The corresponding old segment index, or -1 for the newly created segments
+ * @returns The corresponding previous segment index, or -1 for the newly created segments
  */
-const getOldSegmentIndexForInsert = (newSegmentIndex: number, insertIndex: number): number => {
-    if (newSegmentIndex < insertIndex - 1) {
-        return newSegmentIndex;
+const getPreviousSegmentIndexAfterInsert = (currentSegmentIndex: number, insertIndex: number): number => {
+    if (currentSegmentIndex < insertIndex - 1) {
+        return currentSegmentIndex;
     }
-    if (newSegmentIndex === insertIndex - 1 || newSegmentIndex === insertIndex) {
+    if (currentSegmentIndex === insertIndex - 1 || currentSegmentIndex === insertIndex) {
         return -1;
     }
-    return newSegmentIndex - 1;
+    return currentSegmentIndex - 1;
 };
 
 /**
- * Maps a current segment index to the old segment index after a node removal.
+ * Maps a current segment index to the previous segment index after a node removal.
  *
  * When a node is removed, its two adjacent segments merge into one new segment. The mapping:
- * - Removed node at index 0: the first old segment disappears, so all new indices map to old + 1.
- * - New segment at `removedNodeIndex - 1`: this is the merged segment (no old equivalent) → returns -1.
- * - New segment at or after `removedNodeIndex`: shifted by +1 because the old data had one extra segment.
+ * - Removed node at index 0: the first previous segment disappears, so all current indices map to previous + 1.
+ * - New segment at `removedNodeIndex - 1`: this is the merged segment (no previous equivalent) → returns -1.
+ * - New segment at or after `removedNodeIndex`: shifted by +1 because the previous data had one extra segment.
  * - Otherwise: index is unchanged (before the removal point).
  *
- * @param newSegmentIndex - The segment index in the current (post-removal) path
+ * @param currentSegmentIndex - The segment index in the current (post-removal) path
  * @param removedNodeIndex - The index of the node that was removed
- * @returns The corresponding old segment index, or -1 for the merged segment
+ * @returns The corresponding previous segment index, or -1 for the merged segment
  */
-const getOldSegmentIndexForRemove = (newSegmentIndex: number, removedNodeIndex: number): number => {
+const getPreviousSegmentIndexAfterRemove = (currentSegmentIndex: number, removedNodeIndex: number): number => {
     if (removedNodeIndex === 0) {
-        return newSegmentIndex + 1;
+        return currentSegmentIndex + 1;
     }
-    if (newSegmentIndex === removedNodeIndex - 1) {
+    if (currentSegmentIndex === removedNodeIndex - 1) {
         return -1;
     }
 
-    if (newSegmentIndex >= removedNodeIndex) {
-        return newSegmentIndex + 1;
+    if (currentSegmentIndex >= removedNodeIndex) {
+        return currentSegmentIndex + 1;
     }
-    return newSegmentIndex;
+    return currentSegmentIndex;
 };
 
 /**
@@ -213,29 +226,72 @@ const getOldSegmentIndexForRemove = (newSegmentIndex: number, removedNodeIndex: 
  * accounting for node insertions or removals that shift segment indices.
  *
  * - No change: returns the same index (1:1 mapping).
- * - Node insert: delegates to `getOldSegmentIndexForInsert` (the new node splits a segment,
+ * - Node insert: delegates to `getPreviousSegmentIndexAfterInsert` (the new node splits a segment,
  *   so indices after the insertion point are shifted).
- * - Node remove: delegates to `getOldSegmentIndexForRemove` (two segments merge into one,
+ * - Node remove: delegates to `getPreviousSegmentIndexAfterRemove` (two segments merge into one,
  *   so indices after the removal point are shifted).
  *
- * Returns -1 when the segment has no corresponding old segment (e.g. a newly created segment
+ * Returns -1 when the segment has no corresponding previous segment (e.g. a newly created segment
  * from a node insertion).
  *
- * @param newSegmentIndex - The segment index in the current path
+ * @param currentSegmentIndex - The segment index in the current path
  * @param lastNodeChange - The node change that occurred (insert/remove with index), if any
- * @returns The corresponding old segment index, or -1 if the segment is new
+ * @returns The corresponding previous segment index, or -1 if the segment is new
  */
-const getOldSegmentIndex = (newSegmentIndex: number, lastNodeChange?: TypeNodeChange): number => {
+const getPreviousSegmentIndex = (currentSegmentIndex: number, lastNodeChange?: TypeNodeChange): number => {
     if (!lastNodeChange) {
-        return newSegmentIndex;
+        return currentSegmentIndex;
     }
     if (lastNodeChange.type === 'insert') {
-        return getOldSegmentIndexForInsert(newSegmentIndex, lastNodeChange.index);
+        return getPreviousSegmentIndexAfterInsert(currentSegmentIndex, lastNodeChange.index);
     }
     if (lastNodeChange.type === 'remove') {
-        return getOldSegmentIndexForRemove(newSegmentIndex, lastNodeChange.index);
+        return getPreviousSegmentIndexAfterRemove(currentSegmentIndex, lastNodeChange.index);
     }
-    return newSegmentIndex;
+    return currentSegmentIndex;
+};
+
+/**
+ * Returns the dwell time adjustment to subtract from a preserved segment's travel time.
+ *
+ * When previous data had no separate dwell time (GTFS baked-in), the dwell was included in the
+ * segment's travel time. In that case, we subtract the current dwell time to isolate the
+ * travel portion. Otherwise, no adjustment is needed.
+ *
+ * Exceptions where no subtraction is applied:
+ * - The previous segment was the first one (previousIndex === 0): the first node always has dwell = 0,
+ *   so we can't distinguish baked-in from normal.
+ * - A node was inserted at the beginning: the previous first segment's departure node went from
+ *   dwell = 0 (path start) to having a real dwell time — this is not baked-in.
+ *
+ * @param segmentIndex - The current segment index
+ * @param previousIndex - The corresponding previous segment index
+ * @param currentDwellTime - The current dwell time at the departure node
+ * @param previous - Previous segment data (previous dwell times)
+ * @param changesInfo - Info about recent node/waypoint changes
+ * @returns The number of seconds to subtract from the preserved travel time
+ */
+const getDwellTimeAdjustment = (
+    segmentIndex: number,
+    previousIndex: number,
+    currentDwellTime: number,
+    previous: SegmentData,
+    changesInfo: SegmentChangeInfo
+): number => {
+    // If the previous segment already had a separate dwell time, no adjustment needed
+    const previousDwellTime = previousIndex > 0 ? previous.dwellTimeDurationsSeconds[previousIndex] || 0 : 0;
+    if (previousDwellTime !== 0) {
+        return 0;
+    }
+    // If a node was inserted at the beginning, the previous first segment's departure node
+    // went from dwell=0 (path start) to having a real dwell time — not baked-in
+    const wasOldFirstAfterInsertAtBeginning =
+        changesInfo.lastNodeChange?.type === 'insert' && changesInfo.lastNodeChange?.index === 0 && segmentIndex === 1;
+    if (wasOldFirstAfterInsertAtBeginning) {
+        return 0;
+    }
+    // Dwell was baked into the previous travel time — subtract it
+    return currentDwellTime;
 };
 
 /**
@@ -250,6 +306,9 @@ const getOldSegmentIndex = (newSegmentIndex: number, lastNodeChange?: TypeNodeCh
  * @returns Dwell time in seconds at this node
  */
 const getDwellTimeSecondsForNode = (path: Path, nodeId: unknown): number => {
+    if (!nodeId) {
+        return 0;
+    }
     const node = path.collectionManager.get('nodes').getById(nodeId);
     const nodeDefaultDwellTimeSeconds = node?.properties?.default_dwell_time_seconds;
     return path.getDwellTimeSecondsAtNode(nodeDefaultDwellTimeSeconds);
@@ -321,6 +380,57 @@ const buildPathData = (segmentsData: TimeAndDistance[], stopTimes: StopTimes, to
 };
 
 /**
+ * Computes the duration, dwell time, and `previousToCalculatedTimeRatio` for a single
+ * completed segment. The first segment always has dwell time 0 (layover is separate).
+ * For unchanged segments with previous data, computes the ratio of previous travel time to
+ * new calculated duration, used to scale new/modified segments.
+ *
+ * @param params - The segment parameters (path, index, distance, duration, nodeId, previous data, changes info)
+ * @returns The segment duration, dwell time, and optional time ratio for unchanged segments
+ */
+const finalizeSegment = (params: FinalizeSegmentParams): FinalizeSegmentResult => {
+    const { path, segmentIndex, segmentTimeAndDistance, nodeId, previous, changesInfo } = params;
+
+    const duration = calculateSegmentDuration(
+        path,
+        segmentTimeAndDistance.distanceMeters || 0,
+        segmentTimeAndDistance.travelTimeSeconds
+    );
+    // First segment's departure is the path start — no dwell time (layover is separate)
+    const nodeDwellTimeSeconds = segmentIndex === 0 ? 0 : getDwellTimeSecondsForNode(path, nodeId);
+
+    const previousIndex = getPreviousSegmentIndex(segmentIndex, changesInfo.lastNodeChange);
+    const previousTime = previousIndex >= 0 ? previous.segmentsData[previousIndex]?.travelTimeSeconds : undefined;
+    // We want to get the previous dwell time from the beginning of the segment.
+    const previousDwellTime = previousIndex > 0 ? previous.dwellTimeDurationsSeconds[previousIndex] || 0 : 0;
+    // If previous segment had dwell baked into travel time (GTFS with 0 dwell time), only separate it out
+    // when the segment is long enough to absorb the dwell without going below `MIN_TRAVEL_TIME_FOR_DWELL_SECONDS`.
+    const hasBakedInDwell = previousTime !== undefined && previousDwellTime === 0 && previousIndex > 0;
+    const dwellTimeSeconds =
+        hasBakedInDwell && previousTime - nodeDwellTimeSeconds < MIN_TRAVEL_TIME_FOR_DWELL_SECONDS
+            ? 0
+            : nodeDwellTimeSeconds;
+
+    const isWaypointChangedSegment =
+        changesInfo.lastWaypointChangedSegmentIndex !== undefined &&
+        segmentIndex === changesInfo.lastWaypointChangedSegmentIndex;
+    let previousToCalculatedTimeRatio = 0;
+    const hasRatio = !!previousTime && !isWaypointChangedSegment;
+    if (hasRatio) {
+        const adjustmentDwellTime = getDwellTimeAdjustment(
+            segmentIndex,
+            previousIndex,
+            dwellTimeSeconds,
+            previous,
+            changesInfo
+        );
+        previousToCalculatedTimeRatio = (previousTime - adjustmentDwellTime) / duration.withStopDurationSeconds;
+    }
+
+    return { duration, dwellTimeSeconds, previousToCalculatedTimeRatio, hasRatio };
+};
+
+/**
  * Builds the path's coordinate geometry and per-segment data from routing legs, and computes the
  * `ratioDifferenceTime` scaling factor used to adjust new/modified segment travel times.
  *
@@ -328,8 +438,8 @@ const buildPathData = (segmentsData: TimeAndDistance[], stopTimes: StopTimes, to
  * node-to-node segments. For each completed segment:
  * - Calculates duration and distance from the routing engine results.
  * - Determines dwell time at the arrival node (set to 0 if the segment is too short to justify it).
- * - For unchanged segments with previous data, accumulates the ratio of old travel time to new
- *   calculated duration into `ratioCulminate`, which is averaged at the end to produce
+ * - For unchanged segments with previous data, accumulates the ratio of previous travel time to new
+ *   calculated duration into `ratioCumulated`, which is averaged at the end to produce
  *   `ratioDifferenceTime`. This ratio captures how the user's scheduled times relate to raw
  *   routing times, so it can be applied to new/modified segments.
  *
@@ -345,21 +455,20 @@ const buildPathData = (segmentsData: TimeAndDistance[], stopTimes: StopTimes, to
 const buildSegmentsAndGeometry = (
     path: Path,
     routing: RoutingResult,
-    previous: PreviousSegmentData,
+    previous: SegmentData,
     changesInfo: SegmentChangeInfo
 ) => {
     const globalCoordinates: Geojson.Position[] = [];
     let segmentCoordinatesStartIndex = 0;
     const segments: number[] = [];
     const segmentsData: TimeAndDistance[] = [];
-    const noDwellTimeDurationsSeconds: number[] = [];
-    const nodeIds = path.get('nodes', []);
-    const dwellTimeDurationsSeconds = [0]; // 0 for the first node, we calculate layover separately
+    const constantSpeedDurationsSeconds: number[] = [];
+    const nodeIds = path.attributes.nodes;
+    const dwellTimeDurationsSeconds: number[] = [];
     let nextNodeIndex = 1;
-    let segmentDurationSeconds = 0;
-    let segmentDistanceMeters = 0;
-    let ratioCulminate = 0;
-    let numberOfSegmentsCulminated = 0;
+    let segmentTimeAndDistance: TimeAndDistance = { travelTimeSeconds: 0, distanceMeters: 0 };
+    let ratioCumulated = 0;
+    let numberOfSegmentsCumulated = 0;
 
     for (let i = 0; i < routing.legs.length; i++) {
         const leg = routing.legs[i];
@@ -368,187 +477,206 @@ const buildSegmentsAndGeometry = (
             continue;
         }
 
-        if (routing.points[i].properties?.isNode) {
-            segmentCoordinatesStartIndex = globalCoordinates.length > 0 ? globalCoordinates.length - 1 : 0;
+        // A segment can have many coordinates; when we reach a node, mark the
+        // start of the next segment at the current end of globalCoordinates.
+        if (routing.points[i].properties?.isNode && globalCoordinates.length > 0) {
+            segmentCoordinatesStartIndex = globalCoordinates.length - 1;
         }
 
         appendLegCoordinates(leg, globalCoordinates);
 
-        segmentDurationSeconds += Math.ceil(leg.duration);
-        segmentDistanceMeters += Math.ceil(leg.distance);
+        segmentTimeAndDistance.travelTimeSeconds += Math.ceil(leg.duration);
+        segmentTimeAndDistance.distanceMeters = (segmentTimeAndDistance.distanceMeters || 0) + Math.ceil(leg.distance);
 
         // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
-        if (i === routing.legs.length - 1 && !(nodeIds as any[])[nextNodeIndex]) {
+        if (i === routing.legs.length - 1 && !nodeIds[nextNodeIndex]) {
             segments.push(segmentCoordinatesStartIndex);
-            segmentsData.push({ travelTimeSeconds: segmentDurationSeconds, distanceMeters: segmentDistanceMeters });
-        } else if (nextIsNode && (nodeIds as any[])[nextNodeIndex]) {
-            const duration: SegmentDuration = calculateSegmentDuration(
-                path,
-                segmentDistanceMeters,
-                segmentDurationSeconds
-            );
-            const nodeDwellTimeSeconds = getDwellTimeSecondsForNode(path, (nodeIds as any[])[nextNodeIndex]);
-
-            const segmentIndex = segments.length;
-            const oldIndex = getOldSegmentIndex(segmentIndex, changesInfo.lastNodeChange);
-            const previousTime = oldIndex >= 0 ? previous.oldSegmentsData[oldIndex]?.travelTimeSeconds : undefined;
-            const oldDwellTime = oldIndex > 0 ? previous.oldDwellTimesData[oldIndex] || 0 : 0;
-            // When an old segment had no separate dwell time (e.g. GTFS where dwell was baked into travel time),
-            // only set a dwell if the segment is long enough — otherwise we'd shorten the travel time.
-            // For new segments or segments that already had a dwell time, always use the node's dwell time.
-            const hasBakedInDwell = previousTime !== undefined && oldDwellTime === 0 && oldIndex > 0;
-            const dwellTimeSeconds =
-                hasBakedInDwell && previousTime - nodeDwellTimeSeconds < MIN_TRAVEL_TIME_FOR_DWELL_SECONDS
-                    ? 0
-                    : nodeDwellTimeSeconds;
-            const isChangedSegment =
-                changesInfo.changedSegmentIndex !== undefined && segmentIndex === changesInfo.changedSegmentIndex;
-            if (previousTime && !isChangedSegment) {
-                // When a node was inserted at the beginning, the old first segment's departure node
-                // went from dwell=0 (path start) to having a real dwell time. Don't subtract in that case.
-                const wasOldFirstAfterInsertAtBeginning =
-                    changesInfo.lastNodeChange?.type === 'insert' &&
-                    changesInfo.lastNodeChange?.index === 0 &&
-                    segmentIndex === 1;
-                const dwellTimeAdjustment =
-                    oldDwellTime === 0 && !wasOldFirstAfterInsertAtBeginning ? dwellTimeSeconds : 0;
-                numberOfSegmentsCulminated++;
-                ratioCulminate += (previousTime - dwellTimeAdjustment) / duration.calculatedDurationSeconds;
-            }
-
-            segments.push(segmentCoordinatesStartIndex);
-            segmentsData.push({
-                travelTimeSeconds: duration.calculatedDurationSeconds,
-                distanceMeters: segmentDistanceMeters
-            });
-            noDwellTimeDurationsSeconds.push(duration.noDwellTimeDurationSeconds);
-            dwellTimeDurationsSeconds.push(dwellTimeSeconds);
-            // reset for next segment:
-            segmentDurationSeconds = 0;
-            segmentDistanceMeters = 0;
-            nextNodeIndex++;
+            segmentsData.push(segmentTimeAndDistance);
+            break;
         }
+        // Next point is a waypoint, not a node — still accumulating the same segment.
+        if (!nextIsNode || !nodeIds[nextNodeIndex]) {
+            continue;
+        }
+
+        const segmentIndex = segments.length;
+        const segmentParams: FinalizeSegmentParams = {
+            path,
+            segmentIndex,
+            segmentTimeAndDistance,
+            nodeId: nodeIds[nextNodeIndex - 1],
+            previous,
+            changesInfo
+        };
+        const result = finalizeSegment(segmentParams);
+
+        if (result.hasRatio) {
+            numberOfSegmentsCumulated++;
+            ratioCumulated += result.previousToCalculatedTimeRatio;
+        }
+
+        segments.push(segmentCoordinatesStartIndex);
+        segmentsData.push({
+            travelTimeSeconds: result.duration.withStopDurationSeconds,
+            distanceMeters: segmentTimeAndDistance.distanceMeters
+        });
+        constantSpeedDurationsSeconds.push(result.duration.constantSpeedDurationSeconds);
+        dwellTimeDurationsSeconds.push(result.dwellTimeSeconds);
+        // reset for next segment:
+        segmentTimeAndDistance = { travelTimeSeconds: 0, distanceMeters: 0 };
+        nextNodeIndex++;
     }
 
-    const ratioDifferenceTime = numberOfSegmentsCulminated > 0 ? ratioCulminate / numberOfSegmentsCulminated : 1;
+    // Add dwell time for the last (arrival) node
+    const lastNodeId = nodeIds[nextNodeIndex - 1];
+    dwellTimeDurationsSeconds.push(getDwellTimeSecondsForNode(path, lastNodeId));
+
+    const ratioDifferenceTime = numberOfSegmentsCumulated > 0 ? ratioCumulated / numberOfSegmentsCumulated : 1;
 
     return {
         globalCoordinates,
         segments,
         segmentsData,
-        noDwellTimeDurationsSeconds,
+        constantSpeedDurationsSeconds,
         dwellTimeDurationsSeconds,
         ratioDifferenceTime
     };
 };
 
 /**
- * Adjusts segment travel times and computes path-level totals (distance, travel time, dwell time, layover).
+ * Adjusts a single segment's travel time, either preserving the previous value or recalculating it.
  *
- * For each segment, the travel time is either preserved from the previous data or recalculated:
- * - **Preserved**: If the segment existed before and was not modified (unchanged geometry), the old
- *   travel time is reused. When the old data had no separate dwell time (oldDwellTime === 0), the
- *   dwell time was baked into travelTimeSeconds, so the current dwell time is subtracted to isolate
- *   the travel portion.
- * - **Recalculated**: If the segment is new (node insert), modified (waypoint change), or has no
- *   previous data, its travel time is scaled by `ratioDifferenceTime` (ratio of scheduled time to
- *   routed time from the path's existing data).
+ * - **Preserved**: If the segment existed before and was not modified, the previous travel time is reused.
+ *   When the previous data had no separate dwell time (GTFS baked-in) and the segment was not the first one,
+ *   the departure node's dwell time is subtracted to isolate the travel portion. Exception: when a node
+ *   was inserted at the beginning, the previous first segment's departure node gained a dwell time it didn't
+ *   have before (was path start), so no subtraction is applied.
+ * - **Recalculated**: If the segment is new, modified, or has no previous data, its travel time is
+ *   scaled by `ratioDifferenceTime`.
  *
- * After adjusting all segment times, computes and returns the full path data including totals and
- * layover time.
- *
- * @param path - The path object (used for layover calculation and speed config)
+ * @param segmentIndex - The current segment index
  * @param current - Current routing results (segments, durations, dwell times, scaling ratio)
  * @param previous - Previous segment data used to preserve unchanged travel times
  * @param changesInfo - Info about recent node/waypoint changes that affect segment mapping
  */
-const adjustTimesAndComputeTotals = (
-    path: Path,
-    current: CurrentSegmentData,
-    previous: PreviousSegmentData,
+const adjustSegmentTime = (
+    segmentIndex: number,
+    current: ComputedSegmentData,
+    previous: SegmentData,
     changesInfo: SegmentChangeInfo
 ) => {
-    let totalDistance = 0;
-    let totalDwellTimeSeconds = 0;
-    let totalTravelTimeWithoutDwellTimesSeconds = 0;
-    let totalTravelTimeWithDwellTimesSeconds = 0;
-    let totalTravelTimeWithReturnBackSeconds = 0;
+    const previousIndex = getPreviousSegmentIndex(segmentIndex, changesInfo.lastNodeChange);
+    const previousTime = previousIndex >= 0 ? previous.segmentsData[previousIndex]?.travelTimeSeconds : undefined;
+    const isWaypointChangedSegment =
+        changesInfo.lastWaypointChangedSegmentIndex !== undefined &&
+        segmentIndex === changesInfo.lastWaypointChangedSegmentIndex;
+    if (previousTime !== undefined && !isWaypointChangedSegment) {
+        // Unchanged segment: preserve the previous travel time, subtracting any baked-in dwell time
+        const adjustment = getDwellTimeAdjustment(
+            segmentIndex,
+            previousIndex,
+            current.dwellTimeDurationsSeconds[segmentIndex],
+            previous,
+            changesInfo
+        );
+        current.segmentsData[segmentIndex].travelTimeSeconds = Math.ceil(previousTime - adjustment);
+    } else {
+        // New or modified segment: scale the routing-calculated time by the ratio from existing data
+        current.segmentsData[segmentIndex].travelTimeSeconds = Math.ceil(
+            current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime
+        );
+    }
+};
 
-    for (let s = 0; s < current.segmentsData.length; s++) {
-        // Skip the last segment if it ends at a waypoint (not a node) — it's not part of the totals
-        if (s >= current.noDwellTimeDurationsSeconds.length) {
-            break;
-        }
-        const oldIndex = getOldSegmentIndex(s, changesInfo.lastNodeChange);
-        const previousTime = oldIndex >= 0 ? previous.oldSegmentsData[oldIndex]?.travelTimeSeconds : undefined;
-        const isChangedSegment = changesInfo.changedSegmentIndex !== undefined && s === changesInfo.changedSegmentIndex;
-        if (previousTime !== undefined && !isChangedSegment) {
-            const oldDwellTime = oldIndex > 0 ? previous.oldDwellTimesData[oldIndex] || 0 : 0;
-            // When a node was inserted at the beginning, the old first segment's departure node
-            // went from dwell=0 (path start) to having a real dwell time. Don't subtract in that case.
-            const wasOldFirstAfterInsertAtBeginning =
-                changesInfo.lastNodeChange?.type === 'insert' && changesInfo.lastNodeChange?.index === 0 && s === 1;
-            const shouldSubtractDwell = oldDwellTime === 0 && !wasOldFirstAfterInsertAtBeginning;
-            current.segmentsData[s].travelTimeSeconds = Math.ceil(
-                shouldSubtractDwell ? previousTime - current.dwellTimeDurationsSeconds[s] : previousTime
-            );
-        } else {
-            current.segmentsData[s].travelTimeSeconds = Math.ceil(
-                current.segmentsData[s].travelTimeSeconds * current.ratioDifferenceTime
-            );
-        }
-        const dwellTime = current.dwellTimeDurationsSeconds[s + 1] || 0;
-        totalDistance += current.segmentsData[s].distanceMeters || 0;
-        totalTravelTimeWithDwellTimesSeconds += current.segmentsData[s].travelTimeSeconds + dwellTime;
-        totalTravelTimeWithoutDwellTimesSeconds += current.noDwellTimeDurationsSeconds[s];
-        totalDwellTimeSeconds += dwellTime;
-        totalTravelTimeWithReturnBackSeconds += current.segmentsData[s].travelTimeSeconds + dwellTime;
+/**
+ * Adds a single segment's distance, travel time, and dwell time to the running totals.
+ *
+ * @param segmentIndex - The current segment index
+ * @param current - Current routing results (segments, durations, dwell times)
+ * @param totals - The running totals to accumulate into (modified in place)
+ */
+const accumulateSegmentTotals = (segmentIndex: number, current: ComputedSegmentData, totals: PathTimeTotals) => {
+    const dwellTime = current.dwellTimeDurationsSeconds[segmentIndex + 1] || 0;
+    const travelTime = current.segmentsData[segmentIndex].travelTimeSeconds;
+    totals.totalDistance += current.segmentsData[segmentIndex].distanceMeters || 0;
+    totals.totalTravelTimeWithDwellTimesSeconds += travelTime + dwellTime;
+    totals.totalTravelTimeWithoutDwellTimesSeconds += current.constantSpeedDurationsSeconds[segmentIndex];
+    totals.totalDwellTimeSeconds += dwellTime;
+    totals.totalTravelTimeWithReturnBackSeconds += travelTime + dwellTime;
+};
+
+/**
+ * Adjusts segment travel times via {@link adjustSegmentTime} and computes path-level totals
+ * (distance, travel time, dwell time, layover). Returns the full path data object.
+ *
+ * @param path - The path object (used for layover calculation)
+ * @param current - Current routing results (segments, durations, dwell times, scaling ratio)
+ * @param previous - Previous segment data used to preserve unchanged travel times
+ * @param changesInfo - Info about recent node/waypoint changes that affect segment mapping
+ * @returns The assembled path data with segments, totals, and speeds
+ */
+const adjustTimesAndComputeTotals = (
+    path: Path,
+    current: ComputedSegmentData,
+    previous: SegmentData,
+    changesInfo: SegmentChangeInfo
+) => {
+    const totals: PathTimeTotals = {
+        totalDistance: 0,
+        totalDwellTimeSeconds: 0,
+        totalTravelTimeWithoutDwellTimesSeconds: 0,
+        totalTravelTimeWithDwellTimesSeconds: 0,
+        totalTravelTimeWithReturnBackSeconds: 0
+    };
+
+    const segmentCount = current.constantSpeedDurationsSeconds.length;
+    for (let currentSegmentIndex = 0; currentSegmentIndex < segmentCount; currentSegmentIndex++) {
+        adjustSegmentTime(currentSegmentIndex, current, previous, changesInfo);
+        accumulateSegmentTotals(currentSegmentIndex, current, totals);
     }
 
-    const layoverTimeSeconds = calculateLayoverSeconds(path, totalTravelTimeWithDwellTimesSeconds);
-
-    const totals: PathTimeTotals = {
-        totalDistance,
-        totalDwellTimeSeconds,
-        totalTravelTimeWithoutDwellTimesSeconds,
-        totalTravelTimeWithDwellTimesSeconds,
-        totalTravelTimeWithReturnBackSeconds
-    };
+    const layoverTimeSeconds = calculateLayoverSeconds(path, totals.totalTravelTimeWithDwellTimesSeconds);
 
     const stopTimes: StopTimes = { dwellTimeDurationsSeconds: current.dwellTimeDurationsSeconds, layoverTimeSeconds };
 
     return buildPathData(current.segmentsData, stopTimes, totals);
 };
 
+/**
+ * Orchestrates the path geography update from routing results.
+ *
+ * Reads and clears temporary change markers from the path (`_lastNodeChange`,
+ * `_lastWaypointChangedSegmentIndex`), then delegates to {@link buildSegmentsAndGeometry}
+ * to produce the new geometry and per-segment data, and {@link adjustTimesAndComputeTotals}
+ * to finalize travel times and compute path-level totals. Updates the path's geography,
+ * segments, and data attributes in place.
+ *
+ * @param path - The path object to update
+ * @param routing - Routing results (matched points and legs between them)
+ */
 const handleLegs = (path: Path, routing: RoutingResult) => {
     const lastNodeChange = path.attributes.data._lastNodeChange;
     delete path.attributes.data._lastNodeChange;
-    const changedSegmentIndex = path.attributes.data._lastWaypointChangedSegmentIndex;
+    const lastWaypointChangedSegmentIndex = path.attributes.data._lastWaypointChangedSegmentIndex;
     delete path.attributes.data._lastWaypointChangedSegmentIndex;
-    const previous: PreviousSegmentData = {
-        oldSegmentsData: path.attributes.data.segments || [],
-        oldDwellTimesData: path.attributes.data.dwellTimeSeconds || []
+    const previous: SegmentData = {
+        segmentsData: path.attributes.data.segments || [],
+        dwellTimeDurationsSeconds: path.attributes.data.dwellTimeSeconds || []
     };
-    const changesInfo: SegmentChangeInfo = { lastNodeChange, changedSegmentIndex };
+    const changesInfo: SegmentChangeInfo = { lastNodeChange, lastWaypointChangedSegmentIndex };
 
-    const {
-        globalCoordinates,
-        segments,
-        segmentsData,
-        noDwellTimeDurationsSeconds,
-        dwellTimeDurationsSeconds,
-        ratioDifferenceTime
-    } = buildSegmentsAndGeometry(path, routing, previous, changesInfo);
+    const geometryResult = buildSegmentsAndGeometry(path, routing, previous, changesInfo);
 
-    const newData = adjustTimesAndComputeTotals(
-        path,
-        { segmentsData, noDwellTimeDurationsSeconds, dwellTimeDurationsSeconds, ratioDifferenceTime },
-        previous,
-        changesInfo
-    );
+    const current: ComputedSegmentData = {
+        segmentsData: geometryResult.segmentsData,
+        constantSpeedDurationsSeconds: geometryResult.constantSpeedDurationsSeconds,
+        dwellTimeDurationsSeconds: geometryResult.dwellTimeDurationsSeconds,
+        ratioDifferenceTime: geometryResult.ratioDifferenceTime
+    };
+    const newData = adjustTimesAndComputeTotals(path, current, previous, changesInfo);
 
-    path.set('geography', { type: 'LineString', coordinates: globalCoordinates });
-    path.attributes.segments = segments;
+    path.set('geography', { type: 'LineString', coordinates: geometryResult.globalCoordinates });
+    path.attributes.segments = geometryResult.segments;
     path.attributes.data = Object.assign(path.attributes.data, newData);
 };
 
