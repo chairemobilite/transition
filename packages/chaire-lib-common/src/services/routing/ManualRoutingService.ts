@@ -99,4 +99,11 @@ export default class ManualRoutingService extends RoutingService.default {
         // TODO: Implement using bird distances
         throw new Error('ManualRoutingService tableTo Method not implemented.');
     }
+
+    public tableManyToMany(
+        _params: RoutingService.TableManyToManyParameters
+    ): Promise<RoutingService.TableManyToManyResults> {
+        // TODO: Implement using bird distances
+        throw new Error('ManualRoutingService tableManyToMany Method not implemented.');
+    }
 }

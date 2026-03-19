@@ -90,6 +90,18 @@ export default function (socket: EventEmitter, userId?: number) {
         }
     });
 
+    socket.on('service.osrmRouting.tableManyToMany', async (parameters, callback) => {
+        try {
+            const routingResults = await osrmService.tableManyToMany(parameters);
+            callback(routingResults);
+        } catch (error) {
+            console.error(error);
+            callback(
+                Status.createError(TrError.isTrError(error) ? error.message : 'Error getting table many to many')
+            );
+        }
+    });
+
     // TODO: Better type the match method and the status in the callback (see PR #1719)
     socket.on(
         'service.osrmRouting.match',
