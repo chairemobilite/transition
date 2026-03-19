@@ -38,6 +38,12 @@ class OSRMService {
         return this.getMode(parameters.mode).tableTo(parameters);
     }
 
+    public tableManyToMany(
+        parameters: RoutingService.TableManyToManyParameters
+    ): Promise<Status.Status<RoutingService.TableManyToManyResults>> {
+        return this.getMode(parameters.mode).tableManyToMany(parameters);
+    }
+
     public registerMode(mode: RoutingMode, instance: OSRMMode) {
         //TODO Warn when overwriting a mode
         //TODO Validate that OSRMMode contains the same RoutingMode as mode

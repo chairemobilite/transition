@@ -299,6 +299,44 @@ class OSRMMode {
         }
     }
 
+    public async tableManyToMany(
+        params: RoutingService.TableManyToManyParameters
+    ): Promise<Status.Status<RoutingService.TableManyToManyResults>> {
+        this.validateParamMode(params.mode);
+
+        const allFeatures = [...params.origins, ...params.destinations];
+        const sourceIndices = params.origins.map((_, i) => i);
+        const destIndices = params.destinations.map((_, i) => i + params.origins.length);
+
+        const optionKeys = ['sources', 'destinations', 'annotations'];
+        const options = {
+            sources: sourceIndices,
+            destinations: destIndices,
+            annotations: ['duration', 'distance'] as ('duration' | 'distance')[]
+        };
+
+        const tableQuery = this.buildOsrmQuery('table', allFeatures, optionKeys, options);
+
+        const response = await fetch(tableQuery, COMMON_FETCH_OPTIONS);
+
+        const routingResultJson = (await parseResponseJsonOrLog(response, 'tableManyToMany')) as {
+            code?: string;
+            durations?: (number | null)[][];
+            distances?: (number | null)[][];
+        };
+
+        if (response.ok && routingResultJson.code === 'Ok') {
+            const result: RoutingService.TableManyToManyResults = {
+                query: tableQuery,
+                durations: routingResultJson.durations ?? [],
+                distances: routingResultJson.distances ?? []
+            };
+            return Status.createOk(result);
+        } else {
+            return Status.createError(routingResultJson);
+        }
+    }
+
     // TODO Should drop the optionsKeys and just send all not undefined values, since we use a proper options object now
     private buildOsrmQuery(
         service: OSRMServiceTypes,
