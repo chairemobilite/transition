@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import _cloneDeep from 'lodash/cloneDeep';
 import { TransitObjectStub, GenericCollectionStub } from '../../__tests__/TransitObjectStub';
 import { generatePathGeographyFromRouting } from '../PathGeographyGenerator';
 import { pathGeographyUtils as PathGeographyUtils } from '../PathGeographyUtils';
@@ -550,13 +551,16 @@ test('Generate From Routing With Errors', async() => {
     expect(complexPath.attributes.segments).toBeFalsy();
 });
 
-test('Generate From Routing with insert node at beginning', async() => {
-    // Old: [node1, node4, node6] (2 segs), inserting node2 at index 0
-    // New: [node2, node1, node4, node6] (3 segs)
-    const pathWithOldData = new TransitPathStub({
+describe('Node insert and remove operations', () => {
+    // Initial path: [node1, node2, node4, node6] with 3 segments
+    // Dwell times: node4 = 120s (custom), all others = 25s (default)
+    const durationSegment1Seconds = 115;
+    const durationSegment2Seconds = 82;
+    const durationSegment3Seconds = 95;
+    const initialPathData: any = {
         id: 'path1',
         line_id: line.get('id'),
-        nodes: [ node2.properties.id, node1.properties.id, node4.properties.id, node6.properties.id ],
+        nodes: [node1.properties.id, node2.properties.id, node4.properties.id, node6.properties.id],
         data: {
             nodeTypes: ['engine', 'engine', 'engine', 'engine'],
             waypoints: [[], [], [], []],
@@ -568,401 +572,207 @@ test('Generate From Routing with insert node at beginning', async() => {
             defaultDeceleration: DEFAULT_ACC_DEC,
             defaultRunningSpeedKmH: DEFAULT_SPEED,
             maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
-            // Old: 2 segments [node1->node4, node4->node6]
             segments: [
-                { travelTimeSeconds: 115, distanceMeters: 1500 },
-                { travelTimeSeconds: 82, distanceMeters: 1000 },
+                { travelTimeSeconds: durationSegment1Seconds, distanceMeters: 1500 },
+                { travelTimeSeconds: durationSegment2Seconds, distanceMeters: 1000 },
+                { travelTimeSeconds: durationSegment3Seconds, distanceMeters: 1200 },
             ],
-            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
-            _lastNodeChange: { type: 'insert' as const, index: 0 }
+            dwellTimeSeconds: [0, DEFAULT_DWELL_TIME, NODE4_DWELL_TIME, DEFAULT_DWELL_TIME],
         }
-    }) as any;
-
-    const routingResult = {
-        tracepoints: [node2, node1, node4, node6],
-        matchings: [{
-            confidence: 99,
-            distance: 3700,
-            duration: 246.67,
-            legs: [{
-                distance: 1200,
-                duration: 80,
-                steps: [{
-                    distance: 1200,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node2.geometry.coordinates, node1.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1500,
-                duration: 100,
-                steps: [{
-                    distance: 1500,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1000,
-                duration: 66.67,
-                steps: [{
-                    distance: 1000,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
-                }]
-            }]
-        }]
     };
 
-    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithOldData, DEFAULT_SPEED/3.6);
-    generatePathGeographyFromRouting(pathWithOldData, nodeGeojson, [routingResult]);
+    test('insert node at beginning', async () => {
+        // Previous: [node1, node2, node4, node6] (3 segs), inserting node3 at index 0
+        // Current: [node3, node1, node2, node4, node6] (4 segs)
+        const pathData = _cloneDeep(initialPathData);
+        pathData.nodes = [node3.properties.id, node1.properties.id, node2.properties.id, node4.properties.id, node6.properties.id];
+        pathData.data.nodeTypes = ['engine', 'engine', 'engine', 'engine', 'engine'];
+        pathData.data.waypoints = [[], [], [], [], []];
+        pathData.data.waypointTypes = [[], [], [], [], []];
+        pathData.data._lastNodeChange = { type: 'insert', index: 0 };
 
-    expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
-    expect(pathWithOldData.attributes.data.segments.length).toEqual(3);
-    // Seg 0 is new (insert at 0), seg 1 maps to old 0, seg 2 maps to old 1
-    expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(115);
-    expect(pathWithOldData.attributes.data.segments[2].travelTimeSeconds).toEqual(82);
-});
-
-test('Generate From Routing with insert node in middle', async() => {
-    // Old: [node1, node4, node6] (2 segs), inserting node2 at index 1
-    // New: [node1, node2, node4, node6] (3 segs)
-    const pathWithOldData = new TransitPathStub({
-        id: 'path1',
-        line_id: line.get('id'),
-        nodes: [ node1.properties.id, node2.properties.id, node4.properties.id, node6.properties.id ],
-        data: {
-            nodeTypes: ['engine', 'engine', 'engine', 'engine'],
-            waypoints: [[], [], [], []],
-            waypointTypes: [[], [], [], []],
-            routingEngine: 'engine',
-            routingMode: 'driving',
-            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
-            defaultAcceleration: DEFAULT_ACC_DEC,
-            defaultDeceleration: DEFAULT_ACC_DEC,
-            defaultRunningSpeedKmH: DEFAULT_SPEED,
-            maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
-            // Old: 2 segments [node1->node4, node4->node6]
-            segments: [
-                { travelTimeSeconds: 200, distanceMeters: 1500 },
-                { travelTimeSeconds: 150, distanceMeters: 1000 },
-            ],
-            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
-            _lastNodeChange: { type: 'insert' as const, index: 1 }
-        }
-    }) as any;
-
-    const routingResult = {
-        tracepoints: [node1, node2, node4, node6],
-        matchings: [{
-            confidence: 99,
-            distance: 3000,
-            duration: 200,
-            legs: [{
-                distance: 1200,
-                duration: 80,
-                steps: [{
-                    distance: 1200,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1000,
-                duration: 66.67,
-                steps: [{
-                    distance: 1000,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] }
-                }]
-            }, {
-                distance: 800,
-                duration: 53.34,
-                steps: [{
-                    distance: 800,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
-                }]
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node3, node1, node2, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 4500, duration: 300,
+                legs: [
+                    { distance: 800, duration: 53.34, steps: [{ distance: 800, geometry: { type: 'LineString' as const, coordinates: [node3.geometry.coordinates, node1.geometry.coordinates] } }] },
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
             }]
-        }]
-    };
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult]);
 
-    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithOldData, DEFAULT_SPEED/3.6);
-    generatePathGeographyFromRouting(pathWithOldData, nodeGeojson, [routingResult]);
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(4);
+        // Seg 0 is new (insert at 0), seg 1-3 map to previous 0-2
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(durationSegment1Seconds);
+        expect(path.attributes.data.segments[2].travelTimeSeconds).toEqual(durationSegment2Seconds);
+        expect(path.attributes.data.segments[3].travelTimeSeconds).toEqual(durationSegment3Seconds);
+    });
 
-    expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
-    expect(pathWithOldData.attributes.data.segments.length).toEqual(3);
-    // Seg 0 and 1 are new (split from old seg 0), seg 2 maps to old 1
-    expect(pathWithOldData.attributes.data.segments[2].travelTimeSeconds).toEqual(150);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds.length).toEqual(4);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds[0]).toEqual(0);
-});
+    test('insert node in middle', async () => {
+        // Previous: [node1, node2, node4, node6] (3 segs), inserting node3 at index 2
+        // Current: [node1, node2, node3, node4, node6] (4 segs)
+        const pathData = _cloneDeep(initialPathData);
+        pathData.nodes = [node1.properties.id, node2.properties.id, node3.properties.id, node4.properties.id, node6.properties.id];
+        pathData.data.nodeTypes = ['engine', 'engine', 'engine', 'engine', 'engine'];
+        pathData.data.waypoints = [[], [], [], [], []];
+        pathData.data.waypointTypes = [[], [], [], [], []];
+        pathData.data._lastNodeChange = { type: 'insert', index: 2 };
 
-test('Generate From Routing with remove node', async() => {
-    // Old: [node1, node2, node4, node6] (3 segs), removed node2 (index 1)
-    // New: [node1, node4, node6] (2 segs)
-    const pathWithOldData = new TransitPathStub({
-        id: 'path1',
-        line_id: line.get('id'),
-        nodes: [ node1.properties.id, node4.properties.id, node6.properties.id ],
-        data: {
-            nodeTypes: ['engine', 'engine', 'engine'],
-            waypoints: [[], [], []],
-            waypointTypes: [[], [], []],
-            routingEngine: 'engine',
-            routingMode: 'driving',
-            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
-            defaultAcceleration: DEFAULT_ACC_DEC,
-            defaultDeceleration: DEFAULT_ACC_DEC,
-            defaultRunningSpeedKmH: DEFAULT_SPEED,
-            maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
-            // Old: 3 segments [node1->node2, node2->node4, node4->node6]
-            segments: [
-                { travelTimeSeconds: 95, distanceMeters: 1200 },
-                { travelTimeSeconds: 200, distanceMeters: 1500 },
-                { travelTimeSeconds: 150, distanceMeters: 1000 },
-            ],
-            dwellTimeSeconds: [0, 25, NODE4_DWELL_TIME, 25],
-            _lastNodeChange: { type: 'remove' as const, index: 1 }
-        }
-    }) as any;
-
-    const routingResult = {
-        tracepoints: [node1, node4, node6],
-        matchings: [{
-            confidence: 99,
-            distance: 2500,
-            duration: 166.67,
-            legs: [{
-                distance: 1500,
-                duration: 100,
-                steps: [{
-                    distance: 1500,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1000,
-                duration: 66.67,
-                steps: [{
-                    distance: 1000,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
-                }]
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node1, node2, node3, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 3700, duration: 246.68,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 500, duration: 33.34, steps: [{ distance: 500, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node3.geometry.coordinates] } }] },
+                    { distance: 500, duration: 33.34, steps: [{ distance: 500, geometry: { type: 'LineString' as const, coordinates: [node3.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
             }]
-        }]
-    };
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult]);
 
-    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithOldData, DEFAULT_SPEED/3.6);
-    generatePathGeographyFromRouting(pathWithOldData, nodeGeojson, [routingResult]);
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(4);
+        // Seg 0 maps to previous 0, seg 1-2 are new (split), seg 3 maps to previous 2
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(durationSegment1Seconds);
+        expect(path.attributes.data.segments[3].travelTimeSeconds).toEqual(durationSegment3Seconds);
+    });
 
-    expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
-    expect(pathWithOldData.attributes.data.segments.length).toEqual(2);
-    // Seg 0 maps to -1 (merged), seg 1 maps to old 2 (via newIndex+1)
-    expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(150);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds).toEqual([0, NODE4_DWELL_TIME, 25]);
-});
+    test('insert node at end', async () => {
+        // Previous: [node1, node2, node4, node6] (3 segs), inserting node3 at end (index 4)
+        // Current: [node1, node2, node4, node6, node3] (4 segs)
+        const pathData = _cloneDeep(initialPathData);
+        pathData.nodes = [node1.properties.id, node2.properties.id, node4.properties.id, node6.properties.id, node3.properties.id];
+        pathData.data.nodeTypes = ['engine', 'engine', 'engine', 'engine', 'engine'];
+        pathData.data.waypoints = [[], [], [], [], []];
+        pathData.data.waypointTypes = [[], [], [], [], []];
+        pathData.data._lastNodeChange = { type: 'insert', index: 4 };
 
-test('Generate From Routing with remove first node', async() => {
-    // Old: [node2, node1, node4, node6] (3 segs), removed node2 at index 0
-    // New: [node1, node4, node6] (2 segs)
-    const pathWithOldData = new TransitPathStub({
-        id: 'path1',
-        line_id: line.get('id'),
-        nodes: [ node1.properties.id, node4.properties.id, node6.properties.id ],
-        data: {
-            nodeTypes: ['engine', 'engine', 'engine'],
-            waypoints: [[], [], []],
-            waypointTypes: [[], [], []],
-            routingEngine: 'engine',
-            routingMode: 'driving',
-            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
-            defaultAcceleration: DEFAULT_ACC_DEC,
-            defaultDeceleration: DEFAULT_ACC_DEC,
-            defaultRunningSpeedKmH: DEFAULT_SPEED,
-            maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
-            // Old: 3 segments [node2->node1, node1->node4, node4->node6]
-            segments: [
-                { travelTimeSeconds: 100, distanceMeters: 1200 },
-                { travelTimeSeconds: 200, distanceMeters: 1500 },
-                { travelTimeSeconds: 150, distanceMeters: 1000 },
-            ],
-            dwellTimeSeconds: [0, 25, NODE4_DWELL_TIME, 25],
-            _lastNodeChange: { type: 'remove' as const, index: 0 }
-        }
-    }) as any;
-
-    const routingResult = {
-        tracepoints: [node1, node4, node6],
-        matchings: [{
-            confidence: 99,
-            distance: 2500,
-            duration: 166.67,
-            legs: [{
-                distance: 1500,
-                duration: 100,
-                steps: [{
-                    distance: 1500,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1000,
-                duration: 66.67,
-                steps: [{
-                    distance: 1000,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
-                }]
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node1, node2, node4, node6, node3],
+            matchings: [{
+                confidence: 99, distance: 4500, duration: 300.01,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                    { distance: 800, duration: 53.34, steps: [{ distance: 800, geometry: { type: 'LineString' as const, coordinates: [node6.geometry.coordinates, node3.geometry.coordinates] } }] },
+                ]
             }]
-        }]
-    };
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult]);
 
-    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithOldData, DEFAULT_SPEED/3.6);
-    generatePathGeographyFromRouting(pathWithOldData, nodeGeojson, [routingResult]);
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(4);
+        // Seg 0-2 map to previous 0-2, seg 3 is new
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(durationSegment1Seconds);
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(durationSegment2Seconds);
+        expect(path.attributes.data.segments[2].travelTimeSeconds).toEqual(durationSegment3Seconds);
+    });
 
-    expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
-    expect(pathWithOldData.attributes.data.segments.length).toEqual(2);
-    // Seg 0 maps to old 1 (newIndex+1=1), seg 1 maps to old 2 (newIndex+1=2)
-    expect(pathWithOldData.attributes.data.segments[0].travelTimeSeconds).toEqual(200);
-    expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(150);
-});
+    test('remove first node', async () => {
+        // Previous: [node1, node2, node4, node6] (3 segs), removed node1 at index 0
+        // Current: [node2, node4, node6] (2 segs)
+        const pathData = _cloneDeep(initialPathData);
+        pathData.nodes = [node2.properties.id, node4.properties.id, node6.properties.id];
+        pathData.data.nodeTypes = ['engine', 'engine', 'engine'];
+        pathData.data.waypoints = [[], [], []];
+        pathData.data.waypointTypes = [[], [], []];
+        pathData.data._lastNodeChange = { type: 'remove', index: 0 };
 
-test('Generate From Routing with insert node at end', async() => {
-    // Old: [node1, node4, node6] (2 segs), inserting node2 at end (index 3)
-    // New: [node1, node4, node6, node2] (3 segs)
-    const pathWithOldData = new TransitPathStub({
-        id: 'path1',
-        line_id: line.get('id'),
-        nodes: [ node1.properties.id, node4.properties.id, node6.properties.id, node2.properties.id ],
-        data: {
-            nodeTypes: ['engine', 'engine', 'engine', 'engine'],
-            waypoints: [[], [], [], []],
-            waypointTypes: [[], [], [], []],
-            routingEngine: 'engine',
-            routingMode: 'driving',
-            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
-            defaultAcceleration: DEFAULT_ACC_DEC,
-            defaultDeceleration: DEFAULT_ACC_DEC,
-            defaultRunningSpeedKmH: DEFAULT_SPEED,
-            maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
-            // Old: 2 segments [node1->node4, node4->node6]
-            segments: [
-                { travelTimeSeconds: 115, distanceMeters: 1500 },
-                { travelTimeSeconds: 82, distanceMeters: 1000 },
-            ],
-            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25],
-            _lastNodeChange: { type: 'insert' as const, index: 3 }
-        }
-    }) as any;
-
-    const routingResult = {
-        tracepoints: [node1, node4, node6, node2],
-        matchings: [{
-            confidence: 99,
-            distance: 3300,
-            duration: 220,
-            legs: [{
-                distance: 1500,
-                duration: 100,
-                steps: [{
-                    distance: 1500,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1000,
-                duration: 66.67,
-                steps: [{
-                    distance: 1000,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
-                }]
-            }, {
-                distance: 800,
-                duration: 53.34,
-                steps: [{
-                    distance: 800,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node6.geometry.coordinates, node2.geometry.coordinates] }
-                }]
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node2, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 2200, duration: 146.67,
+                legs: [
+                    { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
             }]
-        }]
-    };
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult]);
 
-    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithOldData, DEFAULT_SPEED/3.6);
-    generatePathGeographyFromRouting(pathWithOldData, nodeGeojson, [routingResult]);
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(2);
+        // Seg 0 maps to previous 1, seg 1 maps to previous 2
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(durationSegment2Seconds);
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(durationSegment3Seconds);
+    });
 
-    expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
-    expect(pathWithOldData.attributes.data.segments.length).toEqual(3);
-    // Seg 0 maps to old 0, seg 1 maps to old 1, seg 2 is new
-    expect(pathWithOldData.attributes.data.segments[0].travelTimeSeconds).toEqual(115);
-    expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(82);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds.length).toEqual(4);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds[0]).toEqual(0);
-});
+    test('remove middle node', async () => {
+        // Previous: [node1, node2, node4, node6] (3 segs), removed node2 at index 1
+        // Current: [node1, node4, node6] (2 segs)
+        const pathData = _cloneDeep(initialPathData);
+        pathData.nodes = [node1.properties.id, node4.properties.id, node6.properties.id];
+        pathData.data.nodeTypes = ['engine', 'engine', 'engine'];
+        pathData.data.waypoints = [[], [], []];
+        pathData.data.waypointTypes = [[], [], []];
+        pathData.data._lastNodeChange = { type: 'remove', index: 1 };
 
-test('Generate From Routing with remove last node', async() => {
-    // Old: [node1, node4, node6, node2] (3 segs), removed node2 at index 3
-    // New: [node1, node4, node6] (2 segs)
-    const pathWithOldData = new TransitPathStub({
-        id: 'path1',
-        line_id: line.get('id'),
-        nodes: [ node1.properties.id, node4.properties.id, node6.properties.id ],
-        data: {
-            nodeTypes: ['engine', 'engine', 'engine'],
-            waypoints: [[], [], []],
-            waypointTypes: [[], [], []],
-            routingEngine: 'engine',
-            routingMode: 'driving',
-            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
-            defaultAcceleration: DEFAULT_ACC_DEC,
-            defaultDeceleration: DEFAULT_ACC_DEC,
-            defaultRunningSpeedKmH: DEFAULT_SPEED,
-            maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
-            // Old: 3 segments [node1->node4, node4->node6, node6->node2]
-            segments: [
-                { travelTimeSeconds: 200, distanceMeters: 1500 },
-                { travelTimeSeconds: 150, distanceMeters: 1000 },
-                { travelTimeSeconds: 95, distanceMeters: 1200 },
-            ],
-            dwellTimeSeconds: [0, NODE4_DWELL_TIME, 25, 25],
-            _lastNodeChange: { type: 'remove' as const, index: 3 }
-        }
-    }) as any;
-
-    const routingResult = {
-        tracepoints: [node1, node4, node6],
-        matchings: [{
-            confidence: 99,
-            distance: 2500,
-            duration: 166.67,
-            legs: [{
-                distance: 1500,
-                duration: 100,
-                steps: [{
-                    distance: 1500,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
-                }]
-            }, {
-                distance: 1000,
-                duration: 66.67,
-                steps: [{
-                    distance: 1000,
-                    geometry: { type: 'LineString' as const,
-                        coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] }
-                }]
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node1, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 2700, duration: 180,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
             }]
-        }]
-    };
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult]);
 
-    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(pathWithOldData, DEFAULT_SPEED/3.6);
-    generatePathGeographyFromRouting(pathWithOldData, nodeGeojson, [routingResult]);
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(2);
+        // Seg 0 maps to -1 (merged), seg 1 maps to previous 2
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(durationSegment3Seconds);
+    });
 
-    expect(pathWithOldData.attributes.data.routingFailed).toBeFalsy();
-    expect(pathWithOldData.attributes.data.segments.length).toEqual(2);
-    // Seg 0 maps to old 0, seg 1 maps to old 1 (both unchanged)
-    expect(pathWithOldData.attributes.data.segments[0].travelTimeSeconds).toEqual(200);
-    expect(pathWithOldData.attributes.data.segments[1].travelTimeSeconds).toEqual(150);
-    expect(pathWithOldData.attributes.data.dwellTimeSeconds).toEqual([0, NODE4_DWELL_TIME, 25]);
+    test('remove last node', async () => {
+        // Previous: [node1, node2, node4, node6] (3 segs), removed node6 at index 3
+        // Current: [node1, node2, node4] (2 segs)
+        const pathData = _cloneDeep(initialPathData);
+        pathData.nodes = [node1.properties.id, node2.properties.id, node4.properties.id];
+        pathData.data.nodeTypes = ['engine', 'engine', 'engine'];
+        pathData.data.waypoints = [[], [], []];
+        pathData.data.waypointTypes = [[], [], []];
+        pathData.data._lastNodeChange = { type: 'remove', index: 3 };
+
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node1, node2, node4],
+            matchings: [{
+                confidence: 99, distance: 2500, duration: 166.67,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] } }] },
+                ]
+            }]
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult]);
+
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(2);
+        // Seg 0 maps to previous 0, seg 1 maps to previous 1 (both unchanged)
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(durationSegment1Seconds);
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(durationSegment2Seconds);
+    });
 });
 
 test('Generate From Routing with old dwell time zero adjusts ratio', async() => {

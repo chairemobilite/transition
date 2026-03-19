@@ -19,6 +19,7 @@ import {
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
+import type { SegmentChangeInfo } from './PathTypes';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -49,19 +50,7 @@ interface PathStatistics {
     n_s_p?: number | null;
 }
 
-export interface TimeAndDistance {
-    distanceMeters: number | null;
-    travelTimeSeconds: number;
-}
-
-/**
- * Describes a node change on a path: whether a node was inserted or removed, and at which index.
- * Used to remap segment indices when preserving travel times after a node edit.
- */
-export interface TypeNodeChange {
-    type: 'insert' | 'remove';
-    index: number;
-}
+import type { TimeAndDistance } from './PathTypes';
 
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
