@@ -60,8 +60,8 @@ import { comparisonModes } from './comparisonModes';
 import AccessibilityMapCoordinatesComponent from '../accessibilityMap/widgets/AccessibilityMapCoordinateComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
-import LocationModeColorInfo from './LocationModeColorInfo';
-import ScenarioModeColorInfo from './ScenarioModeColorInfo';
+import LocationModeColorInfo from './widgets/LocationModeColorInfo';
+import ScenarioModeColorInfo from './widgets/ScenarioModeColorInfo';
 
 export interface AccessibilityComparisonFormProps extends WithTranslation {
     addEventListeners?: () => void;
@@ -573,6 +573,13 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                 intersectionPolygonColor={this.state.intersectionPolygonColor}
                                 comparisonPolygon1Color={this.state.comparisonPolygon1Color}
                                 comparisonPolygon2Color={this.state.comparisonPolygon2Color}
+                                onValueChange={(colorToChange, newColor) => {
+                                    this.setState(Object.fromEntries([[colorToChange, newColor]]) as any);
+                                    if (colorToChange === 'intersectionLocationColor') {
+                                        routing.updatePointColor(newColor);
+                                        alternateRouting.updatePointColor(newColor);
+                                    }
+                                }}
                             />
                         )}
                         {mode === 'locations' && (
@@ -582,6 +589,15 @@ class AccessibilityComparisonForm extends ChangeEventsForm<AccessibilityComparis
                                 comparisonPolygon1Color={this.state.comparisonPolygon1Color}
                                 comparisonLocation2Color={this.state.comparisonLocation2Color}
                                 comparisonPolygon2Color={this.state.comparisonPolygon2Color}
+                                onValueChange={(colorToChange, newColor) => {
+                                    this.setState(Object.fromEntries([[colorToChange, newColor]]) as any);
+                                    if (colorToChange === 'comparisonLocation1Color') {
+                                        routing.updatePointColor(newColor);
+                                    }
+                                    if (colorToChange === 'comparisonLocation2Color') {
+                                        alternateRouting.updatePointColor(newColor);
+                                    }
+                                }}
                             />
                         )}
                     </Collapsible>
