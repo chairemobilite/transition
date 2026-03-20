@@ -215,4 +215,25 @@ export default class OSRMRoutingService extends RoutingService.default {
         });
         return Status.unwrap(routingResult);
     }
+
+    public async tableManyToMany(
+        params: RoutingService.TableManyToManyParameters
+    ): Promise<RoutingService.TableManyToManyResults> {
+        const routingResult = await this.callOsrmTableManyToMany({ ...params });
+        return Status.unwrap(routingResult);
+    }
+
+    private async callOsrmTableManyToMany(
+        params: RoutingService.TableManyToManyParameters
+    ): Promise<Status.Status<RoutingService.TableManyToManyResults>> {
+        return new Promise((resolve) => {
+            serviceLocator.socketEventManager.emit(
+                'service.osrmRouting.tableManyToMany',
+                params,
+                (tableResult: Status.Status<RoutingService.TableManyToManyResults>) => {
+                    resolve(tableResult);
+                }
+            );
+        });
+    }
 }

@@ -35,6 +35,18 @@ const NotificationArea: React.FC = () => {
     };
 
     const notificationListener = React.useCallback((notification: Notification): void => {
+        if (notification.type === 'clearProgress') {
+            setNotifications((prev) => {
+                if (prev[notification.name] === undefined) {
+                    return prev;
+                }
+                const next = { ...prev };
+                delete next[notification.name];
+                return next;
+            });
+            return;
+        }
+
         const hideNotificationTimeout = (notificationName: string) => {
             return setTimeout(hideNotification, 1000, notificationName);
         };

@@ -53,7 +53,7 @@ export const parseCsvFile = async (
     options: Partial<CsvFileAttributes>
 ): Promise<'completed'> => {
     const attributes = {
-        skipEmptyLines: options.skipEmptyLines || 'greedy',
+        skipEmptyLines: options.skipEmptyLines !== undefined ? options.skipEmptyLines : 'greedy',
         header: options.header === undefined ? true : options.header,
         newline: options.newline
     };
