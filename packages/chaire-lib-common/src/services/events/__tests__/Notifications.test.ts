@@ -33,6 +33,11 @@ describe('No listener', () => {
         serviceLocator.socketEventManager.emit('progressCount', { name: 'test', progress: 3 });
         serviceLocator.eventManager.emit('progressCount', { name: 'test', progress: 3 });
     });
+
+    test('progress clear notification', () => {
+        serviceLocator.socketEventManager.emit('progressClear', { name: 'test' });
+        serviceLocator.eventManager.emit('progressClear', { name: 'test' });
+    });
 });
 
 each([
@@ -45,6 +50,12 @@ each([
     beforeEach(() => {
         listener1.mockClear();
     })
+
+    test('progress clear forwards to listener', () => {
+        eventEmitter.emit('progressClear', { name: 'clearme' });
+        expect(listener1).toHaveBeenCalledTimes(1);
+        expect(listener1).toHaveBeenLastCalledWith({ type: 'clearProgress', name: 'clearme' });
+    });
     
     test('error notification', () => {
         const error = { name: 'foo', error: 'there was an error' };

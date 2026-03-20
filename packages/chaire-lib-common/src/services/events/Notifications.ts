@@ -33,6 +33,11 @@ export type Notification =
           name: string;
           message: string[];
           done: boolean;
+      }
+    /** Remove the in-progress notification for this name without marking the task complete. */
+    | {
+          type: 'clearProgress';
+          name: string;
       };
 
 class NotificationServiceImpl implements NotificationService {
@@ -51,6 +56,7 @@ class NotificationServiceImpl implements NotificationService {
         // TODO: Extract those event names to some API file
         eventEmitter.on('progress', this.progressNotification);
         eventEmitter.on('progressCount', this.progressCountNotification);
+        eventEmitter.on('progressClear', this.clearProgressNotification);
         eventEmitter.on('error', this.errorNotification);
     };
 
@@ -58,6 +64,7 @@ class NotificationServiceImpl implements NotificationService {
         // TODO: Extract those event names to some API file
         eventEmitter.off('progress', this.progressNotification);
         eventEmitter.off('progressCount', this.progressCountNotification);
+        eventEmitter.off('progressClear', this.clearProgressNotification);
         eventEmitter.off('error', this.errorNotification);
     };
 
@@ -101,6 +108,10 @@ class NotificationServiceImpl implements NotificationService {
             done: progressData.progress === -1
         };
         this.notifyListeners(newNotification);
+    };
+
+    clearProgressNotification = (data: { name: string }) => {
+        this.notifyListeners({ type: 'clearProgress', name: data.name });
     };
 
     private errorNotification = (progressData: { name: string; error: string }) => {
