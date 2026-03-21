@@ -536,7 +536,7 @@ describe('Replace waypoint by node id', () => {
         expect(path.attributes.data.waypointTypes).toEqual(expected.waypointTypes || preData.waypointTypes || []);
         expect(updateGeographyMock).toHaveBeenCalledTimes(expected.calculateGeography !== false ? 1 : 0);
         if (expected.calculateGeography !== false) {
-            expect(path.attributes.data._lastNodeChange).toEqual({ type: 'insert', index: insertAfterNodeIdx + 1 });
+            expect(updateGeographyMock).toHaveBeenCalledWith(path, { lastNodeChange: { type: 'insert', index: insertAfterNodeIdx + 1 } });
         }
     });
 });
@@ -575,7 +575,7 @@ describe('Insert node ID', () => {
         expect(updateGeographyMock).toHaveBeenCalledTimes(expected.calculateGeography !== false ? 1 : 0);
         // When insertIndex is undefined/null, node is appended at the end
         const expectedInsertIndex = insertIndex === undefined ? (preData.nodes || []).length : insertIndex;
-        expect(path.attributes.data._lastNodeChange).toEqual({ type: 'insert', index: expectedInsertIndex });
+        expect(updateGeographyMock).toHaveBeenCalledWith(path, { lastNodeChange: { type: 'insert', index: expectedInsertIndex } });
     });
 });
 
@@ -613,7 +613,7 @@ describe('Remove node', () => {
         expect(path.attributes.data.waypointTypes).toEqual(expected.waypointTypes || preData.waypointTypes || []);
         expect(updateGeographyMock).toHaveBeenCalledTimes(expected.calculateGeography !== false ? 1 : 0);
         if (expected.calculateGeography !== false) {
-            expect(path.attributes.data._lastNodeChange).toEqual({ type: 'remove', index: expectedRemoveIndex });
+            expect(updateGeographyMock).toHaveBeenCalledWith(path, { lastNodeChange: { type: 'remove', index: expectedRemoveIndex } });
         }
     });
 
