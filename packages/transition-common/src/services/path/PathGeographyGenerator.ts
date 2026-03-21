@@ -149,13 +149,11 @@ const calculateSegmentDuration = (
             ? routedDurationSeconds
             : segmentDistanceMeters / runningSpeedMps;
 
-    const calculatedSegmentDurationSeconds = Math.ceil(
-        durationFromAccelerationDecelerationDistanceAndRunningSpeed(
-            acceleration,
-            deceleration,
-            segmentDistanceMeters,
-            runningSpeedMps
-        )
+    const calculatedSegmentDurationSeconds = durationFromAccelerationDecelerationDistanceAndRunningSpeed(
+        acceleration,
+        deceleration,
+        segmentDistanceMeters,
+        runningSpeedMps
     );
 
     if (calculatedSegmentDurationSeconds <= 0) {
@@ -508,7 +506,7 @@ const buildSegmentsAndGeometry = (
 
         appendLegCoordinates(leg, globalCoordinates);
 
-        segmentTimeAndDistance.travelTimeSeconds += Math.ceil(leg.duration);
+        segmentTimeAndDistance.travelTimeSeconds += leg.duration;
         segmentTimeAndDistance.distanceMeters = (segmentTimeAndDistance.distanceMeters || 0) + Math.ceil(leg.distance);
 
         // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
@@ -599,12 +597,11 @@ const adjustSegmentTime = (
             initial,
             changesInfo
         );
-        current.segmentsData[segmentIndex].travelTimeSeconds = Math.ceil(initialTime! - adjustment);
+        current.segmentsData[segmentIndex].travelTimeSeconds = initialTime! - adjustment;
     } else {
         // New or modified segment: scale the routing-calculated time by the ratio from existing data
-        current.segmentsData[segmentIndex].travelTimeSeconds = Math.ceil(
-            current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime
-        );
+        current.segmentsData[segmentIndex].travelTimeSeconds =
+            current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime;
     }
 };
 
@@ -663,25 +660,19 @@ const adjustTimesAndComputeTotals = (
 /**
  * Orchestrates the path geography update from routing results.
  *
- * Reads and clears temporary change markers from the path (`_lastNodeChange`,
- * `_lastWaypointChangedSegmentIndex`), then delegates to {@link buildSegmentsAndGeometry}
- * to produce the new geometry and per-segment data, and {@link adjustTimesAndComputeTotals}
- * to finalize travel times and compute path-level totals. Updates the path's geography,
- * segments, and data attributes in place.
+ * Delegates to {@link buildSegmentsAndGeometry} to produce the new geometry and per-segment
+ * data, and {@link adjustTimesAndComputeTotals} to finalize travel times and compute
+ * path-level totals. Updates the path's geography, segments, and data attributes in place.
  *
  * @param path - The path object to update
  * @param routing - Routing results (matched points and legs between them)
+ * @param changesInfo - Info about recent node/waypoint changes that affect segment mapping
  */
-const handleLegs = (path: Path, routing: RoutingResult) => {
-    const lastNodeChange = path.attributes.data._lastNodeChange;
-    delete path.attributes.data._lastNodeChange;
-    const lastWaypointChangedSegmentIndex = path.attributes.data._lastWaypointChangedSegmentIndex;
-    delete path.attributes.data._lastWaypointChangedSegmentIndex;
+const handleLegs = (path: Path, routing: RoutingResult, changesInfo: SegmentChangeInfo) => {
     const initial: SegmentData = {
         segmentsData: path.attributes.data.segments || [],
         dwellTimeDurationsSeconds: path.attributes.data.dwellTimeSeconds || []
     };
-    const changesInfo: SegmentChangeInfo = { lastNodeChange, lastWaypointChangedSegmentIndex };
 
     const geometryResult = buildSegmentsAndGeometry(path, routing, initial, changesInfo);
 
@@ -724,11 +715,13 @@ const handleLegs = (path: Path, routing: RoutingResult) => {
  * @param points The points by which the generated path will pass and between
  * the various segments were calculated
  * @param segmentResults The geography results
+ * @param changesInfo Info about recent node/waypoint changes that affect segment mapping
  */
 export const generatePathGeographyFromRouting = (
     path: any,
     points: Geojson.FeatureCollection<Geojson.Point>,
-    segmentResults: MapMatchingResults[]
+    segmentResults: MapMatchingResults[],
+    changesInfo: SegmentChangeInfo = {}
 ) => {
     const legResults: (MapLeg | null)[] = [];
     let currentPointIndex = 0;
@@ -769,7 +762,7 @@ export const generatePathGeographyFromRouting = (
 
     try {
         const routing: RoutingResult = { points: points.features, legs: legResults };
-        handleLegs(path, routing);
+        handleLegs(path, routing, changesInfo);
     } catch (error) {
         throw new TrError(
             'Error trying to generate a path geography:' + error,
