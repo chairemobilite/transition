@@ -509,6 +509,7 @@
         "FromStation": "De",
         "ToStation": "À",
         "NoTripsGeneratedInfo": "Aucun voyage n'a été généré pour ce service. Pour voir et modifier les temps de segment par période, générez d'abord les voyages pour l'horaire dans la section des horaires de cette ligne.",
+        "ShowServicesIndividually": "Afficher les services individuellement",
         "CurrentTotal": "Total actuel",
         "TargetTotal": "Total cible",
         "DistributeToSegments": "Distribuer aux segments",

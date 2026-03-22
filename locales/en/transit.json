@@ -509,6 +509,7 @@
         "FromStation": "From",
         "ToStation": "To",
         "NoTripsGeneratedInfo": "No trips have been generated for this service yet. To see and edit segment times per period, first generate trips for the timetable in the timetables section of this line.",
+        "ShowServicesIndividually": "Show services individually",
         "CurrentTotal": "Current total",
         "TargetTotal": "Target total",
         "DistributeToSegments": "Distribute to segments",

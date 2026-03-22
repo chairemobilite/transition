@@ -8,6 +8,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
 type NodeChoice = {
@@ -15,7 +16,7 @@ type NodeChoice = {
     label: string;
 };
 
-type PeriodsGroupChoice = {
+type ServiceChoice = {
     value: string;
     label: string;
 };
@@ -28,9 +29,11 @@ type SegmentTimesToolbarProps = {
     onNewCheckpointFromChange: (value: number) => void;
     onNewCheckpointToChange: (value: number) => void;
     onAddCheckpoint: () => void;
-    selectedPeriodsGroup: string;
-    periodsGroupChoices: PeriodsGroupChoice[];
-    onPeriodsGroupChange: (value: string) => void;
+    selectedServiceId: string;
+    serviceChoices: ServiceChoice[];
+    onServiceChange: (value: string) => void;
+    noGrouping: boolean;
+    onNoGroupingChange: (value: boolean) => void;
 };
 
 const selectStyle: React.CSSProperties = {
@@ -52,9 +55,11 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
     onNewCheckpointFromChange,
     onNewCheckpointToChange,
     onAddCheckpoint,
-    selectedPeriodsGroup,
-    periodsGroupChoices,
-    onPeriodsGroupChange
+    selectedServiceId,
+    serviceChoices,
+    onServiceChange,
+    noGrouping,
+    onNoGroupingChange
 }) => {
     const { t } = useTranslation('transit');
 
@@ -71,7 +76,15 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
             }}
         >
             {/* Add checkpoint mini-form — left */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85em', width: '60%' }}>
+            <span
+                style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    fontSize: '0.85em',
+                    width: '60%'
+                }}
+            >
                 <span style={{ opacity: 0.7, flexShrink: 0 }}>{t('transit:transitPath:FromStation')}:</span>
                 <select
                     data-testid="new-cp-from"
@@ -84,7 +97,9 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                     style={selectStyle}
                 >
                     {nodeChoices.slice(0, -1).map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
+                        <option key={c.value} value={c.value}>
+                            {c.label}
+                        </option>
                     ))}
                 </select>
                 <span style={{ opacity: 0.7, flexShrink: 0 }}>{t('transit:transitPath:ToStation')}:</span>
@@ -94,29 +109,39 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                     onChange={(e) => onNewCheckpointToChange(parseInt(e.target.value, 10))}
                     style={selectStyle}
                 >
-                    {nodeChoices.filter((_, idx) => idx > newCheckpointFrom).map((c) => (
-                        <option key={c.value} value={c.value}>{c.label}</option>
-                    ))}
+                    {nodeChoices
+                        .filter((_, idx) => idx > newCheckpointFrom)
+                        .map((c) => (
+                            <option key={c.value} value={c.value}>
+                                {c.label}
+                            </option>
+                        ))}
                 </select>
-                <Button
-                    color="blue"
-                    label={`+ ${t('transit:transitPath:AddCheckpoint')}`}
-                    onClick={onAddCheckpoint}
-                />
+                <Button color="blue" label={`+ ${t('transit:transitPath:AddCheckpoint')}`} onClick={onAddCheckpoint} />
             </span>
 
             <span style={{ marginLeft: 'auto' }} />
 
-            {/* Periods group selector — right */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.85em' }}>
-                <label>{t('transit:transitPath:PeriodsGroup')}</label>
-                <InputSelect
-                    id="segmentTimesByPeriod_periodsGroup"
-                    value={selectedPeriodsGroup}
-                    choices={periodsGroupChoices}
-                    onValueChange={(e) => onPeriodsGroupChange(e.target.value)}
-                    noBlank={true}
-                />
+            {/* Service selector with no-grouping toggle stacked below */}
+            <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.85em' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <label>{t('transit:transitService:Service')}</label>
+                    <InputSelect
+                        id="segmentTimesByPeriod_service"
+                        value={selectedServiceId}
+                        choices={serviceChoices}
+                        onValueChange={(e) => onServiceChange(e.target.value)}
+                        noBlank={true}
+                    />
+                </span>
+                <span style={{ alignSelf: 'flex-end' }}>
+                    <InputCheckboxBoolean
+                        id="segmentTimesByPeriod_noGrouping"
+                        isChecked={noGrouping}
+                        label={t('transit:transitPath:ShowServicesIndividually')}
+                        onValueChange={(e) => onNoGroupingChange(e.target.value)}
+                    />
+                </span>
             </span>
         </div>
     );
