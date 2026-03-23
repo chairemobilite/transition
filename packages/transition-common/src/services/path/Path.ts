@@ -94,7 +94,11 @@ export interface PathAttributesData {
     gtfs?: {
         shape_id: string;
     };
-    segmentsByPeriod?: { [periodShortname: string]: PeriodSegmentData };
+    segmentsByPeriodAndService?: {
+        [periodShortname: string]: {
+            [serviceId: string]: PeriodSegmentData;
+        };
+    };
     increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
     // FIXME: Consider putting all those calculated path data in a single object where each is not optional
     operatingTimeWithoutLayoverTimeSeconds?: number;
@@ -828,17 +832,35 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     }
 
     /**
-     * Get per-period segment data for the given period shortname.
-     * Falls back to synthesizing from global segments/dwellTimeSeconds if
-     * no per-period data is available.
+     * Get per-period segment data for a specific period and service.
      *
-     * @param periodShortname - The period shortname to look up
-     * @returns The period segment data, or undefined if no data is available at all
+     * Fallback chain:
+     * 1. Exact match for (periodShortname, serviceId)
+     * 2. Average across all services for that period
+     * 3. Global segments/dwellTimeSeconds synthesized into PeriodSegmentData
+     */
+    getSegmentsForPeriodAndService(periodShortname: string, serviceId: string): PeriodSegmentData | undefined {
+        const exactMatch = this.attributes.data.segmentsByPeriodAndService?.[periodShortname]?.[serviceId];
+        if (exactMatch) {
+            return exactMatch;
+        }
+        return this.getSegmentsForPeriod(periodShortname);
+    }
+
+    /**
+     * Get per-period segment data aggregated across all services.
+     * Falls back to synthesizing from global segments/dwellTimeSeconds.
      */
     getSegmentsForPeriod(periodShortname: string): PeriodSegmentData | undefined {
-        const periodData = this.attributes.data.segmentsByPeriod?.[periodShortname];
-        if (periodData) {
-            return periodData;
+        const serviceEntries = this.attributes.data.segmentsByPeriodAndService?.[periodShortname];
+        if (serviceEntries) {
+            const allData = Object.values(serviceEntries);
+            if (allData.length === 1) {
+                return allData[0];
+            }
+            if (allData.length > 1) {
+                return this._averagePeriodSegmentData(allData);
+            }
         }
 
         // Fall back to global segments
@@ -869,6 +891,61 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         };
     }
 
+    private _averagePeriodSegmentData(dataArray: PeriodSegmentData[]): PeriodSegmentData {
+        const numSegments = Math.min(...dataArray.map((d) => d.segments.length));
+        const numStops = Math.min(...dataArray.map((d) => d.dwellTimeSeconds.length));
+        const totalTripCount = dataArray.reduce((sum, d) => sum + d.tripCount, 0);
+
+        const avgSegments: TimeAndDistance[] = [];
+        const avgDwell: number[] = [];
+
+        for (let i = 0; i < numSegments; i++) {
+            let travelSum = 0;
+            let distSum = 0;
+            let hasDistance = false;
+            for (const d of dataArray) {
+                travelSum += d.segments[i].travelTimeSeconds * d.tripCount;
+                if (d.segments[i].distanceMeters !== null) {
+                    distSum += d.segments[i].distanceMeters! * d.tripCount;
+                    hasDistance = true;
+                }
+            }
+            avgSegments.push({
+                travelTimeSeconds: Math.round(travelSum / totalTripCount),
+                distanceMeters: hasDistance ? Math.round(distSum / totalTripCount) : null
+            });
+        }
+
+        for (let i = 0; i < numStops; i++) {
+            let dwellSum = 0;
+            for (const d of dataArray) {
+                dwellSum += d.dwellTimeSeconds[i] * d.tripCount;
+            }
+            avgDwell.push(Math.round(dwellSum / totalTripCount));
+        }
+
+        const travelTimeWithoutDwellTimesSeconds = avgSegments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
+        const totalDwellTime = avgDwell.reduce((sum, d) => sum + d, 0);
+        const operatingTimeWithoutLayoverTimeSeconds = travelTimeWithoutDwellTimesSeconds + totalDwellTime;
+        const totalDistanceMeters = this.attributes.data.totalDistanceMeters ?? 0;
+
+        return {
+            segments: avgSegments,
+            dwellTimeSeconds: avgDwell,
+            travelTimeWithoutDwellTimesSeconds,
+            operatingTimeWithoutLayoverTimeSeconds,
+            averageSpeedWithoutDwellTimesMetersPerSecond:
+                travelTimeWithoutDwellTimesSeconds > 0
+                    ? Math.round((totalDistanceMeters / travelTimeWithoutDwellTimesSeconds) * 100) / 100
+                    : 0,
+            operatingSpeedMetersPerSecond:
+                operatingTimeWithoutLayoverTimeSeconds > 0
+                    ? Math.round((totalDistanceMeters / operatingTimeWithoutLayoverTimeSeconds) * 100) / 100
+                    : 0,
+            tripCount: totalTripCount
+        };
+    }
+
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
@@ -881,7 +958,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
-            segmentsByPeriod: null,
+            segmentsByPeriodAndService: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now

@@ -12,7 +12,7 @@ import pQueue from 'p-queue';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { hoursToSeconds, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsInternalData, StopTime, Frequencies } from './GtfsImportTypes';
+import { GtfsInternalData, StopTime, Frequencies, ProgressEmitFn } from './GtfsImportTypes';
 import { Period, findPeriodShortname } from 'transition-common/lib/services/periods/Period';
 import Schedule, { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
