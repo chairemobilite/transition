@@ -6,10 +6,11 @@
  */
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
-import { Path } from 'transition-common/lib/services/path/Path';
+import { Path, PeriodSegmentData } from 'transition-common/lib/services/path/Path';
 import type { TimeAndDistance } from 'transition-common/lib/services/path/PathTypes';
-import { StopTime } from '../gtfsImport/GtfsImportTypes';
+import { StopTime, TripStopTimesWithService } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
+import { Period, findPeriodShortname } from 'transition-common/lib/services/periods/Period';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import {
     length as turfLength,
@@ -102,6 +103,82 @@ export const computeSegmentTimesFromStopTimes = (
         totalTravelTimeWithoutDwellTimesSeconds,
         totalTravelTimeWithDwellTimesSeconds: totalDwellTimeSeconds + totalTravelTimeWithoutDwellTimesSeconds
     };
+};
+
+/**
+ * Groups trips by (period, service) and computes averaged segment travel times per bucket.
+ *
+ * @param params.tripsWithService - Stop times and service ID for each trip on this path
+ * @param params.segmentDistancesMeters - Distance in meters per segment, or null if unavailable
+ * @param params.periods - Period definitions (from import config)
+ * @param params.totalDistanceMeters - Total path distance in meters (for speed calculations)
+ * @returns Nested map: period shortname → service ID → PeriodSegmentData
+ */
+export const computeSegmentTimesByPeriodAndService = (params: {
+    tripsWithService: TripStopTimesWithService[];
+    segmentDistancesMeters: (number | null)[];
+    periods: Period[];
+    totalDistanceMeters: number;
+}): { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } } => {
+    const { tripsWithService, segmentDistancesMeters, periods, totalDistanceMeters } = params;
+    if (periods.length === 0) {
+        return {};
+    }
+
+    // Group trips by (period, serviceId) using first stop's departure time
+    const bucketKey = (period: string, service: string) => `${period}\0${service}`;
+    const tripsByBucket = new Map<string, StopTime[][]>();
+    const bucketMeta = new Map<string, { period: string; serviceId: string }>();
+
+    for (const { stopTimes, serviceId } of tripsWithService) {
+        const departureTime = stopTimes[0].departureTimeSeconds;
+        const periodShortname = findPeriodShortname(periods, departureTime);
+        if (periodShortname === null) {
+            continue;
+        }
+        const key = bucketKey(periodShortname, serviceId);
+        const bucket = tripsByBucket.get(key);
+        if (bucket) {
+            bucket.push(stopTimes);
+        } else {
+            tripsByBucket.set(key, [stopTimes]);
+            bucketMeta.set(key, { period: periodShortname, serviceId });
+        }
+    }
+
+    // Compute per-bucket segment averages
+    const result: { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } } = {};
+    for (const [key, bucketTrips] of tripsByBucket) {
+        const { period, serviceId } = bucketMeta.get(key)!;
+        const segmentTimes = computeSegmentTimesFromStopTimes(bucketTrips, segmentDistancesMeters);
+        const {
+            segmentsData,
+            dwellTimeSecondsData,
+            totalTravelTimeWithoutDwellTimesSeconds,
+            totalTravelTimeWithDwellTimesSeconds
+        } = segmentTimes;
+
+        if (!result[period]) {
+            result[period] = {};
+        }
+        result[period][serviceId] = {
+            segments: segmentsData,
+            dwellTimeSeconds: dwellTimeSecondsData,
+            travelTimeWithoutDwellTimesSeconds: totalTravelTimeWithoutDwellTimesSeconds,
+            operatingTimeWithoutLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds,
+            averageSpeedWithoutDwellTimesMetersPerSecond:
+                totalTravelTimeWithoutDwellTimesSeconds > 0
+                    ? Math.round((totalDistanceMeters / totalTravelTimeWithoutDwellTimesSeconds) * 100) / 100
+                    : 0,
+            operatingSpeedMetersPerSecond:
+                totalTravelTimeWithDwellTimesSeconds > 0
+                    ? Math.round((totalDistanceMeters / totalTravelTimeWithDwellTimesSeconds) * 100) / 100
+                    : 0,
+            tripCount: bucketTrips.length
+        };
+    }
+
+    return result;
 };
 
 /**
@@ -419,7 +496,9 @@ export const generateGeographyAndSegmentsFromGtfs = (
     shapeGtfsId: string,
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
-    defaultMinLayoverTimeSeconds = 180
+    defaultMinLayoverTimeSeconds = 180,
+    periods: Period[] = [],
+    tripsWithService: TripStopTimesWithService[] = []
 ): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
@@ -510,9 +589,16 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
+        const segmentsByPeriodAndService = computeSegmentTimesByPeriodAndService({
+            tripsWithService,
+            segmentDistancesMeters: nullDistances,
+            periods,
+            totalDistanceMeters: totalDistanceInMeters
+        });
+
         // FIXME: segments should have the same length as nodes, but we have no shape data to generate them from
         path.attributes.segments = [];
-        path.attributes.data = Object.assign(path.attributes.data, pathData);
+        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByPeriodAndService });
     } else {
         if (!shapeDistancesAreInMeters) {
             normalizeDistancesToMeters(stopTimeDistances, totalDistanceInMeters);
@@ -532,10 +618,17 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
+        const segmentsByPeriodAndService = computeSegmentTimesByPeriodAndService({
+            tripsWithService,
+            segmentDistancesMeters: sliceResult.segmentDistancesMeters,
+            periods,
+            totalDistanceMeters: totalDistanceInMeters
+        });
+
         completeShape.geometry.coordinates = sliceResult.pathCoordinates;
 
         path.attributes.segments = sliceResult.segments;
-        path.attributes.data = Object.assign(path.attributes.data, pathData);
+        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByPeriodAndService });
 
         const terminalsGeojsons = [
             path.collectionManager.get('nodes').getById(nodeIds[0]),
@@ -563,7 +656,9 @@ export const generateGeographyAndSegmentsFromStopTimes = (
     allTripsStopTimes: StopTime[][],
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
-    defaultMinLayoverTimeSeconds = 180
+    defaultMinLayoverTimeSeconds = 180,
+    periods: Period[] = [],
+    tripsWithService: TripStopTimesWithService[] = []
 ): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
@@ -624,9 +719,19 @@ export const generateGeographyAndSegmentsFromStopTimes = (
         defaultMinLayoverTimeSeconds
     );
     const pathData = buildPathData({ segmentTimes, layoverTimeSeconds, totalDistanceMeters: totalDistanceInMeters });
+<<<<<<< HEAD
+    const segmentsByPeriodAndService = computeSegmentTimesByPeriodAndService(
+=======
+    const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
+>>>>>>> 9cbe11b1 (fixup! Compute segment travel times by period and service during GTFS import)
+        tripsWithService,
+        segmentDistancesMeters: nullDistances,
+        periods,
+        totalDistanceMeters: totalDistanceInMeters
+    });
 
     path.attributes.segments = segments;
-    path.attributes.data = Object.assign(path.attributes.data, pathData);
+    path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByPeriodAndService });
 
     path.setData('gtfs', { shape_id: undefined });
     path.setData('from_gtfs', true);

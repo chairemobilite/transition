@@ -17,10 +17,13 @@ export type PeriodsGroup = {
     periods: Period[];
 };
 
+const MAX_OVERFLOW_SECONDS = 6 * 3600; // 6 hours
+
 /**
  * Finds the period shortname for a given time in seconds since midnight.
  * Returns null if the time does not fall within any period.
- * If the time exceeds the last period's end, it is assigned to the last period.
+ * If the time exceeds the last period's end by up to 6 hours, it is assigned
+ * to the last period (covers late-night transit service). Beyond that, returns null.
  *
  * @param periods - Array of periods to search
  * @param timeSecondsSinceMidnight - Time in seconds since midnight
@@ -36,9 +39,13 @@ export const findPeriodShortname = (periods: Period[], timeSecondsSinceMidnight:
             return period.shortname;
         }
     }
-    if (timeSecondsSinceMidnight >= periods[periods.length - 1].endAtHour * 3600) {
-        // assign to last period if outside range
-        return periods[periods.length - 1].shortname;
+    const lastPeriod = periods[periods.length - 1];
+    const lastEndSeconds = lastPeriod.endAtHour * 3600;
+    if (
+        timeSecondsSinceMidnight >= lastEndSeconds &&
+        timeSecondsSinceMidnight < lastEndSeconds + MAX_OVERFLOW_SECONDS
+    ) {
+        return lastPeriod.shortname;
     }
     return null;
 };
