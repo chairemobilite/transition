@@ -35,6 +35,11 @@ export interface FrequencyImportData {
     [key: string]: Frequencies[];
 }
 
+export type TripStopTimesWithService = {
+    stopTimes: StopTime[];
+    serviceId: string;
+};
+
 export interface GtfsInternalData {
     agencyIdsByAgencyGtfsId: { [key: string]: string };
     lineIdsByRouteGtfsId: { [key: string]: string };
