@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
 
-import type { Checkpoint, EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
+import type { ResolvedCheckpoint, EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import CheckpointLines from './CheckpointLines';
 import SegmentLines from './SegmentLines';
 import NodeDots from './NodeDots';
@@ -21,7 +21,7 @@ type TransitLineOverviewProps = {
     nodeLabels: string[];
     activeSegmentIndex: number;
     onSegmentClick: (index: number) => void;
-    checkpoints: Checkpoint[];
+    checkpoints: ResolvedCheckpoint[];
     activeCheckpointIndex: number;
     editMode: EditMode;
     onCheckpointClick: (index: number) => void;

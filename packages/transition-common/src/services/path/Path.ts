@@ -96,7 +96,7 @@ export interface PathAttributesData {
     waypoints: [number, number][][];
     waypointTypes: string[][];
     segments?: TimeAndDistance[];
-    segmentTimesCheckpoints?: { fromNodeIndex: number; toNodeIndex: number }[];
+    segmentTimesCheckpoints?: { fromNodeId: string; toNodeId: string }[];
     dwellTimeSeconds?: number[];
     gtfs?: {
         shape_id: string;
