@@ -154,3 +154,17 @@ export type DecayFunctionParameters =
     | GammaDecayParameters
     | CombinedDecayParameters
     | LogisticDecayParameters;
+
+/**
+ * Keys of decay parameter objects that must be strictly positive per the
+ * interfaces above. Excludes logistic {@link LogisticDecayParameters.x0}
+ * (inflection point; zero or negative may be valid depending on units).
+ */
+export const DECAY_STRICTLY_POSITIVE_PARAMETER_KEYS = ['beta', 'a', 'b', 'c', 'beta1', 'beta2'] as const;
+
+export type DecayStrictlyPositiveParameterKey = (typeof DECAY_STRICTLY_POSITIVE_PARAMETER_KEYS)[number];
+
+/**
+ * Lower bound used in UIs / client validation for strictly positive decay parameters.
+ */
+export const MIN_STRICTLY_POSITIVE_DECAY = 1e-6;
