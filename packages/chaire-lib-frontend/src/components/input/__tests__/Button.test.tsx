@@ -86,3 +86,29 @@ test('Test icon', () => {
     expect(container).toMatchSnapshot();
 });
 
+test('Test icon with iconSpin false', () => {
+    const { container } = render(<Button
+        onClick={mockOnClick}
+        label={testLabel}
+        icon={faCoffee}
+        iconClass="myIconClass"
+        iconSpin={false}
+    />);
+    const svg = container.querySelector('svg');
+    expect(svg?.classList.contains('fa-spin')).toBe(false);
+    expect(container).toMatchSnapshot();
+});
+
+test('Test icon with iconSpin true', () => {
+    const { container } = render(<Button
+        onClick={mockOnClick}
+        label={testLabel}
+        icon={faCoffee}
+        iconClass="myIconClass"
+        iconSpin={true}
+    />);
+    const svg = container.querySelector('svg');
+    expect(svg?.classList.contains('fa-spin')).toBe(true);
+    expect(container).toMatchSnapshot();
+});
+

@@ -21,6 +21,8 @@ export type ButtonProps = {
     color?: string;
     size?: string;
     icon?: IconProp;
+    /** When true, the icon spins (e.g. loading). */
+    iconSpin?: boolean;
     iconClass?: string;
     iconPath?: string;
     disabled?: boolean;
@@ -81,7 +83,11 @@ export class Button extends React.Component<ButtonProps> {
                 <div className={this.props.align} style={this.props.style || {}}>
                     <a {...attributes}>
                         {this.props.icon && (
-                            <FontAwesomeIcon icon={this.props.icon} className={`${this.props.iconClass}`} />
+                            <FontAwesomeIcon
+                                icon={this.props.icon}
+                                spin={this.props.iconSpin === true}
+                                className={`${this.props.iconClass}`}
+                            />
                         )}
                         {this.props.iconPath && (
                             <img
@@ -120,7 +126,11 @@ export class Button extends React.Component<ButtonProps> {
                         onClick={this.onClickButton}
                     >
                         {this.props.icon && (
-                            <FontAwesomeIcon icon={this.props.icon} className={`${this.props.iconClass}`} />
+                            <FontAwesomeIcon
+                                icon={this.props.icon}
+                                spin={this.props.iconSpin === true}
+                                className={`${this.props.iconClass}`}
+                            />
                         )}
                         {this.props.iconPath && (
                             <img
