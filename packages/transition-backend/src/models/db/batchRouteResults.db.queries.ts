@@ -34,6 +34,26 @@ const create = async (result: TripJobResult): Promise<void> => {
     }
 };
 
+// TODO Should we remove create and juste keep createMany ? Either keep the create interface that calls createMany or delete it completely
+const createMany = async (results: TripJobResult[]): Promise<void> => {
+    if (results.length === 0) return;
+    try {
+        await knex(tableName).insert(
+            results.map((result) => ({
+                job_id: result.jobId,
+                trip_index: result.tripIndex,
+                data: result.data
+            }))
+        );
+    } catch (error) {
+        throw new TrError(
+            `Cannot bulk insert ${results.length} results for job ${results[0].jobId} in table ${tableName} (knex error: ${error})`,
+            'DBBRR0004',
+            'DatabaseCannotBulkCreateBecauseDatabaseError'
+        );
+    }
+};
+
 const attributesParser = ({
     job_id,
     trip_index,
@@ -171,6 +191,7 @@ const deleteForJob = async (jobId: number, tripIndex?: number): Promise<void> =>
 
 export default {
     create,
+    createMany,
     collection,
     streamResults,
     countResults,
