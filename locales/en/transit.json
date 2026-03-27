@@ -56,7 +56,88 @@
         "editSelectedNodes": "Edit selected nodes",
         "selectedNodesCount": "Selected editable nodes: {{count}}",
         "editFrozenSelectedNodesWarning": "only unfrozen nodes will be saved",
-        "DeleteAllUnusedNodes": "Delete all unused nodes"
+        "DeleteAllUnusedNodes": "Delete all unused nodes",
+        "accessibilityWeighting": {
+            "SectionTitle": "Node accessibility weighting",
+            "NoWeightingsYet": "No node accessibility weightings yet. Create one to compute node weights from a POI or OD trips file.",
+            "CreateNew": "Create new node accessibility weighting",
+            "Close": "Close",
+            "JobName": "Node accessibility weighting job name",
+            "StartWeighting": "Start accessibility weighting",
+            "DuplicateJob": "Duplicate node accessibility weighting",
+            "Cancel": "Cancel",
+            "Pause": "Pause",
+            "Pausing": "Pausing…",
+            "Resume": "Resume",
+            "Starting": "Starting node accessibility weighting...",
+            "Paused": "Node accessibility weighting paused",
+            "Complete": "Node accessibility weighting complete",
+            "Running": "Node accessibility weighting in progress...",
+            "Failed": "Node accessibility weighting failed",
+            "Cancelled": "Node accessibility weighting cancelled",
+            "CheckpointNote": "Progress is saved after each batch of points. Paused jobs can be resumed. After a server restart, pending or in-progress jobs are re-queued automatically. To run again after completion or cancellation, use Duplicate in the list (same settings and CSV file).",
+            "RestartWarning": "Progress is saved after each batch of points. Paused jobs can be resumed. After a server restart, pending or in-progress jobs are re-queued automatically. To run again after completion or cancellation, use Duplicate in the list (same settings and CSV file).",
+            "DocumentationLink": "Documentation: intrinsic and accessibility weights",
+            "DocumentationLinkTitle": "Open documentation on GitHub (intrinsic and accessibility weights)",
+            "DownloadWeights": "Download node accessibility weights",
+            "weightingInputTypeLabel": "Weighting input type",
+            "weightingInputType": {
+                "poi": "POI (points of interest)",
+                "odOrigins": "Origins only (OD file)",
+                "odDestinations": "Destinations only (OD file)",
+                "odBoth": "Both origins and destinations (OD file)"
+            },
+            "maxWalkingTimeSeconds": "Maximum walking time (minutes)",
+            "decayParameters": "Decay parameters",
+            "decayTypeLabel": "Decay type",
+            "decayType": {
+                "power": "Power",
+                "exponential": "Exponential",
+                "gamma": "Gamma",
+                "combined": "Combined",
+                "logistic": "Logistic"
+            },
+            "decayBeta": "Beta",
+            "decayBeta1": "Beta 1",
+            "decayBeta2": "Beta 2",
+            "decayA": "a",
+            "decayB": "b",
+            "decayC": "c",
+            "decayX0": "x0 (inflection point)",
+            "weightingFileAttributes": "Weighting file (POI)",
+            "poiFieldPointLat": "Latitude column",
+            "poiFieldPointLon": "Longitude column",
+            "poiFieldWeight": "Weight column",
+            "odFieldOriginLat": "Origin latitude column",
+            "odFieldOriginLon": "Origin longitude column",
+            "odFieldDestinationLat": "Destination latitude column",
+            "odFieldDestinationLon": "Destination longitude column",
+            "progress": {
+                "Processing": "{{count}} / {{total}} points processed ({{percent}}%)",
+                "ProcessingNoPercent": "{{count}} points processed",
+                "Paused": "Paused",
+                "PausedNoPercent": "{{count}} points processed — paused",
+                "LoadingTransitNodes": "Loading transit nodes...",
+                "RowsProcessed": "{{count}} rows processed ({{percent}}%)",
+                "RowsProcessedNoPercent": "{{count}} rows processed",
+                "WritingNodeWeights": "Writing node weights...",
+                "PausedProgress": "{{count}} rows processed ({{percent}}%) — paused",
+                "PausedProgressNoPercent": "{{count}} rows processed — paused"
+            },
+            "errors": {
+                "decayTypeInvalid": "Decay type must be one of: power, exponential, gamma, combined, logistic.",
+                "decayBetaRequired": "Beta is required for this decay type.",
+                "decayBetaInvalid": "Beta must be greater than 0.",
+                "maxWalkingTimeSecondsInvalid": "Maximum walking time must be greater than 0.",
+                "weightingFileRequired": "POI file and column mapping are required for node weighting.",
+                "WeightsFileNotFound": "Node accessibility weights file not found. Run accessibility weighting or upload a file first.",
+                "Interrupted": "The computation was interrupted (e.g. server restart). If the job is still in progress in the jobs list, wait for it to resume; otherwise duplicate the job or start a new run from a pending job.",
+                "CannotStartTerminalJob": "This job has finished or stopped. Use Duplicate in the list to create a new job with the same settings and CSV file.",
+                "deleteJobFailed": "Failed to delete job",
+                "downloadWeightsFailed": "Failed to download node weights",
+                "duplicateJobFailed": "Failed to duplicate job"
+            }
+        }
     },
     "transitAgency": {
         "List": "Agencies",
@@ -1095,6 +1176,11 @@
                 "input": "Input file: {{filename}}",
                 "csv": "CSV",
                 "geojson": "GeoJSON"
+            }
+        },
+        "nodeAccessibilityWeighting": {
+            "files": {
+                "output": "Node weights: {{filename}}"
             }
         },
         "evolutionaryTransitNetworkDesign": {
