@@ -36,7 +36,6 @@ export class TransitApi {
     static readonly NODE_ACCESSIBILITY_WEIGHTING_GET_PARAMETERS = 'service.nodeAccessibilityWeighting.getParameters';
     static readonly NODE_ACCESSIBILITY_WEIGHTING_START = 'service.nodeAccessibilityWeighting.start';
     // Cancel, pause, and resume use the generic JobsConstants routes
+    // File download uses the generic GET_FILES route and HTTP /job/:jobId/:file endpoint
     static readonly NODE_ACCESSIBILITY_WEIGHTING_STATUS = 'service.nodeAccessibilityWeighting.status';
-    static readonly NODE_ACCESSIBILITY_WEIGHTING_GET_FILE = 'service.nodeAccessibilityWeighting.getFile';
-    static readonly NODE_ACCESSIBILITY_WEIGHTING_UPLOAD_INPUT = 'service.nodeAccessibilityWeighting.uploadInput';
 }
