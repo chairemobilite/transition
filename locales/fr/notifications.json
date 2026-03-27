@@ -68,6 +68,8 @@
   "GeneratingPath": "Génération du parcours",
   "BatchRouting": "Calcul de chemin multiple",
   "BatchAccessMap": "Cartes d'accessibilité multiples",
+  "NodeAccessibilityWeighting": "Pondération d'accessibilité des nœuds",
+  "NodeAccessibilityWeightingPausing": "Fin du lot en cours avant la pause…",
   "ParsingCsv": "Lecture du fichier CSV",
   "ParsingCsvWithLineNumber": "Lecture du fichier CSV ligne ",
   "StartingRoutingParallelServer": "Démarrage du serveur de calcul parallèles",
