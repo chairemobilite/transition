@@ -56,7 +56,88 @@
         "editSelectedNodes": "Modifier les noeuds sélectionnés",
         "selectedNodesCount": "Noeuds sélectionnés modifiables: {{count}}",
         "editFrozenSelectedNodesWarning": "Seulement les noeuds non verrouillés seront sauvegardés",
-        "DeleteAllUnusedNodes": "Supprimer tous les noeuds non utilisés"
+        "DeleteAllUnusedNodes": "Supprimer tous les noeuds non utilisés",
+        "accessibilityWeighting": {
+            "SectionTitle": "Pondération d'accessibilité des nœuds",
+            "NoWeightingsYet": "Aucune pondération d'accessibilité. Créez-en une pour calculer les poids des nœuds à partir d'un fichier de POIs ou de déplacements OD.",
+            "CreateNew": "Créer une nouvelle pondération d'accessibilité",
+            "Close": "Fermer",
+            "JobName": "Nom de la tâche de pondération d'accessibilité",
+            "StartWeighting": "Démarrer la pondération d'accessibilité",
+            "DuplicateJob": "Dupliquer la pondération d'accessibilité des nœuds",
+            "Cancel": "Annuler",
+            "Pause": "Pause",
+            "Pausing": "Pause en cours…",
+            "Resume": "Reprendre",
+            "Starting": "Démarrage de la pondération d'accessibilité...",
+            "Paused": "Pondération d'accessibilité en pause",
+            "Complete": "Pondération d'accessibilité terminée",
+            "Running": "Pondération d'accessibilité en cours...",
+            "Failed": "La pondération d'accessibilité a échoué",
+            "Cancelled": "Pondération d'accessibilité annulée",
+            "CheckpointNote": "La progression est enregistrée après chaque lot de points. Les tâches en pause peuvent être reprises. Après un redémarrage du serveur, les tâches en attente ou en cours sont remises en file automatiquement. Pour recalculer après une fin ou une annulation, utilisez Dupliquer dans la liste (mêmes paramètres et fichier CSV).",
+            "RestartWarning": "La progression est enregistrée après chaque lot de points. Les tâches en pause peuvent être reprises. Après un redémarrage du serveur, les tâches en attente ou en cours sont remises en file automatiquement. Pour recalculer après une fin ou une annulation, utilisez Dupliquer dans la liste (mêmes paramètres et fichier CSV).",
+            "DocumentationLink": "Documentation : poids propres et poids d'accessibilité",
+            "DocumentationLinkTitle": "Ouvrir la documentation sur GitHub (poids propres et poids d'accessibilité)",
+            "DownloadWeights": "Télécharger les poids d'accessibilité des nœuds",
+            "weightingInputTypeLabel": "Type d'entrée de pondération",
+            "weightingInputType": {
+                "poi": "POI (points d'intérêt)",
+                "odOrigins": "Origines seulement (fichier OD)",
+                "odDestinations": "Destinations seulement (fichier OD)",
+                "odBoth": "Origines et destinations (fichier OD)"
+            },
+            "maxWalkingTimeSeconds": "Temps de marche maximum (minutes)",
+            "decayParameters": "Paramètres de décroissance",
+            "decayTypeLabel": "Type de décroissance",
+            "decayType": {
+                "power": "Puissance",
+                "exponential": "Exponentiel",
+                "gamma": "Gamma",
+                "combined": "Combiné",
+                "logistic": "Logistique"
+            },
+            "decayBeta": "Bêta",
+            "decayBeta1": "Bêta 1",
+            "decayBeta2": "Bêta 2",
+            "decayA": "a",
+            "decayB": "b",
+            "decayC": "c",
+            "decayX0": "x0 (point d'inflexion)",
+            "weightingFileAttributes": "Fichier de pondération (POI)",
+            "poiFieldPointLat": "Colonne latitude",
+            "poiFieldPointLon": "Colonne longitude",
+            "poiFieldWeight": "Colonne poids",
+            "odFieldOriginLat": "Colonne latitude d'origine",
+            "odFieldOriginLon": "Colonne longitude d'origine",
+            "odFieldDestinationLat": "Colonne latitude de destination",
+            "odFieldDestinationLon": "Colonne longitude de destination",
+            "progress": {
+                "Processing": "{{count}} / {{total}} points traités ({{percent}} %)",
+                "ProcessingNoPercent": "{{count}} points traités",
+                "Paused": "En pause",
+                "PausedNoPercent": "{{count}} points traités — en pause",
+                "LoadingTransitNodes": "Chargement des nœuds de transit...",
+                "RowsProcessed": "{{count}} lignes traitées ({{percent}} %)",
+                "RowsProcessedNoPercent": "{{count}} lignes traitées",
+                "WritingNodeWeights": "Écriture des poids des nœuds...",
+                "PausedProgress": "{{count}} lignes traitées ({{percent}} %) — en pause",
+                "PausedProgressNoPercent": "{{count}} lignes traitées — en pause"
+            },
+            "errors": {
+                "decayTypeInvalid": "Le type de décroissance doit être : puissance, exponentiel, gamma, combiné ou logistique.",
+                "decayBetaRequired": "Le bêta est requis pour ce type de décroissance.",
+                "decayBetaInvalid": "Le bêta doit être supérieur à 0.",
+                "maxWalkingTimeSecondsInvalid": "Le temps de marche maximum doit être supérieur à 0.",
+                "weightingFileRequired": "Le fichier de POI et le mappage des colonnes sont requis.",
+                "WeightsFileNotFound": "Fichier de poids d'accessibilité introuvable. Exécutez la pondération ou téléversez un fichier.",
+                "Interrupted": "Le calcul a été interrompu (p. ex. redémarrage du serveur). Si la tâche est encore en cours dans la liste, attendez la reprise ; sinon dupliquez la tâche ou lancez une nouvelle exécution depuis une tâche en attente.",
+                "CannotStartTerminalJob": "Cette tâche est terminée ou arrêtée. Utilisez Dupliquer dans la liste pour créer une nouvelle tâche avec les mêmes paramètres et le même fichier CSV.",
+                "deleteJobFailed": "Échec de la suppression de la tâche",
+                "downloadWeightsFailed": "Échec du téléchargement des poids des nœuds",
+                "duplicateJobFailed": "Échec de la duplication de la tâche"
+            }
+        }
     },
     "transitAgency": {
         "List": "Agences",
@@ -1079,6 +1160,11 @@
         "Resume": "Reprendre la tâche",
         "ViewWarningsAndErrors": "Voir les messages",
         "WarningsAndErrors": "Erreurs et avertissements",
+        "nodeAccessibilityWeighting": {
+            "files": {
+                "output": "Poids des nœuds: {{filename}}"
+            }
+        },
         "batchRoute": {
             "files": {
                 "input": "Fichier d'entrée: {{filename}}",
