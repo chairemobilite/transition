@@ -96,9 +96,7 @@ export default function (socket: EventEmitter, userId?: number) {
             callback(routingResults);
         } catch (error) {
             console.error(error);
-            callback(
-                Status.createError(TrError.isTrError(error) ? error.message : 'Error getting table many to many')
-            );
+            callback(Status.createError(TrError.isTrError(error) ? error.message : 'Error getting table many to many'));
         }
     });
 

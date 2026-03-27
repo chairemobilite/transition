@@ -7,7 +7,10 @@
 
 import GeoJSON from 'geojson';
 import type { DecayFunctionParameters } from 'transition-common/lib/services/weighting/types';
-import type { RoutingService } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type {
+    TableManyToManyParameters,
+    TableManyToManyResults
+} from 'chaire-lib-common/lib/services/routing/RoutingService';
 
 /** Default walking speed in m/s (~5 km/h), used for bird-distance pre-filter radius. */
 export const DEFAULT_WALKING_SPEED_MPS = 1.3888888888;
@@ -79,10 +82,27 @@ export type GetNodesInBirdDistanceFromPointFn = (
 ) => Promise<{ id: string; distance: number }[]>;
 
 /**
+ * Minimal interface exposing only the tableManyToMany method needed by
+ * the node accessibility weight calculator. This avoids requiring the full
+ * RoutingService interface and enables type-safe adapters.
+ */
+export interface TableManyToManyService {
+    /**
+     * Compute the durations and distances of the fastest routes between
+     * every (origin, destination) pair -- a full M x N matrix.
+     *
+     * @param params origins and destinations point features
+     * @returns 2D arrays where results[i][j] corresponds to
+     *          origins[i] -> destinations[j]. Null when no route exists.
+     */
+    tableManyToMany(params: TableManyToManyParameters): Promise<TableManyToManyResults>;
+}
+
+/**
  * Dependencies injected into the node accessibility weight calculator.
  * Decouples the core algorithm from infrastructure (DB, routing engine).
  */
 export type NodeAccessibilityWeightCalculatorDependencies = {
-    routingService: RoutingService;
+    routingService: TableManyToManyService;
     getNodesInBirdDistanceFromPoint: GetNodesInBirdDistanceFromPointFn;
 };
