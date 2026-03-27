@@ -437,6 +437,9 @@
             "horse": "Chevaux",
             "transit": "Transport collectif"
         },
+        "sort": {
+            "TravelTime": "Trier selon le temps de parcours"
+        },
         "Acceleration": "Accélération [m/s²]",
         "Deceleration": "Décélération [m/s²]",
         "DefaultAcceleration": "Accélération par défaut [m/s²]",
