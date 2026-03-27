@@ -21,6 +21,7 @@ import placesSocketRoutes from './places.socketRoutes';
 import jobsSocketRoutes from './jobs.socketRoutes';
 import osmSocketRoutes from './osm.socketRoutes';
 import definitionsSocketRoutes from './definitions.socketRoutes';
+import nodeAccessibilityWeightingSocketRoutes from './nodeAccessibilityWeighting.socketRoutes';
 
 export default function (socket: EventEmitter, userId?: number) {
     dataSourcesSocketRoutes(socket, userId);
@@ -38,6 +39,7 @@ export default function (socket: EventEmitter, userId?: number) {
     if (userId !== undefined) {
         gtfsSocketRoutes(socket, userId);
         jobsSocketRoutes(socket, userId);
+        nodeAccessibilityWeightingSocketRoutes(socket, userId);
         if (isSocketIo(socket)) {
             uploadsSocketRoutes(socket, userId);
             routingSocketRoutes(socket, userId);
