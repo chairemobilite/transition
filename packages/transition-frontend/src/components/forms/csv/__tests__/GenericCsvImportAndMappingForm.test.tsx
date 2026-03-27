@@ -127,5 +127,48 @@ describe('GenericCsvImportAndMappingForm rendering', () => {
             />
         );
         expect(container).toMatchSnapshot();
-    }); 
+    });
+
+    test('Shows validation errors by default when required fields are unmapped', () => {
+        const csvWithUnmappedRequired: CsvFileAndMapping = {
+            type: 'csv',
+            fileAndMapping: {
+                csvFile: { location: 'upload', filename: 'test.csv', uploadFilename: 'test.csv' },
+                fieldMappings: {}
+            },
+            csvFields: ['col_a', 'col_b']
+        };
+        const fileMapping = new CsvFileAndFieldMapper(mockMappingDescriptor, csvWithUnmappedRequired);
+
+        const { container } = render(
+            <GenericCsvImportAndMappingForm
+                csvFieldMapper={fileMapping}
+                onUpdate={mockOnComplete}
+                importFileName="test_import.csv"
+            />
+        );
+        expect(container.querySelector('.apptr__form-errors-container')).not.toBeNull();
+    });
+
+    test('Hides validation errors when hideErrors is true', () => {
+        const csvWithUnmappedRequired: CsvFileAndMapping = {
+            type: 'csv',
+            fileAndMapping: {
+                csvFile: { location: 'upload', filename: 'test.csv', uploadFilename: 'test.csv' },
+                fieldMappings: {}
+            },
+            csvFields: ['col_a', 'col_b']
+        };
+        const fileMapping = new CsvFileAndFieldMapper(mockMappingDescriptor, csvWithUnmappedRequired);
+
+        const { container } = render(
+            <GenericCsvImportAndMappingForm
+                csvFieldMapper={fileMapping}
+                onUpdate={mockOnComplete}
+                importFileName="test_import.csv"
+                hideErrors
+            />
+        );
+        expect(container.querySelector('.apptr__form-errors-container')).toBeNull();
+    });
 });
