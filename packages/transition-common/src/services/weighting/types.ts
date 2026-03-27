@@ -7,7 +7,97 @@
 
 import GeoJSON from 'geojson';
 
+import type { CsvFieldMappingDescriptor } from '../csv/types';
+
 /** Full documentation on the weighting methodology is available in the docs/weighting directory. */
+
+// ---------------------------------------------------------------------------
+// CSV field mapping types (shared between frontend and backend)
+// ---------------------------------------------------------------------------
+
+/** Which points from the input file are used for weighting. */
+export type WeightingInputType = 'poi' | 'odOrigins' | 'odDestinations' | 'odBoth';
+
+/**
+ * CSV column mapping for the weighting input file.
+ * Which fields are present depends on the input type (POI vs OD).
+ * Keys produced by `latLon`-type descriptors: `pointLat`/`pointLon`,
+ * `originLat`/`originLon`, `destinationLat`/`destinationLon`.
+ */
+export type WeightingFileMapping = {
+    projection?: string;
+    pointLat?: string;
+    pointLon?: string;
+    originLat?: string;
+    originLon?: string;
+    destinationLat?: string;
+    destinationLon?: string;
+    weight?: string;
+};
+
+/**
+ * Returns the {@link CsvFieldMappingDescriptor} array appropriate for
+ * the given {@link WeightingInputType}. The `latLon` type produces
+ * paired lat/lon dropdowns plus a projection selector in the shared
+ * `FieldMappingsSelection` widget.
+ */
+export function getWeightingFieldDescriptors(inputType: WeightingInputType): CsvFieldMappingDescriptor[] {
+    const weight: CsvFieldMappingDescriptor = {
+        key: 'weight',
+        type: 'single',
+        i18nLabel: 'transit:transitNode.accessibilityWeighting.poiFieldWeight',
+        required: false
+    };
+
+    switch (inputType) {
+    case 'poi':
+        return [
+            {
+                key: 'point',
+                type: 'latLon',
+                i18nLabel: 'transit:transitNode.accessibilityWeighting.poiFieldPoint',
+                required: true
+            },
+            weight
+        ];
+    case 'odOrigins':
+        return [
+            {
+                key: 'origin',
+                type: 'latLon',
+                i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldOrigin',
+                required: true
+            },
+            weight
+        ];
+    case 'odDestinations':
+        return [
+            {
+                key: 'destination',
+                type: 'latLon',
+                i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldDestination',
+                required: true
+            },
+            weight
+        ];
+    case 'odBoth':
+        return [
+            {
+                key: 'origin',
+                type: 'latLon',
+                i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldOrigin',
+                required: true
+            },
+            {
+                key: 'destination',
+                type: 'latLon',
+                i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldDestination',
+                required: true
+            },
+            weight
+        ];
+    }
+}
 
 /** All decay function type values (for validation and choice lists). */
 export const DECAY_TYPE_VALUES = ['power', 'exponential', 'gamma', 'combined', 'logistic'] as const;
