@@ -191,7 +191,7 @@ describe('GTFS Stop time import preparation, using all base trips', () => {
 
         const importer = new StopTimeImporter({ directoryPath: '' });
         const data = await importer.prepareImportData(importData);
-        const stopTimes = StopTimeImporter.groupAndSortByTripId(data);
+        const stopTimes = await StopTimeImporter.groupAndSortByTripId(data);
         // One trip was manually added and has no stop times, so one less trip expected
         expect(Object.keys(stopTimes).length).toEqual(tripData.length - 1);
         const keys = Object.keys(stopTimes);
@@ -222,7 +222,7 @@ describe('GTFS Stop time import preparation, one trip', () => {
         currentData = gtfsValidSimpleData;
         const importer = new StopTimeImporter({ directoryPath: '' });
         const data = await importer.prepareImportData(importData);
-        const shapeData = StopTimeImporter.groupAndSortByTripId(data);
+        const shapeData = await StopTimeImporter.groupAndSortByTripId(data);
         expect(Object.keys(shapeData).length).toEqual(1);
     });
 
@@ -247,7 +247,7 @@ describe('GTFS Stop time import preparation, with times to interpolate', () => {
         const data = await importer.prepareImportData(importData);
         expect(data.length).toEqual(4);
 
-        const stopTimeData = StopTimeImporter.groupAndSortByTripId(data);
+        const stopTimeData = await StopTimeImporter.groupAndSortByTripId(data);
         const orderedStopTimes = stopTimeData[tripIdToImport];
         expect(orderedStopTimes.length).toEqual(4);
 
@@ -276,7 +276,7 @@ describe('GTFS Stop time import preparation, with times to interpolate', () => {
         const data = await importer.prepareImportData(importData);
         expect(data.length).toEqual(6);
 
-        const stopTimeData = StopTimeImporter.groupAndSortByTripId(data);
+        const stopTimeData = await StopTimeImporter.groupAndSortByTripId(data);
         const orderedStopTimes = stopTimeData[tripIdToImport];
         expect(orderedStopTimes.length).toEqual(6);
 

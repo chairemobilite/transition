@@ -55,17 +55,17 @@ CollectionManager.prototype.get = jest.fn().mockImplementation((collectionName) 
         return lineCollection;
     }
     return undefined;
-})
+});
 
 const importData = Object.assign({}, defaultImportData);
 
 importData.periodsGroupShortname = 'test';
-importData.periodsGroup = { name: { en: 'test'}, periods: [
+importData.periodsGroup = { name: { en: 'test' }, periods: [
     { shortname: 'morning', name: { en: 'morning' }, startAtHour: 0, endAtHour: 12 },
     { shortname: 'afternoon', name: { en: 'afternoon' }, startAtHour: 12, endAtHour: 24 },
-]};
+] };
 
-let currentData = gtfsValidSimpleData;
+const currentData = gtfsValidSimpleData;
 
 jest.mock('chaire-lib-backend/lib/services/files/CsvFile', () => {
     return {
@@ -77,11 +77,11 @@ jest.mock('chaire-lib-backend/lib/services/files/CsvFile', () => {
                 }
             }
         })
-    }
+    };
 });
 
 // Prepare mocked returned values for object imports (one arbitrary object per class)
-const nodes = { gtfsStop: new Node({ 
+const nodes = { gtfsStop: new Node({
     id: uuidV4(),
     geography: { type: 'Point', coordinates: [1, 3] },
     data: {
@@ -90,7 +90,7 @@ const nodes = { gtfsStop: new Node({
             geography: { type: 'Point', coordinates: [1, 3.1] },
             data: {}
         }]
-    }}, false) };
+    } }, false) };
 const nodeIdsByStopGtfsId = { gtfsStop: nodes.gtfsStop.getId() };
 const stopCoordinatesByStopId = { gtfsStop: (nodes.gtfsStop.attributes.data as any).stops[0].geography.coordinates };
 const agencies = { gtfsAgency: new Agency({ id: uuidV4() }, false) };
@@ -124,15 +124,15 @@ beforeEach(() => {
     mockAgencyImport.mockClear();
     mockLineImport.mockClear();
     mockServiceImport.mockClear();
-})
+});
 
-test('Test valid complete workflow with success', async() => {    
+test('Test valid complete workflow with success', async() => {
     const pathIdsByTripId = {
         '9bd2f99e-1e15-4d04-bada-989b305950fe': uuidV4(),
         '290bfdda-3c7b-4444-9385-c16f971de6c4': uuidV4()
-    }
-    mockedPathImport.mockResolvedValueOnce({status: 'success', pathIdsByTripId, warnings: []});
-    mockedScheduleImport.mockResolvedValueOnce({status: 'success', warnings: []});
+    };
+    mockedPathImport.mockResolvedValueOnce({ status: 'success', pathIdsByTripId, warnings: [] });
+    mockedScheduleImport.mockResolvedValueOnce({ status: 'success', warnings: [] });
     const result = await GtfsImporter.importGtfsData('', importData as any);
     expect(result.status).toEqual('success');
 
@@ -142,26 +142,26 @@ test('Test valid complete workflow with success', async() => {
     expect(mockLineImport).toHaveBeenCalledTimes(1);
     expect(mockServiceImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
-    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
-    }), expect.objectContaining(expectedInternalDataBeforePaths), expect.anything());
+    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
+    }), expect.objectContaining(expectedInternalDataBeforePaths), expect.anything(), undefined);
     expect(mockedScheduleImport).toHaveBeenCalledTimes(1);
-    expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
+    expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
     }), expect.objectContaining(Object.assign({}, expectedInternalDataBeforePaths, {
         pathIdsByTripId
-    })), expect.anything(), false);
+    })), expect.anything(), false, undefined);
 });
 
 test('Test path and schedule success, with warnings', async() => {
     const pathIdsByTripId = {
         '9bd2f99e-1e15-4d04-bada-989b305950fe': uuidV4(),
         '290bfdda-3c7b-4444-9385-c16f971de6c4': uuidV4()
-    }
+    };
     const pathWarnings = ['pathWarning1', 'pathWarning2'];
     const scheduleWarnings = ['scheduleWarning1'];
-    mockedPathImport.mockResolvedValueOnce({status: 'success', pathIdsByTripId, warnings: pathWarnings});
-    mockedScheduleImport.mockResolvedValueOnce({status: 'success', warnings: scheduleWarnings});
+    mockedPathImport.mockResolvedValueOnce({ status: 'success', pathIdsByTripId, warnings: pathWarnings });
+    mockedScheduleImport.mockResolvedValueOnce({ status: 'success', warnings: scheduleWarnings });
     const result = await GtfsImporter.importGtfsData('', importData as any);
     expect(result.status).toEqual('success');
     const successResult = result as {status: 'success', warnings: any[], errors: any[] };
@@ -175,26 +175,26 @@ test('Test path and schedule success, with warnings', async() => {
     expect(mockLineImport).toHaveBeenCalledTimes(1);
     expect(mockServiceImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
-    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
-    }), expect.anything(), expect.anything());
+    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
+    }), expect.anything(), expect.anything(), undefined);
     expect(mockedScheduleImport).toHaveBeenCalledTimes(1);
-    expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
+    expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
     }), expect.objectContaining({
         pathIdsByTripId
-    }), expect.anything(), false);
+    }), expect.anything(), false, undefined);
 });
 
 test('Test path success, but schedule failures', async() => {
     const pathIdsByTripId = {
         '9bd2f99e-1e15-4d04-bada-989b305950fe': uuidV4(),
         '290bfdda-3c7b-4444-9385-c16f971de6c4': uuidV4()
-    }
+    };
     const pathWarnings = ['pathWarning1', 'pathWarning2'];
     const scheduleErrors = ['scheduleError1', 'scheduleError2'];
-    mockedPathImport.mockResolvedValueOnce({status: 'success', pathIdsByTripId, warnings: pathWarnings});
-    mockedScheduleImport.mockResolvedValueOnce({status: 'failed', errors: scheduleErrors});
+    mockedPathImport.mockResolvedValueOnce({ status: 'success', pathIdsByTripId, warnings: pathWarnings });
+    mockedScheduleImport.mockResolvedValueOnce({ status: 'failed', errors: scheduleErrors });
     const result = await GtfsImporter.importGtfsData('', importData as any);
     expect(result.status).toEqual('success');
     const successResult = result as {status: 'success', warnings: any[], errors: any[] };
@@ -202,42 +202,42 @@ test('Test path success, but schedule failures', async() => {
     expect(successResult.warnings).toEqual(pathWarnings);
     expect(successResult.errors.length).toEqual(scheduleErrors.length);
     expect(successResult.errors).toEqual(scheduleErrors);
-    
+
     // Validate method calls
     expect(mockStopImport).toHaveBeenCalledTimes(1);
     expect(mockAgencyImport).toHaveBeenCalledTimes(1);
     expect(mockLineImport).toHaveBeenCalledTimes(1);
     expect(mockServiceImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
-    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
-    }), expect.anything(), expect.anything());
+    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
+    }), expect.anything(), expect.anything(), undefined);
     expect(mockedScheduleImport).toHaveBeenCalledTimes(1);
-    expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
+    expect(mockedScheduleImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
     }), expect.objectContaining({
         pathIdsByTripId
-    }), expect.anything(), false);
+    }), expect.anything(), false, undefined);
 });
 
 test('Test path failure', async() => {
     const pathErrors = ['pathError1', 'pathError2'];
-    mockedPathImport.mockResolvedValueOnce({status: 'failed', errors: pathErrors});
+    mockedPathImport.mockResolvedValueOnce({ status: 'failed', errors: pathErrors });
     const result = await GtfsImporter.importGtfsData('', importData as any);
     expect(result.status).toEqual('failed');
     const successResult = result as {status: 'failed', errors: any[] };
     expect(successResult.errors.length).toEqual(pathErrors.length);
     expect(successResult.errors).toEqual(pathErrors);
-    
+
     // Validate method calls
     expect(mockStopImport).toHaveBeenCalledTimes(1);
     expect(mockAgencyImport).toHaveBeenCalledTimes(1);
     expect(mockLineImport).toHaveBeenCalledTimes(1);
     expect(mockServiceImport).toHaveBeenCalledTimes(1);
     expect(mockedPathImport).toHaveBeenCalledTimes(1);
-    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({ 
-        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything() 
-    }), expect.anything(), expect.anything());
+    expect(mockedPathImport).toHaveBeenCalledWith(expect.objectContaining({
+        'fc8c8944-3478-42ed-82fd-a833ba16bb35': expect.anything()
+    }), expect.anything(), expect.anything(), undefined);
     expect(mockedScheduleImport).not.toHaveBeenCalled();
 });
 
@@ -248,7 +248,7 @@ test('Test services failure', async() => {
     const failedResult = result as {status: 'failed', errors: any[] };
     expect(failedResult.errors.length).toEqual(1);
     expect(failedResult.errors).toEqual([GtfsMessages.ServicesImportError]);
-    
+
     // Validate method calls
     expect(mockStopImport).toHaveBeenCalledTimes(1);
     expect(mockAgencyImport).toHaveBeenCalledTimes(1);
@@ -265,7 +265,7 @@ test('Test lines failure', async() => {
     const failedResult = result as {status: 'failed', errors: any[] };
     expect(failedResult.errors.length).toEqual(1);
     expect(failedResult.errors).toEqual([GtfsMessages.LinesImportError]);
-    
+
     // Validate method calls
     expect(mockStopImport).toHaveBeenCalledTimes(1);
     expect(mockAgencyImport).toHaveBeenCalledTimes(1);
@@ -282,7 +282,7 @@ test('Test agencies failure', async() => {
     const failedResult = result as {status: 'failed', errors: any[] };
     expect(failedResult.errors.length).toEqual(1);
     expect(failedResult.errors).toEqual([GtfsMessages.AgenciesImportError]);
-    
+
     // Validate method calls
     expect(mockStopImport).toHaveBeenCalledTimes(1);
     expect(mockAgencyImport).toHaveBeenCalledTimes(1);
@@ -299,7 +299,7 @@ test('Test nodes failure', async() => {
     const failedResult = result as {status: 'failed', errors: any[] };
     expect(failedResult.errors.length).toEqual(1);
     expect(failedResult.errors).toEqual([GtfsMessages.NodesImportError]);
-    
+
     // Validate method calls
     expect(mockStopImport).toHaveBeenCalledTimes(1);
     expect(mockAgencyImport).not.toHaveBeenCalled();
