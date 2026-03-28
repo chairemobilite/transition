@@ -66,6 +66,7 @@ const SelectOptionComponent: React.FunctionComponent<OptionComponentProps> = (pr
     return (
         <InputSelect
             id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
+            disabled={props.disabled}
             value={value}
             choices={choices}
             onValueChange={(e) =>
@@ -90,6 +91,7 @@ const MultiSelectOptionComponent: React.FunctionComponent<OptionComponentProps> 
     return (
         <InputMultiselect
             id={`formFieldSimulationAlgorithmOptions${props.optionKey}`}
+            disabled={props.disabled}
             value={value}
             choices={choices}
             onValueChange={(e) =>
@@ -110,6 +112,10 @@ const CsvFileOptionComponent: React.FunctionComponent<OptionComponentProps> = (p
         () => new CsvFileAndFieldMapper(option.mappingDescriptors, props.value as CsvFileAndMapping),
         [props.value]
     );
+
+    if (props.disabled) {
+        return null;
+    }
 
     return (
         <GenericCsvImportAndMappingForm
@@ -247,7 +253,7 @@ const OptionComponent: React.FunctionComponent<OptionComponentProps> = (props: O
             <OptionsEditComponent
                 value={value}
                 optionsDescriptor={option.descriptor}
-                disabled={false}
+                disabled={props.disabled}
                 onUpdate={(parameters: Partial<any>, isValid: boolean): void => {
                     props.onValueChange(props.optionKey, {
                         value: parameters,
@@ -308,6 +314,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
             return (
                 <React.Fragment key={`option${optionName}`}>
                     <h4>{t(option.i18nName)}</h4>
+                    {option.i18nHelp && <p className="_pale _small">{t(option.i18nHelp)}</p>}
                     {component}
                 </React.Fragment>
             );
