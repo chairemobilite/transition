@@ -25,7 +25,7 @@ from pathlib import Path
 
 setup(
     name="pyTransition",
-    version="0.1.2",
+    version="0.2.0",
     description="A Python package to interact with the Transition API.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

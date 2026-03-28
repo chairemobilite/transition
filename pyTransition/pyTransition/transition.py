@@ -315,6 +315,8 @@ class Transition:
         max_first_waiting_time_minutes,
         walking_speed_kmh,
         with_geojson,
+        calculate_population = False,
+        calculate_pois = False
     ):
         """Calculates an accessibility map from a given origin
 
@@ -332,7 +334,9 @@ class Transition:
             max_transfer_travel_time_minutes (int): Maximum transfer time, in minutes
             max_first_waiting_time_minutes (int): Maximum wait time at first transit stop, in minutes
             walking_speed_kmh (float): Walking speed, in km/h
-            with_geojson (true): If True, the returned JSON file will contain the "pathsGeojson" key for each mode
+            with_geojson (true): If True, the returned JSON file will contain the "polygons" key for each accessibility polygon
+            calculate_population (bool): If True, the returned JSON file will contain the "population" key for each polygon feature
+            calculate_pois (bool): If True, the returned JSON file will contain the "accessiblePlacesCountByCategory" and the "accessiblePlacesCountByDetailedCategory" key for each polygon feature, with the count of accessible POIs in each category and detailed category respectively.
 
         Returns:
             JSON: Accessibility map information in JSON format
@@ -376,6 +380,8 @@ class Transition:
                 "geometry": {"type": "Point", "coordinates": coordinates},
             },
             "scenarioId": scenario_id,
+            "calculatePois": True if calculate_pois else False,
+            "calculatePopulation": True if calculate_population else False
         }
 
         headers = self.__build_headers()
