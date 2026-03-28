@@ -47,13 +47,22 @@ export type OdTripSimulationFromCsvAttributes = {
 
 export type OdTripSimulationDemandFromCsvAttributes = CsvFileAndMapping<OdTripSimulationFromCsvAttributes>;
 
+export type NodeWeightFromCsvAttributes = {
+    nodeUuid: string;
+    weight: string;
+};
+
+export type NodeWeightCsvFileAndMapping = CsvFileAndMapping<NodeWeightFromCsvAttributes>;
+
 // Define OD trip simulation options
 export type OdTripSimulationOptions = {
-    // Describe where to get the OD trip data for the simulation
-    demandAttributes: OdTripSimulationDemandFromCsvAttributes;
     // Transit routing parameters to use for the simulation
     transitRoutingAttributes: TransitRoutingBaseAttributes;
     evaluationOptions: OdTripEvaluationOptions;
+    // Describe where to get the OD trip data for the simulation
+    demandAttributes: OdTripSimulationDemandFromCsvAttributes;
+    /** Optional per-node weights to bias the network design toward better-served nodes */
+    nodeWeightAttributes?: NodeWeightCsvFileAndMapping;
 };
 
 class TransitRoutingAttributesDescriptor implements SimulationAlgorithmDescriptor<TransitRoutingBaseAttributes> {
@@ -210,6 +219,28 @@ export class TransitOdTripSimulationDemandFromCsv extends CsvFileAndFieldMapper<
     }
 }
 
+const nodeWeightFieldDescriptors: CsvFieldMappingDescriptor[] = [
+    {
+        key: 'nodeUuid',
+        i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightUuid',
+        type: 'single',
+        required: true
+    },
+    {
+        key: 'weight',
+        i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightValue',
+        type: 'single',
+        required: true
+    }
+];
+
+/** Describe a CSV file field mapping for node weights (uuid + weight) */
+export class NodeWeightFromCsvMapper extends CsvFileAndFieldMapper<NodeWeightFromCsvAttributes> {
+    constructor(csvFileAndMapping?: NodeWeightCsvFileAndMapping | undefined) {
+        super(nodeWeightFieldDescriptors, csvFileAndMapping);
+    }
+}
+
 const transitRoutingAttributesDescriptor = new TransitRoutingAttributesDescriptor();
 const simulationOptionsDescriptor = new SimulationOptionsDescriptor();
 
@@ -226,13 +257,6 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
 
     // TODO Add help texts
     getOptions = () => ({
-        demandAttributes: {
-            i18nName: 'transit:networkDesign.simulationMethods.odTrips.demandAttributes',
-            type: 'csvFile' as const,
-            mappingDescriptors: odDemandFieldDescriptors,
-            importFileName: 'transit_od_trips.csv',
-            required: true
-        },
         transitRoutingAttributes: {
             i18nName: 'transit:networkDesign.simulationMethods.odTrips.transitRoutingAttributes',
             type: 'nested' as const,
@@ -242,6 +266,20 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
             i18nName: 'transit:networkDesign.simulationMethods.odTrips.simulationOptions',
             type: 'nested' as const,
             descriptor: simulationOptionsDescriptor
+        },
+        demandAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.demandAttributes',
+            type: 'csvFile' as const,
+            mappingDescriptors: odDemandFieldDescriptors,
+            importFileName: 'transit_od_trips.csv',
+            required: true
+        },
+        nodeWeightAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightAttributes',
+            i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightHelp',
+            type: 'csvFile' as const,
+            mappingDescriptors: nodeWeightFieldDescriptors,
+            importFileName: 'node_weights.csv'
         }
     });
 
@@ -259,6 +297,15 @@ export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor
             if (!demandFieldMappers.isValid()) {
                 valid = false;
                 errors.push(...demandFieldMappers.getErrors());
+            }
+        }
+        if (options.nodeWeightAttributes !== undefined) {
+            const nodeWeightMappers = new NodeWeightFromCsvMapper(
+                options.nodeWeightAttributes as NodeWeightCsvFileAndMapping
+            );
+            if (!nodeWeightMappers.isValid()) {
+                valid = false;
+                errors.push(...nodeWeightMappers.getErrors());
             }
         }
 

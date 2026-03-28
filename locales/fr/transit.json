@@ -1040,6 +1040,10 @@
                 "transitRoutingAttributes": "Paramètres de routage du transit pour le calcul",
                 "simulationOptions": "Options de simulation",
                 "expansionFactorAttribute": "Colonne pour le facteur d'expansion",
+                "nodeWeightAttributes": "Poids des nœuds (optionnel)",
+                "nodeWeightHelp": "Optionnel. Si fourni, les poids des nœuds seront utilisés pour allouer les véhicules à chaque ligne proportionnellement au poids total de la ligne et au temps de cycle.",
+                "nodeWeightUuid": "Colonne pour l'UUID du nœud",
+                "nodeWeightValue": "Colonne pour le poids du nœud",
                 "MaxWalkingOnlyTravelTimeMinutes": "Temps de déplacement maximal uniquement à pied (minutes)",
                 "WalkingSpeedMps": "Vitesse de marche (m/s)",
                 "WalkingSpeedFactor": "Facteur de vitesse de marche",
@@ -1197,6 +1201,7 @@
         "evolutionaryTransitNetworkDesign": {
             "files": {
                 "transitDemand": "Fichier de demande: {{filename}}",
+                "nodeWeight": "Fichier de poids des nœuds: {{filename}}",
                 "simulationResults": "Résultats de simulation par candidats",
                 "linesResult": "Lignes candidates"
             }
