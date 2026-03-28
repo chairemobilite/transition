@@ -14,6 +14,7 @@ import { PartialAlgorithmConfiguration } from '../types';
 export interface ConfigureAlgorithmParametersFormProps {
     algorithmConfig: PartialAlgorithmConfiguration;
     onUpdate: (algorithmConfig: PartialAlgorithmConfiguration, isValid: boolean) => void;
+    disabled?: boolean;
 }
 
 const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorithmParametersFormProps> = (
@@ -43,7 +44,7 @@ const ConfigureAlgorithmParametersForm: React.FunctionComponent<ConfigureAlgorit
             <TransitNetworkDesignAlgorithmComponent
                 key={`algorithm-${props.algorithmConfig.type}`}
                 algorithmConfig={props.algorithmConfig as AlgorithmConfiguration}
-                disabled={false}
+                disabled={props.disabled ?? false}
                 onValueChange={onValueChange}
             />
             {errors.length > 0 && <FormErrors errors={errors} />}
