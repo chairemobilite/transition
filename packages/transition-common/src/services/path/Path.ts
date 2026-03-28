@@ -19,6 +19,7 @@ import {
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
+import type { SegmentChangeInfo } from './PathTypes';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -49,10 +50,7 @@ interface PathStatistics {
     n_s_p?: number | null;
 }
 
-export interface TimeAndDistance {
-    distanceMeters: number | null;
-    travelTimeSeconds: number;
-}
+import type { TimeAndDistance } from './PathTypes';
 
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
@@ -130,6 +128,11 @@ export interface PathAttributes extends MapObjectAttributes<GeoJSON.LineString> 
  */
 export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implements Saveable {
     protected static displayName = 'Path';
+    _forceRecalculate = false;
+
+    setForceRecalculate(value: boolean) {
+        this._forceRecalculate = value;
+    }
 
     constructor(attributes = {}, isNew: boolean, collectionManager?) {
         super(attributes, isNew, collectionManager);
@@ -360,7 +363,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this._attributes.data.waypointTypes = waypointTypesByNodeIndex;
         this.removeConsecutiveDuplicateNodes();
         this._updateHistory();
-        return this.updateGeography();
+        return this.updateGeography({ lastNodeChange: { type: 'insert', index: insertIndex } });
     }
 
     /**
@@ -429,7 +432,9 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             return { path: this };
         }
         this._updateHistory();
-        return recomputePath ? this.updateGeography() : { path: this };
+        return recomputePath
+            ? this.updateGeography({ lastNodeChange: { type: 'remove', index: removeIndex } })
+            : { path: this };
     }
 
     /**
@@ -536,7 +541,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this._attributes.data.waypoints[afterNodeIndex as number] = afterNodeWaypoints;
         this._attributes.data.waypointTypes[afterNodeIndex as number] = afterNodeWaypointTypes;
         this._updateHistory();
-        return this.updateGeography();
+        return this.updateGeography({ lastWaypointChangedSegmentIndex: afterNodeIndex as number });
     }
 
     /**
@@ -571,7 +576,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this.attributes.data.waypoints[afterNodeIndex] = afterNodeWaypoints;
         this.attributes.data.waypointTypes[afterNodeIndex] = afterNodeWaypointTypes;
         this._updateHistory();
-        return this.updateGeography();
+        return this.updateGeography({ lastWaypointChangedSegmentIndex: afterNodeIndex });
     }
 
     /**
@@ -620,7 +625,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this._attributes.data.waypointTypes = waypointTypesByNodeIndex;
         this.removeConsecutiveDuplicateNodes();
         this._updateHistory();
-        return this.updateGeography();
+        return this.updateGeography({ lastNodeChange: { type: 'insert', index: afterNodeIndex + 1 } });
     }
 
     /**
@@ -646,7 +651,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this._attributes.data.waypoints[afterNodeIndex] = afterNodeWaypoints;
         this._attributes.data.waypointTypes[afterNodeIndex] = afterNodeWaypointTypes;
         this._updateHistory();
-        return this.updateGeography();
+        return this.updateGeography({ lastWaypointChangedSegmentIndex: afterNodeIndex });
     }
 
     /* Get the time arrival at node index if departure is at 0 seconds (cumulative travel time up to the node).
@@ -915,8 +920,14 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         this.attributes.data.variables = variables;
     }
 
-    updateGeography() {
-        return updatePathGeography(this);
+    updateGeography(changesInfo?: SegmentChangeInfo) {
+        // _forceRecalculate: set by the UI toggle, affects all operations (insert/remove/waypoint)
+        // changesInfo.forceRecalculate: passed directly by the recalculate route button
+        const mergedChangesInfo = {
+            ...changesInfo,
+            forceRecalculate: this._forceRecalculate === true || changesInfo?.forceRecalculate === true
+        };
+        return updatePathGeography(this, mergedChangesInfo);
     }
 
     isComplete() {

@@ -14,6 +14,7 @@ import { Feature, FeatureCollection, Point } from 'geojson';
 import { MapMatchingResults, RoutingService } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { generatePathGeographyFromRouting } from './PathGeographyGenerator';
+import type { SegmentChangeInfo } from './PathTypes';
 import { kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 
 /*
@@ -312,7 +313,7 @@ class PathGeographyUtils {
 
 export const pathGeographyUtils = new PathGeographyUtils();
 
-const updateGeography = async (path: any): Promise<{ path: any }> => {
+const updateGeography = async (path: any, changesInfo?: SegmentChangeInfo): Promise<{ path: any }> => {
     // TODO: Make the geography errors part of the path, when refactoring the class
     delete path.attributes.data.geographyErrors;
 
@@ -343,7 +344,7 @@ const updateGeography = async (path: any): Promise<{ path: any }> => {
     }
 
     try {
-        generatePathGeographyFromRouting(path, points, segmentResults);
+        generatePathGeographyFromRouting(path, points, segmentResults, changesInfo);
         path.validate();
         path.refreshStats();
         return { path };
