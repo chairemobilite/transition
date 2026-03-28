@@ -820,6 +820,58 @@ describe('Node insert and remove operations', () => {
         expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(initialPathData.data.segments[0].travelTimeSeconds);
         expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(initialPathData.data.segments[1].travelTimeSeconds);
     });
+
+    test('forceRecalculate ignores previous times and recalculates all segments from OSRM', async () => {
+        // Same path, same nodes, no changes — but forceRecalculate is true
+        const pathData = _cloneDeep(initialPathData);
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node1, node2, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 3700, duration: 246.67,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
+            }]
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { forceRecalculate: true });
+
+        expect(path.attributes.data.routingFailed).toBeFalsy();
+        expect(path.attributes.data.segments.length).toEqual(3);
+        // All segments recalculated from OSRM — none preserve previous times
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(segmentDuration(1500, 100));
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(segmentDuration(1000, 66.67));
+        expect(path.attributes.data.segments[2].travelTimeSeconds).toEqual(segmentDuration(1200, 80));
+    });
+
+    test('forceRecalculate uses node dwell times even when previous dwell was zero with short travel time', async () => {
+        // Previous: GTFS data with dwell=0 and short travel time that would normally trigger hasBakedInDwell
+        const pathData = _cloneDeep(initialPathData);
+        pathData.data.dwellTimeSeconds = [0, 0, 0, 0];
+        pathData.data.segments[1].travelTimeSeconds = 30; // short time: 30 - 120 (node4 dwell) < 15
+        const path = new TransitPathStub(pathData) as any;
+        const routingResult = {
+            tracepoints: [node1, node2, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 3700, duration: 246.67,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
+            }]
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { forceRecalculate: true });
+
+        // With forceRecalculate, hasBakedInDwell is skipped — dwell times come from node defaults
+        expect(path.attributes.data.dwellTimeSeconds[0]).toEqual(0); // first segment always 0
+        expect(path.attributes.data.dwellTimeSeconds[1]).toEqual(DEFAULT_DWELL_TIME); // node2 default
+        expect(path.attributes.data.dwellTimeSeconds[2]).toEqual(NODE4_DWELL_TIME); // node4 custom 120
+    });
 });
 
 describe('Dwell time adjustment on preserved segments', () => {
