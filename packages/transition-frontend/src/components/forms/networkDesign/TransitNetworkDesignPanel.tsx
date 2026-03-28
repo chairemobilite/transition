@@ -11,25 +11,35 @@ import TransitNetworkDesignForm from './TransitNetworkDesignForm';
 import { TransitNetworkJobConfigurationType } from 'transition-common/lib/services/networkDesign/transit/types';
 
 const TransitNetworkDesignPanel: React.FunctionComponent = () => {
-    const [isNewJob, setIsNewJob] = React.useState(false);
+    const [showForm, setShowForm] = React.useState(false);
     const [initialValues, setInitialValues] = React.useState<TransitNetworkJobConfigurationType | undefined>(undefined);
+    const [viewJobId, setViewJobId] = React.useState<number | undefined>(undefined);
 
     const onNewJob = (parameters?: TransitNetworkJobConfigurationType) => {
         setInitialValues(parameters);
-        setIsNewJob(true);
+        setViewJobId(undefined);
+        setShowForm(true);
+    };
+
+    const onViewJob = (jobId: number, parameters: TransitNetworkJobConfigurationType) => {
+        setInitialValues(parameters);
+        setViewJobId(jobId);
+        setShowForm(true);
     };
 
     const onJobConfigurationCompleted = () => {
-        setIsNewJob(false);
+        setShowForm(false);
         setInitialValues(undefined);
+        setViewJobId(undefined);
     };
 
     return (
         <div id="tr__form-transit-network-design-panel" className="tr__form-transit-network-design-panel tr__panel">
-            {!isNewJob && <TransitNetworkDesignList onNewJob={onNewJob} />}
-            {isNewJob && (
+            {!showForm && <TransitNetworkDesignList onNewJob={onNewJob} onViewJob={onViewJob} />}
+            {showForm && (
                 <TransitNetworkDesignForm
                     initialValues={initialValues}
+                    jobId={viewJobId}
                     onJobConfigurationCompleted={onJobConfigurationCompleted}
                 />
             )}

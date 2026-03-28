@@ -15,6 +15,7 @@ import OptionsEditComponent from '../widgets/OptionsDescriptorWidgets';
 export interface ConfigureNetworkDesignParametersFormProps {
     parameters: Partial<TransitNetworkDesignParameters>;
     onUpdate: (parameters: Partial<TransitNetworkDesignParameters>, isValid: boolean) => void;
+    disabled?: boolean;
 }
 
 const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNetworkDesignParametersFormProps> = (
@@ -25,7 +26,7 @@ const ConfigureNetworkDesignParametersForm: React.FunctionComponent<ConfigureNet
             <OptionsEditComponent
                 value={props.parameters}
                 optionsDescriptor={transitNetworkDesignDescriptor}
-                disabled={false}
+                disabled={props.disabled ?? false}
                 onUpdate={props.onUpdate}
             />
         </div>

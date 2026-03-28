@@ -20,6 +20,7 @@ import { PartialSimulationMethodConfiguration } from '../types';
 export interface ConfigureSimulationMethodFormProps {
     simulationMethod: PartialSimulationMethodConfiguration;
     onUpdate: (simulationMethod: PartialSimulationMethodConfiguration, isValid: boolean) => void;
+    disabled?: boolean;
 }
 
 const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulationMethodFormProps> = (
@@ -61,7 +62,7 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
             <InputWrapper smallInput={true} label={t('transit:networkDesign:SimulationMethod')}>
                 <InputSelect
                     id={'formFieldSimulationMethodType'}
-                    disabled={false}
+                    disabled={props.disabled ?? false}
                     value={props.simulationMethod.type}
                     choices={methodChoices}
                     onValueChange={(e) => onValueChange('type', { value: e.target.value })}
@@ -73,7 +74,7 @@ const ConfigureSimulationMethodForm: React.FunctionComponent<ConfigureSimulation
                     key={`methodConfigOptions${props.simulationMethod?.type}`}
                     value={props.simulationMethod.config}
                     optionsDescriptor={methodDescriptor}
-                    disabled={false}
+                    disabled={props.disabled ?? false}
                     onUpdate={(parameters, isValid) => onValueChange('config', { value: parameters, valid: isValid })}
                 />
             )}

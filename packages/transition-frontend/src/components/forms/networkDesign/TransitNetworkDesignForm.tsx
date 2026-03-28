@@ -23,6 +23,8 @@ import { getDefaultOptionsFromDescriptor } from 'transition-common/lib/services/
 
 export interface TransitNetworkDesignFormProps {
     initialValues?: FormInitialValues;
+    /** If set, the job already exists and the form is read-only. */
+    jobId?: number;
     onJobConfigurationCompleted: () => void;
 }
 
@@ -47,8 +49,9 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
     props: TransitNetworkDesignFormProps
 ) => {
     const { t } = useTranslation(['transit', 'main']);
+    const hasId = props.jobId !== undefined;
     const [currentStep, setCurrentStep] = React.useState(0);
-    const [nextEnabled, setNextEnabled] = React.useState(false);
+    const [nextEnabled, setNextEnabled] = React.useState(hasId);
     const [jobParameters, setJobParameters] = React.useState<FormInitialValues>({
         transitNetworkDesignParameters: getDefaultOptionsFromDescriptor(
             props.initialValues?.transitNetworkDesignParameters || {},
@@ -78,10 +81,15 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
 
     const incrementStep = () => {
         if (currentStep === stepCount - 1) {
-            NetworkDesignFrontendExecutor.execute(jobParameters as TransitNetworkJobConfigurationType);
+            if (!hasId) {
+                NetworkDesignFrontendExecutor.execute(jobParameters as TransitNetworkJobConfigurationType);
+            }
             return props.onJobConfigurationCompleted();
         }
         setCurrentStep(currentStep + 1);
+        if (hasId) {
+            setNextEnabled(true);
+        }
     };
 
     const decrementStep = () => {
@@ -95,9 +103,9 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                 <img
                     src={'/dist/images/icons/interface/simulation_white.svg'}
                     className="_icon"
-                    alt={t('transit:networkDesign:New')}
+                    alt={t(hasId ? 'transit:networkDesign:ViewJob' : 'transit:networkDesign:New')}
                 />{' '}
-                {t('transit:networkDesign:New')}
+                {t(hasId ? 'transit:networkDesign:ViewJob' : 'transit:networkDesign:New')}
             </h3>
 
             {currentStep === 0 && (
@@ -106,6 +114,7 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                     <ConfigureNetworkDesignParametersForm
                         parameters={jobParameters.transitNetworkDesignParameters}
                         onUpdate={onNetworkParametersUpdate}
+                        disabled={hasId}
                     />
                 </React.Fragment>
             )}
@@ -116,6 +125,7 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                     <ConfigureAlgorithmParametersForm
                         algorithmConfig={jobParameters.algorithmConfiguration}
                         onUpdate={onAlgorithmParametersUpdate}
+                        disabled={hasId}
                     />
                 </React.Fragment>
             )}
@@ -126,6 +136,7 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                     <ConfigureSimulationMethodForm
                         simulationMethod={jobParameters.simulationMethod}
                         onUpdate={onSimulationMethodUpdate}
+                        disabled={hasId}
                     />
                 </React.Fragment>
             )}
@@ -138,11 +149,11 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
             )}
 
             <div className="tr__form-buttons-container">
-                <span title={t('main:Cancel')}>
+                <span title={t(hasId ? 'main:Close' : 'main:Cancel')}>
                     <Button
                         key="cancel"
                         color="grey"
-                        label={t('main:Cancel')}
+                        label={t(hasId ? 'main:Close' : 'main:Cancel')}
                         onClick={props.onJobConfigurationCompleted}
                     />
                 </span>
@@ -151,13 +162,13 @@ const TransitNetworkDesignForm: React.FunctionComponent<TransitNetworkDesignForm
                         <Button key="previous" color="green" label={t('main:Previous')} onClick={decrementStep} />
                     </span>
                 )}
-                {currentStep < stepCount && (
-                    <span title={t('main:Next')}>
+                {currentStep < stepCount && !(hasId && currentStep === stepCount - 1) && (
+                    <span title={t(currentStep === stepCount - 1 ? 'main:Submit' : 'main:Next')}>
                         <Button
                             disabled={!nextEnabled}
                             key="next"
                             color="green"
-                            label={t(`main:${currentStep === stepCount - 1 ? 'Submit' : 'Next'}`)}
+                            label={t(currentStep === stepCount - 1 ? 'main:Submit' : 'main:Next')}
                             onClick={incrementStep}
                         />
                     </span>
