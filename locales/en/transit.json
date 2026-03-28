@@ -1033,6 +1033,10 @@
                 "transitRoutingAttributes": "Transit routing parameters for calculation",
                 "simulationOptions": "Simulation options",
                 "expansionFactorAttribute": "Column for expansion factor",
+                "nodeWeightAttributes": "Node weights (optional)",
+                "nodeWeightHelp": "Optional. If provided, node weights will be used to allocate vehicles to each line proportionally to the total line weight and cycle time.",
+                "nodeWeightUuid": "Column for node UUID",
+                "nodeWeightValue": "Column for node weight",
                 "MaxWalkingOnlyTravelTimeMinutes": "Maximum walking only travel time (minutes)",
                 "WalkingSpeedMps": "Walking speed (m/s)",
                 "WalkingSpeedFactor": "Walking speed factor",
@@ -1179,6 +1183,7 @@
         "evolutionaryTransitNetworkDesign": {
             "files": {
                 "transitDemand": "Demand file: {{filename}}",
+                "nodeWeight": "Node weights file: {{filename}}",
                 "simulationResults": "Simulation results for candidates",
                 "linesResult": "Candidate lines"
             }
