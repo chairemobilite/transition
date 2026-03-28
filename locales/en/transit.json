@@ -380,6 +380,7 @@
         "New": "New path",
         "Edit": "Path",
         "Delete": "Delete path",
+        "FitBoundsToPath": "Fit map bounds to path",
         "ConfirmDelete": "Do you confirm deletion of this path? Path's timetables will be disabled.",
         "ImportFromGeojson": "Import paths (GEOJSON)",
         "Name": "Name",
