@@ -308,6 +308,7 @@ const OptionsEditComponent: React.FunctionComponent<OptionsEditComponentProps<an
             return (
                 <React.Fragment key={`option${optionName}`}>
                     <h4>{t(option.i18nName)}</h4>
+                    {option.i18nHelp && <p className="_pale _small">{t(option.i18nHelp)}</p>}
                     {component}
                 </React.Fragment>
             );

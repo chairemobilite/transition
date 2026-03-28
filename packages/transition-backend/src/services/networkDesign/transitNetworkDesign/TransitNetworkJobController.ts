@@ -30,9 +30,9 @@ const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
 
     // Handle the csv files for the job, either from upload and/or from another job
     if (jobParameters.simulationMethod.type === 'OdTripSimulation') {
-        const csvFile = jobParameters.simulationMethod.config.demandAttributes?.fileAndMapping.csvFile;
-        if (csvFile) {
-            inputFiles.transitDemand = await ExecutableJobUtils.prepareJobFiles(csvFile, userId);
+        const demandCsvFile = jobParameters.simulationMethod.config.demandAttributes?.fileAndMapping.csvFile;
+        if (demandCsvFile) {
+            inputFiles.transitDemand = await ExecutableJobUtils.prepareJobFiles(demandCsvFile, userId);
         } else {
             throw new TrError(
                 'Missing demand csv file',
@@ -40,8 +40,13 @@ const createAndEnqueueEvolutionaryTransitNetworkDesignJob = async (
                 'transit:networkDesign.errors.MissingDemandCsvFile'
             );
         }
+
+        const nodeWeightCsvFile = jobParameters.simulationMethod.config.nodeWeightAttributes?.fileAndMapping.csvFile;
+        if (nodeWeightCsvFile) {
+            inputFiles.nodeWeight = await ExecutableJobUtils.prepareJobFiles(nodeWeightCsvFile, userId);
+        }
+        // node weight file is optional
     }
-    // TODO Handle node weight file when supported
     // TODO Handle accessibility map simulation when supported
 
     // FIXME For OdTripSimulation, we need to ensure the demand file is properly
@@ -87,15 +92,21 @@ export const getParametersFromTransitNetworkDesignJob = async (jobId: number, us
     }
     const transitNetworkJob = fromJob as EvolutionaryTransitNetworkDesignJob;
     const parameters = transitNetworkJob.attributes.data.parameters;
-    if (
-        parameters.simulationMethod.type === 'OdTripSimulation' &&
-        parameters.simulationMethod.config.demandAttributes
-    ) {
-        parameters.simulationMethod.config.demandAttributes.fileAndMapping.csvFile = {
-            location: 'job',
-            jobId,
-            fileKey: 'transitDemand'
-        };
+    if (parameters.simulationMethod.type === 'OdTripSimulation') {
+        if (parameters.simulationMethod.config.demandAttributes) {
+            parameters.simulationMethod.config.demandAttributes.fileAndMapping.csvFile = {
+                location: 'job',
+                jobId,
+                fileKey: 'transitDemand'
+            };
+        }
+        if (parameters.simulationMethod.config.nodeWeightAttributes) {
+            parameters.simulationMethod.config.nodeWeightAttributes.fileAndMapping.csvFile = {
+                location: 'job',
+                jobId,
+                fileKey: 'nodeWeight'
+            };
+        }
     }
     return parameters;
 };
