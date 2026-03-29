@@ -129,7 +129,7 @@ const appendLegCoordinates = (leg: MapLeg, globalCoordinates: Geojson.Position[]
  * @returns `calculatedSegmentDurationSeconds` (with accel/decel) and `noDwellTimeDurationSeconds` (without)
  * @throws TrError if the calculated duration is zero or negative
  */
-const calculateSegmentDuration = (
+export const calculateSegmentDuration = (
     path: Path,
     segmentDistanceMeters: number,
     routedDurationSeconds: number
