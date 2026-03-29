@@ -80,7 +80,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
         newCheckpointFrom,
         newCheckpointTo,
         newCheckpointMaxTo,
-        newCheckpointMinFrom,
+        isNodeInsideCheckpoint,
         setNewCheckpointFrom,
         setNewCheckpointTo,
         getTimeForCell,
@@ -171,7 +171,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                     newCheckpointFrom={newCheckpointFrom}
                     newCheckpointTo={newCheckpointTo}
                     newCheckpointMaxTo={newCheckpointMaxTo}
-                    newCheckpointMinFrom={newCheckpointMinFrom}
+                    isNodeInsideCheckpoint={isNodeInsideCheckpoint}
                     segmentCount={segmentCount}
                     onNewCheckpointFromChange={setNewCheckpointFrom}
                     onNewCheckpointToChange={setNewCheckpointTo}

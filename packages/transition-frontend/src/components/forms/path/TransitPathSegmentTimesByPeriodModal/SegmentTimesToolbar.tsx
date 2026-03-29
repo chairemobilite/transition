@@ -25,6 +25,8 @@ type SegmentTimesToolbarProps = {
     nodeChoices: NodeChoice[];
     newCheckpointFrom: number;
     newCheckpointTo: number;
+    newCheckpointMaxTo: number;
+    isNodeInsideCheckpoint: (idx: number) => boolean;
     segmentCount: number;
     onNewCheckpointFromChange: (value: number) => void;
     onNewCheckpointToChange: (value: number) => void;
@@ -51,6 +53,8 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
     nodeChoices,
     newCheckpointFrom,
     newCheckpointTo,
+    newCheckpointMaxTo,
+    isNodeInsideCheckpoint,
     segmentCount,
     onNewCheckpointFromChange,
     onNewCheckpointToChange,
@@ -96,11 +100,14 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                     }}
                     style={selectStyle}
                 >
-                    {nodeChoices.slice(0, -1).map((c) => (
-                        <option key={c.value} value={c.value}>
-                            {c.label}
-                        </option>
-                    ))}
+                    {nodeChoices
+                        .slice(0, -1)
+                        .filter((_, idx) => !isNodeInsideCheckpoint(idx))
+                        .map((c) => (
+                            <option key={c.value} value={c.value}>
+                                {c.label}
+                            </option>
+                        ))}
                 </select>
                 <span style={{ opacity: 0.7, flexShrink: 0 }}>{t('transit:transitPath:ToStation')}:</span>
                 <select
@@ -110,7 +117,7 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                     style={selectStyle}
                 >
                     {nodeChoices
-                        .filter((_, idx) => idx > newCheckpointFrom)
+                        .filter((_, idx) => idx > newCheckpointFrom && idx <= newCheckpointMaxTo)
                         .map((c) => (
                             <option key={c.value} value={c.value}>
                                 {c.label}

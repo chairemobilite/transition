@@ -6,10 +6,10 @@
  */
 import React from 'react';
 
-import type { Checkpoint, EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
+import type { ResolvedCheckpoint, EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 
 type CheckpointLinesProps = {
-    checkpoints: Checkpoint[];
+    checkpoints: ResolvedCheckpoint[];
     activeCheckpointIndex: number;
     editMode: EditMode;
     onCheckpointClick: (index: number) => void;
