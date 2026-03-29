@@ -36,8 +36,7 @@ export const resolveCheckpoints = (checkpoints: Checkpoint[], nodeIds: string[])
     checkpoints.map((cp) => resolveCheckpoint(cp, nodeIds)).filter((cp): cp is ResolvedCheckpoint => cp !== undefined);
 
 /** Build a unique key for a checkpoint (used for indexing target times) */
-export const getCheckpointKey = (checkpoint: Checkpoint): string =>
-    `${checkpoint.fromNodeId}-${checkpoint.toNodeId}`;
+export const getCheckpointKey = (checkpoint: Checkpoint): string => `${checkpoint.fromNodeId}-${checkpoint.toNodeId}`;
 
 /** Check whether two checkpoints overlap (requires resolved indices) */
 export const checkpointsOverlap = (a: ResolvedCheckpoint, b: ResolvedCheckpoint): boolean =>
@@ -63,37 +62,4 @@ export const snapSeconds = (secs: number): number => {
         }
     }
     return closest;
-};
-
-/**
- * Distribute a target total time across segments proportionally to base times.
- * Returns a new array of segment times for the given span.
- */
-export const distributeTime = (
-    segments: { travelTimeSeconds: number }[],
-    fromIndex: number,
-    toIndex: number,
-    targetTotal: number
-): number[] => {
-    const span = segments.slice(fromIndex, toIndex);
-    const baseTotal = span.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
-
-    if (baseTotal === 0) {
-        // Distribute evenly if all base times are zero
-        const count = toIndex - fromIndex;
-        const each = Math.floor(targetTotal / count);
-        const remainder = targetTotal - each * count;
-        return span.map((_, i) => each + (i < remainder ? 1 : 0));
-    }
-
-    const ratio = targetTotal / baseTotal;
-    const result = span.map((s) => Math.round(s.travelTimeSeconds * ratio));
-
-    // Adjust rounding error on the last segment
-    const distributed = result.reduce((sum, v) => sum + v, 0);
-    if (distributed !== targetTotal && result.length > 0) {
-        result[result.length - 1] += targetTotal - distributed;
-    }
-
-    return result;
 };
