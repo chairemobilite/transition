@@ -14,10 +14,10 @@ import { faPauseCircle } from '@fortawesome/free-solid-svg-icons/faPauseCircle';
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons/faPlayCircle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
+import { ConfirmModal } from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 
 import ButtonList from '../../parts/ButtonList';
 import ButtonCell, { ButtonCellWithConfirm } from '../../parts/ButtonCell';
-import ExpandableText from '../../parts/executableJob/ExpandableText';
 import ExpandableFiles from '../../parts/executableJob/ExpandableFileWidget';
 import ExpandableMessages from '../../parts/executableJob/ExpandableMessages';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
@@ -34,6 +34,123 @@ import NetworkDesignFrontendExecutor from '../../../services/networkDesign/Netwo
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 const JOB_TYPE = 'evolutionaryTransitNetworkDesign';
+
+/** Mirrors backend ResultSerialization shape for the fields we display */
+type GenerationRow = {
+    lines: {
+        [lineId: string]: {
+            shortname: string;
+            nbVehicles: number;
+            timeBetweenPassages: number;
+        };
+    };
+    numberOfLines: number;
+    numberOfVehicles: number;
+    result: {
+        totalFitness: number;
+        results: { [method: string]: { fitness: number; results: unknown } };
+    };
+};
+
+const getNormalizedFitness = (gen: GenerationRow): number | undefined => {
+    const methodEntries = Object.values(gen.result.results);
+    if (methodEntries.length === 0) return undefined;
+    const stats = methodEntries[0].results as { totalCount?: number } | undefined;
+    const totalCount = stats?.totalCount;
+    if (typeof totalCount === 'number' && totalCount > 0) {
+        return methodEntries[0].fitness / totalCount;
+    }
+    return undefined;
+};
+
+const GenerationsTable: React.FC<{
+    generations: GenerationRow[] | undefined;
+    t: (key: string) => string;
+}> = ({ generations, t }) => {
+    const [selectedGenIndex, setSelectedGenIndex] = React.useState<number | null>(null);
+
+    if (!generations || generations.length === 0) return null;
+
+    const selectedGen = selectedGenIndex !== null ? generations[selectedGenIndex] : null;
+    const linesArray = selectedGen
+        ? Object.entries(selectedGen.lines)
+            .map(([lineId, line]) => ({
+                lineId,
+                shortname: line.shortname,
+                nbVehicles: line.nbVehicles,
+                cycleTimeMinutes: (line.nbVehicles * line.timeBetweenPassages) / 60,
+                headwayMinutes: line.timeBetweenPassages / 60
+            }))
+            .sort((a, b) => a.shortname.localeCompare(b.shortname, undefined, { numeric: true }))
+        : [];
+
+    return (
+        <div style={{ marginTop: '0.5rem' }}>
+            <strong>{t('transit:networkDesign:Generations')}</strong>
+            <table className="apptr__table" style={{ width: '100%', marginTop: '0.25rem' }}>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{t('transit:networkDesign:TotalFitness')}</th>
+                        <th>{t('transit:networkDesign:NormalizedFitness')}</th>
+                        <th>{t('transit:networkDesign:NumberOfLines')}</th>
+                        <th>{t('transit:networkDesign:NumberOfVehicles')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {generations.map((gen, index) => {
+                        const normalizedFitness = getNormalizedFitness(gen);
+                        return (
+                            <tr
+                                key={index}
+                                onClick={() => setSelectedGenIndex(index)}
+                                style={{ cursor: 'pointer' }}
+                                className="_hoverable"
+                            >
+                                <td>{index + 1}</td>
+                                <td>{gen.result.totalFitness.toFixed(2)}</td>
+                                <td>{normalizedFitness !== undefined ? normalizedFitness.toFixed(4) : '-'}</td>
+                                <td>{gen.numberOfLines}</td>
+                                <td>{gen.numberOfVehicles}</td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+
+            <ConfirmModal
+                isOpen={selectedGenIndex !== null}
+                closeModal={() => setSelectedGenIndex(null)}
+                title={`${t('transit:networkDesign:GenerationDetails')} ${selectedGenIndex !== null ? selectedGenIndex + 1 : ''}`}
+                showConfirmButton={false}
+                cancelButtonLabel={t('main:Close')}
+            >
+                {selectedGen && (
+                    <table className="apptr__table" style={{ width: '100%' }}>
+                        <thead>
+                            <tr>
+                                <th>{t('transit:networkDesign:LineShortname')}</th>
+                                <th>{t('transit:networkDesign:VehiclesAssigned')}</th>
+                                <th>{t('transit:networkDesign:CycleTimeMinutes')}</th>
+                                <th>{t('transit:networkDesign:HeadwayMinutes')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {linesArray.map((line) => (
+                                <tr key={line.lineId}>
+                                    <td>{line.shortname}</td>
+                                    <td>{line.nbVehicles}</td>
+                                    <td>{line.cycleTimeMinutes.toFixed(1)}</td>
+                                    <td>{line.headwayMinutes.toFixed(1)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </ConfirmModal>
+        </div>
+    );
+};
 
 interface TransitNetworkDesignListProps {
     onNewJob: (parameters?: {
@@ -295,7 +412,6 @@ const TransitNetworkDesignList: React.FunctionComponent<TransitNetworkDesignList
                                 </li>
                                 <li className="_clear"></li>
                             </ButtonList>
-                            {/* Expanded details — same data as the old ExecutableJobComponent table columns */}
                             {isExpanded && (
                                 <div className="tr__form-section" style={{ padding: '0.5rem 1rem', fontSize: '0.9em' }}>
                                     <p>
@@ -318,18 +434,13 @@ const TransitNetworkDesignList: React.FunctionComponent<TransitNetworkDesignList
                                             <ExpandableMessages messages={job.statusMessages} />
                                         </p>
                                     )}
-                                    <p>
-                                        <strong>{t('transit:jobs:Data')}:</strong>{' '}
-                                        <ExpandableText textToShorten={JSON.stringify(job.data)}>
-                                            <textarea
-                                                autoComplete="none"
-                                                disabled={true}
-                                                className="tr__form-input-textarea apptr__input _input-textarea"
-                                                value={JSON.stringify(job.data, null, 2)}
-                                                rows={15}
-                                            />
-                                        </ExpandableText>
-                                    </p>
+                                    <GenerationsTable
+                                        generations={
+                                            (job.data as { results?: { generations?: GenerationRow[] } })?.results
+                                                ?.generations
+                                        }
+                                        t={t}
+                                    />
                                     {job.hasFiles && (
                                         <p>
                                             <strong>{t('transit:jobs:Resources')}:</strong>{' '}
