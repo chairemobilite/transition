@@ -6,22 +6,12 @@
  */
 import React from 'react';
 
-import { snapSeconds } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
+import ScrollableDropdown from './ScrollableDropdown';
 
-const SECONDS_CHOICES = [
-    { value: '0', label: '00' },
-    { value: '5', label: '05' },
-    { value: '10', label: '10' },
-    { value: '15', label: '15' },
-    { value: '20', label: '20' },
-    { value: '25', label: '25' },
-    { value: '30', label: '30' },
-    { value: '35', label: '35' },
-    { value: '40', label: '40' },
-    { value: '45', label: '45' },
-    { value: '50', label: '50' },
-    { value: '55', label: '55' }
-];
+const SECONDS_CHOICES = Array.from({ length: 60 }, (_, i) => ({
+    value: i,
+    label: i < 10 ? '0' + i : String(i)
+}));
 
 type TimeInputProps = {
     seconds: number;
@@ -30,8 +20,9 @@ type TimeInputProps = {
 };
 
 const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange, readOnly = false }) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = snapSeconds(seconds % 60);
+    const rounded = Math.round(seconds);
+    const mins = Math.floor(rounded / 60);
+    const secs = rounded % 60;
 
     const [minsText, setMinsText] = React.useState<string>(String(mins));
     const [isFocused, setIsFocused] = React.useState(false);
@@ -61,11 +52,6 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
         } else {
             setMinsText(String(val));
         }
-    };
-
-    const handleSecondsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const val = parseInt(e.target.value, 10);
-        onChange(mins * 60 + val);
     };
 
     if (readOnly) {
@@ -106,24 +92,11 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
                 }}
             />
             <span style={{ opacity: 0.6, fontSize: '0.8em' }}>min</span>
-            <select
-                value={String(secs)}
-                onChange={handleSecondsChange}
-                style={{
-                    fontSize: '0.85em',
-                    padding: '0.2rem',
-                    background: 'rgba(255,255,255,0.1)',
-                    color: 'inherit',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    borderRadius: '4px'
-                }}
-            >
-                {SECONDS_CHOICES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                        {c.label}
-                    </option>
-                ))}
-            </select>
+            <ScrollableDropdown
+                value={secs}
+                choices={SECONDS_CHOICES}
+                onSelect={(val) => onChange(mins * 60 + val)}
+            />
             <span style={{ opacity: 0.6, fontSize: '0.8em' }}>sec</span>
         </span>
     );

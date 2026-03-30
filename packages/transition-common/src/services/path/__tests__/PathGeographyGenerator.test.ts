@@ -1006,6 +1006,190 @@ describe('Dwell time adjustment on preserved segments', () => {
     });
 });
 
+describe('Custom dwell time preservation across node changes', () => {
+    // Scenario: user customized the dwell times stored on `path.data.dwellTimeSeconds`
+    // via the segment-times-by-period modal. When a node is added or removed, the
+    // regeneration must preserve those custom values on nodes that survived the change,
+    // and only fall back to node defaults for brand-new nodes.
+
+    const routingResultInsertAtEnd = {
+        tracepoints: [node1, node4, node6, node3],
+        matchings: [{
+            confidence: 99,
+            distance: 3500,
+            duration: 233.34,
+            legs: [
+                { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] } }] },
+                { distance: 1000, duration: 66.67, steps: [{ distance: 1000, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                { distance: 800, duration: 53.34, steps: [{ distance: 800, geometry: { type: 'LineString' as const, coordinates: [node6.geometry.coordinates, node3.geometry.coordinates] } }] },
+            ]
+        }]
+    };
+
+    const makePathWithCustomDwellsAndInsertAtEnd = (customDwellTimes: number[]) => {
+        const path = new TransitPathStub({
+            id: 'path1',
+            line_id: line.get('id'),
+            nodes: [node1.properties.id, node4.properties.id, node6.properties.id, node3.properties.id],
+            data: {
+                nodeTypes: ['engine', 'engine', 'engine', 'engine'],
+                waypoints: [[], [], [], []],
+                waypointTypes: [[], [], [], []],
+                routingEngine: 'engine',
+                routingMode: 'driving',
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
+                segments: [
+                    { travelTimeSeconds: 200, distanceMeters: 1500 },
+                    { travelTimeSeconds: 150, distanceMeters: 1000 },
+                ],
+                dwellTimeSeconds: customDwellTimes,
+            }
+        }) as any;
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResultInsertAtEnd], { lastNodeChange: { type: 'insert', index: 3 } });
+        return path;
+    };
+
+    test('preserved node custom dwell differing from node default survives an insert', () => {
+        // Previous: [node1, node4, node6] with custom dwells [0, 42, 55] (differ from node defaults)
+        // node4's default is 120 (NODE4_DWELL_TIME) but path stored 42 — must keep 42.
+        const path = makePathWithCustomDwellsAndInsertAtEnd([0, 42, 55]);
+
+        expect(path.attributes.data.dwellTimeSeconds[0]).toEqual(0);
+        // Segment 1 (node4→node6): node4 preserved with custom dwell 42, not 120 (node default)
+        expect(path.attributes.data.dwellTimeSeconds[1]).toEqual(42);
+    });
+
+    test('preserved node custom dwell survives on a new segment adjacent to the insert point', () => {
+        // After insert at end: [node1, node4, node6, node3] (segments: 0 preserved, 1 preserved, 2 new)
+        // Segment 2 (node6→node3) is NEW but starts at node6, which was preserved with custom dwell 55.
+        const path = makePathWithCustomDwellsAndInsertAtEnd([0, 42, 55]);
+
+        // Segment 2 starts at node6 (preserved): dwell should be 55, not node6's default
+        expect(path.attributes.data.dwellTimeSeconds[2]).toEqual(55);
+    });
+
+    test('newly inserted node uses node default for its dwell', () => {
+        // Inserting node3 at end: node3 is brand-new, no stored dwell on the path
+        // → its dwell falls back to node3's default (no custom default_dwell_time_seconds
+        //   set on node3, so DEFAULT_DWELL_TIME via the path stub)
+        const path = makePathWithCustomDwellsAndInsertAtEnd([0, 42, 55]);
+
+        // Last node (node3) is new — use node default
+        expect(path.attributes.data.dwellTimeSeconds[3]).toEqual(DEFAULT_DWELL_TIME);
+    });
+
+    test('preserved node custom dwell survives on a new segment created by a middle insert', () => {
+        // Previous: [node1, node2, node4, node6] with custom dwells [0, 18, 42, 33]
+        // Insert node3 at index 2 → [node1, node2, node3, node4, node6]
+        // Current segments: seg 0 (node1→node2) preserved, seg 1-2 new (split), seg 3 preserved
+        // Seg 2 (node3→node4) is NEW but its starting node (node3) is newly inserted.
+        // Seg 3 (node4→node6) is preserved — node4 kept its custom dwell 42 (≠ 120 default).
+        const path = new TransitPathStub({
+            id: 'path1',
+            line_id: line.get('id'),
+            nodes: [node1.properties.id, node2.properties.id, node3.properties.id, node4.properties.id, node6.properties.id],
+            data: {
+                nodeTypes: ['engine', 'engine', 'engine', 'engine', 'engine'],
+                waypoints: [[], [], [], [], []],
+                waypointTypes: [[], [], [], [], []],
+                routingEngine: 'engine',
+                routingMode: 'driving',
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
+                segments: [
+                    { travelTimeSeconds: 115, distanceMeters: 1500 },
+                    { travelTimeSeconds: 82, distanceMeters: 1000 },
+                    { travelTimeSeconds: 95, distanceMeters: 1200 },
+                ],
+                dwellTimeSeconds: [0, 18, 42, 33],
+            }
+        }) as any;
+
+        const routingResult = {
+            tracepoints: [node1, node2, node3, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 3700, duration: 246.68,
+                legs: [
+                    { distance: 1500, duration: 100, steps: [{ distance: 1500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node2.geometry.coordinates] } }] },
+                    { distance: 600, duration: 40, steps: [{ distance: 600, geometry: { type: 'LineString' as const, coordinates: [node2.geometry.coordinates, node3.geometry.coordinates] } }] },
+                    { distance: 400, duration: 26.67, steps: [{ distance: 400, geometry: { type: 'LineString' as const, coordinates: [node3.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
+            }]
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 2 } });
+
+        // Dwell at node1 (seg 0 start): always 0
+        expect(path.attributes.data.dwellTimeSeconds[0]).toEqual(0);
+        // Dwell at node2 (seg 1 start): preserved with custom 18 (seg 1 is NEW, but node2 was preserved)
+        expect(path.attributes.data.dwellTimeSeconds[1]).toEqual(18);
+        // Dwell at node3 (seg 2 start): node3 is newly inserted — uses node default
+        expect(path.attributes.data.dwellTimeSeconds[2]).toEqual(DEFAULT_DWELL_TIME);
+        // Dwell at node4 (seg 3 start): preserved with custom 42 (≠ NODE4_DWELL_TIME=120)
+        expect(path.attributes.data.dwellTimeSeconds[3]).toEqual(42);
+        // Last node (node6): preserved with custom 33
+        expect(path.attributes.data.dwellTimeSeconds[4]).toEqual(33);
+    });
+
+    test('preserved node custom dwell survives a node removal', () => {
+        // Previous: [node1, node2, node4, node6] with custom dwells [0, 18, 42, 33]
+        // Remove node2 at index 1 → [node1, node4, node6]
+        // Current segments: seg 0 (node1→node4) merged/new, seg 1 (node4→node6) preserved
+        const path = new TransitPathStub({
+            id: 'path1',
+            line_id: line.get('id'),
+            nodes: [node1.properties.id, node4.properties.id, node6.properties.id],
+            data: {
+                nodeTypes: ['engine', 'engine', 'engine'],
+                waypoints: [[], [], []],
+                waypointTypes: [[], [], []],
+                routingEngine: 'engine',
+                routingMode: 'driving',
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                maxRunningSpeedKmH: DEFAULT_MAX_SPEED,
+                segments: [
+                    { travelTimeSeconds: 115, distanceMeters: 1500 },
+                    { travelTimeSeconds: 82, distanceMeters: 1000 },
+                    { travelTimeSeconds: 95, distanceMeters: 1200 },
+                ],
+                dwellTimeSeconds: [0, 18, 42, 33],
+            }
+        }) as any;
+
+        const routingResult = {
+            tracepoints: [node1, node4, node6],
+            matchings: [{
+                confidence: 99, distance: 3700, duration: 246.68,
+                legs: [
+                    { distance: 2500, duration: 166.67, steps: [{ distance: 2500, geometry: { type: 'LineString' as const, coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] } }] },
+                    { distance: 1200, duration: 80, steps: [{ distance: 1200, geometry: { type: 'LineString' as const, coordinates: [node4.geometry.coordinates, node6.geometry.coordinates] } }] },
+                ]
+            }]
+        };
+        const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
+        generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'remove', index: 1 } });
+
+        // Dwell at node1 (seg 0 start): always 0
+        expect(path.attributes.data.dwellTimeSeconds[0]).toEqual(0);
+        // Dwell at node4 (seg 1 start): preserved with custom 42 (not NODE4_DWELL_TIME default)
+        expect(path.attributes.data.dwellTimeSeconds[1]).toEqual(42);
+        // Last node (node6): preserved with custom 33
+        expect(path.attributes.data.dwellTimeSeconds[2]).toEqual(33);
+    });
+});
+
 describe('Waypoint change operations', () => {
     // Shared initial state: node1 -> node4 -> node6, 2 segments with previous travel times
     const initialWaypointPathData: any = {
