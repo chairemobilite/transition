@@ -372,6 +372,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         await startMemcachedPromise; // Delayed await to let things start in parallel of data prep
         const algorithmResults = this.job.attributes.data.results!;
 
+        // log the line weights breakdown, in order of total line weight, DESC
+        this.logLineWeightsBreakdown(this.simulatedLineCollection.getFeatures());
+
         await this.runBaseScenario();
 
         let previousGeneration: LineAndNumberOfVehiclesGeneration | undefined = undefined;

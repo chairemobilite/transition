@@ -13,7 +13,6 @@ import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import * as AlgoTypes from '../internalTypes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomFromDistribution } from 'chaire-lib-common/lib/utils/RandomUtils';
-import { getLineWeight } from 'transition-common/lib/services/line/LineUtils';
 import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { SIMULATION_METHODS_FACTORY } from '../../simulation/methods/SimulationMethod';
@@ -59,9 +58,10 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             );
         }
 
-        // Add line weights to have more probability of increased service for largest lines
+        // Use the wrapper's getLineWeight which incorporates optional node
+        // weights from the job's CSV without polluting the shared node collection
         const lineWeights = candidateLines
-            .map((line) => getLineWeight(line))
+            .map((line) => this.wrappedJob.getLineWeight(line))
             .map((weight) => (weight === null ? 1 : weight));
         const totalWeight = lineWeights.reduce((weight, current) => weight + current, 0);
         let failedAttempts = 0;
