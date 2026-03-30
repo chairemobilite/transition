@@ -23,4 +23,11 @@ describe('formatSeconds', () => {
         expect(formatSeconds(45)).toBe('0m45s');
         expect(formatSeconds(5)).toBe('0m05s');
     });
+
+    test('rounds fractional seconds to the nearest integer', () => {
+        expect(formatSeconds(75.3)).toBe('1m15s');
+        expect(formatSeconds(75.7)).toBe('1m16s');
+        expect(formatSeconds(59.6)).toBe('1m00s');
+        expect(formatSeconds(0.4)).toBe('0m00s');
+    });
 });

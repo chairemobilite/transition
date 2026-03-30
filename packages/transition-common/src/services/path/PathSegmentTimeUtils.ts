@@ -44,22 +44,9 @@ export const checkpointsOverlap = (a: ResolvedCheckpoint, b: ResolvedCheckpoint)
 
 /** Format seconds as "XmYYs", e.g. 75 → "1m15s", 120 → "2m00s", 45 → "0m45s" */
 export const formatSeconds = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const rounded = Math.round(seconds);
+    const mins = Math.floor(rounded / 60);
+    const secs = rounded % 60;
     return `${mins}m${secs < 10 ? '0' : ''}${secs}s`;
 };
 
-/** Snap seconds to the nearest valid choice (0, 5, 10, ..., 55) */
-export const snapSeconds = (secs: number): number => {
-    const choices = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-    let closest = 0;
-    let minDiff = Math.abs(secs - 0);
-    for (const c of choices) {
-        const diff = Math.abs(secs - c);
-        if (diff < minDiff) {
-            minDiff = diff;
-            closest = c;
-        }
-    }
-    return closest;
-};

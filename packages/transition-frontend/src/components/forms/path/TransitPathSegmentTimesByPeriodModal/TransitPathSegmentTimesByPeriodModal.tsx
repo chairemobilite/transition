@@ -62,7 +62,6 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
     const { t, i18n } = useTranslation('transit');
 
     const {
-        segments,
         segmentCount,
         periods,
         serviceChoices,
@@ -86,10 +85,12 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
         getTimeForCell,
         handleCellChange,
         isSegmentInAnyCheckpoint,
-        getAverageTotal,
-        getPeriodTotal,
+        getStopTimeForSegment,
+        setStopTimeForSegment,
+        getDepartureTimeAtSegment,
+        getArrivalTimeAfterSegment,
         getCheckpointCurrentTotal,
-        getCheckpointAverageTotal,
+        getCheckpointTotalStopTime,
         getCheckpointTarget,
         setCheckpointTarget,
         handleDistribute,
@@ -273,19 +274,18 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             </SegmentCarousel>
 
                             <SegmentPeriodTimesTable
-                                averageSegmentSeconds={segments[activeSegmentIndex].travelTimeSeconds}
-                                averageTotal={getAverageTotal()}
+                                isFirstSegment={activeSegmentIndex === 0}
                                 periods={periods}
                                 language={i18n.language}
                                 locked={isSegmentInAnyCheckpoint(activeSegmentIndex)}
                                 lockedMessage={t('transit:transitPath:SegmentLockedByCheckpoint')}
-                                getTimeForPeriod={(periodShortname) =>
-                                    getTimeForCell(activeSegmentIndex, periodShortname)
-                                }
-                                getPeriodTotal={getPeriodTotal}
-                                onTimeChange={(periodShortname, newSec) =>
-                                    handleCellChange(activeSegmentIndex, periodShortname, newSec)
-                                }
+                                getTimeForPeriod={(periodShortname) => getTimeForCell(activeSegmentIndex, periodShortname)}
+                                getStopTime={() => getStopTimeForSegment(activeSegmentIndex)}
+                                onStopTimeChange={(newSec) => setStopTimeForSegment(activeSegmentIndex, newSec)}
+                                getArrivalTimePrevSegment={(periodShortname) => activeSegmentIndex > 0 ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname) : 0}
+                                getDepartureTime={(periodShortname) => getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)}
+                                getArrivalTime={(periodShortname) => getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)}
+                                onTimeChange={(periodShortname, newSec) => handleCellChange(activeSegmentIndex, periodShortname, newSec)}
                             />
                         </>
                     )}
@@ -393,7 +393,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             </div>
 
                             <CheckpointPeriodTimesTable
-                                averageTotal={getCheckpointAverageTotal(activeCheckpoint)}
+                                totalStopTimeSeconds={getCheckpointTotalStopTime(activeCheckpoint)}
                                 periods={periods}
                                 language={i18n.language}
                                 getCurrentTotal={(periodShortname) =>

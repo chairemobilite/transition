@@ -6,8 +6,6 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Tooltip } from 'react-tooltip';
-
 import { formatSeconds } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import TimeInput from './TimeInput';
 
@@ -17,7 +15,7 @@ type Period = {
 };
 
 type CheckpointPeriodTimesTableProps = {
-    averageTotal: number;
+    totalStopTimeSeconds: number;
     periods: Period[];
     language: string;
     getCurrentTotal: (periodShortname: string) => number;
@@ -39,7 +37,7 @@ const centerHeaderStyle: React.CSSProperties = {
 };
 
 const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesTableProps> = ({
-    averageTotal,
+    totalStopTimeSeconds,
     periods,
     language,
     getCurrentTotal,
@@ -50,73 +48,46 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
 
     return (
         <div style={{ marginTop: '0.5rem', width: '100%' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                 <thead>
                     <tr>
                         <th style={headerStyle}>{t('transit:transitPath:Period')}</th>
-                        <th style={centerHeaderStyle}>{t('transit:transitPath:CurrentTotal')}</th>
-                        <th style={centerHeaderStyle}>{t('transit:transitPath:TargetTotal')}</th>
+                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:CurrentTotal')}</th>
+                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:TargetTotal')}</th>
+                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:TotalStopTime')}</th>
+                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:TotalWithStops')}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.3)' }}>
-                        <td style={{ ...cellStyle, fontWeight: 'bold' }}>{t('transit:transitPath:AverageTime')}</td>
-                        <td style={centerCellStyle}>
-                            <strong>{formatSeconds(averageTotal)}</strong>
-                        </td>
-                        <td style={{ ...centerCellStyle, opacity: 0.4 }}>&mdash;</td>
-                    </tr>
-                    {periods.map((period) => {
-                        const current = getCurrentTotal(period.shortname);
-                        const target = getTarget(period.shortname);
-                        const isDifferent = current !== target;
-                        return (
-                            <tr key={period.shortname} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                <td style={cellStyle}>{period.name[language] || period.shortname}</td>
-                                <td style={centerCellStyle}>
-                                    <strong>{formatSeconds(current)}</strong>
-                                </td>
-                                <td style={centerCellStyle}>
-                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
-                                        <TimeInput
-                                            seconds={target}
-                                            onChange={(newSec) => onTargetChange(period.shortname, newSec)}
-                                        />
-                                        <span
-                                            style={{
-                                                width: '0.8em',
-                                                fontSize: '0.8em',
-                                                textAlign: 'center',
-                                                cursor: 'default'
-                                            }}
-                                            data-tooltip-id={isDifferent ? `unsaved-${period.shortname}` : undefined}
-                                        >
-                                            {isDifferent ? '*' : ''}
-                                        </span>
-                                        {isDifferent && (
-                                            <Tooltip
-                                                id={`unsaved-${period.shortname}`}
-                                                delayShow={0}
-                                                opacity={1}
-                                                place="right"
-                                                noArrow
-                                                positionStrategy="fixed"
-                                                style={{
-                                                    zIndex: 100,
-                                                    fontSize: '11px',
-                                                    maxWidth: '150px',
-                                                    whiteSpace: 'normal',
-                                                    textAlign: 'left'
-                                                }}
-                                            >
-                                                <span>{t('transit:transitPath:UnsavedChange')}</span>
-                                            </Tooltip>
-                                        )}
-                                    </span>
-                                </td>
-                            </tr>
-                        );
-                    })}
+                {periods.map((period) => {
+                    const current = getCurrentTotal(period.shortname);
+                    const target = getTarget(period.shortname);
+                    const totalWithStops = target + totalStopTimeSeconds;
+                    return (
+                        <tr key={period.shortname} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                            <td style={cellStyle}>{period.name[language] || period.shortname}</td>
+                            <td style={centerCellStyle}>
+                                <strong>{formatSeconds(current)}</strong>
+                            </td>
+                            <td style={centerCellStyle}>
+                                <TimeInput
+                                    seconds={target}
+                                    onChange={(newSec) => onTargetChange(period.shortname, newSec)}
+                                />
+                            </td>
+                            <td style={centerCellStyle}>{formatSeconds(totalStopTimeSeconds)}</td>
+                            <td style={centerCellStyle}>
+                                <TimeInput
+                                    seconds={totalWithStops}
+                                    onChange={(newSec) => {
+                                        const newTarget = Math.max(0, newSec - totalStopTimeSeconds);
+                                        onTargetChange(period.shortname, newTarget);
+                                    }}
+                                />
+                            </td>
+                        </tr>
+                    );
+                })}
                 </tbody>
             </table>
         </div>
