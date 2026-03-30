@@ -53,7 +53,7 @@ export class EvolutionaryAlgorithmDescriptor implements SimulationAlgorithmDescr
             i18nName: 'transit:networkDesign.evolutionaryAlgorithm.NumberOfElites',
             i18nHelp: 'transit:networkDesign.evolutionaryAlgorithm.help.NumberOfElites',
             type: 'integer' as const,
-            validate: (value: number) => value > 0,
+            validate: (value: number) => value >= 0,
             default: 2
         },
         numberOfRandoms: {
