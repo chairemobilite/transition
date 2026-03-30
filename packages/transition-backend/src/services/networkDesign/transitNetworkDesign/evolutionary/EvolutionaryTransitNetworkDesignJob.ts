@@ -529,9 +529,11 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             scenarioName: '',
             simulationMethod: '',
             fitnessScore: undefined,
+            totalCount: undefined,
             routedCount: undefined,
             nonRoutedCount: undefined,
             usersHourlyCost: undefined,
+            normalizedUserCost: undefined,
             differentialUsersHourlyCost: undefined
         };
 
@@ -574,6 +576,9 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         // Save the candidate simulation results file
         const simulationResultStream = resultsDbQueries.streamSimulationResults(this.job.id);
         for await (const row of simulationResultStream) {
+            const totalCount = typeof row.data?.totalCount === 'number' ? row.data.totalCount : undefined;
+            const usersHourlyCost =
+                typeof row.data?.usersHourlyCost === 'number' ? row.data.usersHourlyCost : undefined;
             const csvAttributes = {
                 generationIndex: row.generation_index,
                 candidateIndex: row.candidate_index,
@@ -581,9 +586,14 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 scenarioName: row.candidate_data?.scenarioName || '',
                 simulationMethod: row.simulation_method,
                 fitnessScore: parseFloat(row.fitness_score),
+                totalCount,
                 routedCount: typeof row.data?.routedCount === 'number' ? row.data.routedCount : undefined,
                 nonRoutedCount: typeof row.data?.nonRoutedCount === 'number' ? row.data.nonRoutedCount : undefined,
-                usersHourlyCost: typeof row.data?.usersHourlyCost === 'number' ? row.data.usersHourlyCost : undefined,
+                usersHourlyCost,
+                normalizedUserCost:
+                    usersHourlyCost !== undefined && totalCount !== undefined && totalCount > 0
+                        ? usersHourlyCost / totalCount
+                        : undefined,
                 differentialUsersHourlyCost:
                     typeof row.data?.differentialUsersHourlyCost === 'number'
                         ? row.data.differentialUsersHourlyCost
