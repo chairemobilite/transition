@@ -57,6 +57,7 @@ interface PathFormState extends SaveableObjectState<Path> {
     confirmModalSchedulesAffectedlIsOpen: boolean;
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
+    forceRecalculate: boolean;
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
@@ -74,7 +75,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             selectedObjectName: 'path',
             collectionName: 'paths',
             pathErrors: [],
-            confirmModalSchedulesAffectedlIsOpen: false
+            confirmModalSchedulesAffectedlIsOpen: false,
+            forceRecalculate: false
         };
     }
 
@@ -621,6 +623,19 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             {(pathData.from_gtfs as boolean) && (
                                 <FormErrors errors={['transit:transitPath:warningFromGtfs']} errorType="Warning" />
                             )}
+                            {isFrozen !== true && (
+                                <div className="apptr__form-input-container">
+                                    <InputCheckboxBoolean
+                                        id={`formFieldTransitPathEditForceRecalculate${pathId}`}
+                                        label={this.props.t('transit:transitPath:ForceRecalculateFromRouting')}
+                                        isChecked={this.state.forceRecalculate}
+                                        onValueChange={(e) => {
+                                            path.setForceRecalculate(e.target.value);
+                                            this.setState({ forceRecalculate: e.target.value });
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </Collapsible>
 
@@ -748,7 +763,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         name: 'UpdatingPathRoute',
                                         progress: 0.0
                                     });
-                                    path.updateGeography()
+                                    path.updateGeography({ forceRecalculate: true })
                                         .then((_response) => {
                                             serviceLocator.selectedObjectsManager.setSelection('path', [path]);
                                             this.updateLayers();

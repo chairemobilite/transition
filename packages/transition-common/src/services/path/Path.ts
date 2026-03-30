@@ -128,6 +128,11 @@ export interface PathAttributes extends MapObjectAttributes<GeoJSON.LineString> 
  */
 export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implements Saveable {
     protected static displayName = 'Path';
+    _forceRecalculate = false;
+
+    setForceRecalculate(value: boolean) {
+        this._forceRecalculate = value;
+    }
 
     constructor(attributes = {}, isNew: boolean, collectionManager?) {
         super(attributes, isNew, collectionManager);
@@ -916,7 +921,13 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     }
 
     updateGeography(changesInfo?: SegmentChangeInfo) {
-        return updatePathGeography(this, changesInfo);
+        // _forceRecalculate: set by the UI toggle, affects all operations (insert/remove/waypoint)
+        // changesInfo.forceRecalculate: passed directly by the recalculate route button
+        const mergedChangesInfo = {
+            ...changesInfo,
+            forceRecalculate: this._forceRecalculate === true || changesInfo?.forceRecalculate === true
+        };
+        return updatePathGeography(this, mergedChangesInfo);
     }
 
     isComplete() {

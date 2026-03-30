@@ -386,6 +386,7 @@ const buildPathData = (
  * rather than preserved from previous data.
  *
  * A segment is "new" when:
+ * - forceRecalculate is true (full recalculation from OSRM)
  * - It has no previous travel time (created by a node insert/remove)
  * - Its waypoint was changed (route changed even though the segment existed before)
  */
@@ -394,7 +395,7 @@ const isNewSegment = (
     segmentIndex: number,
     changesInfo: SegmentChangeInfo
 ): boolean => {
-    if (initialTime === undefined) {
+    if (changesInfo.forceRecalculate || initialTime === undefined) {
         return true;
     }
     return (
@@ -425,18 +426,22 @@ const computeSegmentData = (params: ComputeSegmentDataParams): ComputeSegmentDat
 
     const initialIndex = getInitialSegmentIndex(segmentIndex, changesInfo.lastNodeChange);
     const initialTime = initialIndex >= 0 ? initial.segmentsData[initialIndex]?.travelTimeSeconds : undefined;
-    // We want to get the previous dwell time from the beginning of the segment.
-    const initialDwellTime = initialIndex > 0 ? initial.dwellTimeDurationsSeconds[initialIndex] || 0 : 0;
-    // If previous segment had dwell baked into travel time (GTFS with 0 dwell time), only separate it out
-    // when the segment is long enough to absorb the dwell without going below `MIN_TRAVEL_TIME_FOR_DWELL_SECONDS`.
-    const hasBakedInDwell = initialTime !== undefined && initialDwellTime === 0 && initialIndex > 0;
-    const dwellTimeSeconds =
-        hasBakedInDwell && initialTime - nodeDwellTimeSeconds < MIN_TRAVEL_TIME_FOR_DWELL_SECONDS
-            ? 0
-            : nodeDwellTimeSeconds;
+    const isNew = isNewSegment(initialTime, segmentIndex, changesInfo);
+
+    let dwellTimeSeconds = nodeDwellTimeSeconds;
+    if (!isNew) {
+        // We want to get the initial dwell time from the beginning of the segment.
+        const initialDwellTime = initialIndex > 0 ? initial.dwellTimeDurationsSeconds[initialIndex] || 0 : 0;
+        // If initial segment had dwell baked into travel time (GTFS with 0 dwell time), only separate it out
+        // when the segment is long enough to absorb the dwell without going below `MIN_TRAVEL_TIME_FOR_DWELL_SECONDS`.
+        const hasBakedInDwell = initialDwellTime === 0 && initialIndex > 0;
+        if (hasBakedInDwell && initialTime! - nodeDwellTimeSeconds < MIN_TRAVEL_TIME_FOR_DWELL_SECONDS) {
+            dwellTimeSeconds = 0;
+        }
+    }
 
     let initialToCalculatedTimeRatio = 0;
-    const hasRatio = !isNewSegment(initialTime, segmentIndex, changesInfo);
+    const hasRatio = !isNew;
     if (hasRatio) {
         const adjustmentDwellTime = getDwellTimeAdjustment(
             segmentIndex,
