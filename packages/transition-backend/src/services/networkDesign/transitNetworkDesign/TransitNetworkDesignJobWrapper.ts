@@ -14,6 +14,7 @@ import { unparse } from 'papaparse';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import Line from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
@@ -69,6 +70,9 @@ export class TransitNetworkDesignJobWrapper<
     private _trRoutingBatchStartResult: TrRoutingBatchStartResult | undefined = undefined;
     // For each OD trip of the array, saves 2 numbers: the fitness score for the base scenario, as well as the non-routed fitness score that will be constant for all scenarios.
     private _originalFitnesses: [number | undefined, number][] | undefined = undefined;
+    // Node weights loaded from the job's optional CSV, keyed by node UUID.
+    // Kept separate from the node collection so they don't leak into the rest of Transition.
+    private _nodeWeightsByUuid: Map<string, number> | undefined = undefined;
 
     constructor(
         private wrappedJob: ExecutableJob<TJobType>,
@@ -188,6 +192,164 @@ export class TransitNetworkDesignJobWrapper<
         this._agencyCollection = agencies;
         this._serviceCollection = services;
         this._collectionManager = collectionManager;
+
+        await this.loadNodeWeightsFromCsv();
+    };
+
+    /**
+     * Parse the optional node weight CSV attached to the job and store the
+     * weights in a private map (not on the node collection, so they stay
+     * scoped to this job and don't leak into the rest of Transition).
+     */
+    private loadNodeWeightsFromCsv = async (): Promise<void> => {
+        const params = this.parameters;
+        if (params.simulationMethod?.type !== 'OdTripSimulation') {
+            return;
+        }
+        const nodeWeightConfig = (params.simulationMethod.config as OdTripSimulationOptions).nodeWeightAttributes;
+        if (!nodeWeightConfig || !this.wrappedJob.hasFile('nodeWeight' as keyof TJobType['files'])) {
+            return;
+        }
+
+        const fieldMappings = nodeWeightConfig.fileAndMapping.fieldMappings;
+        const csvStream = this.wrappedJob.getReadStream('nodeWeight' as keyof TJobType['files']);
+        const weightMap = new Map<string, number>();
+
+        await parseCsvFileFromStream(
+            csvStream,
+            (row) => {
+                const nodeUuid = row[fieldMappings.nodeUuid];
+                const weightStr = row[fieldMappings.weight];
+                if (!nodeUuid || weightStr === undefined) {
+                    return;
+                }
+                const weight = parseFloat(weightStr);
+                if (!isNaN(weight)) {
+                    weightMap.set(nodeUuid, weight);
+                }
+            },
+            { header: true }
+        );
+
+        this._nodeWeightsByUuid = weightMap;
+        console.log(`Loaded ${weightMap.size} node weights from CSV`);
+    };
+
+    /**
+     * Compute the weight of a line for vehicle allocation in the GA.
+     * Formula: (sum of node weights along all paths) × (cycle time seconds).
+     * Node weights come from the job's CSV if provided, defaulting to 1.
+     * The GA normalizes across all candidate lines so the result is relative.
+     *
+     * Path data is resolved from the wrapper's collection manager (via
+     * path_ids) rather than line.paths, which can be empty when lines are
+     * loaded from cache without the job's collection manager.
+     */
+    getLineWeight = (line: Line): number | null => {
+        const pathFeatures = this.resolvePathFeatures(line);
+        if (pathFeatures.length === 1) {
+            const totalWeight = this.sumNodeWeights(pathFeatures[0].properties.nodes);
+            const cycleTimeSeconds = pathFeatures[0].properties.data?.totalTravelTimeWithReturnBackSeconds;
+            if (totalWeight && cycleTimeSeconds) {
+                return totalWeight * cycleTimeSeconds;
+            }
+        } else if (pathFeatures.length === 2) {
+            const dir0 = pathFeatures[0].properties.direction;
+            const dir1 = pathFeatures[1].properties.direction;
+            if ((dir0 === 'outbound' && dir1 === 'inbound') || (dir0 === 'inbound' && dir1 === 'outbound')) {
+                const firstPathWeight = this.sumNodeWeights(pathFeatures[0].properties.nodes);
+                const secondPathWeight = this.sumNodeWeights(pathFeatures[1].properties.nodes);
+                const cycleTimeSeconds =
+                    (pathFeatures[0].properties.data?.operatingTimeWithoutLayoverTimeSeconds || 0) +
+                    (pathFeatures[1].properties.data?.operatingTimeWithoutLayoverTimeSeconds || 0);
+                if (firstPathWeight && secondPathWeight && cycleTimeSeconds) {
+                    return (firstPathWeight + secondPathWeight) * cycleTimeSeconds;
+                }
+            }
+        }
+        return null;
+    };
+
+    /**
+     * Look up the GeoJSON path features for a line from the wrapper's
+     * collection manager. This works regardless of whether the Line instance
+     * was constructed with a collection manager (fresh run) or without one
+     * (resume from cache). Each returned feature is guaranteed to have
+     * non-null properties.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private resolvePathFeatures = (line: Line): GeoJSON.Feature<any, Record<string, any>>[] => {
+        const pathIds = line.attributes.path_ids || [];
+        const pathsCollection = this._collectionManager?.get('paths');
+        if (!pathsCollection) {
+            return [];
+        }
+        return pathIds
+            .map((pathId: string) => pathsCollection.getById(pathId))
+            .filter(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (p: any): p is GeoJSON.Feature<any, Record<string, any>> => p !== undefined && p.properties !== null
+            );
+    };
+
+    private sumNodeWeights = (nodeIds: string[] | undefined): number => {
+        let total = 0;
+        (nodeIds || []).forEach((nodeId) => {
+            total += this._nodeWeightsByUuid?.get(nodeId) ?? 1;
+        });
+        return total;
+    };
+
+    /**
+     * Log a breakdown of line weights for a set of candidate lines:
+     * cycle time, raw node weight sum, normalized node weight, and
+     * final line weight (cycle time × node weight sum).
+     */
+    logLineWeightsBreakdown = (candidateLines: Line[]): void => {
+        const breakdown = candidateLines.map((line) => {
+            const pathFeatures = this.resolvePathFeatures(line);
+            let nodeWeightSum = 0;
+            let cycleTimeSeconds = 0;
+
+            if (pathFeatures.length === 1) {
+                nodeWeightSum = this.sumNodeWeights(pathFeatures[0].properties.nodes);
+                cycleTimeSeconds = pathFeatures[0].properties.data?.totalTravelTimeWithReturnBackSeconds || 0;
+            } else if (pathFeatures.length === 2) {
+                nodeWeightSum =
+                    this.sumNodeWeights(pathFeatures[0].properties.nodes) +
+                    this.sumNodeWeights(pathFeatures[1].properties.nodes);
+                cycleTimeSeconds =
+                    (pathFeatures[0].properties.data?.operatingTimeWithoutLayoverTimeSeconds || 0) +
+                    (pathFeatures[1].properties.data?.operatingTimeWithoutLayoverTimeSeconds || 0);
+            }
+
+            return {
+                shortname: line.attributes.shortname || line.getId(),
+                cycleTimeSeconds,
+                nodeWeightSum,
+                lineWeight: this.getLineWeight(line) ?? 1
+            };
+        });
+
+        breakdown.sort((a, b) => b.lineWeight - a.lineWeight);
+
+        const totalNodeWeight = breakdown.reduce((sum, b) => sum + b.nodeWeightSum, 0);
+        const totalLineWeight = breakdown.reduce((sum, b) => sum + b.lineWeight, 0);
+
+        console.log('--- Line Weights Breakdown ---');
+        for (const b of breakdown) {
+            const normalizedNodeWeight = totalNodeWeight > 0 ? b.nodeWeightSum / totalNodeWeight : 0;
+            console.log(
+                `Line ${b.shortname}: ` +
+                    `cycleTime=${b.cycleTimeSeconds}s, ` +
+                    `nodeWeight=${b.nodeWeightSum.toFixed(2)}, ` +
+                    `normalizedNodeWeight=${normalizedNodeWeight.toFixed(4)}, ` +
+                    `lineWeight=${b.lineWeight.toFixed(2)} ` +
+                    `(${totalLineWeight > 0 ? ((b.lineWeight / totalLineWeight) * 100).toFixed(1) : 0}%)`
+            );
+        }
+        console.log(`Total: nodeWeight=${totalNodeWeight.toFixed(2)}, lineWeight=${totalLineWeight.toFixed(2)}`);
+        console.log('--- End Line Weights ---');
     };
 
     /**
