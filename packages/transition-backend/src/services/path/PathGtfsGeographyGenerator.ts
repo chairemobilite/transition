@@ -6,7 +6,8 @@
  */
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
-import { Path, TimeAndDistance } from 'transition-common/lib/services/path/Path';
+import { Path } from 'transition-common/lib/services/path/Path';
+import type { TimeAndDistance } from 'transition-common/lib/services/path/PathTypes';
 import { StopTime } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
