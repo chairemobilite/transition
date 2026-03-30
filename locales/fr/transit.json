@@ -1036,6 +1036,7 @@
                 "MutationProbability": "Probabilité qu'un gène subisse une mutation, ie soit modifié aléatoirement. Pour cet algorithme, une probabilité de 8% (0.08) est suggérée.",
                 "TournamentSize": "Nombre de candidats parmi les meilleurs de la génération qui s'affronteront pour la reproduction après chaque génération.",
                 "TournamentProbability": "La probabilité initiale qu'il y ait un tournoi pour la sélection des parents plutôt que sélectionner le meilleur. Cette probabilité ne doit pas être trop élevée, sinon seuls les meilleurs se reproduiront.",
+                "NumberOfGenerations": "Nombre total de générations que l'algorithme exécutera.",
                 "ShuffleGenes": "Mélanger les gènes évite les effets de proximité dans le chromosome, où 2 lignes positionnées côte à côte auront toujours les mêmes valeurs. Cela aide à diversifier la population.",
                 "KeepGenerations": "Nombre de dernières générations à conserver pour analyse après l'exécution de l'algorithme",
                 "KeepCandidates": "Nombre des meilleurs candidats à conserver pour chacune des générations à conserver"

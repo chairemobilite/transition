@@ -1036,6 +1036,7 @@
                 "MutationProbability": "Probability that a gene undergoes mutation, i.e. is randomly modified. For this algorithm, a probability of 8% (0.08) is suggested.",
                 "TournamentSize": "Number of candidates among the best of the generation that will compete for reproduction after each generation.",
                 "TournamentProbability": "The initial probability that there will be a tournament for parent selection rather than selecting the best. This probability should not be too high, otherwise only the best will reproduce.",
+                "NumberOfGenerations": "Total number of generations the algorithm will run.",
                 "ShuffleGenes": "Shuffling genes avoids proximity effects in the chromosome, where 2 lines positioned side by side will always have the same values. This helps diversify the population.",
                 "KeepGenerations": "Number of last generations to keep for analysis after algorithm execution",
                 "KeepCandidates": "Number of best candidates to keep for each of the generations to keep"
