@@ -15,89 +15,150 @@ type Period = {
     name: Record<string, string>;
 };
 
+type PeriodRowProps = {
+    periodShortname: string;
+    periodLabel: string;
+    isFirstSegment: boolean;
+    locked: boolean;
+    dwellTimeSeconds: number;
+    arrivalTimePrevSeconds: number;
+    departureTimeSeconds: number;
+    segmentTimeSeconds: number;
+    arrivalTimeSeconds: number;
+    onSegmentTimeChange: (newSeconds: number) => void;
+};
+
+const PeriodRow: React.FunctionComponent<PeriodRowProps> = ({
+    periodLabel,
+    isFirstSegment,
+    locked,
+    dwellTimeSeconds,
+    arrivalTimePrevSeconds,
+    departureTimeSeconds,
+    segmentTimeSeconds,
+    arrivalTimeSeconds,
+    onSegmentTimeChange
+}) => (
+    <tr className="period-table-row" style={{ opacity: locked ? 0.5 : 1 }}>
+        <td className="period-table-td">{periodLabel}</td>
+        {!isFirstSegment && <td className="period-table-td center">{formatSeconds(arrivalTimePrevSeconds)}</td>}
+        {!isFirstSegment && <td className="period-table-td center">{formatSeconds(dwellTimeSeconds)}</td>}
+        <td className="period-table-td center">{formatSeconds(departureTimeSeconds)}</td>
+        <td className="period-table-td center">
+            <TimeInput seconds={segmentTimeSeconds} onChange={onSegmentTimeChange} readOnly={locked} />
+        </td>
+        <td className="period-table-td center">
+            <strong>{formatSeconds(arrivalTimeSeconds)}</strong>
+        </td>
+    </tr>
+);
+
+const MemoizedPeriodRow = React.memo(PeriodRow);
+
 type SegmentPeriodTimesTableProps = {
-    averageSegmentSeconds: number;
-    averageTotal: number;
+    activeSegmentIndex: number;
     periods: Period[];
     language: string;
     locked: boolean;
     lockedMessage?: string;
-    getTimeForPeriod: (periodShortname: string) => number;
-    getPeriodTotal: (periodShortname: string) => number;
-    onTimeChange: (periodShortname: string, newSeconds: number) => void;
-};
-
-const cellStyle: React.CSSProperties = { padding: '0.5rem' };
-const centerCellStyle: React.CSSProperties = { textAlign: 'center', padding: '0.5rem' };
-const headerStyle: React.CSSProperties = {
-    textAlign: 'left',
-    padding: '0.4rem 0.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.2)'
-};
-const centerHeaderStyle: React.CSSProperties = {
-    textAlign: 'center',
-    padding: '0.4rem 0.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.2)'
+    getTimeForCell: (segmentIndex: number, periodShortname: string) => number;
+    getDwellTimeForSegment: (segmentIndex: number) => number;
+    setDwellTimeForSegment: (segmentIndex: number, newSeconds: number) => void;
+    getArrivalTimeAfterSegment: (segmentIndex: number, periodShortname: string) => number;
+    getDepartureTimeAtSegment: (segmentIndex: number, periodShortname: string) => number;
+    handleCellChange: (segmentIndex: number, periodShortname: string, newSeconds: number) => void;
 };
 
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
-    averageSegmentSeconds,
-    averageTotal,
+    activeSegmentIndex,
     periods,
     language,
     locked,
     lockedMessage,
-    getTimeForPeriod,
-    getPeriodTotal,
-    onTimeChange
+    getTimeForCell,
+    getDwellTimeForSegment,
+    setDwellTimeForSegment,
+    getArrivalTimeAfterSegment,
+    getDepartureTimeAtSegment,
+    handleCellChange
 }) => {
     const { t } = useTranslation('transit');
+    const isFirstSegment = activeSegmentIndex === 0;
+    const dwellTimeSeconds = getDwellTimeForSegment(activeSegmentIndex);
+    const columnWidth = isFirstSegment ? '30%' : '18%';
+
+    // Memoize callbacks per period so MemoizedPeriodRow receives a stable reference.
+    // Rebuilds whenever activeSegmentIndex, periods, or handleCellChange change — this
+    // keeps the closure's captured segmentIndex in sync with the rendered row.
+    const periodCallbacks = React.useMemo(() => {
+        const cb: Record<string, (newSeconds: number) => void> = {};
+        for (const period of periods) {
+            cb[period.shortname] = (newSeconds: number) =>
+                handleCellChange(activeSegmentIndex, period.shortname, newSeconds);
+        }
+        return cb;
+    }, [activeSegmentIndex, periods, handleCellChange]);
 
     return (
-        <div style={{ marginTop: '0.5rem', width: '100%' }}>
+        <div className="period-table-wrapper">
             {locked && lockedMessage && (
-                <p
-                    style={{ color: '#ff9800', fontSize: '0.85em', marginBottom: '0.5rem' }}
-                    data-testid="segment-locked-msg"
-                >
+                <p className="locked-msg" data-testid="segment-locked-msg">
                     {lockedMessage}
                 </p>
             )}
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            {!isFirstSegment && (
+                <div className="stop-time-row">
+                    <strong>{t('transit:transitPath:DwellTime')}:</strong>
+                    <TimeInput
+                        seconds={dwellTimeSeconds}
+                        onChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
+                    />
+                </div>
+            )}
+            <table className="period-table">
                 <thead>
                     <tr>
-                        <th style={headerStyle}>{t('transit:transitPath:Period')}</th>
-                        <th style={centerHeaderStyle}>{t('transit:transitPath:SegmentTime')}</th>
-                        <th style={centerHeaderStyle}>{t('transit:transitPath:PeriodTotal')}</th>
+                        <th className="period-table-th">{t('transit:transitPath:Period')}</th>
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:ArrivalTime')}
+                            </th>
+                        )}
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:DwellTime')}
+                            </th>
+                        )}
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:DepartureTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:SegmentTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:ArrivalTime')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr style={{ borderBottom: '2px solid rgba(255,255,255,0.3)' }}>
-                        <td style={{ ...cellStyle, fontWeight: 'bold' }}>{t('transit:transitPath:AverageTime')}</td>
-                        <td style={centerCellStyle}>
-                            <TimeInput seconds={averageSegmentSeconds} onChange={() => {}} readOnly={true} />
-                        </td>
-                        <td style={centerCellStyle}>
-                            <strong>{formatSeconds(averageTotal)}</strong>
-                        </td>
-                    </tr>
                     {periods.map((period) => (
-                        <tr
+                        <MemoizedPeriodRow
                             key={period.shortname}
-                            style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', opacity: locked ? 0.5 : 1 }}
-                        >
-                            <td style={cellStyle}>{period.name[language] || period.shortname}</td>
-                            <td style={centerCellStyle}>
-                                <TimeInput
-                                    seconds={getTimeForPeriod(period.shortname)}
-                                    onChange={(newSec) => onTimeChange(period.shortname, newSec)}
-                                    readOnly={locked}
-                                />
-                            </td>
-                            <td style={centerCellStyle}>
-                                <strong>{formatSeconds(getPeriodTotal(period.shortname))}</strong>
-                            </td>
-                        </tr>
+                            periodShortname={period.shortname}
+                            periodLabel={period.name[language] || period.shortname}
+                            isFirstSegment={isFirstSegment}
+                            locked={locked}
+                            dwellTimeSeconds={dwellTimeSeconds}
+                            arrivalTimePrevSeconds={
+                                activeSegmentIndex > 0
+                                    ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, period.shortname)
+                                    : 0
+                            }
+                            departureTimeSeconds={getDepartureTimeAtSegment(activeSegmentIndex, period.shortname)}
+                            segmentTimeSeconds={getTimeForCell(activeSegmentIndex, period.shortname)}
+                            arrivalTimeSeconds={getArrivalTimeAfterSegment(activeSegmentIndex, period.shortname)}
+                            onSegmentTimeChange={periodCallbacks[period.shortname]}
+                        />
                     ))}
                 </tbody>
             </table>
@@ -105,4 +166,4 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
     );
 };
 
-export default SegmentPeriodTimesTable;
+export default React.memo(SegmentPeriodTimesTable);

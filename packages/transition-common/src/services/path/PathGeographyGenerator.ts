@@ -249,6 +249,54 @@ const getInitialSegmentIndex = (currentSegmentIndex: number, lastNodeChange?: Ty
 };
 
 /**
+ * Maps a current node index to its corresponding index in the previous node array, accounting
+ * for a node insert or remove. Returns -1 for a freshly inserted node (no previous equivalent).
+ *
+ * Used to look up stored per-node dwell times across a path edit: a node that existed before
+ * the change keeps its customized dwell time even if its adjacent segment is "new" (split by
+ * an insertion).
+ *
+ * @param currentNodeIndex - The node's index in the current (post-change) node array
+ * @param lastNodeChange - The node change that occurred (insert/remove with index), if any
+ * @returns The corresponding previous node index, or -1 if the node is new
+ */
+const getInitialNodeIndex = (currentNodeIndex: number, lastNodeChange?: TypeNodeChange): number => {
+    if (!lastNodeChange) return currentNodeIndex;
+    if (lastNodeChange.type === 'insert') {
+        if (currentNodeIndex < lastNodeChange.index) return currentNodeIndex;
+        if (currentNodeIndex === lastNodeChange.index) return -1;
+        return currentNodeIndex - 1;
+    }
+    if (lastNodeChange.type === 'remove') {
+        if (currentNodeIndex < lastNodeChange.index) return currentNodeIndex;
+        return currentNodeIndex + 1;
+    }
+    return currentNodeIndex;
+};
+
+/**
+ * Returns the stored dwell time for a preserved node (> 0), or undefined if the node is new,
+ * the stored value is 0/missing, or a full recalculation is forced. Lets customized dwell times
+ * on the path survive regenerations triggered by node inserts/removes.
+ *
+ * @param currentNodeIndex - The node's index in the current (post-change) node array
+ * @param initialDwellTimes - The previous per-node dwell time array (from `path.data.dwellTimeSeconds`)
+ * @param changesInfo - Info about the node/waypoint change that triggered this regeneration
+ * @returns The stored dwell time in seconds, or undefined if none applies
+ */
+const getPreservedNodeDwellTime = (
+    currentNodeIndex: number,
+    initialDwellTimes: number[],
+    changesInfo: SegmentChangeInfo
+): number | undefined => {
+    if (changesInfo.forceRecalculate) return undefined;
+    const initialNodeIndex = getInitialNodeIndex(currentNodeIndex, changesInfo.lastNodeChange);
+    if (initialNodeIndex < 0) return undefined;
+    const stored = initialDwellTimes[initialNodeIndex];
+    return stored !== undefined && stored > 0 ? stored : undefined;
+};
+
+/**
  * Returns the dwell time adjustment to subtract from a preserved segment's travel time.
  *
  * When previous data had no separate dwell time (GTFS baked-in), the dwell was included in the
@@ -433,6 +481,52 @@ const isNewSegment = (
 };
 
 /**
+ * Resolves the dwell time for a segment, in priority order:
+ *   1. A customized dwell stored on the path for a preserved node (> 0) — survives
+ *      regenerations even when the adjacent segment is "new" (split by an insert/remove).
+ *   2. The node's default dwell time when the segment itself is new.
+ *   3. The baked-in unbake logic for preserved segments (see {@link getEffectiveDwellTime}).
+ *
+ * @param params.segmentIndex - The current segment index (0 means path start)
+ * @param params.nodeDwellTimeSeconds - The node's default dwell time (fallback)
+ * @param params.initialIndex - The corresponding previous segment index (-1 if new)
+ * @param params.isNew - Whether this segment has no previous equivalent
+ * @param params.initial - Previous segment data (travel times and per-node dwell times)
+ * @param params.changesInfo - Info about the node/waypoint change that triggered this regeneration
+ * @returns The dwell time in seconds to apply at the segment's starting node
+ */
+const resolveSegmentDwellTime = (params: {
+    segmentIndex: number;
+    nodeDwellTimeSeconds: number;
+    initialIndex: number;
+    isNew: boolean;
+    initial: SegmentData;
+    changesInfo: SegmentChangeInfo;
+}): number => {
+    const preservedNodeDwell =
+        params.segmentIndex > 0
+            ? getPreservedNodeDwellTime(
+                params.segmentIndex,
+                params.initial.dwellTimeDurationsSeconds,
+                params.changesInfo
+            )
+            : undefined;
+    if (preservedNodeDwell !== undefined) {
+        return preservedNodeDwell;
+    }
+    if (params.isNew) {
+        return params.nodeDwellTimeSeconds;
+    }
+    const initialTime = params.initial.segmentsData[params.initialIndex]?.travelTimeSeconds;
+    return getEffectiveDwellTime(
+        params.nodeDwellTimeSeconds,
+        params.initialIndex,
+        params.initial.dwellTimeDurationsSeconds,
+        initialTime!
+    );
+};
+
+/**
  * Computes the duration, dwell time, and `initialToCalculatedTimeRatio` for a single
  * completed segment. The first segment always has dwell time 0 (layover is separate).
  * For unchanged segments with previous data, computes the ratio of previous travel time to
@@ -456,9 +550,14 @@ const computeSegmentData = (params: ComputeSegmentDataParams): ComputeSegmentDat
     const initialTime = initialIndex >= 0 ? initial.segmentsData[initialIndex]?.travelTimeSeconds : undefined;
     const isNew = isNewSegment(initialTime, segmentIndex, changesInfo);
 
-    const dwellTimeSeconds = isNew
-        ? nodeDwellTimeSeconds
-        : getEffectiveDwellTime(nodeDwellTimeSeconds, initialIndex, initial.dwellTimeDurationsSeconds, initialTime!);
+    const dwellTimeSeconds = resolveSegmentDwellTime({
+        segmentIndex,
+        nodeDwellTimeSeconds,
+        initialIndex,
+        isNew,
+        initial,
+        changesInfo
+    });
 
     let initialToCalculatedTimeRatio = 0;
     const hasRatio = !isNew;
@@ -573,9 +672,16 @@ const buildSegmentsAndGeometry = (
         nextNodeIndex++;
     }
 
-    // Add dwell time for the last (arrival) node
-    const lastNodeId = nodeIds[nextNodeIndex - 1];
-    dwellTimeDurationsSeconds.push(getDwellTimeSecondsForNode(path, lastNodeId));
+    // Add dwell time for the last (arrival) node — prefer the path's stored dwell for this
+    // node if it was preserved, otherwise fall back to the node default.
+    const lastNodeIndex = nextNodeIndex - 1;
+    const lastNodeId = nodeIds[lastNodeIndex];
+    const preservedLastDwell = getPreservedNodeDwellTime(
+        lastNodeIndex,
+        initial.dwellTimeDurationsSeconds,
+        changesInfo
+    );
+    dwellTimeDurationsSeconds.push(preservedLastDwell ?? getDwellTimeSecondsForNode(path, lastNodeId));
 
     const ratioDifferenceTime = numberOfSegmentsCumulated > 0 ? ratioCumulated / numberOfSegmentsCumulated : 1;
 
