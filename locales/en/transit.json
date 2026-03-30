@@ -450,6 +450,7 @@
         "MinMatchingTimestampHelp": "This is the timestamp interval to use between each waypoints while doing the map matching to route the path. Smaller values (less than 500) will reduce unexpected detours but may fail to route on long segments between stop nodes in the path (more waypoints would then be needed). Higher values (more than 500) will allow the map matching to successfully route more often, but it may also add unexpected detours.",
         "IncreaseRoutingRadiiToIncludeExistingPathShape": "Adapt nodes radii to fit current shape",
         "IncreaseRoutingRadiiToIncludeExistingPathShapeHelp": "Increase path nodes routing radii if the path shape is too far from some nodes (max 200m). Nodes routing radii will be ignored.",
+        "ForceRecalculateFromRouting": "Recalculate all segment travel times",
         "Uuid": "UUID",
         "Line": "Line",
         "InternalId": "Internal ID",

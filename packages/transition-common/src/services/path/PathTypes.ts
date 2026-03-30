@@ -22,4 +22,6 @@ export type TypeNodeChange = {
 export type SegmentChangeInfo = {
     lastNodeChange?: TypeNodeChange;
     lastWaypointChangedSegmentIndex?: number;
+    /** When true, all segments are recalculated from OSRM instead of preserving previous travel times */
+    forceRecalculate?: boolean;
 };
