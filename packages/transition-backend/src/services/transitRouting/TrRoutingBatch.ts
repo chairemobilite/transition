@@ -136,32 +136,13 @@ export class TrRoutingBatchExecutor {
             const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
             const benchmarkStart = performance.now();
-            let lastLogTime = performance.now();
-            let lastLogCount = startIndex;
-            const logOdTripBefore = (index: number) => {
-                if ((index + 1) % progressStep === 0) {
-                    console.log(`Routing odTrip ${index + 1}/${odTripsCount}`);
-                }
+            const logOdTripBefore = (_index: number) => {
+                // No per-trip logging; inline progress bar is used instead
             };
-            const logOdTripAfter = (index: number) => {
-                if (benchmarkStart >= 0 && index > 0 && index % 100 === 0) {
-                    // Log the calculation speed every 100 calculations. Divide the number of completed calculation (substract startIndex if the task was resumed) by the time taken in seconds. Round to 2 decimals
-                    // TODO: Check if we could do all this magic with some function in the performance class
-                    const now = performance.now(); // Save now() to not have to call multiple time
-                    // Calculate rate since the last logged line
-                    const currentRate =
-                        Math.round((100 * (completedRoutingsCount - lastLogCount)) / ((now - lastLogTime) / 1000)) /
-                        100;
-                    lastLogTime = now;
-                    lastLogCount = completedRoutingsCount;
-
-                    // Calculate rate since the beginning
-                    const globalRate =
-                        Math.round((100 * (completedRoutingsCount - startIndex)) / ((now - benchmarkStart) / 1000)) /
-                        100;
-                    console.log(`calc/sec: ${globalRate} (current: ${currentRate})`);
-                }
+            const logOdTripAfter = (_index: number) => {
+                // No per-trip logging; inline progress bar is used instead
             };
+            let lastProgressPct = -1;
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
@@ -174,6 +155,7 @@ export class TrRoutingBatchExecutor {
                     }
                 }
             );
+            const totalToRoute = odTripsCount - startIndex;
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
@@ -196,6 +178,20 @@ export class TrRoutingBatchExecutor {
                                 });
                             }
                             checkpointTracker.handled(odTripIndex);
+
+                            const done = completedRoutingsCount - startIndex;
+                            const pct = Math.floor((done / totalToRoute) * 100);
+                            if (pct > lastProgressPct) {
+                                lastProgressPct = pct;
+                                const elapsed = (performance.now() - benchmarkStart) / 1000;
+                                const calcPerSec = elapsed > 0 ? (done / elapsed).toFixed(1) : '0';
+                                const barLen = 30;
+                                const filled = Math.round((pct / 100) * barLen);
+                                const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barLen - filled);
+                                process.stdout.write(
+                                    `\r  [${bar}] ${pct}% (${done}/${totalToRoute}) ${calcPerSec} calc/s`
+                                );
+                            }
                         } catch (error) {
                             console.error(
                                 `tripRouting: Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`
@@ -206,12 +202,19 @@ export class TrRoutingBatchExecutor {
             }
 
             await promiseQueue.onIdle();
+            // Finish progress bar line
+            process.stdout.write('\n');
             // Drain any remaining buffered results not yet flushed by a checkpoint
             const remaining = this.resultBuffer.splice(0);
             if (remaining.length > 0) {
                 await resultsDbQueries.createMany(remaining);
             }
-            console.log('Batch odTrip routing completed for job %d', this.job.id);
+            const elapsedSec = (performance.now() - benchmarkStart) / 1000;
+            const routedCount = completedRoutingsCount - startIndex;
+            const avgCalcPerSec = elapsedSec > 0 ? Math.round((100 * routedCount) / elapsedSec) / 100 : 0;
+            console.log(
+                `Batch routing completed: ${routedCount} trips in ${elapsedSec.toFixed(1)}s (avg ${avgCalcPerSec} calc/sec)`
+            );
             await checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
@@ -246,9 +249,9 @@ export class TrRoutingBatchExecutor {
         this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
 
         try {
-            // Log every 1% of the results
             const resultCount = await resultsDbQueries.countResults(this.job.id);
-            const logInterval = Math.max(1, Math.ceil(resultCount / 100));
+            // Log at 25%, 50%, 75% and 100%
+            const logInterval = Math.max(1, Math.ceil(resultCount / 4));
             let currentResultIdx = 0;
 
             console.log('Generating %d results for job %d...', resultCount, this.job.id);
