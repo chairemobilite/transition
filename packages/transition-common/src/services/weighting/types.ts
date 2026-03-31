@@ -41,12 +41,34 @@ export type WeightingFileMapping = {
  * paired lat/lon dropdowns plus a projection selector in the shared
  * `FieldMappingsSelection` widget.
  */
+const originLatLonAutoMatch = {
+    autoMatchLat: ['o_lat', 'origin_lat', 'olat', 'originlat', 'lat_o', 'lat_origin'],
+    autoMatchLon: ['o_lon', 'origin_lon', 'olon', 'originlon', 'lon_o', 'lon_origin', 'o_lng', 'origin_lng']
+};
+
+const destinationLatLonAutoMatch = {
+    autoMatchLat: ['d_lat', 'destination_lat', 'dlat', 'destinationlat', 'dest_lat', 'lat_d', 'lat_dest'],
+    autoMatchLon: [
+        'd_lon',
+        'destination_lon',
+        'dlon',
+        'destinationlon',
+        'dest_lon',
+        'lon_d',
+        'lon_dest',
+        'd_lng',
+        'destination_lng',
+        'dest_lng'
+    ]
+};
+
 export function getWeightingFieldDescriptors(inputType: WeightingInputType): CsvFieldMappingDescriptor[] {
     const weight: CsvFieldMappingDescriptor = {
         key: 'weight',
         type: 'single',
         i18nLabel: 'transit:transitNode.accessibilityWeighting.poiFieldWeight',
-        required: false
+        required: false,
+        autoMatch: ['weight']
     };
 
     switch (inputType) {
@@ -56,7 +78,9 @@ export function getWeightingFieldDescriptors(inputType: WeightingInputType): Csv
                 key: 'point',
                 type: 'latLon',
                 i18nLabel: 'transit:transitNode.accessibilityWeighting.poiFieldPoint',
-                required: true
+                required: true,
+                autoMatchLat: ['lat', 'latitude', 'point_lat'],
+                autoMatchLon: ['lon', 'lng', 'longitude', 'point_lon']
             },
             weight
         ];
@@ -66,7 +90,8 @@ export function getWeightingFieldDescriptors(inputType: WeightingInputType): Csv
                 key: 'origin',
                 type: 'latLon',
                 i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldOrigin',
-                required: true
+                required: true,
+                ...originLatLonAutoMatch
             },
             weight
         ];
@@ -76,7 +101,8 @@ export function getWeightingFieldDescriptors(inputType: WeightingInputType): Csv
                 key: 'destination',
                 type: 'latLon',
                 i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldDestination',
-                required: true
+                required: true,
+                ...destinationLatLonAutoMatch
             },
             weight
         ];
@@ -86,13 +112,15 @@ export function getWeightingFieldDescriptors(inputType: WeightingInputType): Csv
                 key: 'origin',
                 type: 'latLon',
                 i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldOrigin',
-                required: true
+                required: true,
+                ...originLatLonAutoMatch
             },
             {
                 key: 'destination',
                 type: 'latLon',
                 i18nLabel: 'transit:transitNode.accessibilityWeighting.odFieldDestination',
-                required: true
+                required: true,
+                ...destinationLatLonAutoMatch
             },
             weight
         ];
