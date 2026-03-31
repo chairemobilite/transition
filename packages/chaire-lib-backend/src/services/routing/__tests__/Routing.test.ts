@@ -31,19 +31,19 @@ const mockedRouteFunction = transitRoutingService.route as jest.MockedFunction<t
 
 // A simple path without transfer
 export const simplePathResult: TrRoutingRouteResult = {
-	totalRoutesCalculated: 1,
-	routes: [pathNoTransferRouteResult]
-}
+    totalRoutesCalculated: 1,
+    routes: [pathNoTransferRouteResult]
+};
 
 export const transferPathResult: TrRoutingRouteResult = {
-	totalRoutesCalculated: 1,
-	routes: [pathOneTransferRouteResult]
-}
+    totalRoutesCalculated: 1,
+    routes: [pathOneTransferRouteResult]
+};
 
 export const alternativesResult: TrRoutingRouteResult = {
-	totalRoutesCalculated: 3,
-	routes: [pathNoTransferRouteResult, pathOneTransferRouteResult]
-}
+    totalRoutesCalculated: 3,
+    routes: [pathNoTransferRouteResult, pathOneTransferRouteResult]
+};
 
 let attributes: TripRoutingQueryAttributes;
 
@@ -70,7 +70,7 @@ const walkingRoute60MinutesDurationTest: RouteResults = {
 };
 
 describe('Routing Calculations', () => {
-    beforeEach(function () {
+    beforeEach(() => {
         jest.clearAllMocks();
         // Arbitrary square points located in the Montreal area
         attributes = validateAndCreateTripRoutingAttributes({
@@ -78,33 +78,6 @@ describe('Routing Calculations', () => {
             destinationGeojson: TestUtils.makePoint([-73.742861, 45.361682]),
             routingModes: ['transit', 'walking']
         });
-    });
-
-    test('simple path without transfer no way point', async () => {
-        mockedRouteFunction.mockResolvedValue(simplePathResult);
-        mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest)
-
-        const result = await Routing.calculate(attributes);
-
-        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
-        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
-
-        expect(Object.keys(result)).toEqual(['transit', 'walking']);
-        const transitResult = result['transit'] as TransitRoutingResultData;
-
-        expect(transitResult.paths.length).toEqual(1);
-
-        expect(transitResult.paths[0]).toEqual(simplePathResult.routes[0]);
-        expect(transitResult.walkOnlyPath).toEqual(walkingRouteNoWaypointTest.routes[0]);
-
-        const path1step = (transitResult.paths[0]).steps as TrRoutingV2.TripStep[];
-        expect(path1step).toEqual(simplePathResult.routes[0].steps);
-        expect(path1step.length).toEqual(simplePathResult.routes[0].steps.length);
-        expect(path1step[0].action).toEqual("walking");
-        expect(path1step[1].action).toEqual("boarding");
-        expect(path1step[2].action).toEqual("unboarding");
-        expect(path1step[3].action).toEqual("walking");
     });
 
     test('simple path without transfer no way point', async () => {
@@ -128,10 +101,37 @@ describe('Routing Calculations', () => {
         const path1step = (transitResult.paths[0]).steps as TrRoutingV2.TripStep[];
         expect(path1step).toEqual(simplePathResult.routes[0].steps);
         expect(path1step.length).toEqual(simplePathResult.routes[0].steps.length);
-        expect(path1step[0].action).toEqual("walking");
-        expect(path1step[1].action).toEqual("boarding");
-        expect(path1step[2].action).toEqual("unboarding");
-        expect(path1step[3].action).toEqual("walking");
+        expect(path1step[0].action).toEqual('walking');
+        expect(path1step[1].action).toEqual('boarding');
+        expect(path1step[2].action).toEqual('unboarding');
+        expect(path1step[3].action).toEqual('walking');
+    });
+
+    test('simple path without transfer no way point', async () => {
+        mockedRouteFunction.mockResolvedValue(simplePathResult);
+        mockGetRouteByMode.mockResolvedValue(walkingRouteNoWaypointTest);
+
+        const result = await Routing.calculate(attributes);
+
+        expect(mockedRouteFunction).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledTimes(1);
+        expect(mockGetRouteByMode).toHaveBeenCalledWith(attributes.originGeojson, attributes.destinationGeojson, 'walking', attributes);
+
+        expect(Object.keys(result)).toEqual(['transit', 'walking']);
+        const transitResult = result['transit'] as TransitRoutingResultData;
+
+        expect(transitResult.paths.length).toEqual(1);
+
+        expect(transitResult.paths[0]).toEqual(simplePathResult.routes[0]);
+        expect(transitResult.walkOnlyPath).toEqual(walkingRouteNoWaypointTest.routes[0]);
+
+        const path1step = (transitResult.paths[0]).steps as TrRoutingV2.TripStep[];
+        expect(path1step).toEqual(simplePathResult.routes[0].steps);
+        expect(path1step.length).toEqual(simplePathResult.routes[0].steps.length);
+        expect(path1step[0].action).toEqual('walking');
+        expect(path1step[1].action).toEqual('boarding');
+        expect(path1step[2].action).toEqual('unboarding');
+        expect(path1step[3].action).toEqual('walking');
     });
 
     test('path with transfer no way point', async () => {
@@ -155,13 +155,13 @@ describe('Routing Calculations', () => {
 
         const path1step = (transitResult.paths[0]).steps as TrRoutingV2.TripStep[];
         expect(path1step.length).toEqual(transferPathResult.routes[0].steps.length);
-        expect(path1step[0].action).toEqual("walking");
-        expect(path1step[1].action).toEqual("boarding");
-        expect(path1step[2].action).toEqual("unboarding");
-        expect(path1step[3].action).toEqual("walking");
-        expect(path1step[4].action).toEqual("boarding");
-        expect(path1step[5].action).toEqual("unboarding");
-        expect(path1step[6].action).toEqual("walking");
+        expect(path1step[0].action).toEqual('walking');
+        expect(path1step[1].action).toEqual('boarding');
+        expect(path1step[2].action).toEqual('unboarding');
+        expect(path1step[3].action).toEqual('walking');
+        expect(path1step[4].action).toEqual('boarding');
+        expect(path1step[5].action).toEqual('unboarding');
+        expect(path1step[6].action).toEqual('walking');
     });
 
     test('alternative path', async () => {
@@ -248,5 +248,91 @@ describe('Routing Calculations', () => {
             expect(resultForMode.error).toBeDefined();
             expect(resultForMode.paths).toEqual([]);
         }
+    });
+});
+
+describe('suppressExpectedRouteErrors option', () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
+        attributes = validateAndCreateTripRoutingAttributes({
+            originGeojson: TestUtils.makePoint([-73.745618, 45.368994]),
+            destinationGeojson: TestUtils.makePoint([-73.742861, 45.361682]),
+            routingModes: ['transit', 'walking']
+        });
+    });
+
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+
+    const expectedNoRouteErrors: [string, Error | object][] = [
+        ['TrError NoRoute', new TrError('no route', 'NoRoute')],
+        ['TrError TRROUTING_NO_ROUTING_FOUND', new TrError('no route', 'TRROUTING_NO_ROUTING_FOUND')],
+        ['TrError TRROUTING_NO_ROUTING_NO_ACCESS_AT_ORIGIN', new TrError('no route', 'TRROUTING_NO_ROUTING_NO_ACCESS_AT_ORIGIN')],
+        ['TrError TRROUTING_NO_ROUTING_NO_ACCESS_AT_DESTINATION', new TrError('no route', 'TRROUTING_NO_ROUTING_NO_ACCESS_AT_DESTINATION')],
+        ['plain object NoRoute', { message: 'Impossible route', code: 'NoRoute' }]
+    ];
+
+    test.each(expectedNoRouteErrors)(
+        'expected no-route error (%s) is logged by default',
+        async (_label, error) => {
+            attributes.routingModes = ['walking'];
+            mockGetRouteByMode.mockRejectedValue(error);
+
+            await Routing.calculate(attributes);
+
+            expect(consoleErrorSpy).toHaveBeenCalled();
+        }
+    );
+
+    test.each(expectedNoRouteErrors)(
+        'expected no-route error (%s) is suppressed with suppressExpectedRouteErrors=true',
+        async (_label, error) => {
+            attributes.routingModes = ['walking'];
+            mockGetRouteByMode.mockRejectedValue(error);
+
+            await Routing.calculate(attributes, { suppressExpectedRouteErrors: true });
+
+            expect(consoleErrorSpy).not.toHaveBeenCalled();
+        }
+    );
+
+    const unexpectedErrors: [string, Error | object][] = [
+        ['TrError TRROUTING_QUERY_ERROR', new TrError('query error', 'TRROUTING_QUERY_ERROR')],
+        ['TrError INVALID_SCENARIO', new TrError('invalid', 'INVALID_SCENARIO')],
+        ['plain string error', 'some unexpected error' as unknown as Error]
+    ];
+
+    test.each(unexpectedErrors)(
+        'unexpected error (%s) is still logged even with suppressExpectedRouteErrors=true',
+        async (_label, error) => {
+            attributes.routingModes = ['walking'];
+            mockGetRouteByMode.mockRejectedValue(error);
+
+            await Routing.calculate(attributes, { suppressExpectedRouteErrors: true });
+
+            expect(consoleErrorSpy).toHaveBeenCalled();
+        }
+    );
+
+    test('transit TRROUTING_NO_ROUTING_FOUND is suppressed with flag', async () => {
+        attributes.routingModes = ['transit'];
+        mockedRouteFunction.mockRejectedValue(new TrError('no route', 'TRROUTING_NO_ROUTING_FOUND'));
+
+        await Routing.calculate(attributes, { suppressExpectedRouteErrors: true });
+
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    test('transit TRROUTING_NO_ROUTING_FOUND is logged without flag', async () => {
+        attributes.routingModes = ['transit'];
+        mockedRouteFunction.mockRejectedValue(new TrError('no route', 'TRROUTING_NO_ROUTING_FOUND'));
+
+        await Routing.calculate(attributes);
+
+        expect(consoleErrorSpy).toHaveBeenCalled();
     });
 });

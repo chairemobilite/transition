@@ -92,6 +92,7 @@ export class TrRoutingBatchExecutor {
         private options: {
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
+            suppressExpectedRouteErrors?: boolean;
         },
         batchManager?: TrRoutingBatchManager
     ) {
@@ -317,7 +318,8 @@ export class TrRoutingBatchExecutor {
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
                 routing: this.job.attributes.data.parameters.transitRoutingAttributes,
-                reverseOD: false
+                reverseOD: false,
+                suppressExpectedRouteErrors: this.options.suppressExpectedRouteErrors
             });
             // Delete geometries from unimodal results if they are not requested
             // TODO This should be handled lower in the stack and not make its way here. Need to check how deep the withGeometries flag goes
