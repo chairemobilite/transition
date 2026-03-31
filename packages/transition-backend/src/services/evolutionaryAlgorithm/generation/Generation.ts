@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
 import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
@@ -89,8 +90,15 @@ abstract class Generation {
         });
         const scenarioCollection = new ScenarioCollection(scenarios, {});
         const cachePath = this.jobWrapper.getCacheDirectory();
+        console.log(`  generation ${this.generationNumber}: writing ${scenarios.length} scenarios to cache`);
         // FIXME Job type should provide the cache path if we need it
         await collectionToCache(scenarioCollection, cachePath);
+        const scenariosCacheFile = `${cachePath}/scenarios.capnpbin`;
+        const fileExists = fs.existsSync(scenariosCacheFile);
+        const fileSize = fileExists ? fs.statSync(scenariosCacheFile).size : 0;
+        console.log(
+            `  generation ${this.generationNumber}: scenarios cache file ${scenariosCacheFile} exists=${fileExists} size=${fileSize}`
+        );
         console.timeEnd(` generation ${this.generationNumber}: prepared candidates`);
         return { errors, warnings };
     }
@@ -106,11 +114,12 @@ abstract class Generation {
         console.log(`  generation ${this.generationNumber}: simulating candidates`);
 
         // Start TrRouting for the generation
+        const cacheDir = this.jobWrapper.getCacheDirectory();
         const memcachedServer = this.jobWrapper.getMemcachedInstance()?.getServer();
         const realBatchManager = new TrRoutingBatchManager(new EventEmitter());
         const startResults = await realBatchManager.startBatch(
             1000, // TODO Fake high number to get above maxparallelCalculator
-            { cacheDirectoryPath: this.jobWrapper.getCacheDirectory(), memcachedServer }
+            { cacheDirectoryPath: cacheDir, memcachedServer }
         );
         this.jobWrapper.setTrRoutingBatchStartResult(startResults);
 
@@ -131,14 +140,18 @@ abstract class Generation {
         const promiseQueue = new pQueue({ concurrency: 1 });
 
         for (let i = 0; i < candidatesCount; i++) {
-            // Ignore undefined scenarios
-            if (validCandidates[i].getScenario() !== undefined) {
-                promiseQueue.add(async () => validCandidates[i].simulate());
+            const candidateIdx = i;
+            if (validCandidates[candidateIdx].getScenario() !== undefined) {
+                promiseQueue.add(async () => {
+                    console.log(
+                        `  generation ${this.generationNumber}: simulating candidate ${candidateIdx + 1}/${candidatesCount}`
+                    );
+                    await validCandidates[candidateIdx].simulate();
+                });
             }
         }
 
         await promiseQueue.onIdle();
-        console.log('done with promises');
         this.sortCandidates();
         await realBatchManager.stopBatch();
         console.timeEnd(` generation ${this.generationNumber}: simulated candidates`);
