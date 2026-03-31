@@ -16,6 +16,7 @@ interface RouteOdTripParameters {
     routing: TransitRoutingQueryAttributes;
     trRoutingPort?: number;
     reverseOD: boolean;
+    suppressExpectedRouteErrors?: boolean;
 }
 
 const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteResult> {
@@ -51,7 +52,9 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
     };
 
     try {
-        const results: RoutingResultsByMode = await Routing.calculate(tripQueryAttributes);
+        const results: RoutingResultsByMode = await Routing.calculate(tripQueryAttributes, {
+            suppressExpectedRouteErrors: parameters.suppressExpectedRouteErrors
+        });
 
         // We do not need the walkOnlyPath in the results, as it is already present in the other modes
         if (results.transit) {
