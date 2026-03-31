@@ -206,7 +206,8 @@ const odDemandFieldDescriptors: CsvFieldMappingDescriptor[] = [
         key: 'expansionFactor',
         i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.expansionFactorAttribute',
         type: 'single',
-        required: false
+        required: false,
+        autoMatch: ['expansion_factor', 'expansionFactor', 'factor', 'exp_factor']
     }
 ];
 
@@ -224,13 +225,15 @@ const nodeWeightFieldDescriptors: CsvFieldMappingDescriptor[] = [
         key: 'nodeUuid',
         i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightUuid',
         type: 'single',
-        required: true
+        required: true,
+        autoMatch: ['uuid', 'id', 'node_uuid', 'nodeUuid', 'node_id', 'nodeId']
     },
     {
         key: 'weight',
         i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightValue',
         type: 'single',
-        required: true
+        required: true,
+        autoMatch: ['weight', 'node_weight']
     }
 ];
 
