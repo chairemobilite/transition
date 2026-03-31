@@ -369,7 +369,8 @@ export default class OdTripSimulation implements SimulationMethod {
                 routingJob,
                 {
                     progressEmitter: childProgressEmitter,
-                    isCancelled: this.jobWrapper.privexecutorOptions.isCancelled
+                    isCancelled: this.jobWrapper.privexecutorOptions.isCancelled,
+                    suppressExpectedRouteErrors: true
                 },
                 this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
             );
