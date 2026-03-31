@@ -324,11 +324,6 @@ export default class OdTripSimulation implements SimulationMethod {
     }
 
     async simulate(scenarioId: string): Promise<{ fitness: number; results: SimulationStats }> {
-        // Need to build a BatchCalculationParameters for the BatchRouteJobType
-        // It's composed TransitRoutingQueryAttributes plus the withGeometries, detailed flag
-        // The TransitRoutingQueryAttributes is a RoutingQueryAttributes + TransitQueryAttributes
-        // The TransitQueryAttributes is a TransitRoutingBaseAttributes (coming from options.transitRoutingAttributes)
-        // and a scenarioId. The RoutingQueryAttributes is the routingModes and the withAlternatives flag.
         const batchParams: BatchCalculationParameters = {
             ...this.options.transitRoutingAttributes,
             // Just transit, walking and driving have been calculated at the start of the job
@@ -390,6 +385,9 @@ export default class OdTripSimulation implements SimulationMethod {
                 });
                 const results = await batchJobExecutor.handleResults(fitnessVisitor);
                 const fitness = this.fitnessFunction(results);
+                console.log(
+                    `OdTripSimulation: scenario=${scenarioId} fitness=${fitness.toFixed(2)} routed=${results.routedCount} nonRouted=${results.nonRoutedCount} total=${results.totalCount}`
+                );
 
                 return { fitness, results };
             } else {
