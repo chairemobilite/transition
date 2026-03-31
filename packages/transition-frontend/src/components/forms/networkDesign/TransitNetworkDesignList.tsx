@@ -12,6 +12,7 @@ import { faMinus } from '@fortawesome/free-solid-svg-icons/faMinus';
 import { faStopCircle } from '@fortawesome/free-solid-svg-icons/faStopCircle';
 import { faPauseCircle } from '@fortawesome/free-solid-svg-icons/faPauseCircle';
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons/faPlayCircle';
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons/faSyncAlt';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { ConfirmModal } from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
@@ -50,6 +51,13 @@ type GenerationRow = {
         totalFitness: number;
         results: { [method: string]: { fitness: number; results: unknown } };
     };
+};
+
+/** Get the first method's raw fitness (e.g. usersHourlyCost) */
+const getMethodFitness = (gen: GenerationRow): number | undefined => {
+    const methodEntries = Object.values(gen.result.results);
+    if (methodEntries.length === 0) return undefined;
+    return methodEntries[0].fitness;
 };
 
 const getNormalizedFitness = (gen: GenerationRow): number | undefined => {
@@ -99,6 +107,7 @@ const GenerationsTable: React.FC<{
                 </thead>
                 <tbody>
                     {generations.map((gen, index) => {
+                        const methodFitness = getMethodFitness(gen);
                         const normalizedFitness = getNormalizedFitness(gen);
                         return (
                             <tr
@@ -108,7 +117,7 @@ const GenerationsTable: React.FC<{
                                 className="_hoverable"
                             >
                                 <td>{index + 1}</td>
-                                <td>{gen.result.totalFitness.toFixed(2)}</td>
+                                <td>{methodFitness !== undefined ? methodFitness.toFixed(2) : '-'}</td>
                                 <td>{normalizedFitness !== undefined ? normalizedFitness.toFixed(4) : '-'}</td>
                                 <td>{gen.numberOfLines}</td>
                                 <td>{gen.numberOfVehicles}</td>
@@ -286,6 +295,13 @@ const TransitNetworkDesignList: React.FunctionComponent<TransitNetworkDesignList
                     iconClass="_icon"
                     label={t('transit:networkDesign:New')}
                     onClick={() => props.onNewJob()}
+                />
+                <Button
+                    color="grey"
+                    icon={faSyncAlt}
+                    iconClass="_icon"
+                    label={t('main:Refresh')}
+                    onClick={() => fetchJobs()}
                 />
             </div>
             {errors.length > 0 && <FormErrors errors={errors} />}
