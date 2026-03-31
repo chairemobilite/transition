@@ -272,16 +272,21 @@ export class TransitNetworkDesignJobWrapper<
 
     /**
      * Look up the GeoJSON path features for a line from the wrapper's
-     * collection manager. This works regardless of whether the Line instance
-     * was constructed with a collection manager (fresh run) or without one
-     * (resume from cache). Each returned feature is guaranteed to have
-     * non-null properties.
+     * collection manager. When the line comes from Cap'n Proto cache
+     * (resume), path_ids may be missing; in that case, fall back to
+     * the server-loaded line collection to retrieve them.
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private resolvePathFeatures = (line: Line): GeoJSON.Feature<any, Record<string, any>>[] => {
-        const pathIds = line.attributes.path_ids || [];
+        let pathIds = line.attributes.path_ids || [];
+        if (pathIds.length === 0 && this._lineCollection) {
+            const serverLine = this._lineCollection.getById(line.getId());
+            if (serverLine) {
+                pathIds = serverLine.attributes.path_ids || [];
+            }
+        }
         const pathsCollection = this._collectionManager?.get('paths');
-        if (!pathsCollection) {
+        if (!pathsCollection || pathIds.length === 0) {
             return [];
         }
         return pathIds
@@ -438,9 +443,18 @@ export class TransitNetworkDesignJobWrapper<
                 fs.mkdirSync(symlinkParentDir, { recursive: true });
             }
 
-            // Remove existing symlink if it exists
+            // Remove existing entry at the symlink path. On macOS,
+            // fs.unlinkSync fails with EPERM on directories, so we need to
+            // distinguish between symlinks and real directories using lstatSync.
             if (fs.existsSync(symlinkPath)) {
-                fs.unlinkSync(symlinkPath);
+                const stat = fs.lstatSync(symlinkPath);
+                if (stat.isSymbolicLink()) {
+                    fs.unlinkSync(symlinkPath);
+                } else if (stat.isDirectory()) {
+                    fs.rmSync(symlinkPath, { recursive: true });
+                } else {
+                    fs.unlinkSync(symlinkPath);
+                }
             }
 
             // Create symbolic link pointing to the job cache directory
