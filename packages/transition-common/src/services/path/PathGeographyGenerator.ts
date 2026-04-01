@@ -807,26 +807,25 @@ const remapPeriodSegmentData = (
 };
 
 /**
- * Remaps all period/service segment data entries after a path edit.
- * Each period/service is remapped independently with its own ratio.
+ * Remaps all service/period segment data entries after a path edit.
+ * Each service/period is remapped independently with its own ratio.
  */
-const remapAllPeriodSegmentData = (
+const remapAllServicePeriodSegmentData = (
     path: Path,
-    initialPeriodData: { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } },
+    initialData: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } },
     physicsDurations: number[],
     newSegmentsData: TimeAndDistance[],
     changesInfo: SegmentChangeInfo
-): { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } } => {
-    const result: { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } } = {};
+): { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } => {
+    const result: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } = {};
 
-    for (const periodShortname of Object.keys(initialPeriodData)) {
-        result[periodShortname] = {};
-        for (const serviceId of Object.keys(initialPeriodData[periodShortname])) {
-            result[periodShortname][serviceId] = remapPeriodSegmentData(
+    for (const serviceId of Object.keys(initialData)) {
+        result[serviceId] = {};
+        for (const periodShortname of Object.keys(initialData[serviceId])) {
+            result[serviceId][periodShortname] = remapPeriodSegmentData(
                 path,
-                initialPeriodData[periodShortname][serviceId],
+                initialData[serviceId][periodShortname],
                 physicsDurations,
-
                 newSegmentsData,
                 changesInfo
             );
@@ -852,7 +851,7 @@ const handleLegs = (path: Path, routing: RoutingResult, changesInfo: SegmentChan
         segmentsData: path.attributes.data.segments || [],
         dwellTimeDurationsSeconds: path.attributes.data.dwellTimeSeconds || []
     };
-    const initialPeriodData = path.attributes.data.segmentsByPeriodAndService;
+    const initialPeriodData = path.attributes.data.segmentsByServiceAndPeriod;
 
     const geometryResult = buildSegmentsAndGeometry(path, routing, initial, changesInfo);
 
@@ -871,7 +870,7 @@ const handleLegs = (path: Path, routing: RoutingResult, changesInfo: SegmentChan
 
     // Remap period segment data or clear it on forceRecalculate
     if (initialPeriodData && !changesInfo.forceRecalculate) {
-        (newData as any).segmentsByPeriodAndService = remapAllPeriodSegmentData(
+        (newData as any).segmentsByServiceAndPeriod = remapAllServicePeriodSegmentData(
             path,
             initialPeriodData,
             physicsDurations,
@@ -879,7 +878,7 @@ const handleLegs = (path: Path, routing: RoutingResult, changesInfo: SegmentChan
             changesInfo
         );
     } else if (initialPeriodData) {
-        (newData as any).segmentsByPeriodAndService = undefined;
+        (newData as any).segmentsByServiceAndPeriod = undefined;
     }
 
     path.set('geography', { type: 'LineString', coordinates: geometryResult.globalCoordinates });

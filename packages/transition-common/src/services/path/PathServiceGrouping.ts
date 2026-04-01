@@ -64,17 +64,13 @@ const findDistinguishingToken = (groupNames: string[], otherNames: string[]): st
  * or an empty array if there is no corresponding service for a given period
  */
 const getAverageSegmentTimesByPeriod = (path: Path, serviceId: string): Record<string, number[]> => {
-    const segmentsByPeriodAndService = path.attributes.data.segmentsByPeriodAndService ?? {};
-    const periodShortnames = Object.keys(segmentsByPeriodAndService);
+    const serviceData = path.attributes.data.segmentsByServiceAndPeriod?.[serviceId];
+    if (!serviceData) return {};
+
     const result: Record<string, number[]> = {};
-
-    for (const shortname of periodShortnames) {
-        // WARN: The specified serviceId could return undefined,
-        // if the path doesn't have the specified service
-        const segments = segmentsByPeriodAndService[shortname][serviceId]?.segments;
-        if (!segments) continue;
-
-        result[shortname] = segments.map((segment) => segment.travelTimeSeconds);
+    for (const [shortname, periodData] of Object.entries(serviceData)) {
+        if (!periodData?.segments) continue;
+        result[shortname] = periodData.segments.map((segment) => segment.travelTimeSeconds);
     }
     return result;
 };

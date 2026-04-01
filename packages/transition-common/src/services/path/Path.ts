@@ -101,9 +101,9 @@ export interface PathAttributesData {
     gtfs?: {
         shape_id: string;
     };
-    segmentsByPeriodAndService?: {
-        [periodShortname: string]: {
-            [serviceId: string]: PeriodSegmentData;
+    segmentsByServiceAndPeriod?: {
+        [serviceId: string]: {
+            [periodShortname: string]: PeriodSegmentData;
         };
     };
     increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
@@ -888,7 +888,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
      * 3. Global segments/dwellTimeSeconds synthesized into PeriodSegmentData
      */
     getSegmentsForPeriodAndService(periodShortname: string, serviceId: string): PeriodSegmentData | undefined {
-        const exactMatch = this.attributes.data.segmentsByPeriodAndService?.[periodShortname]?.[serviceId];
+        const exactMatch = this.attributes.data.segmentsByServiceAndPeriod?.[serviceId]?.[periodShortname];
         if (exactMatch) {
             return exactMatch;
         }
@@ -900,9 +900,15 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
      * Falls back to synthesizing from global segments/dwellTimeSeconds.
      */
     getSegmentsForPeriod(periodShortname: string): PeriodSegmentData | undefined {
-        const serviceEntries = this.attributes.data.segmentsByPeriodAndService?.[periodShortname];
-        if (serviceEntries) {
-            const allData = Object.values(serviceEntries);
+        const segmentsByServiceAndPeriod = this.attributes.data.segmentsByServiceAndPeriod;
+        if (segmentsByServiceAndPeriod) {
+            const allData: PeriodSegmentData[] = [];
+            for (const serviceEntries of Object.values(segmentsByServiceAndPeriod)) {
+                const periodData = serviceEntries[periodShortname];
+                if (periodData) {
+                    allData.push(periodData);
+                }
+            }
             if (allData.length === 1) {
                 return allData[0];
             }
@@ -1007,7 +1013,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
-            segmentsByPeriodAndService: null,
+            segmentsByServiceAndPeriod: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now
