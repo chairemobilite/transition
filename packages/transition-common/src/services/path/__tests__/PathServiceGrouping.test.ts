@@ -47,24 +47,23 @@ const makePath = (
         periodShortname: string;
         services: { id: string; travelTimeSeconds?: TimeAndDistance['travelTimeSeconds'][] }[];
     }[]
-) =>
-    ({
-        attributes: {
-            data: {
-                segmentsByPeriodAndService: Object.fromEntries(
-                    periods.map((p) => [
-                        p.periodShortname,
-                        Object.fromEntries(
-                            p.services.map((s) => [
-                                s.id,
-                                { segments: s.travelTimeSeconds?.map((t) => ({ travelTimeSeconds: t })) }
-                            ])
-                        )
-                    ])
-                )
-            }
+) => {
+    const segmentsByServiceAndPeriod: Record<string, Record<string, { segments: { travelTimeSeconds: number }[] }>> =
+        {};
+    for (const p of periods) {
+        for (const s of p.services) {
+            if (!segmentsByServiceAndPeriod[s.id]) segmentsByServiceAndPeriod[s.id] = {};
+            segmentsByServiceAndPeriod[s.id][p.periodShortname] = {
+                segments: s.travelTimeSeconds?.map((t) => ({ travelTimeSeconds: t })) ?? []
+            };
         }
-    } as Path);
+    }
+    return {
+        attributes: {
+            data: { segmentsByServiceAndPeriod }
+        }
+    } as Path;
+};
 
 const makeServicesCollection = (services: Record<string, ReturnType<typeof makeService>>) => ({
     getById: (id: string) => services[id]

@@ -112,14 +112,14 @@ export const computeSegmentTimesFromStopTimes = (
  * @param segmentDistancesMeters - Distance in meters per segment, or null if unavailable
  * @param periods - Period definitions (from import config)
  * @param totalDistanceMeters - Total path distance in meters (for speed calculations)
- * @returns Nested map: period shortname → service ID → PeriodSegmentData
+ * @returns Nested map: service ID → period shortname → PeriodSegmentData
  */
-export const computeSegmentTimesByPeriodAndService = (
+export const computeSegmentTimesByServiceAndPeriod = (
     tripsWithService: TripStopTimesWithService[],
     segmentDistancesMeters: (number | null)[],
     periods: Period[],
     totalDistanceMeters: number
-): { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } } => {
+): { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } => {
     if (periods.length === 0) {
         return {};
     }
@@ -146,7 +146,7 @@ export const computeSegmentTimesByPeriodAndService = (
     }
 
     // Compute per-bucket segment averages
-    const result: { [periodShortname: string]: { [serviceId: string]: PeriodSegmentData } } = {};
+    const result: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } = {};
     for (const [key, bucketTrips] of tripsByBucket) {
         const { period, serviceId } = bucketMeta.get(key)!;
         const segmentTimes = computeSegmentTimesFromStopTimes(bucketTrips, segmentDistancesMeters);
@@ -157,10 +157,10 @@ export const computeSegmentTimesByPeriodAndService = (
             totalTravelTimeWithDwellTimesSeconds
         } = segmentTimes;
 
-        if (!result[period]) {
-            result[period] = {};
+        if (!result[serviceId]) {
+            result[serviceId] = {};
         }
-        result[period][serviceId] = {
+        result[serviceId][period] = {
             segments: segmentsData,
             dwellTimeSeconds: dwellTimeSecondsData,
             travelTimeWithoutDwellTimesSeconds: totalTravelTimeWithoutDwellTimesSeconds,
@@ -588,7 +588,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
-        const segmentsByPeriodAndService = computeSegmentTimesByPeriodAndService(
+        const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod(
             tripsWithService,
             nullDistances,
             periods,
@@ -597,7 +597,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
 
         // FIXME: segments should have the same length as nodes, but we have no shape data to generate them from
         path.attributes.segments = [];
-        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByPeriodAndService });
+        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByServiceAndPeriod });
     } else {
         if (!shapeDistancesAreInMeters) {
             normalizeDistancesToMeters(stopTimeDistances, totalDistanceInMeters);
@@ -617,7 +617,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
-        const segmentsByPeriodAndService = computeSegmentTimesByPeriodAndService(
+        const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod(
             tripsWithService,
             sliceResult.segmentDistancesMeters,
             periods,
@@ -627,7 +627,7 @@ export const generateGeographyAndSegmentsFromGtfs = (
         completeShape.geometry.coordinates = sliceResult.pathCoordinates;
 
         path.attributes.segments = sliceResult.segments;
-        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByPeriodAndService });
+        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByServiceAndPeriod });
 
         const terminalsGeojsons = [
             path.collectionManager.get('nodes').getById(nodeIds[0]),
@@ -718,7 +718,7 @@ export const generateGeographyAndSegmentsFromStopTimes = (
         defaultMinLayoverTimeSeconds
     );
     const pathData = buildPathData({ segmentTimes, layoverTimeSeconds, totalDistanceMeters: totalDistanceInMeters });
-    const segmentsByPeriodAndService = computeSegmentTimesByPeriodAndService(
+    const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod(
         tripsWithService,
         nullDistances,
         periods,
@@ -726,7 +726,7 @@ export const generateGeographyAndSegmentsFromStopTimes = (
     );
 
     path.attributes.segments = segments;
-    path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByPeriodAndService });
+    path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByServiceAndPeriod });
 
     path.setData('gtfs', { shape_id: undefined });
     path.setData('from_gtfs', true);

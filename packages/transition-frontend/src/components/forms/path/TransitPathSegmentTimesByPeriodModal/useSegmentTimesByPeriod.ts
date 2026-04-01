@@ -72,12 +72,12 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
     const selectedGroup = serviceGroups[parseInt(selectedGroupIndex, 10)] || serviceGroups[0];
     const selectedServiceId = selectedGroup?.serviceIds[0] || '';
     const [localData, setLocalData] = React.useState<LocalSegmentTimes>(() => {
-        const stored = path.attributes.data.segmentsByPeriodAndService;
+        const stored = path.attributes.data.segmentsByServiceAndPeriod;
         if (!stored) return {};
         const result: LocalSegmentTimes = {};
-        for (const [periodShortname, serviceEntries] of Object.entries(stored)) {
-            for (const [serviceId, data] of Object.entries(serviceEntries)) {
-                if (!result[serviceId]) result[serviceId] = {};
+        for (const [serviceId, periodEntries] of Object.entries(stored)) {
+            result[serviceId] = {};
+            for (const [periodShortname, data] of Object.entries(periodEntries)) {
                 result[serviceId][periodShortname] = data.segments.map((s) => s.travelTimeSeconds);
             }
         }
@@ -391,12 +391,12 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         const baseSegments = path.attributes.data.segments || [];
         const baseDwell = path.attributes.data.dwellTimeSeconds || [];
 
-        // Convert local flat times back to segmentsByPeriodAndService format
+        // Convert local flat times back to segmentsByServiceAndPeriod format
         const result: Record<string, Record<string, PeriodSegmentData>> = {};
         for (const [serviceId, periodEntries] of Object.entries(expandedData)) {
             for (const [periodShortname, times] of Object.entries(periodEntries)) {
                 if (!times || times.length === 0) continue;
-                if (!result[periodShortname]) result[periodShortname] = {};
+                if (!result[serviceId]) result[serviceId] = {};
                 const segmentData: PeriodSegmentData['segments'] = times.map((t, i) => ({
                     travelTimeSeconds: t,
                     distanceMeters: baseSegments[i]?.distanceMeters ?? null
@@ -404,7 +404,7 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
                 const travelTotal = times.reduce((sum, t) => sum + t, 0);
                 const dwellTotal = baseDwell.reduce((sum, d) => sum + d, 0);
                 const distTotal = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
-                result[periodShortname][serviceId] = {
+                result[serviceId][periodShortname] = {
                     segments: segmentData,
                     dwellTimeSeconds: baseDwell,
                     travelTimeWithoutDwellTimesSeconds: travelTotal,
@@ -419,7 +419,7 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
                 };
             }
         }
-        path.set('data.segmentsByPeriodAndService', Object.keys(result).length > 0 ? result : undefined);
+        path.set('data.segmentsByServiceAndPeriod', Object.keys(result).length > 0 ? result : undefined);
         path.set('data.segmentTimesCheckpoints', checkpoints.length > 0 ? checkpoints : undefined);
         onClose();
     };

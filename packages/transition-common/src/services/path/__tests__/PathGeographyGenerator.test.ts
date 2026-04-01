@@ -1195,9 +1195,9 @@ test('Generate From Routing with custom layover minutes', async() => {
     expect(pathWithLayover.attributes.data.layoverTimeSeconds).toEqual(300);
 });
 
-describe('segmentsByPeriodAndService remapping on path edits', () => {
+describe('segmentsByServiceAndPeriod remapping on path edits', () => {
     // Same initial path as "Node insert and remove operations": [node1, node2, node4, node6] with 3 segments
-    // Adds segmentsByPeriodAndService with 2 periods, each with 1 service, different travel times per period.
+    // Adds segmentsByServiceAndPeriod with 1 service, 2 periods, different travel times per period.
     // AM peak is slower (congestion), off-peak is faster.
 
     const computeExpectedPeriodRatio = (
@@ -1236,8 +1236,8 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
     const periodDwellTimes = [0, DEFAULT_DWELL_TIME, NODE4_DWELL_TIME, DEFAULT_DWELL_TIME];
 
     const makeInitialPeriodData = () => ({
-        am_peak: {
-            service1: {
+        service1: {
+            am_peak: {
                 segments: _cloneDeep(amPeakSegments),
                 dwellTimeSeconds: [...periodDwellTimes],
                 travelTimeWithoutDwellTimesSeconds: 360,
@@ -1245,10 +1245,8 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
                 averageSpeedWithoutDwellTimesMetersPerSecond: 10.28,
                 operatingSpeedMetersPerSecond: 6.98,
                 tripCount: 5,
-            }
-        },
-        off_peak: {
-            service1: {
+            },
+            off_peak: {
                 segments: _cloneDeep(offPeakSegments),
                 dwellTimeSeconds: [...periodDwellTimes],
                 travelTimeWithoutDwellTimesSeconds: 250,
@@ -1281,13 +1279,13 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
                 { travelTimeSeconds: 95, distanceMeters: 1200 },
             ],
             dwellTimeSeconds: [0, DEFAULT_DWELL_TIME, NODE4_DWELL_TIME, DEFAULT_DWELL_TIME],
-            segmentsByPeriodAndService: makeInitialPeriodData(),
+            segmentsByServiceAndPeriod: makeInitialPeriodData(),
         }
     };
 
     test('no period data present behavior unchanged', async () => {
         const pathData = _cloneDeep(initialPathData);
-        delete pathData.data.segmentsByPeriodAndService;
+        delete pathData.data.segmentsByServiceAndPeriod;
         pathData.nodes = [node1.properties.id, node2.properties.id, node3.properties.id, node4.properties.id, node6.properties.id];
         pathData.data.nodeTypes = ['engine', 'engine', 'engine', 'engine', 'engine'];
         pathData.data.waypoints = [[], [], [], [], []];
@@ -1309,7 +1307,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 2 } });
 
-        expect(path.attributes.data.segmentsByPeriodAndService).toBeUndefined();
+        expect(path.attributes.data.segmentsByServiceAndPeriod).toBeUndefined();
         expect(path.attributes.data.segments.length).toEqual(4);
     });
 
@@ -1340,11 +1338,11 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 2 } });
 
         const legs = routingResult.matchings[0].legs;
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: seg 0 and seg 3 preserved, seg 1 and 2 scaled by AM ratio since they are new
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(4);
         expect(amData.segments[0].travelTimeSeconds).toEqual(amPeakSegments[0].travelTimeSeconds);
         expect(amData.segments[3].travelTimeSeconds).toEqual(amPeakSegments[2].travelTimeSeconds);
@@ -1357,7 +1355,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         expect(amData.tripCount).toEqual(5);
 
         // Off peak: same structure as AM peak, different ratio
-        const offData = periodData.off_peak.service1;
+        const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(4);
         expect(offData.segments[0].travelTimeSeconds).toEqual(offPeakSegments[0].travelTimeSeconds);
         expect(offData.segments[3].travelTimeSeconds).toEqual(offPeakSegments[2].travelTimeSeconds);
@@ -1417,11 +1415,11 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 0 } });
 
         const legs = routingResult.matchings[0].legs;
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: segs 1-3 preserve previous 0-2, seg 0 is new
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(4);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[0].travelTimeSeconds);
         expect(amData.segments[2].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
@@ -1435,7 +1433,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         expect(amData.tripCount).toEqual(5);
 
         // Off peak
-        const offData = periodData.off_peak.service1;
+        const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(4);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[0].travelTimeSeconds);
         expect(offData.segments[2].travelTimeSeconds).toEqual(offPeakSegments[1].travelTimeSeconds);
@@ -1479,11 +1477,11 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 4 } });
 
         const legs = routingResult.matchings[0].legs;
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: segs 0-2 preserved, seg 3 is new
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(4);
         expect(amData.segments[0].travelTimeSeconds).toEqual(amPeakSegments[0].travelTimeSeconds);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
@@ -1497,7 +1495,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         expect(amData.tripCount).toEqual(5);
 
         // Off peak
-        const offData = periodData.off_peak.service1;
+        const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(4);
         expect(offData.segments[0].travelTimeSeconds).toEqual(offPeakSegments[0].travelTimeSeconds);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[1].travelTimeSeconds);
@@ -1539,11 +1537,11 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'remove', index: 1 } });
 
         const legs = routingResult.matchings[0].legs;
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: seg 1 preserves previous 2, seg 0 is new (merged)
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(2);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[2].travelTimeSeconds);
         const amRatio = computeExpectedPeriodRatio(amPeakSegments, [
@@ -1553,7 +1551,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         expect(amData.tripCount).toEqual(5);
 
         // Off peak
-        const offData = periodData.off_peak.service1;
+        const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(2);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[2].travelTimeSeconds);
         const offRatio = computeExpectedPeriodRatio(offPeakSegments, [
@@ -1590,18 +1588,18 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'remove', index: 0 } });
 
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: both segments preserved from previous indices 1 and 2
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(2);
         expect(amData.segments[0].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[2].travelTimeSeconds);
         expect(amData.tripCount).toEqual(5);
 
         // Off peak
-        const offData = periodData.off_peak.service1;
+        const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(2);
         expect(offData.segments[0].travelTimeSeconds).toEqual(offPeakSegments[1].travelTimeSeconds);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[2].travelTimeSeconds);
@@ -1635,18 +1633,18 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'remove', index: 3 } });
 
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: both segments preserved from previous indices 0 and 1
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(2);
         expect(amData.segments[0].travelTimeSeconds).toEqual(amPeakSegments[0].travelTimeSeconds);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
         expect(amData.tripCount).toEqual(5);
 
         // Off peak
-        const offData = periodData.off_peak.service1;
+        const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(2);
         expect(offData.segments[0].travelTimeSeconds).toEqual(offPeakSegments[0].travelTimeSeconds);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[1].travelTimeSeconds);
@@ -1674,24 +1672,26 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { forceRecalculate: true });
 
         // forceRecalculate means full OSRM recalculation period data cannot be preserved
-        expect(path.attributes.data.segmentsByPeriodAndService).toBeFalsy();
+        expect(path.attributes.data.segmentsByServiceAndPeriod).toBeFalsy();
     });
 
     test('multiple services within a period each updated independently', async () => {
         // Add a second service to am_peak with different travel times
         const pathData = _cloneDeep(initialPathData);
-        pathData.data.segmentsByPeriodAndService.am_peak.service2 = {
-            segments: [
-                { travelTimeSeconds: 160, distanceMeters: 1500 },
-                { travelTimeSeconds: 110, distanceMeters: 1000 },
-                { travelTimeSeconds: 130, distanceMeters: 1200 },
-            ],
-            dwellTimeSeconds: [0, DEFAULT_DWELL_TIME, NODE4_DWELL_TIME, DEFAULT_DWELL_TIME],
-            travelTimeWithoutDwellTimesSeconds: 400,
-            operatingTimeWithoutLayoverTimeSeconds: 570,
-            averageSpeedWithoutDwellTimesMetersPerSecond: 9.25,
-            operatingSpeedMetersPerSecond: 6.49,
-            tripCount: 3,
+        pathData.data.segmentsByServiceAndPeriod.service2 = {
+            am_peak: {
+                segments: [
+                    { travelTimeSeconds: 160, distanceMeters: 1500 },
+                    { travelTimeSeconds: 110, distanceMeters: 1000 },
+                    { travelTimeSeconds: 130, distanceMeters: 1200 },
+                ],
+                dwellTimeSeconds: [0, DEFAULT_DWELL_TIME, NODE4_DWELL_TIME, DEFAULT_DWELL_TIME],
+                travelTimeWithoutDwellTimesSeconds: 400,
+                operatingTimeWithoutLayoverTimeSeconds: 570,
+                averageSpeedWithoutDwellTimesMetersPerSecond: 9.25,
+                operatingSpeedMetersPerSecond: 6.49,
+                tripCount: 3,
+            }
         };
         // Insert node3 at end (index 4)
         pathData.nodes = [node1.properties.id, node2.properties.id, node4.properties.id, node6.properties.id, node3.properties.id];
@@ -1716,10 +1716,10 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 4 } });
 
         const legs = routingResult.matchings[0].legs;
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
 
         // Service1: segs 0-2 preserved, seg 3 new with service1 ratio
-        const amService1 = periodData.am_peak.service1;
+        const amService1 = periodData.service1.am_peak;
         expect(amService1.segments.length).toEqual(4);
         expect(amService1.segments[0].travelTimeSeconds).toEqual(amPeakSegments[0].travelTimeSeconds);
         expect(amService1.segments[1].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
@@ -1738,7 +1738,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
             { travelTimeSeconds: 110, distanceMeters: 1000 },
             { travelTimeSeconds: 130, distanceMeters: 1200 },
         ];
-        const amService2 = periodData.am_peak.service2;
+        const amService2 = periodData.service2.am_peak;
         expect(amService2.segments.length).toEqual(4);
         expect(amService2.segments[0].travelTimeSeconds).toEqual(service2Segments[0].travelTimeSeconds);
         expect(amService2.segments[1].travelTimeSeconds).toEqual(service2Segments[1].travelTimeSeconds);
@@ -1757,7 +1757,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
 
         verifyPeriodAggregates(amService1);
         verifyPeriodAggregates(amService2);
-        verifyPeriodAggregates(periodData.off_peak.service1);
+        verifyPeriodAggregates(periodData.service1.off_peak);
     });
 
     test('waypoint change period data for affected segment recalculated', async () => {
@@ -1782,9 +1782,9 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
                     { travelTimeSeconds: 82, distanceMeters: 1000 },
                 ],
                 dwellTimeSeconds: [0, NODE4_DWELL_TIME, DEFAULT_DWELL_TIME],
-                segmentsByPeriodAndService: {
-                    am_peak: {
-                        service1: {
+                segmentsByServiceAndPeriod: {
+                    service1: {
+                        am_peak: {
                             segments: [
                                 { travelTimeSeconds: 140, distanceMeters: 1500 },
                                 { travelTimeSeconds: 100, distanceMeters: 1000 },
@@ -1824,11 +1824,11 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastWaypointChangedSegmentIndex: 0 });
 
         const legs = routingResult.matchings[0].legs;
-        const periodData = path.attributes.data.segmentsByPeriodAndService;
+        const periodData = path.attributes.data.segmentsByServiceAndPeriod;
         expect(periodData).toBeDefined();
 
         // AM peak: seg 1 preserved, seg 0 recalculated with period ratio
-        const amData = periodData.am_peak.service1;
+        const amData = periodData.service1.am_peak;
         expect(amData.segments.length).toEqual(2);
         expect(amData.segments[1].travelTimeSeconds).toEqual(100); // preserved
         const amRatio = computeExpectedPeriodRatio(
@@ -1848,9 +1848,9 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         // Insert at end keeps all segments preserved. The period travel times for non-first
         // segments should be adjusted by subtracting the node dwell time.
         const pathData = _cloneDeep(initialPathData);
-        pathData.data.segmentsByPeriodAndService = {
-            am_peak: {
-                service1: {
+        pathData.data.segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
                     segments: _cloneDeep(amPeakSegments),
                     dwellTimeSeconds: [0, 0, 0, 0], // baked-in: dwell included in travel time
                     travelTimeWithoutDwellTimesSeconds: 360,
@@ -1883,7 +1883,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(path, DEFAULT_SPEED / 3.6);
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 4 } });
 
-        const amData = path.attributes.data.segmentsByPeriodAndService.am_peak.service1;
+        const amData = path.attributes.data.segmentsByServiceAndPeriod.service1.am_peak;
         expect(amData.segments.length).toEqual(4);
 
         // Seg 0: maps to prev 0 (first segment, dwell always 0) no adjustment
@@ -1931,9 +1931,9 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
                     { travelTimeSeconds: 95, distanceMeters: 1200 },
                 ],
                 dwellTimeSeconds: [0, DEFAULT_DWELL_TIME],
-                segmentsByPeriodAndService: {
-                    am_peak: {
-                        service1: {
+                segmentsByServiceAndPeriod: {
+                    service1: {
+                        am_peak: {
                             segments: [{ travelTimeSeconds: 130, distanceMeters: 1200 }],
                             dwellTimeSeconds: [0, DEFAULT_DWELL_TIME],
                             travelTimeWithoutDwellTimesSeconds: 130,
@@ -1962,7 +1962,7 @@ describe('segmentsByPeriodAndService remapping on path edits', () => {
         generatePathGeographyFromRouting(path, nodeGeojson, [routingResult], { lastNodeChange: { type: 'insert', index: 1 } });
 
         const legs = routingResult.matchings[0].legs;
-        const amData = path.attributes.data.segmentsByPeriodAndService.am_peak.service1;
+        const amData = path.attributes.data.segmentsByServiceAndPeriod.service1.am_peak;
         expect(amData.segments.length).toEqual(2);
 
         // Ratio = 1.0 (no preserved segments), so times = pure physics duration
