@@ -803,9 +803,9 @@ describe('getSegmentTravelTimeForPeriod', () => {
     test('should return period-specific time when data exists', () => {
         const attributes = getPathAttributesWithData(true, { lineId });
         (attributes.data as any).segments = segmentsData;
-        (attributes.data as any).segmentsByPeriodAndService = {
-            am_peak: {
-                service1: {
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
                     segments: [
                         { distanceMeters: 510, travelTimeSeconds: 200 },
                         { distanceMeters: 515, travelTimeSeconds: 150 },
@@ -829,9 +829,9 @@ describe('getSegmentTravelTimeForPeriod', () => {
     test('should return base time for period without data', () => {
         const attributes = getPathAttributesWithData(true, { lineId });
         (attributes.data as any).segments = segmentsData;
-        (attributes.data as any).segmentsByPeriodAndService = {
-            am_peak: {
-                service1: {
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
                     segments: [
                         { distanceMeters: 510, travelTimeSeconds: 200 },
                         { distanceMeters: 515, travelTimeSeconds: 150 },
@@ -883,9 +883,9 @@ describe('getSegmentTravelTimesForPeriod', () => {
     test('should return period times when data exists', () => {
         const attributes = getPathAttributesWithData(true, { lineId });
         (attributes.data as any).segments = segmentsData;
-        (attributes.data as any).segmentsByPeriodAndService = {
-            am_peak: {
-                service1: {
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
                     segments: [
                         { distanceMeters: 510, travelTimeSeconds: 200 },
                         { distanceMeters: 515, travelTimeSeconds: 150 },
@@ -907,9 +907,9 @@ describe('getSegmentTravelTimesForPeriod', () => {
     test('should fall back to base for periods without data', () => {
         const attributes = getPathAttributesWithData(true, { lineId });
         (attributes.data as any).segments = segmentsData;
-        (attributes.data as any).segmentsByPeriodAndService = {
-            am_peak: {
-                service1: {
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
                     segments: [
                         { distanceMeters: 510, travelTimeSeconds: 200 },
                         { distanceMeters: 515, travelTimeSeconds: 150 },
