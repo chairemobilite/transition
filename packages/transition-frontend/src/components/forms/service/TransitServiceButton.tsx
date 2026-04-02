@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import Collapsible from 'react-collapsible';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -16,13 +16,17 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import DocumentationTooltip from '../../parts/DocumentationTooltip';
 import MathJax from 'react-mathjax';
 import TransitServiceLinesDetail from '../service/TransitServiceLinesDetail';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
-interface ScheduleButtonProps extends WithTranslation {
+interface ScheduleButtonProps {
     service: Service;
     selectedService?: Service;
+    isChecked: boolean;
+    setChecked: (serviceId: string, isChecked: boolean) => void;
 }
 
 const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (props: ScheduleButtonProps) => {
+    const { t } = useTranslation(['transit', 'main']);
     const [detailsOpened, setDetailsOpened] = React.useState(false);
     const serviceIsSelected =
         (props.selectedService && props.selectedService.getId() === props.service.getId()) || false;
@@ -56,7 +60,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
         serviceLocator.socketEventManager.emit(
             'transitServices.duplicate',
             [props.service.getId()],
-            { newServiceSuffix: props.t('main:copy') },
+            { newServiceSuffix: t('main:copy') },
             async (response: Status.Status<string[]>) => {
                 if (Status.isStatusOk(response)) {
                     await serviceLocator.collectionManager
@@ -82,7 +86,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     let serviceWeekdaysStr = '';
     for (let i = 0, count = weekdays.length; i < count; i++) {
         if (service.attributes[weekdays[i]] === true) {
-            serviceWeekdays.push(props.t(`main:dateTime:weekdaysAbbr:${weekdays[i]}`));
+            serviceWeekdays.push(t(`main:dateTime:weekdaysAbbr:${weekdays[i]}`));
         }
     }
     if (serviceWeekdays.length > 0) {
@@ -100,20 +104,29 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                 key={serviceId}
                 isSelected={serviceIsSelected}
                 onSelect={{ handler: onSelect }}
-                onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitService:DuplicateService') }}
+                onDuplicate={{ handler: onDuplicate, altText: t('transit:transitService:DuplicateService') }}
                 onDelete={
                     !isFrozen && !serviceIsSelected
                         ? {
                             handler: onDelete,
                             message: hasScheduledLines
-                                ? props.t('transit:transitService:ConfirmDeleteWithSchedule')
-                                : props.t('transit:transitService:ConfirmDelete'),
-                            altText: props.t('transit:transitService:Delete')
+                                ? t('transit:transitService:ConfirmDeleteWithSchedule')
+                                : t('transit:transitService:ConfirmDelete'),
+                            altText: t('transit:transitService:Delete')
                         }
                         : undefined
                 }
                 flushActionButtons={scheduledLineCount === 0}
             >
+                <ButtonCell alignment="left">
+                    <InputCheckboxBoolean
+                        disabled={isFrozen}
+                        id={`transitServiceSelect${serviceId}`}
+                        label=" "
+                        isChecked={props.isChecked}
+                        onValueChange={(e) => props.setChecked(serviceId, e.target.value)}
+                    />
+                </ButtonCell>
                 <ButtonCell alignment="left">
                     <span className="_circle-button" style={{ backgroundColor: service.attributes.color }}></span>
                 </ButtonCell>
@@ -122,7 +135,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                         <img
                             className="_icon-alone"
                             src={'/dist/images/icons/interface/lock_white.svg'}
-                            alt={props.t('main:Locked')}
+                            alt={t('main:Locked')}
                         />
                     </ButtonCell>
                 )}
@@ -144,8 +157,8 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
                             trigger={
                                 <MathJax.Provider>
                                     {scheduledLineCount > 1
-                                        ? props.t('transit:transitService:nLines', { n: scheduledLineCount })
-                                        : props.t('transit:transitService:oneLine')}
+                                        ? t('transit:transitService:nLines', { n: scheduledLineCount })
+                                        : t('transit:transitService:oneLine')}
                                     &nbsp;
                                     <span>
                                         <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
@@ -165,4 +178,4 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitServiceButton);
+export default TransitServiceButton;

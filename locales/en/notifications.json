@@ -201,6 +201,7 @@
   "DeletingScenarios": "Deleting scenarios",
   "DeletingServices": "Deleting services",
   "DeletingUnusedServices": "Deleting unused services",
+  "DeletingSelectedServices": "Deleting selected services",
   "DeletingGarages": "Deleting garages",
   "DeletingUnits": "Deleting units",
   "DeletingStations": "Deleting stations",
