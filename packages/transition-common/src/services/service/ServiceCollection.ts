@@ -67,6 +67,21 @@ class ServiceCollection extends GenericObjectCollection<Service> implements Prog
             .forEach((result) => console.log(`Error deleting service: ${result}`));
     }
 
+    async deleteByIds(ids: string[], socket) {
+        // Delete services individually
+        // FIXME Support a batch delete job in the backend to avoid multiple long calls, but this mirrors the deleteUnused method for now
+        const promises = ids.map((id) => {
+            const service = this.getById(id);
+            if (service && !service.isFrozen()) {
+                return service.delete(socket);
+            }
+        });
+        const results = await Promise.allSettled(promises);
+        results
+            .filter((result) => result.status !== 'fulfilled')
+            .forEach((result) => console.log(`Error deleting service: ${result}`));
+    }
+
     newObject(attribs: Partial<GenericAttributes>, isNew = false, collectionManager?: CollectionManager): Service {
         return new Service(attribs, isNew, collectionManager);
     }

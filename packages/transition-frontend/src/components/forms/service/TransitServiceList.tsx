@@ -26,6 +26,8 @@ interface ServiceListProps extends WithTranslation {
 
 const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: ServiceListProps) => {
     const [showModal, setShowModal] = useState(false);
+    const [checkedServices, setCheckedServices] = useState<Record<string, boolean>>({});
+    const [showDeleteSelectedModal, setShowDeleteSelectedModal] = useState(false);
 
     const newService = function () {
         const defaultColor = Preferences.get('transit.services.defaultColor', '#0086FF');
@@ -33,6 +35,21 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
         newService.startEditing();
         serviceLocator.selectedObjectsManager.setSelection('service', [newService]);
     };
+
+    const setServiceCheckedCallback = React.useCallback(
+        (serviceId: string, isChecked: boolean) => {
+            setCheckedServices((prevCheckedServices) => {
+                if (isChecked) {
+                    return { ...prevCheckedServices, [serviceId]: true };
+                } else {
+                    const newCheckedServices = { ...prevCheckedServices };
+                    delete newCheckedServices[serviceId];
+                    return newCheckedServices;
+                }
+            });
+        },
+        [setCheckedServices]
+    );
 
     const deleteUnused = async () => {
         if (props.serviceCollection) {
@@ -54,12 +71,36 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
         }
     };
 
+    const deleteSelected = async () => {
+        if (props.serviceCollection) {
+            serviceLocator.eventManager.emit('progress', {
+                name: 'DeletingSelectedServices',
+                progress: 0.0
+            });
+            await props.serviceCollection.deleteByIds(Object.keys(checkedServices), serviceLocator.socketEventManager);
+            await props.serviceCollection.loadFromServer(
+                serviceLocator.socketEventManager,
+                serviceLocator.collectionManager
+            );
+            serviceLocator.collectionManager.refresh('services');
+
+            setCheckedServices({});
+
+            serviceLocator.eventManager.emit('progress', {
+                name: 'DeletingSelectedServices',
+                progress: 1.0
+            });
+        }
+    };
+
     const hasUnused = props.serviceCollection
         ? props.serviceCollection
             .getFeatures()
             .find((service) => !service.isFrozen() && !service.hasScheduledLines()) !== undefined
         : false;
 
+    const checkServiceIds = Object.keys(checkedServices);
+    const hasChecked = checkServiceIds.length > 0;
     return (
         <div className="tr__list-transit-services-container">
             <div className="tr__section-header-container">
@@ -81,7 +122,9 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
                             <TransitServiceButton
                                 key={service.id}
                                 service={service}
+                                isChecked={checkedServices[service.id] ?? false}
                                 selectedService={props.selectedService}
+                                setChecked={setServiceCheckedCallback}
                             />
                         ))}
             </ButtonList>
@@ -95,6 +138,27 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
                         label={props.t('transit:transitService:New')}
                         onClick={newService}
                     />
+                    {hasChecked && (
+                        <Button
+                            color="red"
+                            icon={faTrash}
+                            iconClass="_icon"
+                            label={props.t('transit:transitService:DeleteSelected')}
+                            onClick={() => setShowDeleteSelectedModal(true)}
+                        />
+                    )}
+                    {showDeleteSelectedModal && (
+                        <ConfirmModal
+                            isOpen={true}
+                            title={props.t('transit:transitService:ConfirmDeleteSelected', {
+                                count: checkServiceIds.length
+                            })}
+                            confirmAction={deleteSelected}
+                            confirmButtonColor="red"
+                            confirmButtonLabel={props.t('main:Delete')}
+                            closeModal={() => setShowDeleteSelectedModal(false)}
+                        />
+                    )}
                     {hasUnused && (
                         <Button
                             color="red"

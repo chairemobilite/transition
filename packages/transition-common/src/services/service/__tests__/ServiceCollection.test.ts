@@ -156,6 +156,65 @@ test('Load from server', async () => {
 
 });
 
+describe('deleteById', () => {
+    test('deleteById should delete only matching non-frozen services', async () => {
+        const service1 = new Service(serviceAttributes1, false);
+        const service2 = new Service(serviceAttributes2, false);
+        const service3 = new Service(serviceAttributes3, false);
+        const service4 = new Service({ ...serviceAttributes3, id: uuidV4() }, false);
+        const collection = new ServiceCollection([service1, service2, service3, service4], {}, eventManager);
+        const socket = eventManager;
+
+        const deleteSpy1 = jest.spyOn(service1, 'delete').mockResolvedValue({ status: 'ok', result: { id: service1.getId() } });
+        const deleteSpy2 = jest.spyOn(service2, 'delete');
+        const deleteSpy3 = jest.spyOn(service3, 'delete').mockResolvedValue({ status: 'ok', result: { id: service3.getId() } });
+        const deleteSpy4 = jest.spyOn(service4, 'delete').mockResolvedValue({ status: 'ok', result: { id: service4.getId() } });
+
+        await collection.deleteByIds([service1.getId(), service2.getId(), service3.getId()], socket);
+
+        expect(deleteSpy1).toHaveBeenCalledTimes(1);
+        expect(deleteSpy1).toHaveBeenCalledWith(socket);
+        // service2 is frozen, so it should not be deleted
+        expect(deleteSpy2).not.toHaveBeenCalled();
+        expect(deleteSpy3).toHaveBeenCalledTimes(1);
+        expect(deleteSpy3).toHaveBeenCalledWith(socket);
+        // service4 is not scheduled to be deleted
+        expect(deleteSpy4).not.toHaveBeenCalled();
+    });
+
+    test('deleteById should ignore unknown ids', async () => {
+        const service1 = new Service(serviceAttributes1, false);
+        const collection = new ServiceCollection([service1], {}, eventManager);
+        const socket = eventManager;
+
+        const deleteSpy = jest.spyOn(service1, 'delete').mockResolvedValue({ status: 'ok', result: { id: service1.getId() } });
+
+        await collection.deleteByIds([uuidV4()], socket);
+
+        expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
+    test('deleteById should complete even if some deletions fail', async () => {
+        const service1 = new Service(serviceAttributes1, false);
+        const service2 = new Service(serviceAttributes2, false);
+        const service3 = new Service(serviceAttributes3, false);
+        const collection = new ServiceCollection([service1, service2, service3], {}, eventManager);
+        const socket = eventManager;
+
+        const deleteSpy1 = jest.spyOn(service1, 'delete').mockResolvedValue({ status: 'ok', result: { id: service1.getId() } });
+        const deleteSpy3 = jest.spyOn(service3, 'delete').mockResolvedValue({ status: 'error', error: 'Deletion failed' });
+        
+        await collection.deleteByIds([service1.getId(), service3.getId()], socket);
+        // No exception expected, even if service3 deletion fails
+
+        expect(deleteSpy1).toHaveBeenCalledTimes(1);
+        expect(deleteSpy1).toHaveBeenCalledWith(socket);
+        // Delete was called, but returned error
+        expect(deleteSpy3).toHaveBeenCalledTimes(1);
+        expect(deleteSpy3).toHaveBeenCalledWith(socket);
+    });
+});
+
 test('static attributes', () => {
     const collection = new ServiceCollection([], {}, eventManager);
     expect(collection.instanceClass.getCapitalizedPluralName()).toEqual('Services');
