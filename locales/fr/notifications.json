@@ -1,5 +1,6 @@
 {
   "MapLoading": "Chargement de la carte",
+  "MapStyleSwitch": "Changement du style de carte",
 
   "TransitAgencyCollectionLoading": "Chargement des agences",
   "TransitServiceCollectionLoading": "Chargement des services",

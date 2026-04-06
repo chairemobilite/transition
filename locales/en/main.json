@@ -65,6 +65,8 @@
     "Min": "Min",
     "Left": "Left",
     "Right": "Right",
+    "Black": "Black",
+    "White": "White",
     "rangeTo": "-",
     "Total": "Total",
     "Calendar": "Calendar",
@@ -290,7 +292,10 @@
         },
         "DateTimeFormat": "Date/Time format",
         "DateTimeFormat24H": "24 hours ({{formatted}})",
-        "DateTimeFormat12H": "12 hours ({{formatted}})"
+        "DateTimeFormat12H": "12 hours ({{formatted}})",
+        "Map": "Map preferences",
+        "MapOverlayOpacity": "Map overlay opacity (%)",
+        "MapOverlayColor": "Map overlay color"
     },
     "ShowingNofX": "Showing {{n}} of {{x}} results",
     "PageNofX": "Page {{n}} of {{x}}",
@@ -302,12 +307,12 @@
             "resetView": "Reset map view to default center/zoom",
             "layerSelect": "Select map layer",
             "background": "Background",
-            "osm": "Base Map",
-            "aerial": "Aerial Imagery",
+            "osm": "OSM Base Map",
             "minZoom": "(min zoom: {{zoom}})",
-            "maxZoom": "(max zoom: {{zoom}})"
+            "maxZoom": "(max zoom: {{zoom}})",
+            "overlayOpacity": "Overlay opacity",
+            "overlayColor": "Overlay color"
         },
-        "osmAttribution": "© OpenStreetMap contributors",
-        "aerialAttribution": "Aerial imagery"
+        "osmAttribution": "© OpenStreetMap contributors"
     }
 }

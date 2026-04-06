@@ -65,6 +65,8 @@
     "Min": "Min",
     "Left": "Gauche",
     "Right": "Droite",
+    "Black": "Noir",
+    "White": "Blanc",
     "rangeTo": " à ",
     "Total": "Total",
     "Calendar": "Calendrier",
@@ -290,7 +292,10 @@
         },
         "DateTimeFormat": "Format de date/heure",
         "DateTimeFormat24H": "24 heures ({{formatted}})",
-        "DateTimeFormat12H": "12 heures ({{formatted}})"
+        "DateTimeFormat12H": "12 heures ({{formatted}})",
+        "Map": "Préférences de la carte",
+        "MapOverlayOpacity": "Opacité de la couche de transparence de la carte (%)",
+        "MapOverlayColor": "Couleur de la couche de transparence de la carte"
     },
     "ShowingNofX": "{{n}} de {{x}} résultats",
     "PageNofX": "Page {{n}} de {{x}}",
@@ -302,12 +307,12 @@
             "resetView": "Réinitialiser la vue au centre/zoom par défaut",
             "layerSelect": "Sélectionner la couche de carte",
             "background": "Arrière-plan",
-            "osm": "Carte de base",
-            "aerial": "Imagerie aérienne",
+            "osm": "Carte de base OSM",
             "minZoom": "(zoom min: {{zoom}})",
-            "maxZoom": "(zoom max: {{zoom}})"
+            "maxZoom": "(zoom max: {{zoom}})",
+            "overlayOpacity": "Opacité de la couche de transparence",
+            "overlayColor": "Couleur de la couche de transparence"
         },
-        "osmAttribution": "© Contributeurs OpenStreetMap",
-        "aerialAttribution": "Imagerie aérienne"
+        "osmAttribution": "© Contributeurs OpenStreetMap"
     }
 }

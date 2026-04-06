@@ -6,6 +6,8 @@
  */
 import _merge from 'lodash/merge';
 
+import type { ProjectMapBasemapLayer } from '../mapBaseLayersProject.types';
+
 type SectionType = {
     localizedTitle: string;
     iconWhite: string; // Icon for use on dark backgrounds
@@ -122,6 +124,12 @@ export type ProjectConfiguration<AdditionalConfig> = {
     sections: {
         [sectionName: string]: SectionType;
     };
+
+    /**
+     * Extra basemaps for the map switcher: each entry is a full MapLibre style (`styleUrl` and/or inline `style`).
+     * OpenStreetMap is built in as `osm` and does not need to be listed here.
+     */
+    mapBaseLayers?: readonly ProjectMapBasemapLayer[];
 } & AdditionalConfig;
 
 // Initialize default configuration

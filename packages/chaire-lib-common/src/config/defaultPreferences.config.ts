@@ -7,6 +7,7 @@
 import config from './shared/project.config';
 import lineModesDefaultValues from './lineModesDefaultValues';
 import constants from './constants';
+import type { ProjectMapBasemapShortname } from './mapBaseLayersProject.types';
 
 // @deprecated This type has moved to chaire-lib's project configuration
 interface SectionDescription {
@@ -36,8 +37,12 @@ export interface PreferencesModel {
         center: [number, number];
         /** Initial zoom level (typically 1-20, where higher values are more zoomed in) */
         zoom: number;
-        /** Default base layer: 'osm' for OpenStreetMap tiles, 'aerial' for satellite imagery */
-        baseLayer: 'osm' | 'aerial';
+        /** Default base layer shortname (`osm` or a `mapBaseLayers` entry) */
+        basemapShortname: ProjectMapBasemapShortname;
+        /** Overlay opacity as a percentage (0–100) */
+        overlayOpacity: number;
+        /** Overlay color: 'black' or 'white' */
+        overlayColor: 'black' | 'white';
     };
     colorPicker: {
         /** Hexadecimal strings of the various colors that should be available */
@@ -55,7 +60,9 @@ const defaultPreferences: PreferencesModel = {
     map: {
         center: [config.mapDefaultCenter.lon, config.mapDefaultCenter.lat],
         zoom: 10,
-        baseLayer: 'osm'
+        basemapShortname: 'osm',
+        overlayOpacity: 50,
+        overlayColor: 'black'
     },
     socketUploadChunkSize: 10240000,
     defaultWalkingSpeedMetersPerSeconds: 5 / 3.6,
