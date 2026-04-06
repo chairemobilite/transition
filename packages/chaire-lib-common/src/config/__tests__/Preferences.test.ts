@@ -144,9 +144,9 @@ describe('Updating preferences', () => {
     });
 
     test.each([
-        { input: { 'map.baseLayer': 'aerial' as const }, expected: 'aerial' },
-        { input: { 'map.baseLayer': 'osm' as const }, expected: 'osm' }
-    ])('Update map.baseLayer preference with input $input, expected $expected', async ({ input, expected }) => {
+        { input: { 'map.basemapShortname': 'aerial' as const }, expected: 'aerial' },
+        { input: { 'map.basemapShortname': 'osm' as const }, expected: 'osm' }
+    ])('Update map.basemapShortname preference with input $input, expected $expected', async ({ input, expected }) => {
         fetchMock.mockOnce(JSON.stringify(Status.createOk('ok')));
 
         await Preferences.update(input);
@@ -156,7 +156,7 @@ describe('Updating preferences', () => {
             method: 'POST',
             body: JSON.stringify({ valuesByPath: input })
         }));
-        expect(Preferences.get('map.baseLayer')).toBe(expected);
+        expect(Preferences.get('map.basemapShortname')).toBe(expected);
     });
 });
 
@@ -171,26 +171,26 @@ test('Test reset to default', () => {
     expect(Preferences.get('map.zoom')).toBe(10); // map.zoom is no set in project config, but is 10 in default config
 });
 
-describe('map.baseLayer preference', () => {
+describe('map.basemapShortname preference', () => {
     test('has osm as default value', () => {
-        expect(Preferences.get('map.baseLayer')).toBe('osm');
+        expect(Preferences.get('map.basemapShortname')).toBe('osm');
     });
 
     test('can be set to aerial', () => {
-        Preferences.set('map.baseLayer', 'aerial');
-        expect(Preferences.get('map.baseLayer')).toBe('aerial');
+        Preferences.set('map.basemapShortname', 'aerial');
+        expect(Preferences.get('map.basemapShortname')).toBe('aerial');
     });
 
     test('resets to osm default', () => {
-        Preferences.set('map.baseLayer', 'aerial');
-        Preferences.resetPathToDefault('map.baseLayer');
-        expect(Preferences.get('map.baseLayer')).toBe('osm');
+        Preferences.set('map.basemapShortname', 'aerial');
+        Preferences.resetPathToDefault('map.basemapShortname');
+        expect(Preferences.get('map.basemapShortname')).toBe('osm');
     });
 
     test('persists as part of map preferences object', () => {
-        Preferences.set('map.baseLayer', 'aerial');
+        Preferences.set('map.basemapShortname', 'aerial');
         const mapPrefs = Preferences.get('map');
-        expect(mapPrefs).toHaveProperty('baseLayer', 'aerial');
+        expect(mapPrefs).toHaveProperty('basemapShortname', 'aerial');
     });
 });
 

@@ -180,17 +180,7 @@ module.exports = (env) => {
                     HOST: JSON.stringify(process.env.HOST),
                     TRROUTING_HOST: JSON.stringify(process.env.TRROUTING_HOST),
                     PROJECT_SOURCE: JSON.stringify(process.env.PROJECT_SOURCE),
-                    IS_TESTING: JSON.stringify(process.env.NODE_ENV === 'test'),
-                    GOOGLE_API_KEY: JSON.stringify(process.env.GOOGLE_API_KEY),
-                    CUSTOM_RASTER_TILES_XYZ_URL: JSON.stringify(
-                        process.env.CUSTOM_RASTER_TILES_XYZ_URL || config.customRasterTilesXyzUrl
-                    ),
-                    CUSTOM_RASTER_TILES_MIN_ZOOM: JSON.stringify(
-                        process.env.CUSTOM_RASTER_TILES_MIN_ZOOM || config.customRasterTilesMinZoom
-                    ),
-                    CUSTOM_RASTER_TILES_MAX_ZOOM: JSON.stringify(
-                        process.env.CUSTOM_RASTER_TILES_MAX_ZOOM || config.customRasterTilesMaxZoom
-                    )
+                    IS_TESTING: JSON.stringify(process.env.NODE_ENV === 'test')
                 },
                 __CONFIG__: JSON.stringify({
                     ...config

@@ -84,10 +84,121 @@ cp .env.example .env
 * Change `EXPRESS_SESSION_SECRET_KEY` to a random string with no space.
 * Change `PROJECT_CONFIG` to point to your project's configuration file. The default is an example configuration file that can be copied and configured for your own need.
 
-The map uses OpenStreetMap tiles by default (no API key required). If you want to add custom raster tiles (such as aerial imagery), you can optionally configure:
-* `CUSTOM_RASTER_TILES_XYZ_URL=https://your-tile-server/{z}/{x}/{y}`
+#### Base map layers
 
-Users can switch between OSM and custom tiles using the layer switcher button in the application.
+**OpenStreetMap** is always available as the default base map (no API key).
+
+Additional basemaps can be defined in your `config.js` under **`mapBaseLayers`**: an **array** where **each object is one option** in the map layer switcher. Each entry must provide a unique **`shortname`** (persisted per user as `map.basemapShortname`) and a **`name`** (displayed in the UI).
+
+Each entry uses one of two shapes (see [`mapBaseLayersProject.types.ts`](packages/chaire-lib-common/src/config/mapBaseLayersProject.types.ts) and the [MapLibre Style Spec](https://maplibre.org/maplibre-style-spec/)):
+
+* **`styleUrl`** -- a URL to a remote MapLibre style JSON document (vector or raster tiles, attribution, sprites, and glyphs are all defined inside that document).
+* **`style`** -- an inline MapLibre style object (same JSON shape as a remote style document; useful for simple raster tile sources).
+
+Optional **`minZoom`** / **`maxZoom`** restrict the basemap to a zoom range; outside that range the map falls back to OSM.
+
+**Reserved names:** The shortname `osm` is reserved for the built-in OpenStreetMap layer -- do not reuse it in `mapBaseLayers`. Shortnames must be unique across all entries. Transition also injects a dimming overlay on top of every basemap style using source ID `overlay` and layer ID `base-overlay`; avoid those IDs in custom inline `style` objects.
+
+The default frontend bundle lists **OpenStreetMap** only; add more basemaps via **`mapBaseLayers`** in `config.js`.
+
+The chosen base layer is persisted per user via the `map.basemapShortname` preference and restored on next login.
+
+##### API keys for `mapBaseLayers`
+
+Because `config.js` is evaluated by webpack at build time, you can reference `process.env.YOUR_VAR` directly in URLs or style objects. Define the actual keys in the **root `.env`** file (copy from `.env.example`) and rebuild after changes. Keys end up in the client bundle (this is standard for any client-side tile setup).
+
+##### Provider examples
+
+**CARTO** (free, no API key, but needs permission or membership according to the license):
+
+```js
+mapBaseLayers: [
+  {
+    shortname: 'positron',
+    name: 'Positron',
+    styleUrl: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json'
+  },
+  {
+    shortname: 'dark_matter',
+    name: 'Dark Matter',
+    styleUrl: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+  },
+  {
+    shortname: 'voyager',
+    name: 'Voyager',
+    styleUrl: 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
+  }
+]
+```
+
+**MapTiler** (free tier available, API key required):
+
+```js
+mapBaseLayers: [
+  {
+    shortname: 'maptiler_streets',
+    name: 'MapTiler Streets',
+    styleUrl: `https://api.maptiler.com/maps/streets-v2/style.json?key=${process.env.MAPTILER_KEY}`
+  }
+]
+```
+
+**Stadia Maps** (free tier available, API key or domain auth required for production):
+
+```js
+mapBaseLayers: [
+  {
+    shortname: 'stadia_smooth',
+    name: 'Alidade Smooth',
+    styleUrl: `https://tiles.stadiamaps.com/styles/alidade_smooth.json?api_key=${process.env.STADIA_KEY}`
+  },
+  {
+    shortname: 'stadia_outdoors',
+    name: 'Outdoors',
+    styleUrl: `https://tiles.stadiamaps.com/styles/outdoors.json?api_key=${process.env.STADIA_KEY}`
+  }
+]
+```
+
+**Inline raster style** (for any XYZ tile provider):
+
+```js
+mapBaseLayers: [
+  {
+    shortname: 'aerial',
+    name: 'Aerial imagery',
+    minZoom: 10,
+    maxZoom: 18,
+    style: {
+      version: 8,
+      sources: {
+        aerial: {
+          type: 'raster',
+          tiles: [`https://imagery.example.com/{z}/{x}/{y}.png?key=${process.env.IMAGERY_KEY}`],
+          tileSize: 256,
+          attribution: '&copy; Imagery Provider'
+        }
+      },
+      layers: [{ id: 'aerial', type: 'raster', source: 'aerial' }]
+    }
+  }
+]
+```
+
+`.env` (for the examples above that use API keys):
+
+```bash
+MAPTILER_KEY=your_maptiler_key
+STADIA_KEY=your_stadia_key
+IMAGERY_KEY=your_imagery_key
+```
+
+#### Map overlay controls
+
+The map controls menu (accessible via the gear icon) exposes the following settings:
+
+* **Overlay opacity** — A slider (0–100 %) that dims the base map beneath transit features for better contrast.
+* **Overlay color** — A toggle between **black** and **white** overlay tint.
 
 ### Create the client application
 

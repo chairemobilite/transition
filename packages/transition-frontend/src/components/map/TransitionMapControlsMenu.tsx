@@ -5,350 +5,225 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-// External packages
 import React from 'react';
-import { createRoot, Root } from 'react-dom/client';
-import { useTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
-// chaire-lib imports
-import defaultPreferences from 'chaire-lib-common/lib/config/defaultPreferences.config';
+import type { ProjectMapBasemapShortname } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
+import {
+    formatBasemapDisplayName,
+    getBasemapZoomHintMessage,
+    getProjectMapBaseLayers
+} from '../../config/projectBaseMapLayers';
 
-// Local workspace imports
-import maplibregl from 'maplibre-gl';
-
-interface MapControlsMenuProps {
-    isOpen: boolean;
-    onToggle: () => void;
+export interface MapControlsPanelProps {
+    currentLayer: ProjectMapBasemapShortname;
+    currentZoom: number;
+    overlayOpacity: number;
+    overlayColor: 'black' | 'white';
+    onLayerChange: (layerType: ProjectMapBasemapShortname) => void;
+    onOverlayOpacityChange: (opacity: number) => void;
+    onOverlayColorChange: (color: 'black' | 'white') => void;
     onResetView: () => void;
-    onLayerChange: (layerType: 'osm' | 'aerial') => void;
-    getCurrentLayer: () => 'osm' | 'aerial';
-    isZoomInAerialRange: () => boolean;
-    getCurrentZoom: () => number;
-    minZoom?: number;
-    maxZoom?: number;
-    /** URL for aerial tiles. If undefined, the background/layer selector is hidden */
-    aerialTilesUrl?: string;
 }
 
-const MapControlsDropdown: React.FC<MapControlsMenuProps> = ({
-    isOpen,
-    onToggle,
-    onResetView,
-    onLayerChange,
-    getCurrentLayer,
-    isZoomInAerialRange,
-    getCurrentZoom,
-    minZoom,
-    maxZoom,
-    aerialTilesUrl
-}) => {
-    const currentLayer = getCurrentLayer();
-    const inRange = isZoomInAerialRange();
-    const currentZoom = getCurrentZoom();
-    const { t } = useTranslation();
-
-    // Determine zoom range message - show when outside valid zoom range
-    let zoomMessage: string | null = null;
-    if (aerialTilesUrl && !inRange && minZoom !== undefined && maxZoom !== undefined) {
-        if (currentZoom < minZoom) {
-            zoomMessage = t('main:map.controls.minZoom', { zoom: minZoom });
-        } else if (currentZoom > maxZoom) {
-            zoomMessage = t('main:map.controls.maxZoom', { zoom: maxZoom });
-        }
-    }
-
-    const handleResetView = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onResetView();
-        onToggle();
-    };
-
-    const handleOsmClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onLayerChange('osm');
-        onToggle();
-    };
-
-    const handleAerialClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (inRange && aerialTilesUrl) {
-            onLayerChange('aerial');
-        }
-        onToggle();
-    };
-
-    const handleResetViewKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
+/** Reusable layer option item for the dropdown */
+const LayerOption: React.FC<{
+    layerType: ProjectMapBasemapShortname;
+    label: string;
+    isActive: boolean;
+    disabled?: boolean;
+    suffix?: React.ReactNode;
+    onSelect: (layerType: ProjectMapBasemapShortname) => void;
+}> = ({ layerType, label, isActive, disabled = false, suffix, onSelect }) => (
+    <p
+        onClick={(e) => {
             e.stopPropagation();
-            onResetView();
-            onToggle();
-        }
-    };
-
-    const handleOsmKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            onLayerChange('osm');
-            onToggle();
-        }
-    };
-
-    const handleAerialKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.stopPropagation();
-            if (inRange && aerialTilesUrl) {
-                onLayerChange('aerial');
+            if (!disabled) {
+                onSelect(layerType);
             }
-            onToggle();
+        }}
+        className={`tr__map-controls-dropdown-item ${isActive ? '_active' : ''}`}
+        style={
+            disabled
+                ? {
+                    opacity: 0.5,
+                    cursor: 'not-allowed',
+                    pointerEvents: 'none'
+                }
+                : undefined
         }
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelect(layerType);
+            }
+        }}
+    >
+        {label}
+        {suffix}
+    </p>
+);
+
+/**
+ * Map controls panel rendered as a pure React component over the map.
+ * Replaces the previous imperative MapLibre IControl implementation.
+ */
+const MapControlsPanel: React.FC<MapControlsPanelProps> = ({
+    currentLayer,
+    currentZoom,
+    overlayOpacity,
+    overlayColor,
+    onLayerChange,
+    onOverlayOpacityChange,
+    onOverlayColorChange,
+    onResetView
+}) => {
+    const { t } = useTranslation(['main', 'transit']);
+    const [isOpen, setIsOpen] = React.useState(false);
+    const containerRef = React.useRef<HTMLDivElement>(null);
+
+    const [localOpacity, setLocalOpacity] = React.useState(overlayOpacity);
+    const [localColor, setLocalColor] = React.useState(overlayColor);
+
+    React.useEffect(() => {
+        setLocalOpacity(overlayOpacity);
+    }, [overlayOpacity]);
+    React.useEffect(() => {
+        setLocalColor(overlayColor);
+    }, [overlayColor]);
+
+    React.useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
+
+    const handleSelect = (layerType: ProjectMapBasemapShortname) => {
+        onLayerChange(layerType);
+        setIsOpen(false);
     };
 
     return (
-        <div className="tr__map-controls-dropdown" style={{ display: isOpen ? 'flex' : 'none' }}>
-            <p
-                className="tr__map-controls-dropdown-item"
-                onClick={handleResetView}
-                role="button"
-                tabIndex={0}
-                onKeyDown={handleResetViewKeyDown}
+        <div
+            ref={containerRef}
+            className="maplibregl-ctrl maplibregl-ctrl-group tr__map-controls tr__map-controls-panel"
+        >
+            <button
+                className="maplibregl-ctrl-icon tr__map-controls-button"
+                type="button"
+                title={t('main:map.controls.title')}
+                aria-label={t('main:map.controls.title')}
+                onClick={() => setIsOpen((prev) => !prev)}
             >
-                <span>{t('main:map.controls.resetView')}</span>
-            </p>
+                <i className="fa fa-cog" aria-hidden="true"></i>
+            </button>
 
-            {/* Layer selector is shown only when aerial tiles are available */}
-            {aerialTilesUrl && (
-                <>
-                    <div className="tr__map-controls-dropdown-group-title">{t('main:map.controls.background')}:</div>
-                    <p
-                        onClick={handleOsmClick}
-                        className={`tr__map-controls-dropdown-item ${currentLayer === 'osm' ? '_active' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={handleOsmKeyDown}
-                    >
-                        {t('main:map.controls.osm')}
-                    </p>
-                    <p
-                        onClick={handleAerialClick}
-                        className={`tr__map-controls-dropdown-item ${currentLayer === 'aerial' && inRange && aerialTilesUrl ? '_active' : ''}`}
-                        style={{
-                            opacity: aerialTilesUrl && inRange ? 1 : 0.5,
-                            cursor: aerialTilesUrl && inRange ? 'pointer' : 'not-allowed',
-                            pointerEvents: aerialTilesUrl && inRange ? 'auto' : 'none'
+            <div className="tr__map-controls-dropdown" style={{ display: isOpen ? 'flex' : 'none' }}>
+                <p
+                    className="tr__map-controls-dropdown-item"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onResetView();
+                        setIsOpen(false);
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onResetView();
+                            setIsOpen(false);
+                        }
+                    }}
+                >
+                    <span>{t('main:map.controls.resetView')}</span>
+                </p>
+
+                <div className="tr__map-controls-dropdown-group-title">{t('main:map.controls.background')}:</div>
+
+                {getProjectMapBaseLayers().map((layer) => {
+                    const zoomHint = getBasemapZoomHintMessage(layer.shortname, currentZoom, t);
+                    return (
+                        <LayerOption
+                            key={layer.shortname}
+                            layerType={layer.shortname}
+                            label={formatBasemapDisplayName(layer, t)}
+                            isActive={currentLayer === layer.shortname}
+                            disabled={zoomHint !== null}
+                            onSelect={handleSelect}
+                            suffix={
+                                zoomHint ? (
+                                    <span style={{ fontStyle: 'oblique', fontWeight: 'normal', marginLeft: '0.5rem' }}>
+                                        {zoomHint}
+                                    </span>
+                                ) : undefined
+                            }
+                        />
+                    );
+                })}
+
+                <div className="tr__map-controls-dropdown-group-title" style={{ marginTop: '0.5rem' }}>
+                    {t('main:map.controls.overlayOpacity')}:
+                </div>
+                <div className="tr__map-controls-slider-container">
+                    <input
+                        className="tr__map-controls-slider-input"
+                        type="range"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={localOpacity}
+                        onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setLocalOpacity(val);
+                            onOverlayOpacityChange(val);
                         }}
-                        role="button"
-                        tabIndex={aerialTilesUrl && inRange ? 0 : -1}
-                        onKeyDown={handleAerialKeyDown}
-                    >
-                        {t('main:map.controls.aerial')}
-                        {zoomMessage && (
-                            <span style={{ fontStyle: 'oblique', fontWeight: 'normal', marginLeft: '0.5rem' }}>
-                                {zoomMessage}
-                            </span>
-                        )}
-                    </p>
-                </>
-            )}
+                        aria-label={t('main:map.controls.overlayOpacity')}
+                    />
+                    <span className="tr__map-controls-slider-value">{localOpacity}%</span>
+                </div>
+                <div className="tr__map-controls-dropdown-group-title">{t('main:map.controls.overlayColor')}:</div>
+                <div className="tr__map-controls-color-container">
+                    <div className="tr__map-controls-radio-group">
+                        <label className="tr__map-controls-radio-item">
+                            <input
+                                type="radio"
+                                name="overlayColor"
+                                value="black"
+                                checked={localColor === 'black'}
+                                onChange={() => {
+                                    setLocalColor('black');
+                                    onOverlayColorChange('black');
+                                }}
+                            />
+                            {t('main:Black')}
+                        </label>
+                        <label className="tr__map-controls-radio-item">
+                            <input
+                                type="radio"
+                                name="overlayColor"
+                                value="white"
+                                checked={localColor === 'white'}
+                                onChange={() => {
+                                    setLocalColor('white');
+                                    onOverlayColorChange('white');
+                                }}
+                            />
+                            {t('main:White')}
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
 
-/** Options for MapControlsMenu constructor */
-interface MapControlsMenuOptions {
-    onLayerChange: (layerType: 'osm' | 'aerial') => void;
-    getCurrentLayer: () => 'osm' | 'aerial';
-    isZoomInAerialRange: () => boolean;
-    getCurrentZoom: () => number;
-    /** URL for aerial tiles. If undefined, the background/layer selector is hidden */
-    aerialTilesUrl?: string;
-    minZoom?: number;
-    maxZoom?: number;
-}
-
-// Create a map controls dropdown menu with a gear icon
-class MapControlsMenu {
-    private container!: HTMLElement;
-    private map!: maplibregl.Map | undefined;
-    private defaultCenter: [number, number];
-    private defaultZoom: number;
-    private button!: HTMLButtonElement;
-    private dropdown!: HTMLDivElement;
-    private dropdownRoot: Root | undefined;
-    private isOpen: boolean = false;
-    private t: WithTranslation['t'];
-    private documentClickListener!: (e: MouseEvent) => void;
-    private onLayerChange: (layerType: 'osm' | 'aerial') => void;
-    private getCurrentLayer: () => 'osm' | 'aerial';
-    private isZoomInAerialRange: () => boolean;
-    private getCurrentZoom: () => number;
-    private aerialTilesUrl?: string;
-    private minZoom: number = 0;
-    private maxZoom: number = 22;
-    private zoomChangeListener?: () => void;
-
-    constructor(t: WithTranslation['t'], options: MapControlsMenuOptions) {
-        this.defaultCenter = defaultPreferences.map.center;
-        this.defaultZoom = defaultPreferences.map.zoom;
-        this.t = t;
-        this.onLayerChange = options.onLayerChange;
-        this.getCurrentLayer = options.getCurrentLayer;
-        this.isZoomInAerialRange = options.isZoomInAerialRange;
-        this.getCurrentZoom = options.getCurrentZoom;
-        this.aerialTilesUrl = options.aerialTilesUrl;
-        this.minZoom = options.minZoom ?? 0;
-        this.maxZoom = options.maxZoom ?? 22;
-    }
-
-    onAdd(map: maplibregl.Map) {
-        this.map = map;
-
-        // Create container
-        this.container = document.createElement('div');
-        this.container.className = 'maplibregl-ctrl maplibregl-ctrl-group tr__map-controls';
-
-        // Create toggle button with gear icon
-        this.button = document.createElement('button');
-        this.button.className = 'maplibregl-ctrl-icon tr__map-controls-button';
-        this.button.type = 'button';
-        this.button.title = this.t('main:map.controls.title');
-        this.button.setAttribute('aria-label', this.t('main:map.controls.title'));
-        this.button.innerHTML = '<i class="fa fa-cog" aria-hidden="true"></i>';
-
-        // Create dropdown menu container for React component
-        this.dropdown = document.createElement('div');
-        this.dropdownRoot = createRoot(this.dropdown);
-
-        // Render dropdown React component
-        this.renderDropdown();
-
-        this.container.appendChild(this.button);
-        this.container.appendChild(this.dropdown);
-
-        // Add click handler for toggle button
-        this.button.onclick = () => {
-            this.toggleDropdown();
-        };
-
-        // Close dropdown when clicking outside
-        this.documentClickListener = (e: MouseEvent) => {
-            if (this.isOpen && !this.container.contains(e.target as Node)) {
-                this.toggleDropdown();
-            }
-        };
-        document.addEventListener('click', this.documentClickListener);
-
-        // Re-render dropdown when zoom changes to update zoom messages and enabled state
-        this.zoomChangeListener = () => {
-            if (this.isOpen) {
-                this.renderDropdown();
-            }
-        };
-        map.on('zoom', this.zoomChangeListener);
-        map.on('moveend', this.zoomChangeListener); // Also update on moveend in case zoom changed
-
-        return this.container;
-    }
-
-    /**
-     * Update the callbacks and configuration for this control
-     * This allows updating the control without removing/re-adding it
-     */
-    updateCallbacks(options?: {
-        onLayerChange?: (layerType: 'osm' | 'aerial') => void;
-        getCurrentLayer?: () => 'osm' | 'aerial';
-        isZoomInAerialRange?: () => boolean;
-        getCurrentZoom?: () => number;
-        aerialTilesUrl?: string;
-        minZoom?: number;
-        maxZoom?: number;
-    }) {
-        if (options?.onLayerChange !== undefined) {
-            this.onLayerChange = options.onLayerChange;
-        }
-        if (options?.getCurrentLayer !== undefined) {
-            this.getCurrentLayer = options.getCurrentLayer;
-        }
-        if (options?.isZoomInAerialRange !== undefined) {
-            this.isZoomInAerialRange = options.isZoomInAerialRange;
-        }
-        if (options?.getCurrentZoom !== undefined) {
-            this.getCurrentZoom = options.getCurrentZoom;
-        }
-        if (options?.aerialTilesUrl !== undefined) {
-            this.aerialTilesUrl = options.aerialTilesUrl;
-        }
-        if (options?.minZoom !== undefined) {
-            this.minZoom = options.minZoom;
-        }
-        if (options?.maxZoom !== undefined) {
-            this.maxZoom = options.maxZoom;
-        }
-        // Re-render dropdown with updated callbacks
-        this.renderDropdown();
-    }
-
-    private renderDropdown() {
-        // Guard against calling render when not mounted (before onAdd or after onRemove)
-        if (!this.dropdownRoot) return;
-
-        this.dropdownRoot.render(
-            <MapControlsDropdown
-                isOpen={this.isOpen}
-                onToggle={() => this.toggleDropdown()}
-                onResetView={() => {
-                    this.map?.flyTo({
-                        center: this.defaultCenter,
-                        zoom: this.defaultZoom,
-                        bearing: 0,
-                        pitch: 0
-                    });
-                }}
-                onLayerChange={this.onLayerChange}
-                getCurrentLayer={this.getCurrentLayer}
-                isZoomInAerialRange={this.isZoomInAerialRange}
-                getCurrentZoom={this.getCurrentZoom}
-                minZoom={this.minZoom}
-                maxZoom={this.maxZoom}
-                aerialTilesUrl={this.aerialTilesUrl}
-            />
-        );
-    }
-
-    toggleDropdown() {
-        this.isOpen = !this.isOpen;
-        this.renderDropdown();
-    }
-
-    /**
-     * Get the container element for this control
-     * Used to check if control is still attached to the map
-     */
-    getContainer(): HTMLElement | undefined {
-        return this.container;
-    }
-
-    onRemove() {
-        // Remove zoom listeners
-        if (this.map && this.zoomChangeListener) {
-            this.map.off('zoom', this.zoomChangeListener);
-            this.map.off('moveend', this.zoomChangeListener);
-        }
-        // Unmount React root - this is safe because onRemove is called
-        // when MapLibre removes the control, not during React rendering
-        if (this.dropdownRoot) {
-            this.dropdownRoot.unmount();
-            this.dropdownRoot = undefined;
-        }
-        // Clean up DOM and event listeners
-        if (this.container.parentNode) {
-            this.container.parentNode.removeChild(this.container);
-        }
-        document.removeEventListener('click', this.documentClickListener);
-        this.map = undefined;
-    }
-}
-
-export default MapControlsMenu;
+export default MapControlsPanel;

@@ -174,6 +174,31 @@ module.exports = {
         }
       }
     },
-    tokenLifespanDays: 14
+    tokenLifespanDays: 14,
+
+    // mapBaseLayers: [
+    //     {
+    //         shortname: 'terrain',
+    //         name: 'Terrain',
+    //         // process.env is read when webpack builds the frontend (root .env loaded first). Key still ends up in the bundle.
+    //         styleUrl: `https://tiles.example.com/styles/v1/style.json?api_key=${process.env.MY_MAP_KEY}`
+    //     },
+    //     {
+    //         shortname: 'local',
+    //         name: 'Local raster',
+    //         style: {
+    //             version: 8,
+    //             sources: {
+    //                 r: {
+    //                     type: 'raster',
+    //                     tiles: [`https://tile.example/{z}/{x}/{y}.png?key=${process.env.MY_OTHER_MAP_KEY}`],
+    //                     tileSize: 256,
+    //                     attribution: '© Example'
+    //                 }
+    //             },
+    //             layers: [{ id: 'r', type: 'raster', source: 'r' }]
+    //         }
+    //     }
+    // ]
 };
   
