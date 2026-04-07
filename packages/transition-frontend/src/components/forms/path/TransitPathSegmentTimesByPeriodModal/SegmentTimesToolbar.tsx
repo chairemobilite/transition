@@ -26,7 +26,7 @@ type SegmentTimesToolbarProps = {
     newCheckpointFrom: number;
     newCheckpointTo: number;
     newCheckpointMaxTo: number;
-    newCheckpointMinFrom: number;
+    isNodeInsideCheckpoint: (idx: number) => boolean;
     segmentCount: number;
     onNewCheckpointFromChange: (value: number) => void;
     onNewCheckpointToChange: (value: number) => void;
@@ -43,7 +43,7 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
     newCheckpointFrom,
     newCheckpointTo,
     newCheckpointMaxTo,
-    newCheckpointMinFrom,
+    isNodeInsideCheckpoint,
     segmentCount,
     onNewCheckpointFromChange,
     onNewCheckpointToChange,
@@ -73,7 +73,7 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                 >
                     {nodeChoices
                         .slice(0, -1)
-                        .filter((_, idx) => idx >= newCheckpointMinFrom)
+                        .filter((_, idx) => !isNodeInsideCheckpoint(idx))
                         .map((c) => (
                             <option key={c.value} value={c.value}>
                                 {c.label}

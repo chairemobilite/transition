@@ -119,8 +119,17 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
     );
     const nextCheckpointAfterFrom = sortedResolved.find((cp) => cp.fromNodeIndex > newCheckpointFrom);
     const newCheckpointMaxTo = nextCheckpointAfterFrom ? nextCheckpointAfterFrom.fromNodeIndex : segmentCount;
-    const prevCheckpointBeforeTo = [...sortedResolved].reverse().find((cp) => cp.toNodeIndex < newCheckpointTo);
-    const newCheckpointMinFrom = prevCheckpointBeforeTo ? prevCheckpointBeforeTo.toNodeIndex : 0;
+    const isNodeInsideCheckpoint = React.useCallback(
+        (idx: number) => sortedResolved.some((cp) => cp.fromNodeIndex < idx && idx < cp.toNodeIndex),
+        [sortedResolved]
+    );
+
+    // Clamp "to" when maxTo shrinks (e.g. "from" moved before an existing checkpoint)
+    React.useEffect(() => {
+        if (newCheckpointTo > newCheckpointMaxTo) {
+            setNewCheckpointTo(newCheckpointMaxTo);
+        }
+    }, [newCheckpointMaxTo, newCheckpointTo]);
 
     const collectPeriodsWithTripsForGroup = (group: ServiceGroup | undefined): any[] => {
         const periodsByShortname = new Map<string, any>();
@@ -542,7 +551,7 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         newCheckpointFrom,
         newCheckpointTo,
         newCheckpointMaxTo,
-        newCheckpointMinFrom,
+        isNodeInsideCheckpoint,
         setNewCheckpointFrom,
         setNewCheckpointTo,
 

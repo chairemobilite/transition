@@ -421,6 +421,19 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const nodeTypes = this.attributes.data.nodeTypes;
         let recomputePath = false;
         if (nodeIds.length > 0 && removeIndex < nodeIds.length) {
+            // Remove any checkpoint that spans the deleted node
+            const checkpoints = this.attributes.data.segmentTimesCheckpoints;
+            if (checkpoints && checkpoints.length > 0) {
+                this.attributes.data.segmentTimesCheckpoints = checkpoints.filter((cp) => {
+                    const fromIdx = nodeIds.indexOf(cp.fromNodeId);
+                    const toIdx = nodeIds.indexOf(cp.toNodeId);
+                    if (fromIdx === -1 || toIdx === -1) return false;
+                    return !(fromIdx <= removeIndex && removeIndex <= toIdx);
+                });
+                if (this.attributes.data.segmentTimesCheckpoints.length === 0) {
+                    this.attributes.data.segmentTimesCheckpoints = undefined;
+                }
+            }
             nodeIds.splice(removeIndex, 1);
             nodeTypes.splice(removeIndex, 1);
             this.attributes.nodes = nodeIds;
