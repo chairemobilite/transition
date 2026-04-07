@@ -39,7 +39,7 @@ const objectToGtfs = (
 
     const periods = schedule.periods;
 
-    const pathsById: { [key: string]: { path: Path; distances: number[] } } = {};
+    const pathsById: { [key: string]: { path: Path; distances: number[]; checkpointNodeIds: Set<string> } } = {};
 
     for (let periodIdx = 0, countI = periods.length; periodIdx < countI; periodIdx++) {
         const trips = periods[periodIdx].trips || [];
@@ -52,14 +52,26 @@ const objectToGtfs = (
                     continue;
                 }
                 const newPath = pathCollection.newObject(pathGeojson);
-                pathsById[trip.path_id] = { path: newPath, distances: newPath.getCoordinatesDistanceTraveledMeters() };
+                const checkpointNodeIds = new Set<string>();
+                const checkpoints = newPath.attributes.data.segmentTimesCheckpoints;
+                if (checkpoints && checkpoints.length > 0) {
+                    for (const cp of checkpoints) {
+                        checkpointNodeIds.add(cp.fromNodeId);
+                        checkpointNodeIds.add(cp.toNodeId);
+                    }
+                }
+                pathsById[trip.path_id] = {
+                    path: newPath,
+                    distances: newPath.getCoordinatesDistanceTraveledMeters(),
+                    checkpointNodeIds
+                };
                 pathIds[newPath.id] = true;
                 const nodes = newPath.attributes.nodes;
                 for (let nodeI = 0, countNodes = nodes.length; nodeI < countNodes; nodeI++) {
                     nodeIds[nodes[nodeI]] = true;
                 }
             }
-            const { path, distances: pathDistancesTraveledMeters } = pathsById[trip.path_id];
+            const { path, distances: pathDistancesTraveledMeters, checkpointNodeIds } = pathsById[trip.path_id];
             const pathGeography = path.attributes.geography;
             const pathCoordinates = pathGeography.coordinates;
             const pathNodeIds = path.attributes.nodes;
@@ -122,7 +134,13 @@ const objectToGtfs = (
                     continuous_pickup: 1, // optional, TODO: implement other choices (0: continousu pick up, 2: must phone agency, 3: must coordinate with driver)
                     continuous_drop_off: 1, // optional, TODO: implement other choices (0: continousu drop off, 2: must phone agency, 3: must coordinate with driver)
                     shape_dist_traveled: Math.round(distanceTraveledKm * 1000) / 1000, // optional
-                    timepoint: 1 as const // optional, TODO: implement approximate: 0 (exact: 1)
+                    timepoint:
+                        checkpointNodeIds.size === 0 ||
+                        k === 0 ||
+                        k === countK - 1 ||
+                        checkpointNodeIds.has(pathNodeIds[k])
+                            ? (1 as const)
+                            : (0 as const)
                 };
                 gtfsStopTimes.push(stopTime);
             }
