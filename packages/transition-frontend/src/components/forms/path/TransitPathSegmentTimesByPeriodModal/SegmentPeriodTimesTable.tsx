@@ -22,8 +22,8 @@ type SegmentPeriodTimesTableProps = {
     locked: boolean;
     lockedMessage?: string;
     getTimeForPeriod: (periodShortname: string) => number;
-    getStopTime: () => number;
-    onStopTimeChange: (newSeconds: number) => void;
+    getDwellTime: () => number;
+    onDwellTimeChange: (newSeconds: number) => void;
     getArrivalTimePrevSegment: (periodShortname: string) => number;
     getDepartureTime: (periodShortname: string) => number;
     getArrivalTime: (periodShortname: string) => number;
@@ -38,15 +38,15 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
     locked,
     lockedMessage,
     getTimeForPeriod,
-    getStopTime,
-    onStopTimeChange,
+    getDwellTime,
+    onDwellTimeChange,
     getArrivalTimePrevSegment,
     getDepartureTime,
     getArrivalTime,
     onTimeChange
 }) => {
     const { t } = useTranslation('transit');
-    const stopTimeSeconds = getStopTime();
+    const dwellTimeSeconds = getDwellTime();
     const columnWidth = isFirstSegment ? '30%' : '18%';
 
     return (
@@ -61,8 +61,8 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
             )}
             {!isFirstSegment && (
                 <div className="stop-time-row">
-                    <strong>{t('transit:transitPath:StopTime')}:</strong>
-                    <TimeInput seconds={stopTimeSeconds} onChange={onStopTimeChange} />
+                    <strong>{t('transit:transitPath:DwellTime')}:</strong>
+                    <TimeInput seconds={dwellTimeSeconds} onChange={onDwellTimeChange} />
                 </div>
             )}
             <table className="period-table">
@@ -70,7 +70,7 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                     <tr>
                         <th className="period-table-th">{t('transit:transitPath:Period')}</th>
                         {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>}
-                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:StopTime')}</th>}
+                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DwellTime')}</th>}
                         <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DepartureTime')}</th>
                         <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:SegmentTime')}</th>
                         <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>
@@ -85,7 +85,7 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                         >
                             <td className="period-table-td">{period.name[language] || period.shortname}</td>
                             {!isFirstSegment && <td className="period-table-td center">{formatSeconds(getArrivalTimePrevSegment(period.shortname))}</td>}
-                            {!isFirstSegment && <td className="period-table-td center">{formatSeconds(stopTimeSeconds)}</td>}
+                            {!isFirstSegment && <td className="period-table-td center">{formatSeconds(dwellTimeSeconds)}</td>}
                             <td className="period-table-td center">{formatSeconds(getDepartureTime(period.shortname))}</td>
                             <td className="period-table-td center">
                                 <TimeInput
