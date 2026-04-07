@@ -177,17 +177,30 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             </SegmentCarousel>
 
                             <SegmentPeriodTimesTable
-                                activeSegmentIndex={activeSegmentIndex}
+                                isFirstSegment={activeSegmentIndex === 0}
                                 periods={periods}
                                 language={i18n.language}
                                 locked={isSegmentInAnyCheckpoint(activeSegmentIndex)}
                                 lockedMessage={t('transit:transitPath:SegmentLockedByCheckpoint')}
-                                getTimeForCell={getTimeForCell}
-                                getDwellTimeForSegment={getDwellTimeForSegment}
-                                setDwellTimeForSegment={setDwellTimeForSegment}
-                                getArrivalTimeAfterSegment={getArrivalTimeAfterSegment}
-                                getDepartureTimeAtSegment={getDepartureTimeAtSegment}
-                                handleCellChange={handleCellChange}
+                                getTimeForPeriod={(periodShortname) =>
+                                    getTimeForCell(activeSegmentIndex, periodShortname)
+                                }
+                                getStopTime={() => getDwellTimeForSegment(activeSegmentIndex)}
+                                onStopTimeChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
+                                getArrivalTimePrevSegment={(periodShortname) =>
+                                    activeSegmentIndex > 0
+                                        ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname)
+                                        : 0
+                                }
+                                getDepartureTime={(periodShortname) =>
+                                    getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)
+                                }
+                                getArrivalTime={(periodShortname) =>
+                                    getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)
+                                }
+                                onTimeChange={(periodShortname, newSec) =>
+                                    handleCellChange(activeSegmentIndex, periodShortname, newSec)
+                                }
                             />
                         </>
                     )}
