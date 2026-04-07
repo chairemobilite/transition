@@ -30,18 +30,6 @@ type SegmentPeriodTimesTableProps = {
     onTimeChange: (periodShortname: string, newSeconds: number) => void;
 };
 
-const cellStyle: React.CSSProperties = { padding: '0.5rem' };
-const centerCellStyle: React.CSSProperties = { textAlign: 'center', padding: '0.5rem' };
-const headerStyle: React.CSSProperties = {
-    textAlign: 'left',
-    padding: '0.4rem 0.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.2)'
-};
-const centerHeaderStyle: React.CSSProperties = {
-    textAlign: 'center',
-    padding: '0.4rem 0.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.2)'
-};
 
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
     isFirstSegment,
@@ -62,50 +50,51 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
     const columnWidth = isFirstSegment ? '30%' : '18%';
 
     return (
-        <div style={{ marginTop: '0.5rem', width: '100%' }}>
+        <div className="period-table-wrapper">
             {locked && lockedMessage && (
                 <p
-                    style={{ color: '#ff9800', fontSize: '0.85em', marginBottom: '0.5rem' }}
+                    className="locked-msg"
                     data-testid="segment-locked-msg"
                 >
                     {lockedMessage}
                 </p>
             )}
             {!isFirstSegment && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <span style={{ fontWeight: 'bold' }}>{t('transit:transitPath:StopTime')}:</span>
+                <div className="stop-time-row">
+                    <strong>{t('transit:transitPath:StopTime')}:</strong>
                     <TimeInput seconds={stopTimeSeconds} onChange={onStopTimeChange} />
                 </div>
             )}
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <table className="period-table">
                 <thead>
                     <tr>
-                        <th style={headerStyle}>{t('transit:transitPath:Period')}</th>
-                        {!isFirstSegment && <th style={{ ...centerHeaderStyle, width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>}
-                        {!isFirstSegment && <th style={{ ...centerHeaderStyle, width: columnWidth }}>{t('transit:transitPath:StopTime')}</th>}
-                        <th style={{ ...centerHeaderStyle, width: columnWidth }}>{t('transit:transitPath:DepartureTime')}</th>
-                        <th style={{ ...centerHeaderStyle, width: columnWidth }}>{t('transit:transitPath:SegmentTime')}</th>
-                        <th style={{ ...centerHeaderStyle, width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>
+                        <th className="period-table-th">{t('transit:transitPath:Period')}</th>
+                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>}
+                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:StopTime')}</th>}
+                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DepartureTime')}</th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:SegmentTime')}</th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {periods.map((period) => (
                         <tr
                             key={period.shortname}
-                            style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', opacity: locked ? 0.5 : 1 }}
+                            className="period-table-row"
+                            style={{ opacity: locked ? 0.5 : 1 }}
                         >
-                            <td style={cellStyle}>{period.name[language] || period.shortname}</td>
-                            {!isFirstSegment && <td style={centerCellStyle}>{formatSeconds(getArrivalTimePrevSegment(period.shortname))}</td>}
-                            {!isFirstSegment && <td style={centerCellStyle}>{formatSeconds(stopTimeSeconds)}</td>}
-                            <td style={centerCellStyle}>{formatSeconds(getDepartureTime(period.shortname))}</td>
-                            <td style={centerCellStyle}>
+                            <td className="period-table-td">{period.name[language] || period.shortname}</td>
+                            {!isFirstSegment && <td className="period-table-td center">{formatSeconds(getArrivalTimePrevSegment(period.shortname))}</td>}
+                            {!isFirstSegment && <td className="period-table-td center">{formatSeconds(stopTimeSeconds)}</td>}
+                            <td className="period-table-td center">{formatSeconds(getDepartureTime(period.shortname))}</td>
+                            <td className="period-table-td center">
                                 <TimeInput
                                     seconds={getTimeForPeriod(period.shortname)}
                                     onChange={(newSec) => onTimeChange(period.shortname, newSec)}
                                     readOnly={locked}
                                 />
                             </td>
-                            <td style={centerCellStyle}>
+                            <td className="period-table-td center">
                                 <strong>{formatSeconds(getArrivalTime(period.shortname))}</strong>
                             </td>
                         </tr>

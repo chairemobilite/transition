@@ -1,0 +1,514 @@
+.modal-segment-times {
+    position: absolute;
+    inset: 3vh 5vw;
+    width: 90vw;
+    max-width: 90vw;
+    max-height: 94vh;
+    background: rgba(0, 0, 0, 0.9);
+    border: 5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 2rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: none;
+    left: 5vw;
+    right: 5vw;
+
+    &:focus {
+        outline: none;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1.3em;
+        cursor: pointer;
+        z-index: 1;
+    }
+
+    .title {
+        margin-bottom: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    .scrollable-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .warning-msg {
+        flex-shrink: 0;
+    }
+
+    .content-column {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    .checkpoint-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        flex-shrink: 0;
+        justify-content: flex-end;
+    }
+
+    .footer {
+        margin-top: 0.5rem;
+        flex-shrink: 0;
+    }
+
+    // =============================================
+    // SegmentCarousel
+    // =============================================
+    .carousel {
+        display: flex;
+        justify-content: center;
+        padding: 0.5rem 0;
+        flex-shrink: 0;
+    }
+
+    .carousel-inner {
+        width: 400px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .carousel-arrow {
+        position: absolute;
+        top: 10px;
+        transform: translateY(-50%);
+        font-size: 1.2em;
+        background: none;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 1.6em;
+        height: 1.6em;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+
+        &.left {
+            left: -2.5em;
+        }
+
+        &.right {
+            right: -2.5em;
+        }
+    }
+
+    .carousel-arrow-icon {
+        font-size: 0.7em;
+    }
+
+    .carousel-labels {
+        display: flex;
+        align-items: flex-start;
+        margin-top: 4px;
+        min-height: 2.5em;
+    }
+
+    .carousel-label-anchor {
+        width: 20px;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .carousel-label-text {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.8em;
+        font-weight: bold;
+        text-align: center;
+        white-space: wrap;
+        line-height: 1.2;
+        width: 300px;
+    }
+
+    .carousel-spacer {
+        flex: 1;
+    }
+
+    // =============================================
+    // Segment / checkpoint visualization
+    // =============================================
+    .segment-viz {
+        display: flex;
+        align-items: center;
+    }
+
+    .segment-viz-info {
+        position: absolute;
+        top: -1.3em;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.75em;
+        white-space: nowrap;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .segment-viz-endpoint {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        flex-shrink: 0;
+
+        &.segment {
+            background: #4fc3f7;
+        }
+
+        &.checkpoint {
+            background: #ff9800;
+        }
+    }
+
+    .segment-viz-line {
+        flex: 1;
+        border-radius: 2px;
+        position: relative;
+
+        &.segment {
+            height: 4px;
+            background: #4fc3f7;
+        }
+
+        &.checkpoint {
+            height: 3px;
+            background: #ff9800;
+        }
+    }
+
+    .checkpoint-viz-midpoint {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ff9800;
+        flex-shrink: 0;
+    }
+
+    // =============================================
+    // SegmentTimesToolbar
+    // =============================================
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .toolbar-checkpoint-form {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.85em;
+        width: 60%;
+    }
+
+    .toolbar-label {
+        opacity: 0.7;
+        flex-shrink: 0;
+    }
+
+    .toolbar-select {
+        font-size: 0.9em;
+        padding: 0.15rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .toolbar-spacer {
+        margin-left: auto;
+    }
+
+    .toolbar-service-group {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-size: 0.85em;
+    }
+
+    .toolbar-service-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .toolbar-grouping-toggle {
+        align-self: flex-end;
+    }
+
+    // =============================================
+    // Shared table styles
+    // =============================================
+    .period-table-wrapper {
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+
+    .period-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .period-table-th {
+        text-align: left;
+        padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+        &.center {
+            text-align: center;
+        }
+    }
+
+    .period-table-td {
+        padding: 0.5rem;
+
+        &.center {
+            text-align: center;
+        }
+    }
+
+    .period-table-row {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .locked-msg {
+        color: #ff9800;
+        font-size: 0.85em;
+        margin-bottom: 0.5rem;
+    }
+
+    .stop-time-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    // =============================================
+    // TimeInput
+    // =============================================
+    .time-input {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+
+        &.readonly {
+            font-size: 0.85em;
+        }
+    }
+
+    .time-input-unit {
+        opacity: 0.6;
+        font-size: 0.8em;
+    }
+
+    .time-input-minutes {
+        width: 3em;
+        text-align: center;
+        font-size: 0.85em;
+        padding: 0.2rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+
+    // =============================================
+    // ScrollableDropdown
+    // =============================================
+    .scrollable-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .scrollable-dropdown-trigger {
+        text-align: center;
+        font-size: 0.85em;
+        padding: 0.2rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .scrollable-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 200;
+        overflow-y: auto;
+        background: rgba(30, 30, 30, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+
+    .scrollable-dropdown-item {
+        padding: 0.2rem 0.4rem;
+        cursor: pointer;
+        text-align: center;
+        font-size: 0.85em;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        &.selected {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    // =============================================
+    // TransitLineOverview
+    // =============================================
+    .overview {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.3rem;
+        flex-shrink: 0;
+        padding: 0.5rem 0;
+    }
+
+    .overview-nav-btn {
+        font-size: 1.2em;
+        background: none;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 1.6em;
+        height: 1.6em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .overview-nav-icon {
+        font-size: 0.7em;
+    }
+
+    .overview-scroll-area {
+        flex: 1;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        min-width: 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .overview-grid {
+        display: grid;
+        align-items: center;
+        row-gap: 2px;
+        padding-left: 16px;
+    }
+
+    // =============================================
+    // NodeDots
+    // =============================================
+    .node-dot {
+        justify-self: center;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .node-label-wrapper {
+        justify-self: center;
+        position: relative;
+        height: 110px;
+    }
+
+    .node-label {
+        position: absolute;
+        left: 15px;
+        transform-origin: top left;
+        transform: rotate(45deg);
+        font-size: 0.55em;
+        white-space: wrap;
+        max-width: 120px;
+        min-width: 120px;
+        line-height: 1.2;
+        transition: color 0.2s;
+    }
+
+    // =============================================
+    // SegmentLines
+    // =============================================
+    .segment-line-hitbox {
+        cursor: pointer;
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .segment-line {
+        width: 100%;
+        border-radius: 2px;
+        transition: all 0.2s;
+    }
+
+    // =============================================
+    // CheckpointLines
+    // =============================================
+    .checkpoint-line-hitbox {
+        grid-row: 1;
+        cursor: pointer;
+        padding: 8px 0;
+        min-height: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .checkpoint-line {
+        width: 100%;
+        border-radius: 1px;
+        transition: all 0.2s;
+    }
+
+    .checkpoint-boundary-dot {
+        grid-row: 1;
+        justify-self: center;
+        align-self: center;
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 1;
+        transition: all 0.2s;
+    }
+}
+
+.modal-segment-times-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 500;
+    overflow: hidden;
+}

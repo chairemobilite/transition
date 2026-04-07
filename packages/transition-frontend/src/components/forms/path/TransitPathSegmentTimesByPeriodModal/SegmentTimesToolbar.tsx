@@ -38,17 +38,6 @@ type SegmentTimesToolbarProps = {
     onNoGroupingChange: (value: boolean) => void;
 };
 
-const selectStyle: React.CSSProperties = {
-    fontSize: '0.9em',
-    padding: '0.15rem',
-    background: 'rgba(255,255,255,0.1)',
-    color: 'inherit',
-    border: '1px solid rgba(255,255,255,0.3)',
-    borderRadius: '3px',
-    flex: 1,
-    minWidth: 0
-};
-
 const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = ({
     nodeChoices,
     newCheckpointFrom,
@@ -68,28 +57,10 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
     const { t } = useTranslation('transit');
 
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                flexShrink: 0,
-                flexWrap: 'wrap',
-                marginTop: '1.5rem',
-                marginBottom: '3rem'
-            }}
-        >
+        <div className="toolbar">
             {/* Add checkpoint mini-form — left */}
-            <span
-                style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    fontSize: '0.85em',
-                    width: '60%'
-                }}
-            >
-                <span style={{ opacity: 0.7, flexShrink: 0 }}>{t('transit:transitPath:FromStation')}:</span>
+            <span className="toolbar-checkpoint-form">
+                <span className="toolbar-label">{t('transit:transitPath:FromStation')}:</span>
                 <select
                     data-testid="new-cp-from"
                     value={String(newCheckpointFrom)}
@@ -98,7 +69,7 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                         onNewCheckpointFromChange(v);
                         if (v >= newCheckpointTo) onNewCheckpointToChange(Math.min(v + 1, segmentCount));
                     }}
-                    style={selectStyle}
+                    className="toolbar-select"
                 >
                     {nodeChoices
                         .slice(0, -1)
@@ -109,12 +80,12 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                             </option>
                         ))}
                 </select>
-                <span style={{ opacity: 0.7, flexShrink: 0 }}>{t('transit:transitPath:ToStation')}:</span>
+                <span className="toolbar-label">{t('transit:transitPath:ToStation')}:</span>
                 <select
                     data-testid="new-cp-to"
                     value={String(newCheckpointTo)}
                     onChange={(e) => onNewCheckpointToChange(parseInt(e.target.value, 10))}
-                    style={selectStyle}
+                    className="toolbar-select"
                 >
                     {nodeChoices
                         .filter((_, idx) => idx > newCheckpointFrom && idx <= newCheckpointMaxTo)
@@ -127,11 +98,11 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                 <Button color="blue" label={`+ ${t('transit:transitPath:AddCheckpoint')}`} onClick={onAddCheckpoint} />
             </span>
 
-            <span style={{ marginLeft: 'auto' }} />
+            <span className="toolbar-spacer" />
 
             {/* Service selector with no-grouping toggle stacked below */}
-            <span style={{ display: 'inline-flex', flexDirection: 'column', gap: '0.2rem', fontSize: '0.85em' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span className="toolbar-service-group">
+                <span className="toolbar-service-row">
                     <label>{t('transit:transitService:Service')}</label>
                     <InputSelect
                         id="segmentTimesByPeriod_service"
@@ -141,7 +112,7 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                         noBlank={true}
                     />
                 </span>
-                <span style={{ alignSelf: 'flex-end' }}>
+                <span className="toolbar-grouping-toggle">
                     <InputCheckboxBoolean
                         id="segmentTimesByPeriod_noGrouping"
                         isChecked={noGrouping}
