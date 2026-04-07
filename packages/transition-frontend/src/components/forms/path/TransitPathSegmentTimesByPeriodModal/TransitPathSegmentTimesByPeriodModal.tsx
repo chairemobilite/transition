@@ -20,36 +20,6 @@ import SegmentCarousel from './SegmentCarousel';
 import SegmentPeriodTimesTable from './SegmentPeriodTimesTable';
 import CheckpointPeriodTimesTable from './CheckpointPeriodTimesTable';
 
-const modalStyle: Modal.Styles = {
-    content: {
-        position: 'absolute',
-        inset: '3vh 5vw',
-        width: '90vw',
-        maxWidth: '90vw',
-        maxHeight: '94vh',
-        background: 'rgba(0,0,0,0.9)',
-        border: '5px solid rgba(255,255,255,0.5)',
-        borderRadius: '2rem',
-        padding: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        transform: 'none',
-        left: '5vw',
-        right: '5vw'
-    },
-    overlay: {
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        zIndex: 500,
-        overflow: 'hidden'
-    }
-};
-
 type TransitPathSegmentTimesByPeriodModalProps = {
     isOpen: boolean;
     path: Path;
@@ -112,7 +82,8 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
             <Modal
                 isOpen={props.isOpen}
                 onRequestClose={props.onClose}
-                style={modalStyle}
+                className="modal-segment-times"
+                overlayClassName="modal-segment-times-overlay"
                 contentLabel={t('transit:transitPath:SegmentTimesByPeriod')}
             >
                 <h3>{t('transit:transitPath:SegmentTimesByPeriod')}</h3>
@@ -128,7 +99,8 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
         <Modal
             isOpen={props.isOpen}
             onRequestClose={props.onClose}
-            style={modalStyle}
+            className="modal-segment-times"
+            overlayClassName="modal-segment-times-overlay"
             contentLabel={t('transit:transitPath:SegmentTimesByPeriod')}
             onAfterOpen={() => {
                 document.body.style.overflow = 'hidden';
@@ -139,34 +111,14 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
         >
             <button
                 onClick={props.onClose}
-                style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
-                    background: 'none',
-                    border: 'none',
-                    color: 'rgba(255,255,255,0.7)',
-                    fontSize: '1.3em',
-                    cursor: 'pointer',
-                    zIndex: 1
-                }}
+                className="close-btn"
                 aria-label="Close"
             >
                 <FontAwesomeIcon icon={faTimes} />
             </button>
-            <h3 style={{ marginBottom: '0.5rem', flexShrink: 0 }}>{t('transit:transitPath:SegmentTimesByPeriod')}</h3>
+            <h3 className="title">{t('transit:transitPath:SegmentTimesByPeriod')}</h3>
 
-            <div
-                style={
-                    {
-                        flex: 1,
-                        minHeight: 0,
-                        overflowY: 'auto',
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none'
-                    } as React.CSSProperties
-                }
-            >
+            <div className="scrollable-body">
                 <SegmentTimesToolbar
                     nodeChoices={nodeChoices}
                     newCheckpointFrom={newCheckpointFrom}
@@ -185,7 +137,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                 />
 
                 {hasLengthMismatch() && (
-                    <p className="_orange" style={{ flexShrink: 0 }}>
+                    <p className="_orange warning-msg">
                         {t('transit:transitPath:SegmentLengthMismatch')}
                     </p>
                 )}
@@ -208,14 +160,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                     onCheckpointClick={handleCheckpointClick}
                 />
 
-                <div
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        width: '100%',
-                        marginTop: '0.5rem'
-                    }}
-                >
+                <div className="content-column">
                     {editMode === 'segment' && (
                         <>
                             <SegmentCarousel
@@ -226,50 +171,14 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                                 startLabel={nodeLabels[activeSegmentIndex]}
                                 endLabel={nodeLabels[activeSegmentIndex + 1]}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <div
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: '50%',
-                                            background: '#4fc3f7',
-                                            border: '3px solid #fff',
-                                            flexShrink: 0
-                                        }}
-                                    />
-                                    <div
-                                        style={{
-                                            flex: 1,
-                                            height: 4,
-                                            background: '#4fc3f7',
-                                            borderRadius: 2,
-                                            position: 'relative'
-                                        }}
-                                    >
-                                        <span
-                                            style={{
-                                                position: 'absolute',
-                                                top: '-1.3em',
-                                                left: '50%',
-                                                transform: 'translateX(-50%)',
-                                                fontSize: '0.75em',
-                                                whiteSpace: 'nowrap',
-                                                color: 'rgba(255,255,255,0.6)'
-                                            }}
-                                        >
+                                <div className="segment-viz">
+                                    <div className="segment-viz-endpoint segment" />
+                                    <div className="segment-viz-line segment">
+                                        <span className="segment-viz-info">
                                             {t('transit:transitPath:Segment')} {activeSegmentIndex + 1}/{segmentCount}
                                         </span>
                                     </div>
-                                    <div
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: '50%',
-                                            background: '#4fc3f7',
-                                            border: '3px solid #fff',
-                                            flexShrink: 0
-                                        }}
-                                    />
+                                    <div className="segment-viz-endpoint segment" />
                                 </div>
                             </SegmentCarousel>
 
@@ -300,33 +209,14 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                                 startLabel={nodeLabels[activeCheckpoint.fromNodeIndex]}
                                 endLabel={nodeLabels[activeCheckpoint.toNodeIndex]}
                             >
-                                <span
-                                    style={{
-                                        position: 'absolute',
-                                        top: '-1.3em',
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        fontSize: '0.75em',
-                                        whiteSpace: 'nowrap',
-                                        color: 'rgba(255,255,255,0.6)'
-                                    }}
-                                >
+                                <span className="segment-viz-info">
                                     {t('transit:transitPath:Checkpoint')} {activeCheckpointIndex + 1}/
                                     {checkpoints.length} (
                                     {activeCheckpoint.toNodeIndex - activeCheckpoint.fromNodeIndex}{' '}
                                     {t('transit:transitPath:Segments').toLowerCase()})
                                 </span>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <div
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: '50%',
-                                            background: '#ff9800',
-                                            border: '3px solid #fff',
-                                            flexShrink: 0
-                                        }}
-                                    />
+                                <div className="segment-viz">
+                                    <div className="segment-viz-endpoint checkpoint" />
                                     {Array.from(
                                         {
                                             length: Math.min(
@@ -336,50 +226,17 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                                         },
                                         (_, i) => (
                                             <React.Fragment key={i}>
-                                                <div
-                                                    style={{
-                                                        flex: 1,
-                                                        height: 3,
-                                                        background: '#ff9800',
-                                                        borderRadius: 2
-                                                    }}
-                                                />
-                                                <div
-                                                    style={{
-                                                        width: 8,
-                                                        height: 8,
-                                                        borderRadius: '50%',
-                                                        background: '#ff9800',
-                                                        flexShrink: 0
-                                                    }}
-                                                />
+                                                <div className="segment-viz-line checkpoint" />
+                                                <div className="checkpoint-viz-midpoint" />
                                             </React.Fragment>
                                         )
                                     )}
-                                    <div style={{ flex: 1, height: 3, background: '#ff9800', borderRadius: 2 }} />
-                                    <div
-                                        style={{
-                                            width: 20,
-                                            height: 20,
-                                            borderRadius: '50%',
-                                            background: '#ff9800',
-                                            border: '3px solid #fff',
-                                            flexShrink: 0
-                                        }}
-                                    />
+                                    <div className="segment-viz-line checkpoint" />
+                                    <div className="segment-viz-endpoint checkpoint" />
                                 </div>
                             </SegmentCarousel>
 
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    marginTop: '0.5rem',
-                                    flexShrink: 0,
-                                    justifyContent: 'flex-end'
-                                }}
-                            >
+                            <div className="checkpoint-actions">
                                 <Button
                                     color="blue"
                                     label={t('transit:transitPath:DistributeToSegments')}
@@ -409,7 +266,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                 </div>
             </div>
 
-            <div className="tr__form-buttons-container _center" style={{ marginTop: '0.5rem', flexShrink: 0 }}>
+            <div className="tr__form-buttons-container _center footer">
                 <Button color="green" label={t('main:Save')} onClick={handleSave} />
                 <Button color="grey" label={t('main:Cancel')} onClick={props.onClose} />
             </div>

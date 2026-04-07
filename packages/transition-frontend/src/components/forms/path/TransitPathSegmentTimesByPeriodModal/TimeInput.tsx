@@ -56,17 +56,17 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
 
     if (readOnly) {
         return (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85em' }}>
+            <span className="time-input readonly">
                 <strong>{mins}</strong>
-                <span style={{ opacity: 0.6, fontSize: '0.8em' }}>min</span>
+                <span className="time-input-unit">min</span>
                 <strong>{secs < 10 ? '0' + secs : secs}</strong>
-                <span style={{ opacity: 0.6, fontSize: '0.8em' }}>sec</span>
+                <span className="time-input-unit">sec</span>
             </span>
         );
     }
 
     return (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+        <span className="time-input">
             <input
                 type="text"
                 inputMode="numeric"
@@ -80,24 +80,15 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
                         (e.target as HTMLInputElement).blur();
                     }
                 }}
-                style={{
-                    width: '3em',
-                    textAlign: 'center',
-                    fontSize: '0.85em',
-                    padding: '0.2rem',
-                    background: 'rgba(255,255,255,0.1)',
-                    color: 'inherit',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    borderRadius: '4px'
-                }}
+                className="time-input-minutes"
             />
-            <span style={{ opacity: 0.6, fontSize: '0.8em' }}>min</span>
+            <span className="time-input-unit">min</span>
             <ScrollableDropdown
                 value={secs}
                 choices={SECONDS_CHOICES}
                 onSelect={(val) => onChange(mins * 60 + val)}
             />
-            <span style={{ opacity: 0.6, fontSize: '0.8em' }}>sec</span>
+            <span className="time-input-unit">sec</span>
         </span>
     );
 };

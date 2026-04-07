@@ -55,21 +55,18 @@ const NodeDots: React.FunctionComponent<NodeDotsProps> = ({
                     <div
                         key={`dot-${idx}`}
                         data-testid={`overview-node-${idx}`}
+                        className="node-dot"
                         style={{
                             gridColumn: nodeToCol(idx),
                             gridRow: dotRow,
-                            justifySelf: 'center',
                             width: size,
                             height: size,
-                            borderRadius: '50%',
                             background: getNodeColor(idx),
                             border: isFirstOrLast(idx)
                                 ? '3px solid #fff'
                                 : isActive
                                     ? '2px solid #fff'
-                                    : '1px solid rgba(255,255,255,0.3)',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
+                                    : '1px solid rgba(255,255,255,0.3)'
                         }}
                         onClick={() => {
                             if (idx < nodeCount - 1) onSegmentClick(idx);
@@ -84,28 +81,17 @@ const NodeDots: React.FunctionComponent<NodeDotsProps> = ({
             {nodeLabels.map((label, idx) => (
                 <div
                     key={`label-${idx}`}
+                    className="node-label-wrapper"
                     style={{
                         gridColumn: nodeToCol(idx),
-                        gridRow: labelRow,
-                        justifySelf: 'center',
-                        position: 'relative',
-                        height: '110px'
+                        gridRow: labelRow
                     }}
                 >
                     <span
                         title={label}
+                        className="node-label"
                         style={{
-                            position: 'absolute',
-                            left: '15px',
-                            transformOrigin: 'top left',
-                            transform: 'rotate(45deg)',
-                            fontSize: '0.55em',
-                            whiteSpace: 'wrap',
-                            maxWidth: '120px',
-                            minWidth: '120px',
-                            lineHeight: 1.2,
-                            color: getNodeColor(idx),
-                            transition: 'color 0.2s'
+                            color: getNodeColor(idx)
                         }}
                     >
                         {label}

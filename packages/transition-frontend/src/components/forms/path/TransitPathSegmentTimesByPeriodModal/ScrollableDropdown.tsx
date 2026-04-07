@@ -39,59 +39,35 @@ const ScrollableDropdown: React.FunctionComponent<ScrollableDropdownProps> = ({
     const selectedLabel = choices.find((c) => c.value === value)?.label ?? String(value);
 
     return (
-        <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block' }}>
+        <div ref={dropdownRef} className="scrollable-dropdown">
             <button
                 type="button"
+                className="scrollable-dropdown-trigger"
                 onClick={() => setIsOpen(!isOpen)}
-                style={{
-                    width,
-                    textAlign: 'center',
-                    fontSize: '0.85em',
-                    padding: '0.2rem',
-                    background: 'rgba(255,255,255,0.1)',
-                    color: 'inherit',
-                    border: '1px solid rgba(255,255,255,0.3)',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                }}
+                style={{ width }}
             >
                 {selectedLabel}
             </button>
             {isOpen && (
                 <div
-                    style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 4px)',
-                        left: 0,
-                        zIndex: 200,
-                        maxHeight,
-                        overflowY: 'auto',
-                        background: 'rgba(30,30,30,0.95)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                        borderRadius: '4px',
-                        width
-                    }}
+                    className="scrollable-dropdown-menu"
+                    style={{ maxHeight, width }}
                 >
-                    {choices.map((c) => (
+                    {choices.map((c) => {
+                        const isSelected = c.value === value;
+                        return (
                         <div
                             key={c.value}
+                            className={`scrollable-dropdown-item${isSelected ? ' selected' : ''}`}
                             onClick={() => {
                                 onSelect(c.value);
                                 setIsOpen(false);
                             }}
-                            style={{
-                                padding: '0.2rem 0.4rem',
-                                cursor: 'pointer',
-                                textAlign: 'center',
-                                fontSize: '0.85em',
-                                background: c.value === value ? 'rgba(255,255,255,0.2)' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.15)'; }}
-                            onMouseLeave={(e) => { (e.target as HTMLElement).style.background = c.value === value ? 'rgba(255,255,255,0.2)' : 'transparent'; }}
                         >
                             {c.label}
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

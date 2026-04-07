@@ -1,5 +1,6 @@
 @use "~chaire-lib-frontend/lib/styles/settings";
 @use "jobTables";
+@use "segmentTimesByPeriodModal";
 
 // Map cursor overrides - target the canvas elements directly
 // Classes are managed by MapCursorHelper.ts
