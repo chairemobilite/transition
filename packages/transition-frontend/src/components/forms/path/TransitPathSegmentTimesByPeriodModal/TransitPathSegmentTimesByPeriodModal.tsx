@@ -55,12 +55,12 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
         getTimeForCell,
         handleCellChange,
         isSegmentInAnyCheckpoint,
-        getStopTimeForSegment,
-        setStopTimeForSegment,
+        getDwellTimeForSegment,
+        setDwellTimeForSegment,
         getDepartureTimeAtSegment,
         getArrivalTimeAfterSegment,
         getCheckpointCurrentTotal,
-        getCheckpointTotalStopTime,
+        getCheckpointTotalDwellTime,
         getCheckpointTarget,
         setCheckpointTarget,
         handleDistribute,
@@ -186,8 +186,8 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                                 locked={isSegmentInAnyCheckpoint(activeSegmentIndex)}
                                 lockedMessage={t('transit:transitPath:SegmentLockedByCheckpoint')}
                                 getTimeForPeriod={(periodShortname) => getTimeForCell(activeSegmentIndex, periodShortname)}
-                                getStopTime={() => getStopTimeForSegment(activeSegmentIndex)}
-                                onStopTimeChange={(newSec) => setStopTimeForSegment(activeSegmentIndex, newSec)}
+                                getDwellTime={() => getDwellTimeForSegment(activeSegmentIndex)}
+                                onDwellTimeChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
                                 getArrivalTimePrevSegment={(periodShortname) => activeSegmentIndex > 0 ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname) : 0}
                                 getDepartureTime={(periodShortname) => getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)}
                                 getArrivalTime={(periodShortname) => getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)}
@@ -247,7 +247,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             </div>
 
                             <CheckpointPeriodTimesTable
-                                totalStopTimeSeconds={getCheckpointTotalStopTime(activeCheckpoint)}
+                                totalDwellTimeSeconds={getCheckpointTotalDwellTime(activeCheckpoint)}
                                 periods={periods}
                                 language={i18n.language}
                                 getCurrentTotal={(periodShortname) =>

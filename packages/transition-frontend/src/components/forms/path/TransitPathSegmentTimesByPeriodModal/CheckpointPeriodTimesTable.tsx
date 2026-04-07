@@ -15,7 +15,7 @@ type Period = {
 };
 
 type CheckpointPeriodTimesTableProps = {
-    totalStopTimeSeconds: number;
+    totalDwellTimeSeconds: number;
     periods: Period[];
     language: string;
     getCurrentTotal: (periodShortname: string) => number;
@@ -25,7 +25,7 @@ type CheckpointPeriodTimesTableProps = {
 
 
 const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesTableProps> = ({
-    totalStopTimeSeconds,
+    totalDwellTimeSeconds,
     periods,
     language,
     getCurrentTotal,
@@ -42,15 +42,15 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
                         <th className="period-table-th">{t('transit:transitPath:Period')}</th>
                         <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:CurrentTotal')}</th>
                         <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TargetTotal')}</th>
-                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalStopTime')}</th>
-                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalWithStops')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalDwellTime')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalWithDwell')}</th>
                     </tr>
                 </thead>
                 <tbody>
                 {periods.map((period) => {
                     const current = getCurrentTotal(period.shortname);
                     const target = getTarget(period.shortname);
-                    const totalWithStops = target + totalStopTimeSeconds;
+                    const totalWithDwell = target + totalDwellTimeSeconds;
                     return (
                         <tr key={period.shortname} className="period-table-row">
                             <td className="period-table-td">{period.name[language] || period.shortname}</td>
@@ -63,12 +63,12 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
                                     onChange={(newSec) => onTargetChange(period.shortname, newSec)}
                                 />
                             </td>
-                            <td className="period-table-td center">{formatSeconds(totalStopTimeSeconds)}</td>
+                            <td className="period-table-td center">{formatSeconds(totalDwellTimeSeconds)}</td>
                             <td className="period-table-td center">
                                 <TimeInput
-                                    seconds={totalWithStops}
+                                    seconds={totalWithDwell}
                                     onChange={(newSec) => {
-                                        const newTarget = Math.max(0, newSec - totalStopTimeSeconds);
+                                        const newTarget = Math.max(0, newSec - totalDwellTimeSeconds);
                                         onTargetChange(period.shortname, newTarget);
                                     }}
                                 />
