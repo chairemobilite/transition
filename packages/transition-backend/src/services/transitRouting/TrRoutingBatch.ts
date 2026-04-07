@@ -22,6 +22,7 @@ import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
 import { OdTripRouteResult } from './types';
+import { createBatchRoutingLogProgress } from './TrRoutingBatchLogger';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -137,13 +138,12 @@ export class TrRoutingBatchExecutor {
             const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
             const benchmarkStart = performance.now();
-            const logOdTripBefore = (_index: number) => {
-                // No per-trip logging; inline progress bar is used instead
-            };
-            const logOdTripAfter = (_index: number) => {
-                // No per-trip logging; inline progress bar is used instead
-            };
-            let lastProgressPct = -1;
+            const logProgress = createBatchRoutingLogProgress({
+                odTripsCount,
+                startIndex,
+                progressStep,
+                benchmarkStart
+            });
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
@@ -156,19 +156,20 @@ export class TrRoutingBatchExecutor {
                     }
                 }
             );
-            const totalToRoute = odTripsCount - startIndex;
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
                     if (this.options.isCancelled()) {
                         promiseQueue.clear();
                     }
+                    // Call beforeOdTrip just before this.odTripTask so both
+                    // hooks live in the same scope. afterOdTrip runs in the
+                    // finally below (via the inner try) so progress reporting
+                    // and checkpoint handling always execute, even when
+                    // this.odTripTask throws.
                     try {
-                        await this.odTripTask(odTripIndex, {
-                            trRoutingPort,
-                            logBefore: logOdTripBefore,
-                            logAfter: logOdTripAfter
-                        });
+                        logProgress.beforeOdTrip(odTripIndex);
+                        await this.odTripTask(odTripIndex, { trRoutingPort });
                     } finally {
                         try {
                             completedRoutingsCount++;
@@ -180,19 +181,7 @@ export class TrRoutingBatchExecutor {
                             }
                             checkpointTracker.handled(odTripIndex);
 
-                            const done = completedRoutingsCount - startIndex;
-                            const pct = Math.floor((done / totalToRoute) * 100);
-                            if (pct > lastProgressPct) {
-                                lastProgressPct = pct;
-                                const elapsed = (performance.now() - benchmarkStart) / 1000;
-                                const calcPerSec = elapsed > 0 ? (done / elapsed).toFixed(1) : '0';
-                                const barLen = 30;
-                                const filled = Math.round((pct / 100) * barLen);
-                                const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barLen - filled);
-                                process.stdout.write(
-                                    `\r  [${bar}] ${pct}% (${done}/${totalToRoute}) ${calcPerSec} calc/s`
-                                );
-                            }
+                            logProgress.afterOdTrip(odTripIndex, completedRoutingsCount);
                         } catch (error) {
                             console.error(
                                 `tripRouting: Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`
@@ -203,8 +192,7 @@ export class TrRoutingBatchExecutor {
             }
 
             await promiseQueue.onIdle();
-            // Finish progress bar line
-            process.stdout.write('\n');
+            logProgress.end();
             // Drain any remaining buffered results not yet flushed by a checkpoint
             const remaining = this.resultBuffer.splice(0);
             if (remaining.length > 0) {
@@ -304,8 +292,6 @@ export class TrRoutingBatchExecutor {
         odTripIndex: number,
         options: {
             trRoutingPort?: number;
-            logBefore: (index: number) => void;
-            logAfter: (index: number) => void;
         }
     ) => {
         const odTrip = this.odTrips[odTripIndex];
@@ -313,7 +299,6 @@ export class TrRoutingBatchExecutor {
             if (options.trRoutingPort === undefined) {
                 throw 'TrRoutingBatch: No available routing port. This should not happen';
             }
-            options.logBefore(odTripIndex);
 
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
@@ -347,8 +332,6 @@ export class TrRoutingBatchExecutor {
                     await resultsDbQueries.createMany(toFlush);
                 }
             }
-            options.logAfter(odTripIndex);
-
             return routingResult;
         } catch (error) {
             this.errors.push({
