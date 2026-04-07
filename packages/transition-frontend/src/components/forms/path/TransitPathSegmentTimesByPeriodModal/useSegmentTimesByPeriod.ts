@@ -8,6 +8,7 @@ import React from 'react';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import Path, { PeriodSegmentData } from 'transition-common/lib/services/path/Path';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 
@@ -147,16 +148,30 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         return Array.from(periodsByShortname.values());
     };
 
-    const buildPeriodChoice = (period: any) => ({
-        shortname: period.period_shortname || '',
-        name: {
-            [language]: `${period.period_shortname || '?'} (${period.start_at_hour}h-${period.end_at_hour}h)`
+    const periodNamesByShortname: Record<string, string> = React.useMemo(() => {
+        const map: Record<string, string> = {};
+        const periodsGroups = Preferences.get('transit.periods') || {};
+        for (const group of Object.values(periodsGroups) as any[]) {
+            for (const p of group.periods || []) {
+                if (p.shortname && p.name?.[language]) {
+                    map[p.shortname] = p.name[language];
+                }
+            }
         }
-    });
+        return map;
+    }, [language]);
 
     const periods = collectPeriodsWithTripsForGroup(selectedGroup)
         .sort((a, b) => a.start_at_hour - b.start_at_hour)
-        .map(buildPeriodChoice);
+        .map((period: any) => {
+            const shortname = period.period_shortname || '';
+            return {
+                shortname,
+                name: {
+                    [language]: periodNamesByShortname[shortname] || `${shortname} (${period.start_at_hour}h-${period.end_at_hour}h)`
+                }
+            };
+        });
 
     // Get node names for segment labels
     let nodeGeojsons: GeoJSON.Feature<GeoJSON.Point>[] = [];
