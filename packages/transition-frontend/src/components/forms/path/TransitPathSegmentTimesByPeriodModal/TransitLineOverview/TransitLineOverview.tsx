@@ -140,58 +140,29 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
 
     const nodeToCol = (absIdx: number) => 2 * absIdx + 1;
 
-    const navBtnStyle = (disabled: boolean): React.CSSProperties => ({
-        fontSize: '1.2em',
-        background: 'none',
-        border: '1px solid rgba(255,255,255,0.3)',
-        borderRadius: '50%',
-        width: '1.6em',
-        height: '1.6em',
-        color: disabled ? 'rgba(255,255,255,0.2)' : '#fff',
-        cursor: disabled ? 'default' : 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0
-    });
-
     return (
         <div
             ref={outerRef}
-            style={{ display: 'flex', alignItems: 'flex-start', gap: '0.3rem', flexShrink: 0, padding: '0.5rem 0' }}
+            className="overview"
         >
             {needsCarousel && (
                 <button
                     onClick={handleScrollLeft}
-                    style={{ ...navBtnStyle(false), visibility: atStart ? 'hidden' : 'visible' }}
+                    className="overview-nav-btn"
+                    style={{ color: atStart ? 'rgba(255,255,255,0.2)' : '#fff', cursor: atStart ? 'default' : 'pointer', visibility: atStart ? 'hidden' : 'visible' }}
                     aria-label="Scroll overview left"
                 >
-                    <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: '0.7em' }} />
+                    <FontAwesomeIcon icon={faChevronLeft} className="overview-nav-icon" />
                 </button>
             )}
 
             <div
                 ref={scrollRef}
-                style={
-                    {
-                        flex: 1,
-                        overflowX: 'scroll',
-                        overflowY: 'hidden',
-                        minWidth: 0,
-                        scrollbarWidth: 'none',
-                        msOverflowStyle: 'none'
-                    } as React.CSSProperties
-                }
+                className="overview-scroll-area"
             >
                 <div
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns,
-                        width: `${gridWidth}px`,
-                        alignItems: 'center',
-                        rowGap: '2px',
-                        paddingLeft: '16px'
-                    }}
+                    className="overview-grid"
+                    style={{ gridTemplateColumns, width: gridWidth + 'px' }}
                 >
                     {hasCheckpoints && (
                         <CheckpointLines
@@ -231,10 +202,11 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
             {needsCarousel && (
                 <button
                     onClick={handleScrollRight}
-                    style={{ ...navBtnStyle(false), visibility: atEnd ? 'hidden' : 'visible' }}
+                    className="overview-nav-btn"
+                    style={{ color: atEnd ? 'rgba(255,255,255,0.2)' : '#fff', cursor: atEnd ? 'default' : 'pointer', visibility: atEnd ? 'hidden' : 'visible' }}
                     aria-label="Scroll overview right"
                 >
-                    <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '0.7em' }} />
+                    <FontAwesomeIcon icon={faChevronRight} className="overview-nav-icon" />
                 </button>
             )}
         </div>

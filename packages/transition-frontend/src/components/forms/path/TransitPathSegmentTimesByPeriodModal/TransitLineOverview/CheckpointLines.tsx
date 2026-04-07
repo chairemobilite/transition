@@ -48,27 +48,20 @@ const CheckpointLines: React.FunctionComponent<CheckpointLinesProps> = ({
                 return (
                     <div
                         key={`cp-line-${checkpointIndex}`}
+                        className="checkpoint-line-hitbox"
                         data-testid={`checkpoint-bar-${checkpointIndex}`}
                         onClick={() => onCheckpointClick(checkpointIndex)}
                         onMouseEnter={() => onHoverChange(checkpointIndex)}
                         onMouseLeave={() => onHoverChange(null)}
                         style={{
-                            gridColumn: `${colStart} / ${colEnd}`,
-                            gridRow: 1,
-                            cursor: 'pointer',
-                            padding: '8px 0',
-                            minHeight: 20,
-                            display: 'flex',
-                            alignItems: 'center'
+                            gridColumn: `${colStart} / ${colEnd}`
                         }}
                     >
                         <div
+                            className="checkpoint-line"
                             style={{
-                                width: '100%',
                                 height: isActive ? 4 : hoveredCheckpointIndex === checkpointIndex ? 4 : 2,
-                                background: color,
-                                borderRadius: 1,
-                                transition: 'all 0.2s'
+                                background: color
                             }}
                         />
                     </div>
@@ -88,20 +81,14 @@ const CheckpointLines: React.FunctionComponent<CheckpointLinesProps> = ({
                 return (
                     <div
                         key={`cp-dot-${nodeIdx}`}
+                        className="checkpoint-boundary-dot"
                         onClick={() => matchingCheckpointIndex >= 0 && onCheckpointClick(matchingCheckpointIndex)}
                         style={{
                             gridColumn: nodeToCol(nodeIdx),
-                            gridRow: 1,
-                            justifySelf: 'center',
-                            alignSelf: 'center',
                             width: size,
                             height: size,
-                            borderRadius: '50%',
                             background: color,
-                            border: isInActive ? '2px solid #fff' : '1px solid rgba(255,255,255,0.3)',
-                            cursor: 'pointer',
-                            zIndex: 1,
-                            transition: 'all 0.2s'
+                            border: isInActive ? '2px solid #fff' : '1px solid rgba(255,255,255,0.3)'
                         }}
                     />
                 );

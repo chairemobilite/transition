@@ -23,18 +23,6 @@ type CheckpointPeriodTimesTableProps = {
     onTargetChange: (periodShortname: string, newSeconds: number) => void;
 };
 
-const cellStyle: React.CSSProperties = { padding: '0.5rem' };
-const centerCellStyle: React.CSSProperties = { textAlign: 'center', padding: '0.5rem' };
-const headerStyle: React.CSSProperties = {
-    textAlign: 'left',
-    padding: '0.4rem 0.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.2)'
-};
-const centerHeaderStyle: React.CSSProperties = {
-    textAlign: 'center',
-    padding: '0.4rem 0.5rem',
-    borderBottom: '1px solid rgba(255,255,255,0.2)'
-};
 
 const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesTableProps> = ({
     totalStopTimeSeconds,
@@ -47,15 +35,15 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
     const { t } = useTranslation('transit');
 
     return (
-        <div style={{ marginTop: '0.5rem', width: '100%' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        <div className="period-table-wrapper">
+            <table className="period-table">
                 <thead>
                     <tr>
-                        <th style={headerStyle}>{t('transit:transitPath:Period')}</th>
-                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:CurrentTotal')}</th>
-                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:TargetTotal')}</th>
-                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:TotalStopTime')}</th>
-                        <th style={{ ...centerHeaderStyle, width: '18%' }}>{t('transit:transitPath:TotalWithStops')}</th>
+                        <th className="period-table-th">{t('transit:transitPath:Period')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:CurrentTotal')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TargetTotal')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalStopTime')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalWithStops')}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,19 +52,19 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
                     const target = getTarget(period.shortname);
                     const totalWithStops = target + totalStopTimeSeconds;
                     return (
-                        <tr key={period.shortname} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                            <td style={cellStyle}>{period.name[language] || period.shortname}</td>
-                            <td style={centerCellStyle}>
+                        <tr key={period.shortname} className="period-table-row">
+                            <td className="period-table-td">{period.name[language] || period.shortname}</td>
+                            <td className="period-table-td center">
                                 <strong>{formatSeconds(current)}</strong>
                             </td>
-                            <td style={centerCellStyle}>
+                            <td className="period-table-td center">
                                 <TimeInput
                                     seconds={target}
                                     onChange={(newSec) => onTargetChange(period.shortname, newSec)}
                                 />
                             </td>
-                            <td style={centerCellStyle}>{formatSeconds(totalStopTimeSeconds)}</td>
-                            <td style={centerCellStyle}>
+                            <td className="period-table-td center">{formatSeconds(totalStopTimeSeconds)}</td>
+                            <td className="period-table-td center">
                                 <TimeInput
                                     seconds={totalWithStops}
                                     onChange={(newSec) => {

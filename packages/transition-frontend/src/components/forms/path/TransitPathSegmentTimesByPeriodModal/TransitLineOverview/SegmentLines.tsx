@@ -41,26 +41,21 @@ const SegmentLines: React.FunctionComponent<SegmentLinesProps> = ({
                 return (
                     <div
                         key={`seg-${idx}`}
+                        className="segment-line-hitbox"
                         data-testid={`overview-seg-${idx}`}
                         onClick={() => onSegmentClick(idx)}
                         onMouseEnter={() => onHoverChange(idx)}
                         onMouseLeave={() => onHoverChange(null)}
                         style={{
                             gridColumn: nodeToCol(idx) + 1,
-                            gridRow: dotRow,
-                            cursor: 'pointer',
-                            padding: '8px 0',
-                            display: 'flex',
-                            alignItems: 'center'
+                            gridRow: dotRow
                         }}
                     >
                         <div
+                            className="segment-line"
                             style={{
-                                width: '100%',
                                 height: isActive ? 4 : hoveredSegmentIndex === idx ? 4 : 2,
-                                background: getSegColor(idx),
-                                borderRadius: 2,
-                                transition: 'all 0.2s'
+                                background: getSegColor(idx)
                             }}
                         />
                     </div>
