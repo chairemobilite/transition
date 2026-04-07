@@ -308,10 +308,10 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     };
 
     /** Get the total dwell (stop) time for all nodes within a checkpoint span */
-    const getCheckpointTotalStopTime = (checkpoint: ResolvedCheckpoint): number => {
+    const getCheckpointTotalDwellTime = (checkpoint: ResolvedCheckpoint): number => {
         let total = 0;
         for (let i = checkpoint.fromNodeIndex; i < checkpoint.toNodeIndex; i++) {
-            total += getStopTimeForSegment(i);
+            total += getDwellTimeForSegment(i);
         }
         return total;
     };
@@ -539,13 +539,13 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     });
 
     /** Get the dwell (stop) time at the departure node of a segment */
-    const getStopTimeForSegment = (segmentIndex: number): number => {
+    const getDwellTimeForSegment = (segmentIndex: number): number => {
         return localDwellTimes[segmentIndex] || 0;
     };
 
     /** Update the dwell (stop) time at the departure node of a segment.
      *  First segment (index 0) is always 0 (layover is separate). */
-    const setStopTimeForSegment = (segmentIndex: number, newSeconds: number) => {
+    const setDwellTimeForSegment = (segmentIndex: number, newSeconds: number) => {
         if (segmentIndex === 0) return;
         setLocalDwellTimes((prev) => {
             const next = [...prev];
@@ -555,18 +555,18 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     };
 
     /** Get the cumulative arrival time at a node for a given period.
-     *  Sums all stop times + segment times from the start up to (but not including) the given segment. */
+     *  Sums all dwell times + segment times from the start up to (but not including) the given segment. */
     const getArrivalTimeAtSegment = (segmentIndex: number, periodShortname: string): number => {
         let cumulativeTime = 0;
         for (let i = 0; i < segmentIndex; i++) {
-            cumulativeTime += getStopTimeForSegment(i) + getTimeForCell(i, periodShortname);
+            cumulativeTime += getDwellTimeForSegment(i) + getTimeForCell(i, periodShortname);
         }
         return cumulativeTime;
     };
 
-    /** Departure time = arrival at this node + stop time at this node */
+    /** Departure time = arrival at this node + dwell time at this node */
     const getDepartureTimeAtSegment = (segmentIndex: number, periodShortname: string): number => {
-        return getArrivalTimeAtSegment(segmentIndex, periodShortname) + getStopTimeForSegment(segmentIndex);
+        return getArrivalTimeAtSegment(segmentIndex, periodShortname) + getDwellTimeForSegment(segmentIndex);
     };
 
     /** Arrival time at the end of a segment = departure + segment travel time */
@@ -634,8 +634,8 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         isSegmentInAnyCheckpoint,
         getAverageTotal,
         getPeriodTotal,
-        getStopTimeForSegment,
-        setStopTimeForSegment,
+        getDwellTimeForSegment,
+        setDwellTimeForSegment,
         getDepartureTimeAtSegment,
         getArrivalTimeAfterSegment,
         getAverageArrivalTimeAfterSegment,
@@ -643,7 +643,7 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         // Checkpoint handlers
         getCheckpointCurrentTotal,
         getCheckpointAverageTotal,
-        getCheckpointTotalStopTime,
+        getCheckpointTotalDwellTime,
         getCheckpointTarget,
         setCheckpointTarget,
         handleDistribute,
