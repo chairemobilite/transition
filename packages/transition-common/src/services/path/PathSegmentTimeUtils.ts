@@ -27,7 +27,7 @@ export type EditMode = 'segment' | 'checkpoint';
 export const resolveCheckpoint = (checkpoint: Checkpoint, nodeIds: string[]): ResolvedCheckpoint | undefined => {
     const fromIndex = nodeIds.indexOf(checkpoint.fromNodeId);
     const toIndex = nodeIds.indexOf(checkpoint.toNodeId);
-    if (fromIndex === -1 || toIndex === -1) return undefined;
+    if (fromIndex === -1 || toIndex === -1 || fromIndex >= toIndex) return undefined;
     return { ...checkpoint, fromNodeIndex: fromIndex, toNodeIndex: toIndex };
 };
 
