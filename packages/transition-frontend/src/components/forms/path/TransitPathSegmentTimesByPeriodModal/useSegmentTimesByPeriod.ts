@@ -191,15 +191,17 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
 
     const handleCellChange = (segmentIndex: number, periodShortname: string, newSeconds: number) => {
         setLocalData((prev) => {
-            const next = _cloneDeep(prev);
-            if (!next[selectedServiceId]) {
-                next[selectedServiceId] = {};
-            }
-            if (!next[selectedServiceId][periodShortname]) {
-                next[selectedServiceId][periodShortname] = segments.map((_, i) => getDefaultTime(i, periodShortname));
-            }
-            next[selectedServiceId][periodShortname][segmentIndex] = newSeconds;
-            return next;
+            const prevService = prev[selectedServiceId] || {};
+            const prevPeriod = prevService[periodShortname] || segments.map((_, i) => getDefaultTime(i, periodShortname));
+            const updatedPeriod = [...prevPeriod];
+            updatedPeriod[segmentIndex] = newSeconds;
+            return {
+                ...prev,
+                [selectedServiceId]: {
+                    ...prevService,
+                    [periodShortname]: updatedPeriod
+                }
+            };
         });
     };
 
@@ -510,21 +512,28 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         return cumulativeTime;
     };
 
-    // Navigation
-    const goToPrevSegment = () => setActiveSegmentIndex((prev) => Math.max(0, prev - 1));
-    const goToNextSegment = () => setActiveSegmentIndex((prev) => Math.min(segmentCount - 1, prev + 1));
-    const goToPrevCheckpoint = () => setActiveCheckpointIndex((prev) => Math.max(0, prev - 1));
+    // Navigation — wrapped in startTransition so the UI stays responsive during re-renders
+    const goToPrevSegment = () =>
+        React.startTransition(() => setActiveSegmentIndex((prev) => Math.max(0, prev - 1)));
+    const goToNextSegment = () =>
+        React.startTransition(() => setActiveSegmentIndex((prev) => Math.min(segmentCount - 1, prev + 1)));
+    const goToPrevCheckpoint = () =>
+        React.startTransition(() => setActiveCheckpointIndex((prev) => Math.max(0, prev - 1)));
     const goToNextCheckpoint = () =>
-        setActiveCheckpointIndex((prev) => Math.min(resolvedCheckpoints.length - 1, prev + 1));
+        React.startTransition(() => setActiveCheckpointIndex((prev) => Math.min(resolvedCheckpoints.length - 1, prev + 1)));
 
     const handleSegmentClick = (idx: number) => {
-        setActiveSegmentIndex(idx);
-        setEditMode('segment');
+        React.startTransition(() => {
+            setActiveSegmentIndex(idx);
+            setEditMode('segment');
+        });
     };
 
     const handleCheckpointClick = (idx: number) => {
-        setActiveCheckpointIndex(idx);
-        setEditMode('checkpoint');
+        React.startTransition(() => {
+            setActiveCheckpointIndex(idx);
+            setEditMode('checkpoint');
+        });
     };
 
     const activeCheckpoint = resolvedCheckpoints[activeCheckpointIndex];

@@ -213,4 +213,4 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
     );
 };
 
-export default TransitLineOverview;
+export default React.memo(TransitLineOverview);

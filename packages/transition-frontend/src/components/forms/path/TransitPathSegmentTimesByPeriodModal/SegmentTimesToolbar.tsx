@@ -125,4 +125,4 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
     );
 };
 
-export default SegmentTimesToolbar;
+export default React.memo(SegmentTimesToolbar);
