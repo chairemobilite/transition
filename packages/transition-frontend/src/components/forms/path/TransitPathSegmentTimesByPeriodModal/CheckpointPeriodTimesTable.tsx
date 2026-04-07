@@ -82,4 +82,4 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
     );
 };
 
-export default CheckpointPeriodTimesTable;
+export default React.memo(CheckpointPeriodTimesTable);

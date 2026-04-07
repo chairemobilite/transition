@@ -183,18 +183,17 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             </SegmentCarousel>
 
                             <SegmentPeriodTimesTable
-                                isFirstSegment={activeSegmentIndex === 0}
+                                activeSegmentIndex={activeSegmentIndex}
                                 periods={periods}
                                 language={i18n.language}
                                 locked={isSegmentInAnyCheckpoint(activeSegmentIndex)}
                                 lockedMessage={t('transit:transitPath:SegmentLockedByCheckpoint')}
-                                getTimeForPeriod={(periodShortname) => getTimeForCell(activeSegmentIndex, periodShortname)}
-                                getDwellTime={() => getDwellTimeForSegment(activeSegmentIndex)}
-                                onDwellTimeChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
-                                getArrivalTimePrevSegment={(periodShortname) => activeSegmentIndex > 0 ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname) : 0}
-                                getDepartureTime={(periodShortname) => getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)}
-                                getArrivalTime={(periodShortname) => getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)}
-                                onTimeChange={(periodShortname, newSec) => handleCellChange(activeSegmentIndex, periodShortname, newSec)}
+                                getTimeForCell={getTimeForCell}
+                                getDwellTimeForSegment={getDwellTimeForSegment}
+                                setDwellTimeForSegment={setDwellTimeForSegment}
+                                getArrivalTimeAfterSegment={getArrivalTimeAfterSegment}
+                                getDepartureTimeAtSegment={getDepartureTimeAtSegment}
+                                handleCellChange={handleCellChange}
                             />
                         </>
                     )}
