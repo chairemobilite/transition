@@ -40,7 +40,7 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
         setMinsText(raw);
         const val = parseInt(raw, 10);
         if (!isNaN(val) && val >= 0) {
-            onChange(val * 60 + secs);
+            React.startTransition(() => onChange(val * 60 + secs));
         }
     };
 
@@ -51,6 +51,7 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
             setMinsText(String(mins));
         } else {
             setMinsText(String(val));
+            onChange(val * 60 + secs);
         }
     };
 
@@ -93,4 +94,4 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
     );
 };
 
-export default TimeInput;
+export default React.memo(TimeInput);

@@ -62,4 +62,4 @@ const SegmentCarousel: React.FunctionComponent<SegmentCarouselProps> = ({
     );
 };
 
-export default SegmentCarousel;
+export default React.memo(SegmentCarousel);
