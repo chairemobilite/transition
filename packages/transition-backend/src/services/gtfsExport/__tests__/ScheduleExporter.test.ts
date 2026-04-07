@@ -59,8 +59,25 @@ const pathAttributes2 = {
     nodes: [uuidV4(), uuidV4(), uuidV4(), uuidV4()],
 }
 
+// Third path with checkpoints: nodes[0] and nodes[2] are checkpoint boundaries
+const pathWithCheckpointsAttributes = {
+    ...pathAttributes,
+    id: uuidV4(),
+    nodes: [uuidV4(), uuidV4(), uuidV4(), uuidV4()],
+    data: {
+        segmentTimesCheckpoints: [
+            { fromNodeId: '', toNodeId: '' } // will be set after node IDs are known
+        ]
+    },
+};
+// Set checkpoint to reference nodes[0] → nodes[2]
+pathWithCheckpointsAttributes.data.segmentTimesCheckpoints = [
+    { fromNodeId: pathWithCheckpointsAttributes.nodes[0], toNodeId: pathWithCheckpointsAttributes.nodes[2] }
+];
+
 const path = new Path(pathAttributes, false);
 const path2 = new Path(pathAttributes2, false);
+const pathWithCheckpoints = new Path(pathWithCheckpointsAttributes, false);
 // Convert distances in km, same coordinates for both patsh
 const pathDistances = path.getCoordinatesDistanceTraveledMeters().map(dist => Math.round(dist) / 1000);
 const lineId = uuidV4();
@@ -239,7 +256,7 @@ const mockReadForLines = schedulesDbQueries.readForLines as jest.MockedFunction<
 jest.mock('../../../models/db/transitPaths.db.queries', () => {
     return {
         geojsonCollection: jest.fn().mockImplementation(async () => {
-            return { type: 'FeatureCollection', features: [path.toGeojson(), path2.toGeojson()] };
+            return { type: 'FeatureCollection', features: [path.toGeojson(), path2.toGeojson(), pathWithCheckpoints.toGeojson()] };
         })
     }
 });
@@ -618,4 +635,82 @@ test('Test GTFS compliance - handles >24h times for midnight-crossing schedules'
     const secondHour = parseInt(secondArrival.split(':')[0]);
     expect(firstHour).toBeGreaterThanOrEqual(24);
     expect(secondHour).toBeGreaterThanOrEqual(24);
+});
+
+test('Test checkpoint nodes are exported as timepoints, others as approximate', async () => {
+    // Path has 4 nodes with checkpoint on nodes[0]→nodes[2]
+    // So nodes[0] and nodes[2] are checkpoint boundaries → timepoint=1
+    // nodes[1] is intermediate → timepoint=0
+    // nodes[3] is last stop → timepoint=1 (GTFS convention)
+    const scheduleWithCheckpoints: ScheduleAttributes = {
+        allow_seconds_based_schedules: false,
+        id: uuidV4(),
+        integer_id: 10,
+        line_id: lineId,
+        service_id: serviceId,
+        is_frozen: false,
+        data: {},
+        periods: [{
+            schedule_id: 10,
+            id: uuidV4(),
+            integer_id: 1,
+            data: {},
+            end_at_hour: 12,
+            interval_seconds: 1800,
+            outbound_path_id: pathWithCheckpointsAttributes.id,
+            period_shortname: 'morning',
+            start_at_hour: 7,
+            trips: [{
+                arrival_time_seconds: 27015,
+                departure_time_seconds: 25200,
+                id: uuidV4(),
+                node_arrival_times_seconds: [25200, 25251, 26250, 27015],
+                node_departure_times_seconds: [25200, 25261, 26260, 27015],
+                nodes_can_board: [true, true, true, false],
+                nodes_can_unboard: [false, true, true, true],
+                path_id: pathWithCheckpointsAttributes.id,
+                seated_capacity: 20,
+                total_capacity: 50,
+                schedule_period_id: 1,
+                data: {}
+            }]
+        }],
+        periods_group_shortname: 'all_day',
+    };
+
+    mockReadForLines.mockResolvedValueOnce([scheduleWithCheckpoints]);
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+
+    const stopTimesOutput = mockWriteStopTimeStream.write.mock.calls[0][0] as string;
+    const stopTimesLines = stopTimesOutput.split('\n').filter(line => line.trim() && !line.startsWith('"trip_id"'));
+
+    expect(stopTimesLines).toHaveLength(4);
+
+    // Parse timepoint values (last field in each CSV line)
+    const timepoints = stopTimesLines.map(line => {
+        const fields = line.split(',');
+        return parseInt(fields[fields.length - 1]);
+    });
+
+    // nodes[0] = checkpoint boundary → 1, nodes[1] = intermediate → 0,
+    // nodes[2] = checkpoint boundary → 1, nodes[3] = last stop → 1
+    expect(timepoints).toEqual([1, 0, 1, 1]);
+});
+
+test('Test path without checkpoints exports all timepoints as 1', async () => {
+    // pathAttributes has no checkpoints (data: {})
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+
+    const stopTimesOutput = mockWriteStopTimeStream.write.mock.calls[0][0] as string;
+    const stopTimesLines = stopTimesOutput.split('\n').filter(line => line.trim() && !line.startsWith('"trip_id"'));
+
+    // All timepoints should be 1 when no checkpoints exist
+    stopTimesLines.forEach(line => {
+        const fields = line.split(',');
+        const timepoint = parseInt(fields[fields.length - 1]);
+        expect(timepoint).toBe(1);
+    });
 });
