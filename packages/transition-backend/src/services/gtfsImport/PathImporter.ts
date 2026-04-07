@@ -120,6 +120,31 @@ type PathGroup = {
     trips: TripData[];
 };
 
+/** Derive checkpoints from GTFS timepoint data on a representative trip's stop_times.
+ *  Only creates checkpoints if some (but not all) stops are timepoints. */
+const deriveCheckpointsFromTimepoints = (
+    newPath: Path,
+    allStopTimes: StopTime[][],
+    nodeIds: string[],
+    importData: GtfsInternalData
+): void => {
+    const representativeStopTimes = allStopTimes[0];
+    if (!representativeStopTimes || representativeStopTimes.length === 0) return;
+
+    const timepointNodeIds = representativeStopTimes
+        .filter((st) => st.timepoint === 1)
+        .map((st) => importData.nodeIdsByStopGtfsId[st.stop_id]);
+
+    // Only create checkpoints if there's actual segmentation (not all stops are timepoints)
+    if (timepointNodeIds.length >= 2 && timepointNodeIds.length < nodeIds.length) {
+        const checkpoints: { fromNodeId: string; toNodeId: string }[] = [];
+        for (let i = 0; i < timepointNodeIds.length - 1; i++) {
+            checkpoints.push({ fromNodeId: timepointNodeIds[i], toNodeId: timepointNodeIds[i + 1] });
+        }
+        newPath.attributes.data.segmentTimesCheckpoints = checkpoints;
+    }
+};
+
 const generatePathsForLine = (
     line: Line,
     tripsForLine: TripData[],
@@ -205,6 +230,7 @@ const generatePathsForLine = (
                 importData,
                 tripsWithService
             );
+            deriveCheckpointsFromTimepoints(newPath, allStopTimes, nodeIds, importData);
             newPaths.push(newPath);
             const pathsForShape = pathByShapeId[shapeId] || [];
             pathsForShape.push(newPath);
@@ -226,6 +252,7 @@ const generatePathsForLine = (
                 importData,
                 tripsWithService
             );
+            deriveCheckpointsFromTimepoints(newPath, allStopTimes, nodeIds, importData);
             newPaths.push(newPath);
             pathsWithoutShape.push(newPath);
             for (const tripData of trips) {
