@@ -287,6 +287,9 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     // If the previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
     // In that case, change it to undefined.
     useEffect(() => {
+        if (!scenarioCollection) {
+            return;
+        }
         const scenarioId = transitRouting.attributes.scenarioId;
         const scenario = scenarioCollection.getById(scenarioId);
         if (scenarioId !== undefined && scenario === undefined) {

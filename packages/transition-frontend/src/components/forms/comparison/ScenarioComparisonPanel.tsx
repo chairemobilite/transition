@@ -319,6 +319,9 @@ const ScenarioComparisonPanel: React.FC = () => {
     // If a previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
     // In that case, change it to undefined.
     useEffect(() => {
+        if (!scenarioCollection) {
+            return;
+        }
         const scenarioId1 = routingObj.attributes.scenarioId;
         const scenario1 = scenarioCollection.getById(scenarioId1);
         if (scenarioId1 !== undefined && scenario1 === undefined) {

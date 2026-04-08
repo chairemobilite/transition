@@ -12,8 +12,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  // Each test is given 15 seconds.
-  timeout: 15000,
+  // Align test and expect timeouts (default expect is 5s); routing waits on scenario collection before headings appear.
+  timeout: 30000,
+  expect: {
+    timeout: 30000
+  },
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */

@@ -199,6 +199,9 @@ export const clickLeftMenuTest: LeftMenuTest = ({ context, section }) => {
             expectedRightPanelTitle = 'Preferences';
             break;
         }
+        // The routing section keeps a full-panel LoadingPage until the scenario collection is ready, so the first
+        // real heading appears later than for agencies/preferences. Playwright retries this assert until match or
+        // expect.timeout (aligned with test timeout in playwright.config—not a fixed sleep).
         await expect(rightPanelTitle).toContainText(expectedRightPanelTitle);
     });
 };

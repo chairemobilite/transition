@@ -170,21 +170,25 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
     }
 
     onScenarioCollectionUpdate() {
-        this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
+        const scenarioCollection = serviceLocator.collectionManager.get('scenarios');
+        this.setState({ scenarioCollection });
 
         // If a previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
         // In that case, change it to undefined.
+        if (!scenarioCollection) {
+            return;
+        }
         const routing = this.state.object;
         const alternateRouting = this.state.alternateScenarioRouting;
         const scenarioId1 = routing.attributes.scenarioId;
-        const scenario1 = this.state.scenarioCollection.getById(scenarioId1);
+        const scenario1 = scenarioCollection.getById(scenarioId1);
         if (scenarioId1 !== undefined && scenario1 === undefined) {
             routing.set('scenarioId', undefined);
             this.onValueChange('alternateScenario1Id', { value: undefined });
         }
 
         const scenarioId2 = alternateRouting.attributes.scenarioId;
-        const scenario2 = this.state.scenarioCollection.getById(scenarioId2);
+        const scenario2 = scenarioCollection.getById(scenarioId2);
         if (scenarioId2 !== undefined && scenario2 === undefined) {
             alternateRouting.set('scenarioId', undefined);
             this.onValueChange('alternateScenario2Id', { value: undefined });
@@ -192,11 +196,15 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
     }
 
     onDataSourceCollectionUpdate() {
-        this.setState({ dataSourceCollection: serviceLocator.collectionManager.get('dataSources') });
+        const dataSourceCollection = serviceLocator.collectionManager.get('dataSources');
+        this.setState({ dataSourceCollection });
 
         // If we previously selected yes for calculating population and then delete all our data sources, the choice widget will disappear while the calculatePopulation value will still be at true.
         // We use this to hard code it to false and the data source name to an empty string if we detect it to be true while there are no data sources.
-        const zonesDataSources = this.getZonesDataSource(this.state.dataSourceCollection);
+        if (!dataSourceCollection) {
+            return;
+        }
+        const zonesDataSources = this.getZonesDataSource(dataSourceCollection);
         const routing = this.state.object;
         const alternateRouting = this.state.alternateScenarioRouting;
 
