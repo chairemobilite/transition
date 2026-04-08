@@ -52,6 +52,7 @@ interface PathStatistics {
 
 import type { TimeAndDistance } from './PathTypes';
 
+/** User-edited segment travel times, keyed by periods group then period shortname. */
 export type SegmentTimesByPeriod = {
     [periodsGroupShortname: string]: {
         [periodShortname: string]: number[]; // travelTimeSeconds per segment
@@ -61,6 +62,7 @@ export type SegmentTimesByPeriod = {
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
 
+/** Aggregated per-segment travel times, dwell times, and speed stats for a single period and service. */
 export type PeriodSegmentData = {
     segments: TimeAndDistance[];
     dwellTimeSeconds: number[];
@@ -152,6 +154,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     protected static displayName = 'Path';
     _forceRecalculate = false;
 
+    /** When true, the next geography update recalculates all segments from OSRM instead of preserving previous times. */
     setForceRecalculate(value: boolean) {
         this._forceRecalculate = value;
     }
@@ -945,6 +948,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         };
     }
 
+    /** Compute a trip-count-weighted average across multiple services' PeriodSegmentData for the same period. */
     private _averagePeriodSegmentData(dataArray: PeriodSegmentData[]): PeriodSegmentData {
         const numSegments = Math.min(...dataArray.map((d) => d.segments.length));
         const numStops = Math.min(...dataArray.map((d) => d.dwellTimeSeconds.length));

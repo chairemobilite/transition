@@ -28,7 +28,7 @@ import {
     ServiceGroup
 } from 'transition-common/lib/services/path/PathServiceGrouping';
 
-// Local editing state: serviceId → periodShortname → travelTimeSeconds per segment
+/** Local editing state: serviceId -> periodShortname -> travelTimeSeconds per segment. */
 type LocalSegmentTimes = Record<string, Record<string, number[]>>;
 
 type UseSegmentTimesByPeriodArgs = {
@@ -37,6 +37,10 @@ type UseSegmentTimesByPeriodArgs = {
     onClose: () => void;
 };
 
+/**
+ * Hook managing all state and logic for the segment times editing modal.
+ * Handles per-service/period time overrides, checkpoint distribution, dwell time editing, and saving back to the path.
+ */
 const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByPeriodArgs) => {
     const [saveError, setSaveError] = React.useState<string | null>(null);
     const segments = path.attributes.data.segments || [];
@@ -283,6 +287,7 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         }));
     };
 
+    /** Distribute a checkpoint's target total time to individual segments using OSRM proportions (or evenly as fallback). */
     const distributeCheckpointForService = (
         data: Record<string, Record<string, number[]>>,
         serviceId: string,
@@ -387,6 +392,7 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         }
     };
 
+    /** Persist all edits: auto-distribute pending checkpoint targets, convert local times back to PeriodSegmentData, and save to path. */
     const handleSave = async () => {
         setSaveError(null);
         try {
@@ -471,6 +477,7 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
         }
     };
 
+    /** Check if any period's local data has a different segment count than the path (stale data after node edits). */
     const hasLengthMismatch = (): boolean => {
         const groupData = localData[selectedServiceId];
         if (!groupData) return false;
