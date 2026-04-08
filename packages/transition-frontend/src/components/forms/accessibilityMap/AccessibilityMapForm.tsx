@@ -110,23 +110,31 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, A
     }
 
     onScenarioCollectionUpdate() {
-        this.setState({ scenarioCollection: serviceLocator.collectionManager.get('scenarios') });
+        const scenarioCollection = serviceLocator.collectionManager.get('scenarios');
+        this.setState({ scenarioCollection });
 
         // If the previously selected scenario was deleted, the current scenario ID will remain but the scenario itself will no longer exist, leading to an error.
         // In that case, change it to undefined.
+        if (!scenarioCollection) {
+            return;
+        }
         const scenarioId = this.state.object.attributes.scenarioId;
-        const scenario = this.state.scenarioCollection.getById(scenarioId);
+        const scenario = scenarioCollection.getById(scenarioId);
         if (scenarioId !== undefined && scenario === undefined) {
             this.onValueChange('scenarioId', { value: undefined });
         }
     }
 
     onDataSourceCollectionUpdate() {
-        this.setState({ dataSourceCollection: serviceLocator.collectionManager.get('dataSources') });
+        const dataSourceCollection = serviceLocator.collectionManager.get('dataSources');
+        this.setState({ dataSourceCollection });
 
         // If we previously selected yes for calculating population and then delete all our data sources, the choice widget will disappear while the calculatePopulation value will still be at true.
         // We use this to hard code it to false and the data source name to an empty string if we detect it to be true while there are no data sources.
-        const zonesDataSources = this.getZonesDataSource(this.state.dataSourceCollection);
+        if (!dataSourceCollection) {
+            return;
+        }
+        const zonesDataSources = this.getZonesDataSource(dataSourceCollection);
         if (zonesDataSources.length === 0 && this.state.object.attributes.calculatePopulation) {
             this.onValueChange('calculatePopulation', { value: false });
             this.onValueChange('populationDataSourceName', { value: '' });
