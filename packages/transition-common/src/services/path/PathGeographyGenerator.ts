@@ -19,6 +19,7 @@ import type { TimeAndDistance, TypeNodeChange, SegmentChangeInfo } from './PathT
 
 const MIN_TRAVEL_TIME_FOR_DWELL_SECONDS = 15;
 
+/** Running totals accumulated while iterating over segments to build final path data. */
 type PathTimeTotals = {
     totalDistance: number;
     totalDwellTimeSeconds: number;
@@ -27,11 +28,13 @@ type PathTimeTotals = {
     totalTravelTimeWithReturnBackSeconds: number;
 };
 
+/** Previous segment times and dwell durations, carried forward from the path's prior state. */
 type SegmentData = {
     segmentsData: TimeAndDistance[];
     dwellTimeDurationsSeconds: number[];
 };
 
+/** Extends SegmentData with no-dwell durations and the cumulative ratio used for time scaling. */
 type ComputedSegmentData = SegmentData & {
     noDwellTimeDurationsSeconds: number[];
     ratioDifferenceTime: number;
@@ -44,6 +47,7 @@ type SegmentDuration = {
     noDwellTimeDurationSeconds: number;
 };
 
+/** Snapped node points and legs returned by the routing engine for a path. */
 type RoutingResult = {
     points: Geojson.Feature<Geojson.Point>[];
     legs: (MapLeg | null)[];
