@@ -38,6 +38,7 @@ type UseSegmentTimesByPeriodArgs = {
 };
 
 const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByPeriodArgs) => {
+    const [saveError, setSaveError] = React.useState<string | null>(null);
     const segments = path.attributes.data.segments || [];
     const segmentCount = segments.length;
 
@@ -168,7 +169,9 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
             return {
                 shortname,
                 name: {
-                    [language]: periodNamesByShortname[shortname] || `${shortname} (${period.start_at_hour}h-${period.end_at_hour}h)`
+                    [language]:
+                        periodNamesByShortname[shortname] ||
+                        `${shortname} (${period.start_at_hour}h-${period.end_at_hour}h)`
                 }
             };
         });
@@ -207,7 +210,8 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
     const handleCellChange = (segmentIndex: number, periodShortname: string, newSeconds: number) => {
         setLocalData((prev) => {
             const prevService = prev[selectedServiceId] || {};
-            const prevPeriod = prevService[periodShortname] || segments.map((_, i) => getDefaultTime(i, periodShortname));
+            const prevPeriod =
+                prevService[periodShortname] || segments.map((_, i) => getDefaultTime(i, periodShortname));
             const updatedPeriod = [...prevPeriod];
             updatedPeriod[segmentIndex] = newSeconds;
             return {
@@ -384,81 +388,87 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
     };
 
     const handleSave = async () => {
-        // Auto-distribute undistributed checkpoint targets for all groups.
-        // OSRM times are calculated once per checkpoint and reused across groups.
-        const updatedLocalData = _cloneDeep(localData);
-        for (const checkpoint of resolvedCheckpoints) {
-            // Check if any group has targets that differ from current totals before calling OSRM
-            const hasChangedTargets = serviceGroups.some((group) => {
-                const targetKey = `${getCheckpointKey(checkpoint)}_${group.serviceIds[0]}`;
-                const targets = checkpointTargets[targetKey];
-                if (!targets) return false;
-                return Object.entries(targets).some(
-                    ([periodShortname, targetSeconds]) =>
-                        getCheckpointCurrentTotal(checkpoint, periodShortname) !== targetSeconds
+        setSaveError(null);
+        try {
+            // Auto-distribute undistributed checkpoint targets for all groups.
+            // OSRM times are calculated once per checkpoint and reused across groups.
+            const updatedLocalData = _cloneDeep(localData);
+            for (const checkpoint of resolvedCheckpoints) {
+                // Check if any group has targets that differ from current totals before calling OSRM
+                const hasChangedTargets = serviceGroups.some((group) => {
+                    const targetKey = `${getCheckpointKey(checkpoint)}_${group.serviceIds[0]}`;
+                    const targets = checkpointTargets[targetKey];
+                    if (!targets) return false;
+                    return Object.entries(targets).some(
+                        ([periodShortname, targetSeconds]) =>
+                            getCheckpointCurrentTotal(checkpoint, periodShortname) !== targetSeconds
+                    );
+                });
+                if (!hasChangedTargets) continue;
+
+                const osrmTimes = await pathGeographyUtils.calculateSegmentTimesForCheckpoint(
+                    path,
+                    checkpoint.fromNodeIndex,
+                    checkpoint.toNodeIndex
                 );
-            });
-            if (!hasChangedTargets) continue;
 
-            const osrmTimes = await pathGeographyUtils.calculateSegmentTimesForCheckpoint(
-                path,
-                checkpoint.fromNodeIndex,
-                checkpoint.toNodeIndex
-            );
-
-            for (const group of serviceGroups) {
-                const representativeServiceId = group.serviceIds[0];
-                const targetKey = `${getCheckpointKey(checkpoint)}_${representativeServiceId}`;
-                const targetTimesByPeriod = checkpointTargets[targetKey];
-                if (!targetTimesByPeriod) continue;
-                distributeCheckpointForService(
-                    updatedLocalData,
-                    representativeServiceId,
-                    checkpoint,
-                    osrmTimes,
-                    targetTimesByPeriod
-                );
+                for (const group of serviceGroups) {
+                    const representativeServiceId = group.serviceIds[0];
+                    const targetKey = `${getCheckpointKey(checkpoint)}_${representativeServiceId}`;
+                    const targetTimesByPeriod = checkpointTargets[targetKey];
+                    if (!targetTimesByPeriod) continue;
+                    distributeCheckpointForService(
+                        updatedLocalData,
+                        representativeServiceId,
+                        checkpoint,
+                        osrmTimes,
+                        targetTimesByPeriod
+                    );
+                }
             }
-        }
-        setLocalData(updatedLocalData);
+            setLocalData(updatedLocalData);
 
-        const expandedData = expandGroupedDataToServices(updatedLocalData, serviceGroups);
-        const baseSegments = path.attributes.data.segments || [];
-        const baseDwell = localDwellTimes;
+            const expandedData = expandGroupedDataToServices(updatedLocalData, serviceGroups);
+            const baseSegments = path.attributes.data.segments || [];
+            const baseDwell = localDwellTimes;
 
-        // Convert local flat times back to segmentsByServiceAndPeriod format
-        const result: Record<string, Record<string, PeriodSegmentData>> = {};
-        for (const [serviceId, periodEntries] of Object.entries(expandedData)) {
-            for (const [periodShortname, times] of Object.entries(periodEntries)) {
-                if (!times || times.length === 0) continue;
-                if (!result[serviceId]) result[serviceId] = {};
-                const segmentData: PeriodSegmentData['segments'] = times.map((t, i) => ({
-                    travelTimeSeconds: t,
-                    distanceMeters: baseSegments[i]?.distanceMeters ?? null
-                }));
-                const travelTotal = times.reduce((sum, t) => sum + t, 0);
-                const dwellTotal = baseDwell.reduce((sum, d) => sum + d, 0);
-                const distTotal = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
-                result[serviceId][periodShortname] = {
-                    segments: segmentData,
-                    dwellTimeSeconds: baseDwell,
-                    travelTimeWithoutDwellTimesSeconds: travelTotal,
-                    operatingTimeWithoutLayoverTimeSeconds: travelTotal + dwellTotal,
-                    averageSpeedWithoutDwellTimesMetersPerSecond:
-                        travelTotal > 0 ? Math.round((distTotal / travelTotal) * 100) / 100 : 0,
-                    operatingSpeedMetersPerSecond:
-                        travelTotal + dwellTotal > 0
-                            ? Math.round((distTotal / (travelTotal + dwellTotal)) * 100) / 100
-                            : 0,
-                    tripCount: 0
-                };
+            // Convert local flat times back to segmentsByServiceAndPeriod format
+            const result: Record<string, Record<string, PeriodSegmentData>> = {};
+            for (const [serviceId, periodEntries] of Object.entries(expandedData)) {
+                for (const [periodShortname, times] of Object.entries(periodEntries)) {
+                    if (!times || times.length === 0) continue;
+                    if (!result[serviceId]) result[serviceId] = {};
+                    const segmentData: PeriodSegmentData['segments'] = times.map((t, i) => ({
+                        travelTimeSeconds: t,
+                        distanceMeters: baseSegments[i]?.distanceMeters ?? null
+                    }));
+                    const travelTotal = times.reduce((sum, t) => sum + t, 0);
+                    const dwellTotal = baseDwell.reduce((sum, d) => sum + d, 0);
+                    const distTotal = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
+                    result[serviceId][periodShortname] = {
+                        segments: segmentData,
+                        dwellTimeSeconds: baseDwell,
+                        travelTimeWithoutDwellTimesSeconds: travelTotal,
+                        operatingTimeWithoutLayoverTimeSeconds: travelTotal + dwellTotal,
+                        averageSpeedWithoutDwellTimesMetersPerSecond:
+                            travelTotal > 0 ? Math.round((distTotal / travelTotal) * 100) / 100 : 0,
+                        operatingSpeedMetersPerSecond:
+                            travelTotal + dwellTotal > 0
+                                ? Math.round((distTotal / (travelTotal + dwellTotal)) * 100) / 100
+                                : 0,
+                        tripCount: 0
+                    };
+                }
             }
-        }
-        path.set('data.segmentsByServiceAndPeriod', Object.keys(result).length > 0 ? result : undefined);
-        path.set('data.segmentTimesCheckpoints', checkpoints.length > 0 ? checkpoints : undefined);
-        path.set('data.dwellTimeSeconds', localDwellTimes);
+            path.set('data.segmentsByServiceAndPeriod', Object.keys(result).length > 0 ? result : undefined);
+            path.set('data.segmentTimesCheckpoints', checkpoints.length > 0 ? checkpoints : undefined);
+            path.set('data.dwellTimeSeconds', localDwellTimes);
 
-        onClose();
+            onClose();
+        } catch (error) {
+            console.error('Error saving segment times:', error);
+            setSaveError((error as Error).message || 'An error occurred while saving segment times.');
+        }
     };
 
     const hasLengthMismatch = (): boolean => {
@@ -528,14 +538,15 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
     };
 
     // Navigation — wrapped in startTransition so the UI stays responsive during re-renders
-    const goToPrevSegment = () =>
-        React.startTransition(() => setActiveSegmentIndex((prev) => Math.max(0, prev - 1)));
+    const goToPrevSegment = () => React.startTransition(() => setActiveSegmentIndex((prev) => Math.max(0, prev - 1)));
     const goToNextSegment = () =>
         React.startTransition(() => setActiveSegmentIndex((prev) => Math.min(segmentCount - 1, prev + 1)));
     const goToPrevCheckpoint = () =>
         React.startTransition(() => setActiveCheckpointIndex((prev) => Math.max(0, prev - 1)));
     const goToNextCheckpoint = () =>
-        React.startTransition(() => setActiveCheckpointIndex((prev) => Math.min(resolvedCheckpoints.length - 1, prev + 1)));
+        React.startTransition(() =>
+            setActiveCheckpointIndex((prev) => Math.min(resolvedCheckpoints.length - 1, prev + 1))
+        );
 
     const handleSegmentClick = (idx: number) => {
         React.startTransition(() => {
@@ -611,7 +622,8 @@ const useSegmentTimesByPeriod = ({ path, language, onClose }: UseSegmentTimesByP
 
         // Save
         handleSave,
-        hasLengthMismatch
+        hasLengthMismatch,
+        saveError
     };
 };
 

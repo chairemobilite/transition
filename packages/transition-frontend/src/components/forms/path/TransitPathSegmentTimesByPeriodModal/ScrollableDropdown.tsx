@@ -49,23 +49,20 @@ const ScrollableDropdown: React.FunctionComponent<ScrollableDropdownProps> = ({
                 {selectedLabel}
             </button>
             {isOpen && (
-                <div
-                    className="scrollable-dropdown-menu"
-                    style={{ maxHeight, width }}
-                >
+                <div className="scrollable-dropdown-menu" style={{ maxHeight, width }}>
                     {choices.map((c) => {
                         const isSelected = c.value === value;
                         return (
-                        <div
-                            key={c.value}
-                            className={`scrollable-dropdown-item${isSelected ? ' selected' : ''}`}
-                            onClick={() => {
-                                onSelect(c.value);
-                                setIsOpen(false);
-                            }}
-                        >
-                            {c.label}
-                        </div>
+                            <div
+                                key={c.value}
+                                className={`scrollable-dropdown-item${isSelected ? ' selected' : ''}`}
+                                onClick={() => {
+                                    onSelect(c.value);
+                                    setIsOpen(false);
+                                }}
+                            >
+                                {c.label}
+                            </div>
                         );
                     })}
                 </div>

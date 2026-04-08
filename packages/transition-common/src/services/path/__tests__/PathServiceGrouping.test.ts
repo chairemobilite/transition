@@ -497,4 +497,32 @@ describe('expandGroupedDataToServices', () => {
         expect(expanded.s1).toBeUndefined();
         expect(expanded.s2).toBeUndefined();
     });
+
+    test('expanded services have independent array copies (no shared references)', () => {
+        const groups = [
+            {
+                serviceIds: ['s1', 's2', 's3'],
+                activeDays: ['monday'],
+                hasHolidayService: false,
+                averageTimesByPeriod: {}
+            }
+        ];
+        const localData = {
+            s1: { AM: [100, 200], PM: [300, 400] }
+        };
+
+        const expanded = expandGroupedDataToServices(localData, groups);
+
+        // Mutate s2's array
+        expanded.s2.AM[0] = 999;
+
+        // s1 and s3 should not be affected
+        expect(expanded.s1.AM[0]).toBe(100);
+        expect(expanded.s3.AM[0]).toBe(100);
+
+        // s2's PM should also be independent
+        expanded.s2.PM[1] = 888;
+        expect(expanded.s1.PM[1]).toBe(400);
+        expect(expanded.s3.PM[1]).toBe(400);
+    });
 });

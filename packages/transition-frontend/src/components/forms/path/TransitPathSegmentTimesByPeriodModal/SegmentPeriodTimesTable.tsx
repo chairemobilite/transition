@@ -69,7 +69,6 @@ type SegmentPeriodTimesTableProps = {
     handleCellChange: (segmentIndex: number, periodShortname: string, newSeconds: number) => void;
 };
 
-
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
     activeSegmentIndex,
     periods,
@@ -114,18 +113,35 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
             {!isFirstSegment && (
                 <div className="stop-time-row">
                     <strong>{t('transit:transitPath:DwellTime')}:</strong>
-                    <TimeInput seconds={dwellTimeSeconds} onChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)} />
+                    <TimeInput
+                        seconds={dwellTimeSeconds}
+                        onChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
+                    />
                 </div>
             )}
             <table className="period-table">
                 <thead>
                     <tr>
                         <th className="period-table-th">{t('transit:transitPath:Period')}</th>
-                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>}
-                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DwellTime')}</th>}
-                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DepartureTime')}</th>
-                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:SegmentTime')}</th>
-                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:ArrivalTime')}
+                            </th>
+                        )}
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:DwellTime')}
+                            </th>
+                        )}
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:DepartureTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:SegmentTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:ArrivalTime')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,7 +153,11 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                             isFirstSegment={isFirstSegment}
                             locked={locked}
                             dwellTimeSeconds={dwellTimeSeconds}
-                            arrivalTimePrevSeconds={activeSegmentIndex > 0 ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, period.shortname) : 0}
+                            arrivalTimePrevSeconds={
+                                activeSegmentIndex > 0
+                                    ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, period.shortname)
+                                    : 0
+                            }
                             departureTimeSeconds={getDepartureTimeAtSegment(activeSegmentIndex, period.shortname)}
                             segmentTimeSeconds={getTimeForCell(activeSegmentIndex, period.shortname)}
                             arrivalTimeSeconds={getArrivalTimeAfterSegment(activeSegmentIndex, period.shortname)}

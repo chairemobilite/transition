@@ -949,6 +949,10 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const numSegments = Math.min(...dataArray.map((d) => d.segments.length));
         const numStops = Math.min(...dataArray.map((d) => d.dwellTimeSeconds.length));
         const totalTripCount = dataArray.reduce((sum, d) => sum + d.tripCount, 0);
+        // When all entries have tripCount 0 (e.g. synthetic fallback data), use equal weights
+        const useEqualWeights = totalTripCount === 0;
+        const weight = (d: PeriodSegmentData) => (useEqualWeights ? 1 : d.tripCount);
+        const divisor = useEqualWeights ? dataArray.length : totalTripCount;
 
         const avgSegments: TimeAndDistance[] = [];
         const avgDwell: number[] = [];
@@ -958,24 +962,24 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             let distSum = 0;
             let hasDistance = false;
             for (const d of dataArray) {
-                travelSum += d.segments[i].travelTimeSeconds * d.tripCount;
+                travelSum += d.segments[i].travelTimeSeconds * weight(d);
                 if (d.segments[i].distanceMeters !== null) {
-                    distSum += d.segments[i].distanceMeters! * d.tripCount;
+                    distSum += d.segments[i].distanceMeters! * weight(d);
                     hasDistance = true;
                 }
             }
             avgSegments.push({
-                travelTimeSeconds: Math.round(travelSum / totalTripCount),
-                distanceMeters: hasDistance ? Math.round(distSum / totalTripCount) : null
+                travelTimeSeconds: Math.round(travelSum / divisor),
+                distanceMeters: hasDistance ? Math.round(distSum / divisor) : null
             });
         }
 
         for (let i = 0; i < numStops; i++) {
             let dwellSum = 0;
             for (const d of dataArray) {
-                dwellSum += d.dwellTimeSeconds[i] * d.tripCount;
+                dwellSum += d.dwellTimeSeconds[i] * weight(d);
             }
-            avgDwell.push(Math.round(dwellSum / totalTripCount));
+            avgDwell.push(Math.round(dwellSum / divisor));
         }
 
         const travelTimeWithoutDwellTimesSeconds = avgSegments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);

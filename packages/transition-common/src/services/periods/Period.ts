@@ -39,6 +39,17 @@ export const findPeriodShortname = (periods: Period[], timeSecondsSinceMidnight:
             return period.shortname;
         }
     }
+    // Assign pre-first-period trips (within overflow window) to the first period
+    const firstPeriod = periods[0];
+    const firstStartSeconds = firstPeriod.startAtHour * 3600;
+    if (
+        timeSecondsSinceMidnight < firstStartSeconds &&
+        timeSecondsSinceMidnight >= firstStartSeconds - MAX_OVERFLOW_SECONDS
+    ) {
+        return firstPeriod.shortname;
+    }
+
+    // Assign post-last-period trips (within overflow window) to the last period
     const lastPeriod = periods[periods.length - 1];
     const lastEndSeconds = lastPeriod.endAtHour * 3600;
     if (
