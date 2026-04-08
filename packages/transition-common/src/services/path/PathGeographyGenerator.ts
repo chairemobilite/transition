@@ -139,15 +139,23 @@ export const calculateSegmentDuration = (
     const routingEngine = path.getData('routingEngine') as string;
     const defaultRunningSpeedKmH = path.getData('defaultRunningSpeedKmH') as number;
 
-    const runningSpeedMps =
-        routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH)
-            ? segmentDistanceMeters / routedDurationSeconds
-            : kphToMps(defaultRunningSpeedKmH);
+    const usesRoutedDuration = routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH);
 
-    const noDwellTimeDurationSeconds =
-        routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH)
-            ? routedDurationSeconds
-            : segmentDistanceMeters / runningSpeedMps;
+    if (usesRoutedDuration && routedDurationSeconds <= 0) {
+        throw new TrError(
+            'Error trying to generate a path geography. OSRM returned zero or negative duration for segment.',
+            'PUPDGEO0002',
+            'TransitPathCannotUpdateGeographyBecauseErrorCalculatingSegmentDuration'
+        );
+    }
+
+    const runningSpeedMps = usesRoutedDuration
+        ? segmentDistanceMeters / routedDurationSeconds
+        : kphToMps(defaultRunningSpeedKmH);
+
+    const noDwellTimeDurationSeconds = usesRoutedDuration
+        ? routedDurationSeconds
+        : segmentDistanceMeters / runningSpeedMps;
 
     const calculatedSegmentDurationSeconds = durationFromAccelerationDecelerationDistanceAndRunningSpeed(
         acceleration,
@@ -156,7 +164,7 @@ export const calculateSegmentDuration = (
         runningSpeedMps
     );
 
-    if (calculatedSegmentDurationSeconds <= 0) {
+    if (!(calculatedSegmentDurationSeconds > 0)) {
         throw new TrError(
             'Error trying to generate a path geography. There was an error while calculating segment duration.',
             'PUPDGEO0001',
@@ -441,18 +449,21 @@ const buildPathData = (
         operatingTimeWithoutLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds,
         operatingTimeWithLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
         totalTravelTimeWithReturnBackSeconds: totals.totalTravelTimeWithReturnBackSeconds + layoverTimeSeconds,
-        averageSpeedWithoutDwellTimesMetersPerSecond: roundToDecimals(
-            totals.totalDistance / totals.totalTravelTimeWithoutDwellTimesSeconds,
-            2
-        ),
-        operatingSpeedMetersPerSecond: roundToDecimals(
-            totals.totalDistance / totals.totalTravelTimeWithDwellTimesSeconds,
-            2
-        ),
-        operatingSpeedWithLayoverMetersPerSecond: roundToDecimals(
-            totals.totalDistance / (totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds),
-            2
-        ),
+        averageSpeedWithoutDwellTimesMetersPerSecond:
+            totals.totalTravelTimeWithoutDwellTimesSeconds > 0
+                ? roundToDecimals(totals.totalDistance / totals.totalTravelTimeWithoutDwellTimesSeconds, 2)
+                : 0,
+        operatingSpeedMetersPerSecond:
+            totals.totalTravelTimeWithDwellTimesSeconds > 0
+                ? roundToDecimals(totals.totalDistance / totals.totalTravelTimeWithDwellTimesSeconds, 2)
+                : 0,
+        operatingSpeedWithLayoverMetersPerSecond:
+            totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds > 0
+                ? roundToDecimals(
+                    totals.totalDistance / (totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds),
+                    2
+                )
+                : 0,
         from_gtfs: false
     };
 };
@@ -676,11 +687,7 @@ const buildSegmentsAndGeometry = (
     // node if it was preserved, otherwise fall back to the node default.
     const lastNodeIndex = nextNodeIndex - 1;
     const lastNodeId = nodeIds[lastNodeIndex];
-    const preservedLastDwell = getPreservedNodeDwellTime(
-        lastNodeIndex,
-        initial.dwellTimeDurationsSeconds,
-        changesInfo
-    );
+    const preservedLastDwell = getPreservedNodeDwellTime(lastNodeIndex, initial.dwellTimeDurationsSeconds, changesInfo);
     dwellTimeDurationsSeconds.push(preservedLastDwell ?? getDwellTimeSecondsForNode(path, lastNodeId));
 
     const ratioDifferenceTime = numberOfSegmentsCumulated > 0 ? ratioCumulated / numberOfSegmentsCumulated : 1;

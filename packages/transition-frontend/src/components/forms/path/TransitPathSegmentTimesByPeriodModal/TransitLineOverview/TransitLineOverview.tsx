@@ -141,29 +141,24 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
     const nodeToCol = (absIdx: number) => 2 * absIdx + 1;
 
     return (
-        <div
-            ref={outerRef}
-            className="overview"
-        >
+        <div ref={outerRef} className="overview">
             {needsCarousel && (
                 <button
                     onClick={handleScrollLeft}
                     className="overview-nav-btn"
-                    style={{ color: atStart ? 'rgba(255,255,255,0.2)' : '#fff', cursor: atStart ? 'default' : 'pointer', visibility: atStart ? 'hidden' : 'visible' }}
+                    style={{
+                        color: atStart ? 'rgba(255,255,255,0.2)' : '#fff',
+                        cursor: atStart ? 'default' : 'pointer',
+                        visibility: atStart ? 'hidden' : 'visible'
+                    }}
                     aria-label="Scroll overview left"
                 >
                     <FontAwesomeIcon icon={faChevronLeft} className="overview-nav-icon" />
                 </button>
             )}
 
-            <div
-                ref={scrollRef}
-                className="overview-scroll-area"
-            >
-                <div
-                    className="overview-grid"
-                    style={{ gridTemplateColumns, width: gridWidth + 'px' }}
-                >
+            <div ref={scrollRef} className="overview-scroll-area">
+                <div className="overview-grid" style={{ gridTemplateColumns, width: gridWidth + 'px' }}>
                     {hasCheckpoints && (
                         <CheckpointLines
                             checkpoints={checkpoints}
@@ -203,7 +198,11 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
                 <button
                     onClick={handleScrollRight}
                     className="overview-nav-btn"
-                    style={{ color: atEnd ? 'rgba(255,255,255,0.2)' : '#fff', cursor: atEnd ? 'default' : 'pointer', visibility: atEnd ? 'hidden' : 'visible' }}
+                    style={{
+                        color: atEnd ? 'rgba(255,255,255,0.2)' : '#fff',
+                        cursor: atEnd ? 'default' : 'pointer',
+                        visibility: atEnd ? 'hidden' : 'visible'
+                    }}
                     aria-label="Scroll overview right"
                 >
                     <FontAwesomeIcon icon={faChevronRight} className="overview-nav-icon" />

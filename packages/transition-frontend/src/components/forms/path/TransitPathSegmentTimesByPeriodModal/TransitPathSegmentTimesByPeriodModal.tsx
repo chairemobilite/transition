@@ -109,11 +109,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                 document.body.style.overflow = '';
             }}
         >
-            <button
-                onClick={props.onClose}
-                className="close-btn"
-                aria-label="Close"
-            >
+            <button onClick={props.onClose} className="close-btn" aria-label="Close">
                 <FontAwesomeIcon icon={faTimes} />
             </button>
             <h3 className="title">{t('transit:transitPath:SegmentTimesByPeriod')}</h3>
@@ -137,11 +133,10 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                 />
 
                 {hasLengthMismatch() && (
-                    <p className="_orange warning-msg">
-                        {t('transit:transitPath:SegmentLengthMismatch')}
-                    </p>
+                    <p className="_orange warning-msg">{t('transit:transitPath:SegmentLengthMismatch')}</p>
                 )}
 
+<<<<<<< HEAD
                 {serviceChoices.length === 0 && (
                     <p className="_orange warning-msg">{t('transit:transitPath:NoServicesForPath')}</p>
                 )}
@@ -265,6 +260,7 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                 </div>
             </div>
 
+            {saveError && <p className="_error _small">{saveError}</p>}
             <div className="tr__form-buttons-container _center footer">
                 <Button color="green" label={t('main:Save')} onClick={handleSave} />
                 <Button color="grey" label={t('main:Cancel')} onClick={props.onClose} />

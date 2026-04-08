@@ -69,7 +69,6 @@ type SegmentPeriodTimesTableProps = {
     handleCellChange: (segmentIndex: number, periodShortname: string, newSeconds: number) => void;
 };
 
-
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
     activeSegmentIndex,
     periods,
@@ -88,21 +87,17 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
     const dwellTimeSeconds = getDwellTimeForSegment(activeSegmentIndex);
     const columnWidth = isFirstSegment ? '30%' : '18%';
 
-    // Pre-compute stable callbacks per period so MemoizedPeriodRow receives the same reference
-    const periodCallbacks = React.useRef<Record<string, (newSeconds: number) => void>>({});
-    periods.forEach((period) => {
-        if (!periodCallbacks.current[period.shortname]) {
-            periodCallbacks.current[period.shortname] = (newSeconds: number) =>
+    // Memoize callbacks per period so MemoizedPeriodRow receives a stable reference.
+    // Rebuilds whenever activeSegmentIndex, periods, or handleCellChange change — this
+    // keeps the closure's captured segmentIndex in sync with the rendered row.
+    const periodCallbacks = React.useMemo(() => {
+        const cb: Record<string, (newSeconds: number) => void> = {};
+        for (const period of periods) {
+            cb[period.shortname] = (newSeconds: number) =>
                 handleCellChange(activeSegmentIndex, period.shortname, newSeconds);
         }
-    });
-    // Update callbacks when activeSegmentIndex changes
-    React.useEffect(() => {
-        periods.forEach((period) => {
-            periodCallbacks.current[period.shortname] = (newSeconds: number) =>
-                handleCellChange(activeSegmentIndex, period.shortname, newSeconds);
-        });
-    }, [activeSegmentIndex]);
+        return cb;
+    }, [activeSegmentIndex, periods, handleCellChange]);
 
     return (
         <div className="period-table-wrapper">
@@ -114,18 +109,35 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
             {!isFirstSegment && (
                 <div className="stop-time-row">
                     <strong>{t('transit:transitPath:DwellTime')}:</strong>
-                    <TimeInput seconds={dwellTimeSeconds} onChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)} />
+                    <TimeInput
+                        seconds={dwellTimeSeconds}
+                        onChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
+                    />
                 </div>
             )}
             <table className="period-table">
                 <thead>
                     <tr>
                         <th className="period-table-th">{t('transit:transitPath:Period')}</th>
-                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>}
-                        {!isFirstSegment && <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DwellTime')}</th>}
-                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:DepartureTime')}</th>
-                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:SegmentTime')}</th>
-                        <th className="period-table-th center" style={{ width: columnWidth }}>{t('transit:transitPath:ArrivalTime')}</th>
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:ArrivalTime')}
+                            </th>
+                        )}
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:DwellTime')}
+                            </th>
+                        )}
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:DepartureTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:SegmentTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:ArrivalTime')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,11 +149,15 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                             isFirstSegment={isFirstSegment}
                             locked={locked}
                             dwellTimeSeconds={dwellTimeSeconds}
-                            arrivalTimePrevSeconds={activeSegmentIndex > 0 ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, period.shortname) : 0}
+                            arrivalTimePrevSeconds={
+                                activeSegmentIndex > 0
+                                    ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, period.shortname)
+                                    : 0
+                            }
                             departureTimeSeconds={getDepartureTimeAtSegment(activeSegmentIndex, period.shortname)}
                             segmentTimeSeconds={getTimeForCell(activeSegmentIndex, period.shortname)}
                             arrivalTimeSeconds={getArrivalTimeAfterSegment(activeSegmentIndex, period.shortname)}
-                            onSegmentTimeChange={periodCallbacks.current[period.shortname]}
+                            onSegmentTimeChange={periodCallbacks[period.shortname]}
                         />
                     ))}
                 </tbody>

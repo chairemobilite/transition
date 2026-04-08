@@ -84,11 +84,7 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
                 className="time-input-minutes"
             />
             <span className="time-input-unit">min</span>
-            <ScrollableDropdown
-                value={secs}
-                choices={SECONDS_CHOICES}
-                onSelect={(val) => onChange(mins * 60 + val)}
-            />
+            <ScrollableDropdown value={secs} choices={SECONDS_CHOICES} onSelect={(val) => onChange(mins * 60 + val)} />
             <span className="time-input-unit">sec</span>
         </span>
     );

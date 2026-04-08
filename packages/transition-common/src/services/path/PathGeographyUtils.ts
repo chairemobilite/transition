@@ -427,6 +427,7 @@ class PathGeographyUtils {
         const scaledTotal = scaledTimes.reduce((sum, v) => sum + v, 0);
         if (scaledTotal !== targetTotalTimeSeconds && scaledTimes.length > 0) {
             scaledTimes[scaledTimes.length - 1] += targetTotalTimeSeconds - scaledTotal;
+            scaledTimes[scaledTimes.length - 1] = Math.max(0, scaledTimes[scaledTimes.length - 1]);
         }
 
         return scaledTimes;
