@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+/** A named time-of-day period (e.g. AM peak, off-peak) defined by start/end hours. */
 export type Period = {
     shortname: string;
     name: { [key: string]: string };
@@ -12,6 +13,7 @@ export type Period = {
     endAtHour: number;
 };
 
+/** A named collection of time periods (e.g. "default" group with AM/PM/off-peak/evening/night). */
 export type PeriodsGroup = {
     name: { [key: string]: string };
     periods: Period[];
