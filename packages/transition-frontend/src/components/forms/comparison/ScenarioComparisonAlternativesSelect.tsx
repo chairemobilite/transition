@@ -7,8 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
-import { bbox as turfBbox, featureCollection as turfFeatureCollection } from '@turf/turf';
-
+import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import ScenarioComparisonResults from './ScenarioComparisonResults';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
@@ -96,12 +95,7 @@ const AlternativesSelect: React.FunctionComponent<AlternativesSelectProps> = (pr
                 if (pathGeojson2?.features) allFeatures.push(...pathGeojson2.features);
 
                 if (allFeatures.length > 0) {
-                    const combined = turfFeatureCollection(allFeatures);
-                    const bounds = turfBbox(combined);
-                    serviceLocator.eventManager.emit('map.fitBounds', [
-                        [bounds[0], bounds[1]], // southwest
-                        [bounds[2], bounds[3]] // northeast
-                    ]);
+                    serviceLocator.eventManager.emit('map.fitBounds', turfFeatureCollection(allFeatures));
                 }
             } catch (error) {
                 console.error(
