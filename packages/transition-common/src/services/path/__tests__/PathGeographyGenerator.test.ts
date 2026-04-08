@@ -2157,3 +2157,69 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         verifyPeriodAggregates(amData);
     });
 });
+
+describe('calculateSegmentDuration', () => {
+    const { calculateSegmentDuration } = require('../PathGeographyGenerator');
+
+    test('throws when routedDurationSeconds is 0 with engine routing', () => {
+        const path = new TransitPathStub({
+            id: 'pathZeroDuration',
+            line_id: line.get('id'),
+            nodes: [node1.properties.id, node2.properties.id],
+            data: {
+                routingEngine: 'engine',
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                nodeTypes: ['engine', 'engine'],
+                waypoints: [],
+                waypointTypes: []
+            }
+        });
+
+        expect(() => calculateSegmentDuration(path, 500, 0)).toThrow();
+    });
+
+    test('throws when routedDurationSeconds is negative with engine routing', () => {
+        const path = new TransitPathStub({
+            id: 'pathNegDuration',
+            line_id: line.get('id'),
+            nodes: [node1.properties.id, node2.properties.id],
+            data: {
+                routingEngine: 'engine',
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                nodeTypes: ['engine', 'engine'],
+                waypoints: [],
+                waypointTypes: []
+            }
+        });
+
+        expect(() => calculateSegmentDuration(path, 500, -1)).toThrow();
+    });
+
+    test('does not throw when routedDurationSeconds is 0 with manual routing and valid defaultRunningSpeedKmH', () => {
+        const path = new TransitPathStub({
+            id: 'pathManual',
+            line_id: line.get('id'),
+            nodes: [node1.properties.id, node2.properties.id],
+            data: {
+                routingEngine: 'manual',
+                defaultAcceleration: DEFAULT_ACC_DEC,
+                defaultDeceleration: DEFAULT_ACC_DEC,
+                defaultRunningSpeedKmH: DEFAULT_SPEED,
+                defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+                nodeTypes: ['engine', 'engine'],
+                waypoints: [],
+                waypointTypes: []
+            }
+        });
+
+        const result = calculateSegmentDuration(path, 500, 0);
+        expect(result.calculatedSegmentDurationSeconds).toBeGreaterThan(0);
+        expect(Number.isFinite(result.calculatedSegmentDurationSeconds)).toBe(true);
+    });
+});

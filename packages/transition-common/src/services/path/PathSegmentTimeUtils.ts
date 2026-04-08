@@ -49,4 +49,3 @@ export const formatSeconds = (seconds: number): string => {
     const secs = rounded % 60;
     return `${mins}m${secs < 10 ? '0' : ''}${secs}s`;
 };
-

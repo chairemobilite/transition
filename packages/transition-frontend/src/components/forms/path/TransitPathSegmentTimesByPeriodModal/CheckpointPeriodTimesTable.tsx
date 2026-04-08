@@ -23,7 +23,6 @@ type CheckpointPeriodTimesTableProps = {
     onTargetChange: (periodShortname: string, newSeconds: number) => void;
 };
 
-
 const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesTableProps> = ({
     totalDwellTimeSeconds,
     periods,
@@ -40,42 +39,50 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
                 <thead>
                     <tr>
                         <th className="period-table-th">{t('transit:transitPath:Period')}</th>
-                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:CurrentTotal')}</th>
-                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TargetTotal')}</th>
-                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalDwellTime')}</th>
-                        <th className="period-table-th center" style={{ width: '18%' }}>{t('transit:transitPath:TotalWithDwell')}</th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>
+                            {t('transit:transitPath:CurrentTotal')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>
+                            {t('transit:transitPath:TargetTotal')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>
+                            {t('transit:transitPath:TotalDwellTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: '18%' }}>
+                            {t('transit:transitPath:TotalWithDwell')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                {periods.map((period) => {
-                    const current = getCurrentTotal(period.shortname);
-                    const target = getTarget(period.shortname);
-                    const totalWithDwell = target + totalDwellTimeSeconds;
-                    return (
-                        <tr key={period.shortname} className="period-table-row">
-                            <td className="period-table-td">{period.name[language] || period.shortname}</td>
-                            <td className="period-table-td center">
-                                <strong>{formatSeconds(current)}</strong>
-                            </td>
-                            <td className="period-table-td center">
-                                <TimeInput
-                                    seconds={target}
-                                    onChange={(newSec) => onTargetChange(period.shortname, newSec)}
-                                />
-                            </td>
-                            <td className="period-table-td center">{formatSeconds(totalDwellTimeSeconds)}</td>
-                            <td className="period-table-td center">
-                                <TimeInput
-                                    seconds={totalWithDwell}
-                                    onChange={(newSec) => {
-                                        const newTarget = Math.max(0, newSec - totalDwellTimeSeconds);
-                                        onTargetChange(period.shortname, newTarget);
-                                    }}
-                                />
-                            </td>
-                        </tr>
-                    );
-                })}
+                    {periods.map((period) => {
+                        const current = getCurrentTotal(period.shortname);
+                        const target = getTarget(period.shortname);
+                        const totalWithDwell = target + totalDwellTimeSeconds;
+                        return (
+                            <tr key={period.shortname} className="period-table-row">
+                                <td className="period-table-td">{period.name[language] || period.shortname}</td>
+                                <td className="period-table-td center">
+                                    <strong>{formatSeconds(current)}</strong>
+                                </td>
+                                <td className="period-table-td center">
+                                    <TimeInput
+                                        seconds={target}
+                                        onChange={(newSec) => onTargetChange(period.shortname, newSec)}
+                                    />
+                                </td>
+                                <td className="period-table-td center">{formatSeconds(totalDwellTimeSeconds)}</td>
+                                <td className="period-table-td center">
+                                    <TimeInput
+                                        seconds={totalWithDwell}
+                                        onChange={(newSec) => {
+                                            const newTarget = Math.max(0, newSec - totalDwellTimeSeconds);
+                                            onTargetChange(period.shortname, newTarget);
+                                        }}
+                                    />
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

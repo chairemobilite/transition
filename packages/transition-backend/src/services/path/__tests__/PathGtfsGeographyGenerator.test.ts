@@ -641,14 +641,15 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         expect(result['svcA']['am_peak'].segments[0].travelTimeSeconds).toEqual(110);
     });
 
-    test('should skip trips that fall before the first period', () => {
+    test('should assign trips shortly before first period to first period', () => {
+        // 3:00 AM (10800s) is 3h before am_peak start (6:00 AM), within 6h overflow
         const earlyTrip = makeTrip([[10800, 10800], [10900, 10900]], 'svc1');
         const amTrip = makeTrip([[25200, 25200], [25300, 25300]], 'svc1');
 
         const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [earlyTrip, amTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(Object.keys(result)).toEqual(['svc1']);
-        expect(result['svc1']['am_peak'].tripCount).toEqual(1);
+        expect(result['svc1']['am_peak'].tripCount).toEqual(2);
     });
 
     test('should assign trip shortly after last period to last period', () => {

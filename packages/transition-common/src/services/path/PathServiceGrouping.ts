@@ -36,8 +36,7 @@ const findDistinguishingToken = (groupNames: string[], otherNames: string[]): st
     if (groupNames.length === 0) return undefined;
 
     const isValid = (candidate: string) =>
-        groupNames.every((name) => name.includes(candidate)) &&
-        !otherNames.some((name) => name.includes(candidate));
+        groupNames.every((name) => name.includes(candidate)) && !otherNames.some((name) => name.includes(candidate));
 
     const first = groupNames[0];
     for (let len = first.length; len >= 3; len--) {
@@ -263,10 +262,7 @@ const collectServiceNames = (serviceIds: string[], servicesCollection: any): str
  * sibling group's names. Returns undefined when the group has fewer than two
  * services with names or no token is found.
  */
-const computeGroupCommonName = (
-    groupNames: string[],
-    otherGroupsNames: string[]
-): string | undefined => {
+const computeGroupCommonName = (groupNames: string[], otherGroupsNames: string[]): string | undefined => {
     if (groupNames.length < 2) return undefined;
     return findDistinguishingToken(groupNames, otherGroupsNames);
 };
@@ -347,9 +343,7 @@ const assignCommonNamesForDuplicates = (groups: ServiceGroup[], servicesCollecti
         if (bucket.length < 2) continue;
         const namesByGroupIndex = bucket.map((g) => collectServiceNames(g.serviceIds, servicesCollection));
         for (let i = 0; i < bucket.length; i++) {
-            const otherNames = namesByGroupIndex
-                .filter((_, index) => index !== i)
-                .flat();
+            const otherNames = namesByGroupIndex.filter((_, index) => index !== i).flat();
             bucket[i].commonName = computeGroupCommonName(namesByGroupIndex[i], otherNames);
         }
     }
@@ -420,7 +414,9 @@ export const expandGroupedDataToServices = (
         if (editedServiceId) {
             for (const otherId of group.serviceIds) {
                 if (otherId !== editedServiceId) {
-                    expanded[otherId] = { ...expanded[editedServiceId] };
+                    expanded[otherId] = Object.fromEntries(
+                        Object.entries(expanded[editedServiceId]).map(([k, arr]) => [k, [...arr]])
+                    );
                 }
             }
         }
