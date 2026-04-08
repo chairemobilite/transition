@@ -22,6 +22,11 @@ import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
 import { OdTripRouteResult } from './types';
+import {
+    BatchRoutingLogProgress,
+    InteractiveBatchRoutingLogProgress,
+    NonInteractiveBatchRoutingLogProgress
+} from './TrRoutingBatchLogger';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -137,13 +142,11 @@ export class TrRoutingBatchExecutor {
             const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
             const benchmarkStart = performance.now();
-            const logOdTripBefore = (_index: number) => {
-                // No per-trip logging; inline progress bar is used instead
-            };
-            const logOdTripAfter = (_index: number) => {
-                // No per-trip logging; inline progress bar is used instead
-            };
-            let lastProgressPct = -1;
+            const totalToRoute = odTripsCount - startIndex;
+            const logProgress: BatchRoutingLogProgress =
+                process.stdout.isTTY === true
+                    ? new InteractiveBatchRoutingLogProgress(startIndex, totalToRoute, benchmarkStart)
+                    : new NonInteractiveBatchRoutingLogProgress(odTripsCount, startIndex, progressStep, benchmarkStart);
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
@@ -156,7 +159,6 @@ export class TrRoutingBatchExecutor {
                     }
                 }
             );
-            const totalToRoute = odTripsCount - startIndex;
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
@@ -166,8 +168,7 @@ export class TrRoutingBatchExecutor {
                     try {
                         await this.odTripTask(odTripIndex, {
                             trRoutingPort,
-                            logBefore: logOdTripBefore,
-                            logAfter: logOdTripAfter
+                            logBefore: logProgress.beforeOdTrip
                         });
                     } finally {
                         try {
@@ -180,19 +181,7 @@ export class TrRoutingBatchExecutor {
                             }
                             checkpointTracker.handled(odTripIndex);
 
-                            const done = completedRoutingsCount - startIndex;
-                            const pct = Math.floor((done / totalToRoute) * 100);
-                            if (pct > lastProgressPct) {
-                                lastProgressPct = pct;
-                                const elapsed = (performance.now() - benchmarkStart) / 1000;
-                                const calcPerSec = elapsed > 0 ? (done / elapsed).toFixed(1) : '0';
-                                const barLen = 30;
-                                const filled = Math.round((pct / 100) * barLen);
-                                const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barLen - filled);
-                                process.stdout.write(
-                                    `\r  [${bar}] ${pct}% (${done}/${totalToRoute}) ${calcPerSec} calc/s`
-                                );
-                            }
+                            logProgress.afterOdTrip(odTripIndex, completedRoutingsCount);
                         } catch (error) {
                             console.error(
                                 `tripRouting: Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`
@@ -203,8 +192,7 @@ export class TrRoutingBatchExecutor {
             }
 
             await promiseQueue.onIdle();
-            // Finish progress bar line
-            process.stdout.write('\n');
+            logProgress.end();
             // Drain any remaining buffered results not yet flushed by a checkpoint
             const remaining = this.resultBuffer.splice(0);
             if (remaining.length > 0) {
@@ -305,7 +293,6 @@ export class TrRoutingBatchExecutor {
         options: {
             trRoutingPort?: number;
             logBefore: (index: number) => void;
-            logAfter: (index: number) => void;
         }
     ) => {
         const odTrip = this.odTrips[odTripIndex];
@@ -347,8 +334,6 @@ export class TrRoutingBatchExecutor {
                     await resultsDbQueries.createMany(toFlush);
                 }
             }
-            options.logAfter(odTripIndex);
-
             return routingResult;
         } catch (error) {
             this.errors.push({
