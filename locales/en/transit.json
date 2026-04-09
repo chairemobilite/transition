@@ -110,7 +110,9 @@
         "New": "New scenario",
         "Edit": "Scenario",
         "Delete": "Delete scenario",
+        "DeleteSelected": "Delete selected scenarios",
         "ConfirmDelete": "Do you confirm deletion of this scenario?",
+        "ConfirmDeleteSelected": "Do you confirm deletion of {{count}} selected scenarios? This operation cannot be undone.",
         "DuplicateScenario": "Duplicate scenario",
         "ImportFromJson": "Import scenarios (JSON)",
         "errors": {

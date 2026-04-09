@@ -110,7 +110,9 @@
         "Color": "Couleur",
         "Edit": "Scénario",
         "Delete": "Supprimer le scénario",
+        "DeleteSelected": "Supprimer les scénarios sélectionnés",
         "ConfirmDelete": "Confirmez-vous que vous désirez bien supprimer ce scénario?",
+        "ConfirmDeleteSelected": "Confirmez-vous que vous désirez bien supprimer les {{count}} scénarios sélectionnés? Cette opération est irréversible.",
         "DuplicateScenario": "Dupliquer le scénario",
         "ImportFromJson": "Importer des scénarios (JSON)",
         "errors": {

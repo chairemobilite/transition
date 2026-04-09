@@ -11,10 +11,13 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
 interface ScenarioButtonProps {
     scenario: Scenario;
     selectedScenario?: Scenario;
+    isChecked: boolean;
+    setChecked: (scenarioId: string, isChecked: boolean) => void;
 }
 
 const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (props: ScenarioButtonProps) => {
@@ -74,6 +77,15 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
                     : undefined
             }
         >
+            <ButtonCell alignment="left">
+                <InputCheckboxBoolean
+                    disabled={isFrozen}
+                    id={`transitScenarioSelect${props.scenario.getId()}`}
+                    label=" "
+                    isChecked={props.isChecked}
+                    onValueChange={(e) => props.setChecked(props.scenario.getId(), e.target.value)}
+                />
+            </ButtonCell>
             <ButtonCell alignment="left">
                 <span className="_circle-button" style={{ backgroundColor: props.scenario.attributes.color }}></span>
             </ButtonCell>
