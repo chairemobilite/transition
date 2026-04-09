@@ -200,6 +200,7 @@
   "DeletingLines": "Suppression des lignes",
   "DeletingAgencies": "Suppression des agences",
   "DeletingScenarios": "Suppression des scénarios",
+  "DeletingSelectedScenarios": "Suppression des scénarios sélectionnés",
   "DeletingServices": "Suppression des services",
   "DeletingUnusedServices": "Suppression des services inutilisés",
   "DeletingSelectedServices": "Suppression des services sélectionnés",

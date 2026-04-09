@@ -25,13 +25,34 @@ const mockScheduleDataHandler: TransitObjectDataHandler = {
         }
     }),
 };
+const mockDataHandlerWithAllFunctions: TransitObjectDataHandler = {
+    lowerCaseName: 'object',
+    className: 'Object',
+    classNamePlural: 'Objects',
+    create: jest.fn().mockResolvedValue({}),
+    read: jest.fn().mockResolvedValue({}),
+    update: jest.fn().mockResolvedValue({}),
+    delete: jest.fn().mockResolvedValue({}),
+    deleteMultiple: jest.fn().mockResolvedValue({}),
+    geojsonCollection: jest.fn().mockResolvedValue({}),
+    collection: jest.fn().mockResolvedValue({}),
+    saveCache: jest.fn().mockResolvedValue({}),
+    deleteCache: jest.fn().mockResolvedValue({}),
+    deleteMultipleCache: jest.fn().mockResolvedValue({}),
+    loadCache: jest.fn().mockResolvedValue({}),
+    saveCollectionCache: jest.fn().mockResolvedValue({}),
+    loadCollectionCache: jest.fn().mockResolvedValue({})
+};
+
 jest.mock('../../services/transitObjects/TransitObjectsDataHandler', () => ({
     __esModule: true,
     default: {
-        schedules: mockScheduleDataHandler
+        schedules: mockScheduleDataHandler,
+        objects: mockDataHandlerWithAllFunctions
     },
     createDataHandlers: jest.fn(() => ({
-        schedules: mockScheduleDataHandler
+        schedules: mockScheduleDataHandler,
+        objects: mockDataHandlerWithAllFunctions
     })),
     TransitObjectDataHandler: jest.fn()
 }));
@@ -60,6 +81,39 @@ transitObjectRoutes(socketStub);
 
 beforeEach(() => {
     jest.clearAllMocks();
+});
+
+describe('Object socket routes', () => {
+    // FIXME Add tests for create, read, update, delete, geojsonCollection,
+    // collection, saveCache, deleteCache, deleteMultipleCache, loadCache,
+    // saveCollectionCache, loadCollectionCache routes
+
+    describe('deleteMultiple route', () => {
+        test('deleteMultiple when the route exists', (done) => {
+            // Create ids to delete and set the mock to return those ids as deleted
+            const objectIdsToDelete = [uuidV4(), uuidV4()];
+            (mockDataHandlerWithAllFunctions.deleteMultiple as jest.MockedFunction<Exclude<typeof mockDataHandlerWithAllFunctions.deleteMultiple, undefined>>).mockResolvedValueOnce(Status.createOk({ deletedIds: objectIdsToDelete }));
+            socketStub.emit('transitObjects.deleteMultiple', objectIdsToDelete, (status: Status.Status<{ deletedIds: string[] }>) => {
+                expect(Status.isStatusOk(status)).toEqual(true);
+                expect(Status.unwrap(status)).toEqual({ deletedIds: objectIdsToDelete});
+                expect(mockDataHandlerWithAllFunctions.deleteMultiple).toHaveBeenLastCalledWith(socketStub, objectIdsToDelete);
+                done();
+            });
+        });
+
+        test('deleteMultiple route is not registered for schedules', () => {
+            const eventName = 'transitSchedules.deleteMultiple';
+
+            // Route is not registered
+            expect(socketStub.listenerCount(eventName)).toBe(0);
+
+            // Optional stronger check: emit returns false when no listeners exist
+            const callback = jest.fn();
+            const emitted = socketStub.emit(eventName, ['id-1'], callback);
+            expect(emitted).toBe(false);
+            expect(callback).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe('Service duplication route', () => {

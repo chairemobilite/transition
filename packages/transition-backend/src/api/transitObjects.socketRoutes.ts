@@ -46,6 +46,14 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
             }
         );
 
+        // Delete multiple objects from database
+        if (dataHandler.deleteMultiple) {
+            socket.on(`transit${dataHandler.classNamePlural}.deleteMultiple`, async (ids: string[], callback) => {
+                const response = await dataHandler.deleteMultiple!(socket, ids);
+                callback(response);
+            });
+        }
+
         // Get the geojson collection from DB if there is a geojson collection function
         if (dataHandler.geojsonCollection) {
             socket.on(

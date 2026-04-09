@@ -45,6 +45,8 @@ export interface TransitObjectDataHandler {
     read: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>;
     delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
+    // Optional function to delete multiple objects. Only objects supporting it will have this function
+    deleteMultiple?: (socket: EventEmitter, ids: string[]) => Promise<Status.Status<{ deletedIds: string[] }>>;
     geojsonCollection?: (
         params?
     ) => Promise<
@@ -106,7 +108,8 @@ const transitClassesConfig = {
         dbQueries: scenariosDbQueries,
         cacheQueries: scenariosCacheQueries,
         collection: new ScenarioCollection([], {}),
-        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveScenariosToCache
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveScenariosToCache,
+        deleteMultiple: scenariosDbQueries.deleteMultiple
     },
     services: {
         lowerCaseName: 'service',
@@ -263,6 +266,55 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                 }
             }
         };
+
+        // Delete multiple objects from database. Delete multiple needs to be
+        // explicitly added, even if a `deleteMultiple` query exists in the DB
+        // as we don't necessarily want to expose them all by default.
+        if (transitClassConfig.deleteMultiple) {
+            // FIXME Support deleting object cache if it is implemented.
+            // Currently not implemented, because not all requested objects to
+            // delete may have been deleted, we need to know exactly which ones
+            // were really deleted to delete the corresponding cache files. This
+            // should affect the lines only (no delete multiple for nodes), so
+            // when we implement the multiple delete for lines, it will need to
+            // be implemented
+            if (transitClassConfig.cacheQueries.deleteObjectCache) {
+                console.warn(
+                    'Transit object class ' +
+                        transitClassConfig.className +
+                        ' has deleteMultiple DB query but also have a deleteObjectCache cache query. Deleting such objects is not yet supported, as it will keep the cache with orphan files.'
+                );
+            }
+            dataHandler.deleteMultiple = async (socket: EventEmitter, ids: string[]) => {
+                try {
+                    // FIXME remove this if when this is supported. We still
+                    // want to add the handler and throw here as the previous
+                    // console.warn would be displayed on the server console
+                    // upon connection (and who reads that). Throwing will cause
+                    // the error to also be displayed in the UI when people try
+                    // to test the functionality and may be noticed more.
+                    if (transitClassConfig.cacheQueries.deleteObjectCache) {
+                        throw new TrError(
+                            'Deleting multiple objects with individual cache files is not yet supported',
+                            'SKTTRDM0001',
+                            'DeleteMultipleWithObjectCacheNotSupported'
+                        );
+                    }
+                    const deletedIds = await transitClassConfig.deleteMultiple(ids);
+                    if (deletedIds.length > 0 && isSocketIo(socket)) {
+                        // Objects were deleted, notify clients
+                        socket.broadcast.emit('data.updated');
+                        socket.emit('cache.dirty');
+                    }
+                    return Status.createOk({ deletedIds });
+                } catch (error) {
+                    console.error('Error deleting multiple objects: ', error);
+                    return Status.createError(
+                        TrError.isTrError(error) ? error.message : 'Error deleting multiple objects'
+                    );
+                }
+            };
+        }
 
         // Get the geojson collection from DB if there is a geojson collection function
         if (transitClassConfig.dbQueries.geojsonCollection) {

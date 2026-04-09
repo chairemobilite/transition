@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import Scenario from './Scenario';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
@@ -51,6 +52,23 @@ class ScenarioCollection extends GenericObjectCollection<Scenario> implements Pr
                 only_modes: attributes.only_modes ? attributes.only_modes.join('|') : '',
                 except_modes: attributes.except_modes ? attributes.except_modes.join('|') : ''
             };
+        });
+    }
+
+    async deleteByIds(ids: string[], socket): Promise<string[]> {
+        // FIXME This should only be called by the frontend as it calls the
+        // socket route. Our collections currently all use methods that call the
+        // backend through socket routes (saves and loads), so it makes sense to
+        // keep it here for now, but eventually, they should all be moved
+        // elsewhere, in frontend.
+        return new Promise((resolve, reject) => {
+            socket.emit('transitScenarios.deleteMultiple', ids, (response: Status.Status<{ deletedIds: string[] }>) => {
+                if (Status.isStatusOk(response)) {
+                    resolve(Status.unwrap(response).deletedIds);
+                } else {
+                    reject(response.error);
+                }
+            });
         });
     }
 
