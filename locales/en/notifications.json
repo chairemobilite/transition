@@ -199,6 +199,7 @@
   "DeletingLines": "Deleting lines",
   "DeletingAgencies": "Deleting agencies",
   "DeletingScenarios": "Deleting scenarios",
+  "DeletingSelectedScenarios": "Deleting selected scenarios",
   "DeletingServices": "Deleting services",
   "DeletingUnusedServices": "Deleting unused services",
   "DeletingSelectedServices": "Deleting selected services",

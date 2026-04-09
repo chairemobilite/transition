@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import Scenario from './Scenario';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
@@ -52,6 +53,25 @@ class ScenarioCollection extends GenericObjectCollection<Scenario> implements Pr
                 except_modes: attributes.except_modes ? attributes.except_modes.join('|') : ''
             };
         });
+    }
+
+    async deleteByIds(ids: string[], socket) {
+        // Delete scenarios individually
+        // FIXME Support a batch delete job in the backend to avoid multiple long calls, but this is similar to the services delete call
+        const promises = ids.map((id) => {
+            const scenario = this.getById(id);
+            if (scenario && !scenario.isFrozen()) {
+                return scenario.delete(socket);
+            } else {
+                return Promise.reject(`Scenario with id ${id} is either not found or frozen and cannot be deleted`);
+            }
+        });
+        const results = await Promise.allSettled(promises);
+        results
+            .filter((result) => result.status !== 'fulfilled' || Status.isStatusError(result.value))
+            .forEach((result) =>
+                console.log(`Error deleting scenario: ${result.status !== 'fulfilled' ? result.reason : result.value}`)
+            );
     }
 
     newObject(attribs: Partial<GenericAttributes>, isNew = false, collectionManager?: CollectionManager): Scenario {

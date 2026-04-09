@@ -125,6 +125,65 @@ test('should construct scenario collection with or without features', function()
 
 });
 
+describe('deleteByIds', () => {
+    test('deleteByIds should delete only matching non-frozen scenarios', async () => {
+        const scenario1 = new Scenario(scenarioAttributes1, false);
+        const scenario2 = new Scenario(scenarioAttributes2, false);
+        const scenario3 = new Scenario(scenarioAttributes3, false);
+        const scenario4 = new Scenario({ ...scenarioAttributes3, id: uuidV4() }, false);
+        const collection = new ScenarioCollection([scenario1, scenario2, scenario3, scenario4], {}, eventManager);
+        const socket = eventManager;
+
+        const deleteSpy1 = jest.spyOn(scenario1, 'delete').mockResolvedValue({ status: 'ok', result: { id: scenario1.getId() } });
+        const deleteSpy2 = jest.spyOn(scenario2, 'delete');
+        const deleteSpy3 = jest.spyOn(scenario3, 'delete').mockResolvedValue({ status: 'ok', result: { id: scenario3.getId() } });
+        const deleteSpy4 = jest.spyOn(scenario4, 'delete').mockResolvedValue({ status: 'ok', result: { id: scenario4.getId() } });
+
+        await collection.deleteByIds([scenario1.getId(), scenario2.getId(), scenario3.getId()], socket);
+
+        expect(deleteSpy1).toHaveBeenCalledTimes(1);
+        expect(deleteSpy1).toHaveBeenCalledWith(socket);
+        // scenario2 is frozen, so it should not be deleted
+        expect(deleteSpy2).not.toHaveBeenCalled();
+        expect(deleteSpy3).toHaveBeenCalledTimes(1);
+        expect(deleteSpy3).toHaveBeenCalledWith(socket);
+        // scenario4 is not scheduled to be deleted
+        expect(deleteSpy4).not.toHaveBeenCalled();
+    });
+
+    test('deleteByIds should ignore unknown ids', async () => {
+        const scenario1 = new Scenario(scenarioAttributes1, false);
+        const collection = new ScenarioCollection([scenario1], {}, eventManager);
+        const socket = eventManager;
+
+        const deleteSpy = jest.spyOn(scenario1, 'delete').mockResolvedValue({ status: 'ok', result: { id: scenario1.getId() } });
+
+        await collection.deleteByIds([uuidV4()], socket);
+
+        expect(deleteSpy).not.toHaveBeenCalled();
+    });
+
+    test('deleteByIds should complete even if some deletions fail', async () => {
+        const scenario1 = new Scenario(scenarioAttributes1, false);
+        const scenario2 = new Scenario(scenarioAttributes2, false);
+        const scenario3 = new Scenario(scenarioAttributes3, false);
+        const collection = new ScenarioCollection([scenario1, scenario2, scenario3], {}, eventManager);
+        const socket = eventManager;
+
+        const deleteSpy1 = jest.spyOn(scenario1, 'delete').mockResolvedValue({ status: 'ok', result: { id: scenario1.getId() } });
+        const deleteSpy3 = jest.spyOn(scenario3, 'delete').mockResolvedValue({ status: 'error', error: 'Deletion failed' });
+        
+        await collection.deleteByIds([scenario1.getId(), scenario3.getId()], socket);
+        // No exception expected, even if scenario3 deletion fails
+
+        expect(deleteSpy1).toHaveBeenCalledTimes(1);
+        expect(deleteSpy1).toHaveBeenCalledWith(socket);
+        // Delete was called, but returned error
+        expect(deleteSpy3).toHaveBeenCalledTimes(1);
+        expect(deleteSpy3).toHaveBeenCalledWith(socket);
+    });
+});
+
 test('Load from server', async () => {
     EventManagerMock.emitResponseReturnOnce({collection: [scenarioAttributes1, scenarioAttributes2]});
 
