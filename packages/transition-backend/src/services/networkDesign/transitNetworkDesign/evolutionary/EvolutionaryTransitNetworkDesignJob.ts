@@ -351,7 +351,8 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         this.job.attributes.internal_data.currentGeneration = {
             candidates: candidates.map((candidate) => ({
                 chromosome: candidate.getChromosome(),
-                scenarioId: candidate.getScenario()?.id
+                scenarioId: candidate.getScenario()?.id,
+                source: candidate.getSource()
             }))
         };
         await this.job.save(this.executorOptions.progressEmitter);
@@ -534,7 +535,8 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             nonRoutedCount: undefined,
             usersHourlyCost: undefined,
             normalizedUserCost: undefined,
-            differentialUsersHourlyCost: undefined
+            differentialUsersHourlyCost: undefined,
+            candidateSource: undefined
         };
 
         // Register the output files and create streams
@@ -597,7 +599,8 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                 differentialUsersHourlyCost:
                     typeof row.data?.differentialUsersHourlyCost === 'number'
                         ? row.data.differentialUsersHourlyCost
-                        : undefined
+                        : undefined,
+                candidateSource: row.candidate_data?.source ? JSON.stringify(row.candidate_data.source) : undefined
             };
             simulationsCsvStream.write(unparse([csvAttributes], { header: false }) + '\n');
         }

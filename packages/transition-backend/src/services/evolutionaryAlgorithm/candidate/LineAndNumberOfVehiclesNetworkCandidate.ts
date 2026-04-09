@@ -13,7 +13,10 @@ import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import * as AlgoTypes from '../internalTypes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomFromDistribution } from 'chaire-lib-common/lib/utils/RandomUtils';
-import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import {
+    CandidateSource,
+    EvolutionaryTransitNetworkDesignJobType
+} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import { SIMULATION_METHODS_FACTORY } from '../../simulation/methods/SimulationMethod';
 import { CandidateResult, ResultSerialization } from './types';
@@ -23,14 +26,16 @@ const USED_VEHICLES_THRESHOLD = 0.75;
 
 class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     private scenario: Scenario | undefined;
+    private source: CandidateSource | undefined;
 
     constructor(
         chromosome: AlgoTypes.CandidateChromosome,
         wrappedJob: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
-        scenario?: Scenario
+        data: { scenario?: Scenario; source?: CandidateSource } = {}
     ) {
         super(chromosome, wrappedJob);
-        this.scenario = scenario;
+        this.scenario = data.scenario;
+        this.source = data.source;
     }
 
     private prepareNetwork(): Line[] {
@@ -224,7 +229,8 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
             numberOfLines: 0,
             numberOfVehicles: 0,
             maxNumberOfVehicles: this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles,
-            result
+            result,
+            source: this.source
         };
         let totalNumberOfVehicles = 0;
         let numberOfLines = 0;
@@ -266,6 +272,15 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         details.numberOfVehicles = totalNumberOfVehicles;
         details.numberOfLines = numberOfLines;
         return details;
+    }
+
+    /**
+     * Get this candidate's source information, which can be used to know how it
+     * was generated (randomly, from crossover or mutation, etc.)
+     * @returns The source information of the candidate
+     */
+    getSource(): CandidateSource | undefined {
+        return this.source;
     }
 }
 

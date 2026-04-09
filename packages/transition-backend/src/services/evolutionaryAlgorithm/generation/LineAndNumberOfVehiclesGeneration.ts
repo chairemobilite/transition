@@ -17,10 +17,14 @@ import Mutation from '../reproduction/Mutation';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { sequentialArray } from 'chaire-lib-common/lib/utils/MathUtils';
 import LineAndNumberOfVehiclesGenerationLogger from './LineAndNumberOfVehiclesGenerationLogger';
-import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import {
+    CandidateSource,
+    EvolutionaryTransitNetworkDesignJobType
+} from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import LineAndNumberOfVehiclesNetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
+import _ from 'lodash';
 
 const chromosomeExists = (chrom: boolean[], linesChromosomes: boolean[][]) =>
     linesChromosomes.findIndex((chromosome) => _isEqual(chromosome, chrom)) !== -1;
@@ -83,7 +87,11 @@ export const generateFirstCandidates = (
         );
 
         linesChromosomes.push(linesChromosome);
-        candidates.push(new NetworkCandidate({ lines: linesChromosome, name: `GEN0_C${i}` }, jobWrapper));
+        candidates.push(
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN0_C${i}` }, jobWrapper, {
+                source: { type: 'random' }
+            })
+        );
     }
     return candidates;
 };
@@ -159,11 +167,10 @@ export const reproduceCandidates = (
         linesChromosomes.push(linesChromosome);
         candidates.push(
             // Pass the scenario to the elite candidates to fix the number of vehicles and service level as well
-            new NetworkCandidate(
-                { lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` },
-                jobWrapper,
-                previousGenSorted[i].getScenario()
-            )
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper, {
+                scenario: previousGenSorted[i].getScenario(),
+                source: { type: 'elite' }
+            })
         );
     }
 
@@ -183,13 +190,16 @@ export const reproduceCandidates = (
 
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper, {
+                source: { type: 'random' }
+            })
         );
     }
 
     for (let i = elitesToKeep + randomToCreate; i < jobWrapper.job.attributes.internal_data.populationSize!; i++) {
         let linesChromosome: boolean[] = [];
         let activeLineCount = 0;
+        let source: CandidateSource | undefined = undefined;
 
         do {
             const firstParentIndex = selection.selectCandidateIdx();
@@ -197,6 +207,7 @@ export const reproduceCandidates = (
             if (random.float(0.0, 1.0) > evolutionaryAlgorithmConfig.crossoverProbability) {
                 // No crossover, take the parent as is
                 linesChromosome = _cloneDeep(firstParent.getChromosome().lines);
+                source = { type: 'selected' as const, parent: firstParent.getChromosome().name, mutated: false };
             } else {
                 const secondParentIdx = selection.selectCandidateIdx([firstParentIndex]);
                 const secondParent = previousGenSorted[secondParentIdx];
@@ -207,16 +218,28 @@ export const reproduceCandidates = (
                     linesToKeepSize
                 );
                 linesChromosome = crossover.getChildChromosomes();
+                source = {
+                    type: 'crossover' as const,
+                    parents: [firstParent.getChromosome().name, secondParent.getChromosome().name],
+                    mutated: false
+                };
             }
 
-            linesChromosome = lineMutation.getMutatedChromosome(linesChromosome);
+            const mutatedChromosome = lineMutation.getMutatedChromosome(linesChromosome);
+            // Add whether the chromosome was mutated from the original one
+            if (_isEqual(mutatedChromosome, linesChromosome) === false) {
+                source.mutated = true;
+            }
+            linesChromosome = mutatedChromosome;
 
             activeLineCount = linesChromosome.filter((gene) => gene === true).length;
         } while (chromosomeExists(linesChromosome, linesChromosomes) || !linesNumInRange(activeLineCount));
 
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
+            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper, {
+                source
+            })
         );
     }
     if (shuffledGeneOrder !== undefined) {
@@ -236,11 +259,10 @@ export const resumeCandidatesFromChromosomes = (
 ): NetworkCandidate[] => {
     return currentGeneration.candidates.map(
         (candidateData) =>
-            new NetworkCandidate(
-                candidateData.chromosome,
-                jobWrapper,
-                scenarioCollection.getById(candidateData.scenarioId!)
-            )
+            new NetworkCandidate(candidateData.chromosome, jobWrapper, {
+                scenario: scenarioCollection.getById(candidateData.scenarioId!),
+                source: candidateData.source
+            })
     );
 };
 

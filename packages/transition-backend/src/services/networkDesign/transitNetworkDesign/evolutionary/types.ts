@@ -19,6 +19,12 @@ export type EvolutionaryTransitNetworkDesignJobParameters = {
     simulationMethod: SimulationMethodConfiguration;
 };
 
+export type CandidateSource =
+    | { type: 'elite' }
+    | { type: 'random' }
+    | { type: 'crossover'; parents: [string, string]; mutated: boolean }
+    | { type: 'selected'; parent: string; mutated: boolean };
+
 export type EvolutionaryTransitNetworkDesignJobType = {
     name: 'evolutionaryTransitNetworkDesign';
     data: {
@@ -38,6 +44,7 @@ export type EvolutionaryTransitNetworkDesignJobType = {
                 chromosome: CandidateChromosome;
                 scenarioId?: string;
                 fitness?: number;
+                source?: CandidateSource;
             }[];
         };
     };

@@ -33,7 +33,7 @@ const create = async (candidateResult: CandidateResultForDb): Promise<void> => {
                 generation_index: candidateResult.generationIndex,
                 candidate_index: candidateResult.candidateIndex,
                 total_fitness: candidateResult.resultData.result.totalFitness,
-                data: { scenarioName: candidateResult.scenarioName }
+                data: { scenarioName: candidateResult.scenarioName, source: candidateResult.resultData.source }
             })
             .returning('id');
         const candidateResultIdValue = candidateResultId[0].id;
