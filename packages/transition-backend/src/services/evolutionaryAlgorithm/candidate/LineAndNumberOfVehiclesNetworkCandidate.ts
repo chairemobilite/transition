@@ -129,8 +129,14 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     //TODO: Add functionality to the _socket argument, or remove it.
     async prepareScenario(_socket: EventEmitter): Promise<Scenario> {
         const lines = this.prepareNetwork();
-        const services = this.assignServices(lines);
-        services.push(...(this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices || []));
+        let services: string[] = [];
+        // Create a scenario with the same services as the already defined scenario
+        if (this.scenario !== undefined) {
+            services = this.scenario.attributes.services;
+        } else {
+            services = this.assignServices(lines);
+            services.push(...(this.wrappedJob.parameters.transitNetworkDesignParameters.nonSimulatedServices || []));
+        }
         const maxNumberOfVehicles = this.wrappedJob.parameters.transitNetworkDesignParameters.nbOfVehicles;
         const scenario = new Scenario(
             {
