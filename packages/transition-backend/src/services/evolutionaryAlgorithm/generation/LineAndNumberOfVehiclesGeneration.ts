@@ -158,7 +158,12 @@ export const reproduceCandidates = (
         const linesChromosome = _cloneDeep(previousGenSorted[i].getChromosome().lines);
         linesChromosomes.push(linesChromosome);
         candidates.push(
-            new NetworkCandidate({ lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` }, jobWrapper)
+            // Pass the scenario to the elite candidates to fix the number of vehicles and service level as well
+            new NetworkCandidate(
+                { lines: linesChromosome, name: `GEN${currentGeneration}_C${i}` },
+                jobWrapper,
+                previousGenSorted[i].getScenario()
+            )
         );
     }
 
