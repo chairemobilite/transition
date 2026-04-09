@@ -21,11 +21,14 @@ import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
+import { OdTripRouteResult } from './types';
 
 const CHECKPOINT_INTERVAL = 250;
 
 /**
- * Do batch calculation on a csv file input
+ * Do batch calculation on a csv file input. This function wraps the execution,
+ * as well as result files generation. For other result handling, directly use
+ * TrRoutingBatchExecutor to execute then handle the results.
  *
  * @param demandParameters The parameters for the batch calculation task
  * @param batchRoutingQueryAttributes The transit routing parameters, for
@@ -39,7 +42,6 @@ const CHECKPOINT_INTERVAL = 250;
  * completed od trips routed.
  * @returns
  */
-
 export const batchRoute = async (
     job: ExecutableJob<BatchRouteJobType>,
     options: {
@@ -51,32 +53,57 @@ export const batchRoute = async (
         files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
     }
 > => {
-    return new TrRoutingBatch(job, options).run();
+    const batchRoutingExecutor = new TrRoutingBatchExecutor(job, options);
+    const execResults = await batchRoutingExecutor.run();
+    if (execResults.completed === true) {
+        // Handle the result
+        // TODO Consider passing the progress emitter to the result visitor instead for finer grained progress reporting
+        options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
+        // FIXME We hardcode the result visitor to file output for now, but we could have other implementations (like calculating statistics, or nothing at all)
+        // FIXME2 Also, since we do not have any way of handling the results after the job is done yet, the visitor handler is now part of the job, but later, handling results could be done on completed jobs, and not as part of the job
+        const resultVisitor = new BatchRouteFileResultVisitor(job);
+        const { files } = await batchRoutingExecutor.handleResults(resultVisitor);
+        options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
+
+        const routingResult = {
+            ...execResults,
+            files
+        };
+        return routingResult;
+    } else {
+        return {
+            ...execResults,
+            files: { input: job.getInputFileName() }
+        };
+    }
 };
 
-class TrRoutingBatch {
+/**
+ * Class to actually execute a batch routing job.
+ */
+export class TrRoutingBatchExecutor {
     private odTrips: BaseOdTrip[] = [];
     private errors: TranslatableMessage[] = [];
     private batchManager: TrRoutingBatchManager;
+    private resultBuffer: Array<{ jobId: number; tripIndex: number; data: OdTripRouteResult }> = [];
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
         private options: {
             progressEmitter: EventEmitter;
             isCancelled: () => boolean;
-        }
+            suppressExpectedRouteErrors?: boolean;
+        },
+        batchManager?: TrRoutingBatchManager
     ) {
-        this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
+        if (batchManager) {
+            this.batchManager = batchManager;
+        } else {
+            this.batchManager = new TrRoutingBatchManager(options.progressEmitter);
+        }
     }
 
-    run = async (): Promise<
-        TransitBatchCalculationResult & {
-            files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
-        }
-    > => {
-        const demandConfiguration = this.job.attributes.data.parameters.demandAttributes;
-        console.log('TrRoutingService batchRoute Parameters', demandConfiguration);
-
+    run = async (): Promise<TransitBatchCalculationResult> => {
         try {
             // Get the odTrips to calculate
             const odTripData = await this.getOdTrips();
@@ -110,37 +137,26 @@ class TrRoutingBatch {
             const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
             const benchmarkStart = performance.now();
-            let lastLogTime = performance.now();
-            let lastLogCount = startIndex;
-            const logOdTripBefore = (index: number) => {
-                if ((index + 1) % progressStep === 0) {
-                    console.log(`Routing odTrip ${index + 1}/${odTripsCount}`);
-                }
+            const logOdTripBefore = (_index: number) => {
+                // No per-trip logging; inline progress bar is used instead
             };
-            const logOdTripAfter = (index: number) => {
-                if (benchmarkStart >= 0 && index > 0 && index % 100 === 0) {
-                    // Log the calculation speed every 100 calculations. Divide the number of completed calculation (substract startIndex if the task was resumed) by the time taken in seconds. Round to 2 decimals
-                    // TODO: Check if we could do all this magic with some function in the performance class
-                    const now = performance.now(); // Save now() to not have to call multiple time
-                    // Calculate rate since the last logged line
-                    const currentRate =
-                        Math.round((100 * (completedRoutingsCount - lastLogCount)) / ((now - lastLogTime) / 1000)) /
-                        100;
-                    lastLogTime = now;
-                    lastLogCount = completedRoutingsCount;
-
-                    // Calculate rate since the beginning
-                    const globalRate =
-                        Math.round((100 * (completedRoutingsCount - startIndex)) / ((now - benchmarkStart) / 1000)) /
-                        100;
-                    console.log(`calc/sec: ${globalRate} (current: ${currentRate})`);
-                }
+            const logOdTripAfter = (_index: number) => {
+                // No per-trip logging; inline progress bar is used instead
             };
+            let lastProgressPct = -1;
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
-                this.job.attributes.internal_data.checkpoint
+                this.job.attributes.internal_data.checkpoint,
+                async (_checkpoint: number) => {
+                    // Use splice to empty the array and return the current content
+                    const toFlush = this.resultBuffer.splice(0);
+                    if (toFlush.length > 0) {
+                        await resultsDbQueries.createMany(toFlush);
+                    }
+                }
             );
+            const totalToRoute = odTripsCount - startIndex;
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
                     // Assert the job is not cancelled, otherwise clear the queue and let the job exit
@@ -163,6 +179,20 @@ class TrRoutingBatch {
                                 });
                             }
                             checkpointTracker.handled(odTripIndex);
+
+                            const done = completedRoutingsCount - startIndex;
+                            const pct = Math.floor((done / totalToRoute) * 100);
+                            if (pct > lastProgressPct) {
+                                lastProgressPct = pct;
+                                const elapsed = (performance.now() - benchmarkStart) / 1000;
+                                const calcPerSec = elapsed > 0 ? (done / elapsed).toFixed(1) : '0';
+                                const barLen = 30;
+                                const filled = Math.round((pct / 100) * barLen);
+                                const bar = '\u2588'.repeat(filled) + '\u2591'.repeat(barLen - filled);
+                                process.stdout.write(
+                                    `\r  [${bar}] ${pct}% (${done}/${totalToRoute}) ${calcPerSec} calc/s`
+                                );
+                            }
                         } catch (error) {
                             console.error(
                                 `tripRouting: Error completing od trip handling. The checkpoint will be missed: ${odTripIndex}: ${error}`
@@ -173,33 +203,29 @@ class TrRoutingBatch {
             }
 
             await promiseQueue.onIdle();
-            console.log('Batch odTrip routing completed for job %d', this.job.id);
-            checkpointTracker.completed();
+            // Finish progress bar line
+            process.stdout.write('\n');
+            // Drain any remaining buffered results not yet flushed by a checkpoint
+            const remaining = this.resultBuffer.splice(0);
+            if (remaining.length > 0) {
+                await resultsDbQueries.createMany(remaining);
+            }
+            const elapsedSec = (performance.now() - benchmarkStart) / 1000;
+            const routedCount = completedRoutingsCount - startIndex;
+            const avgCalcPerSec = elapsedSec > 0 ? Math.round((100 * routedCount) / elapsedSec) / 100 : 0;
+            console.log(
+                `Batch routing completed: ${routedCount} trips in ${elapsedSec.toFixed(1)}s (avg ${avgCalcPerSec} calc/sec)`
+            );
+            await checkpointTracker.completed();
 
             this.options.progressEmitter.emit('progress', { name: 'BatchRouting', progress: 1.0 });
 
-            // FIXME Should we return here if the job is cancelled? Or we still
-            // generate the results that have been calculated since now? Anyway,
-            // on we decouple result handling from the job execution, we could
-            // handle results on cancelled jobs also, if we want
-
-            // Handle the result
-            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
-            // FIXME We hardcode the result visitor to file output for now, but we could have other implementations (like calculating statistics, or nothing at all)
-            // FIXME2 Also, since we do not have any way of handling the results after the job is done yet, the visitor handler is now part of the job, but later, handling results could be done on completed jobs, and not as part of the job
-            const resultVisitor = new BatchRouteFileResultVisitor(this.job);
-            const { files } = await this.handlResults(resultVisitor);
-            this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
-
-            const routingResult = {
-                detailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed,
+            return {
                 completed: true,
+                detailed: false,
                 errors: [],
-                warnings: this.errors,
-                files
+                warnings: this.errors
             };
-
-            return routingResult;
         } catch (error) {
             if (Array.isArray(error)) {
                 console.log('Multiple errors in batch route calculations for job %d', this.job.id);
@@ -207,8 +233,7 @@ class TrRoutingBatch {
                     detailed: false,
                     completed: false,
                     errors: error,
-                    warnings: [],
-                    files: { input: this.job.getInputFileName() }
+                    warnings: []
                 };
             } else {
                 console.error(`Error in batch routing calculation job ${this.job.id}: ${error}`);
@@ -220,16 +245,14 @@ class TrRoutingBatch {
         }
     };
 
-    private handlResults = async <TReturnType>(
-        resultVisitor: BatchRouteResultVisitor<TReturnType>
-    ): Promise<TReturnType> => {
+    handleResults = async <TReturnType>(resultVisitor: BatchRouteResultVisitor<TReturnType>): Promise<TReturnType> => {
         // Generate the output files
         this.options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
 
         try {
-            // Log every 1% of the results
             const resultCount = await resultsDbQueries.countResults(this.job.id);
-            const logInterval = Math.max(1, Math.ceil(resultCount / 100));
+            // Log at 25%, 50%, 75% and 100%
+            const logInterval = Math.max(1, Math.ceil(resultCount / 4));
             let currentResultIdx = 0;
 
             console.log('Generating %d results for job %d...', resultCount, this.job.id);
@@ -295,7 +318,8 @@ class TrRoutingBatch {
             const routingResult = await routeOdTrip(odTrip, {
                 trRoutingPort: options.trRoutingPort,
                 routing: this.job.attributes.data.parameters.transitRoutingAttributes,
-                reverseOD: false
+                reverseOD: false,
+                suppressExpectedRouteErrors: this.options.suppressExpectedRouteErrors
             });
             // Delete geometries from unimodal results if they are not requested
             // TODO This should be handled lower in the stack and not make its way here. Need to check how deep the withGeometries flag goes
@@ -309,12 +333,20 @@ class TrRoutingBatch {
                     }
                 });
             }
-            // FIXME Do not synchronously wait for the save (~10% time overhead). When we have checkpoint support, we can do .then/catch to handle completion instead
-            await resultsDbQueries.create({
+
+            // No await — push to buffer, let the checkpoint listener flush in bulk
+            this.resultBuffer.push({
                 jobId: this.job.id,
                 tripIndex: odTripIndex,
                 data: routingResult
             });
+            // Immediately flush if we get above 200
+            if (this.resultBuffer.length > 200) {
+                const toFlush = this.resultBuffer.splice(0);
+                if (toFlush.length > 0) {
+                    await resultsDbQueries.createMany(toFlush);
+                }
+            }
             options.logAfter(odTripIndex);
 
             return routingResult;
