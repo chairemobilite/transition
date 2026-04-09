@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import { CandidateSource } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+
 /**
  * Results for a single candidate of the evolutionary algorithm
  */
@@ -39,4 +41,5 @@ export type ResultSerialization = {
     numberOfLines: number;
     numberOfVehicles: number;
     result: CandidateResult;
+    source?: CandidateSource;
 };
