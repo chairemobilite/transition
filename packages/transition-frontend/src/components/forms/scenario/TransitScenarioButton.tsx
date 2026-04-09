@@ -5,19 +5,20 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 
-interface ScenarioButtonProps extends WithTranslation {
+interface ScenarioButtonProps {
     scenario: Scenario;
     selectedScenario?: Scenario;
 }
 
 const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (props: ScenarioButtonProps) => {
+    const { t } = useTranslation(['transit', 'main']);
     const scenarioIsSelected =
         (props.selectedScenario && props.selectedScenario.getId() === props.scenario.getId()) || false;
 
@@ -48,7 +49,7 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
 
         const newAttributes = props.scenario.getClonedAttributes(true);
         const duplicateScenario = new Scenario(newAttributes, true, serviceLocator.collectionManager);
-        duplicateScenario.set('name', `${props.scenario.attributes.name} (${props.t('main:copy')})`);
+        duplicateScenario.set('name', `${props.scenario.attributes.name} (${t('main:copy')})`);
 
         await duplicateScenario.save(serviceLocator.socketEventManager);
         serviceLocator.collectionManager.refresh('scenarios');
@@ -62,13 +63,13 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
             isSelected={scenarioIsSelected}
             flushActionButtons={true}
             onSelect={{ handler: onSelect }}
-            onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitScenario:DuplicateScenario') }}
+            onDuplicate={{ handler: onDuplicate, altText: t('transit:transitScenario:DuplicateScenario') }}
             onDelete={
                 !isFrozen && !scenarioIsSelected
                     ? {
                         handler: onDelete,
-                        message: props.t('transit:transitScenario:ConfirmDelete'),
-                        altText: props.t('transit:transitScenario:Delete')
+                        message: t('transit:transitScenario:ConfirmDelete'),
+                        altText: t('transit:transitScenario:Delete')
                     }
                     : undefined
             }
@@ -81,7 +82,7 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
                     <img
                         className="_icon-alone"
                         src={'/dist/images/icons/interface/lock_white.svg'}
-                        alt={props.t('main:Locked')}
+                        alt={t('main:Locked')}
                     />
                 </ButtonCell>
             )}
@@ -90,4 +91,4 @@ const TransitScenarioButton: React.FunctionComponent<ScenarioButtonProps> = (pro
     );
 };
 
-export default withTranslation(['transit', 'main'])(TransitScenarioButton);
+export default TransitScenarioButton;
