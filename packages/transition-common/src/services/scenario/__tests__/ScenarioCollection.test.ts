@@ -7,7 +7,9 @@
 
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
+import EventEmitter from 'events';
 
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
 import Scenario from '../Scenario';
 import ScenarioCollection from '../ScenarioCollection';
@@ -18,6 +20,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 const eventManager = EventManagerMock.eventManagerMock;
 const collectionManager = new CollectionManager(eventManager);
 serviceLocator.addService('collectionManager', collectionManager);
+const socketMock = new EventEmitter();
 
 const scenarioAttributes1 = {
     id: uuidV4(),
@@ -121,6 +124,70 @@ test('should construct scenario collection with or without features', function()
         only_modes: scenarioAttributes3.only_modes.join('|'),
         except_modes: scenarioAttributes3.except_modes.join('|'),
         description: scenarioAttributes3.description
+    });
+
+});
+
+describe('deleteByIds', () => {
+    const deleteMultipleSocketMock = jest.fn().mockImplementation(async (deletedIds, callback) => callback(Status.createOk({ deletedIds })));
+
+    beforeAll(() => {
+        socketMock.on('transitScenarios.deleteMultiple', deleteMultipleSocketMock);
+    });
+
+    afterAll(() => {
+        socketMock.removeAllListeners();
+    })
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    test('deleteByIds should call socket route and handle success response', async () => {
+        // Just need a scenario collection, no need for scenarios to actually exist to be deleted on server
+        const collection = new ScenarioCollection([], {}, eventManager);
+        
+        const serviceIds = [uuidV4(), uuidV4(), uuidV4()];
+        const deletedIds = await collection.deleteByIds(serviceIds, socketMock);
+
+        expect(deletedIds).toEqual(serviceIds);
+        expect(deleteMultipleSocketMock).toHaveBeenCalledTimes(1);
+        expect(deleteMultipleSocketMock).toHaveBeenCalledWith(serviceIds, expect.any(Function));
+    });
+
+    test('deleteByIds should call socket route and handle partial success response', async () => {
+        // Just need a scenario collection, no need for scenarios to actually exist to be deleted on server
+        const collection = new ScenarioCollection([], {}, eventManager);
+
+        // Return a successful response with only the first service id deleted
+        deleteMultipleSocketMock.mockImplementationOnce(async (ids, callback) => callback(Status.createOk({ deletedIds: [ids[0]] })));
+        
+        const serviceIds = [uuidV4(), uuidV4(), uuidV4()];
+        const deletedIds = await collection.deleteByIds(serviceIds, socketMock);
+
+        expect(deletedIds).toEqual([serviceIds[0]]);
+        expect(deleteMultipleSocketMock).toHaveBeenCalledTimes(1);
+        expect(deleteMultipleSocketMock).toHaveBeenCalledWith(serviceIds, expect.any(Function));
+    });
+
+    test('deleteByIds should call socket route and handle error response', async () => {
+        // Just need a scenario collection, no need for scenarios to actually exist to be deleted on server
+        const collection = new ScenarioCollection([], {}, eventManager);
+
+        // Return an error response from the socket
+        deleteMultipleSocketMock.mockImplementationOnce(async (_ids, callback) => callback(Status.createError('Error deleting')));
+        
+        const serviceIds = [uuidV4(), uuidV4(), uuidV4()];
+        let thrownError: any = undefined;
+        try {
+            await collection.deleteByIds(serviceIds, socketMock);
+        } catch(error) {
+            thrownError = error;
+        }
+        expect(thrownError).toBeDefined();
+
+        expect(deleteMultipleSocketMock).toHaveBeenCalledTimes(1);
+        expect(deleteMultipleSocketMock).toHaveBeenCalledWith(serviceIds, expect.any(Function));
     });
 
 });

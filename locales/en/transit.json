@@ -110,7 +110,10 @@
         "New": "New scenario",
         "Edit": "Scenario",
         "Delete": "Delete scenario",
+        "DeleteSelected": "Delete selected scenarios",
         "ConfirmDelete": "Do you confirm deletion of this scenario?",
+        "ConfirmDeleteSelected": "Do you confirm deletion of {{count}} selected scenarios? This operation cannot be undone.",
+        "ConfirmDeleteSelected_one": "Do you confirm deletion of the selected scenario? This operation cannot be undone.",
         "DuplicateScenario": "Duplicate scenario",
         "ImportFromJson": "Import scenarios (JSON)",
         "errors": {
@@ -145,6 +148,7 @@
         "ConfirmDeleteWithSchedule": "Do you confirm deletion of this service? Schedules associated with this service will also be deleted. This operation cannot be undone.",
         "ConfirmDeleteUnused": "Do you confirm deletion of all unused services? The unused services are those with no schedules associated with it.",
         "ConfirmDeleteSelected": "Do you confirm deletion of {{count}} selected services? Schedules associated with these services will also be deleted. This operation cannot be undone.",
+        "ConfirmDeleteSelected_one": "Do you confirm deletion of the selected service? Schedules associated with this service will also be deleted. This operation cannot be undone.",
         "ImportFromJson": "Import services (JSON)",
         "DuplicateService": "Duplicate service",
         "oneLine": "Line (1)",
