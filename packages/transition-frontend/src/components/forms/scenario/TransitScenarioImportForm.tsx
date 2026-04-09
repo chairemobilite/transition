@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import FileImportForm from '../../parts/FileImportForm';
@@ -14,9 +14,8 @@ interface ScenarioImportFormProps {
     setImporterSelected: (importerSelected: boolean) => void;
 }
 
-const ScenariosImportForm: React.FunctionComponent<ScenarioImportFormProps & WithTranslation> = (
-    props: ScenarioImportFormProps & WithTranslation
-) => {
+const ScenariosImportForm: React.FunctionComponent<ScenarioImportFormProps> = (props: ScenarioImportFormProps) => {
+    const { t } = useTranslation('main');
     const closeImporter = () => props.setImporterSelected(false);
 
     const onImported = async () => {
@@ -39,10 +38,10 @@ const ScenariosImportForm: React.FunctionComponent<ScenarioImportFormProps & Wit
         <FileImportForm
             pluralizedObjectsName={'scenarios'}
             fileNameWithExtension={'scenarios.json'}
-            label={props.t('main:JsonFile')}
+            label={t('main:JsonFile')}
             closeImporter={closeImporter}
         />
     );
 };
 
-export default withTranslation(['main', 'notifications'])(ScenariosImportForm);
+export default ScenariosImportForm;

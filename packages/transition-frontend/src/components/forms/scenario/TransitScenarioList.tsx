@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
 import TransitScenario from 'transition-common/lib/services/scenario/Scenario';
@@ -18,12 +18,13 @@ import TransitScenarioButton from './TransitScenarioButton';
 import ButtonList from '../../parts/ButtonList';
 import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
 
-interface ScenarioListProps extends WithTranslation {
+interface ScenarioListProps {
     scenarioCollection: ScenarioCollection;
     selectedScenario?: Scenario;
 }
 
 const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: ScenarioListProps) => {
+    const { t } = useTranslation('transit');
     const newScenario = function () {
         const defaultColor = Preferences.get('transit.scenarios.defaultColor', '#0086FF');
         const newScenario = new TransitScenario({ color: defaultColor }, true, serviceLocator.collectionManager);
@@ -38,9 +39,9 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
                     <img
                         src={'/dist/images/icons/transit/scenario_white.svg'}
                         className="_icon"
-                        alt={props.t('transit:transitScenario:Scenario')}
+                        alt={t('transit:transitScenario:Scenario')}
                     />{' '}
-                    {props.t('transit:transitScenario:List')}
+                    {t('transit:transitScenario:List')}
                 </h3>
                 <ToggleableHelp namespace="transit" section="transitScenario" />
             </div>
@@ -63,7 +64,7 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
                         color="blue"
                         icon={faPlus}
                         iconClass="_icon"
-                        label={props.t('transit:transitScenario:New')}
+                        label={t('transit:transitScenario:New')}
                         onClick={newScenario}
                     />
                 </div>
@@ -72,4 +73,4 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
     );
 };
 
-export default withTranslation('transit')(TransitScenarioList);
+export default TransitScenarioList;
