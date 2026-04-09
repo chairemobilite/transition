@@ -232,18 +232,31 @@ export const recreateCache = async (
         saveLines: true
     }
 ) => {
-    await loadAndSaveDataSourcesToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveAgenciesToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveServicesToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveScenariosToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveLinesToCache({
-        saveIndividualLines: options.saveLines,
-        cachePathDirectory: options.cachePathDirectory
-    });
-    await loadAndSaveNodesToCache({
-        refreshTransferrableNodes: options.refreshTransferrableNodes,
-        cachePathDirectory: options.cachePathDirectory
-    });
-    await loadAndSavePathsToCache({ cachePathDirectory: options.cachePathDirectory });
-    console.log('all cache save complete');
+    console.time('all cache save complete');
+    try {
+        // Write all section of the cache in parallel with Promise.all
+        // If only one of them fail, the promise.all will fail and return, while
+        // the others might complete. This should be fine, but we might have partial cache on disk
+        await Promise.all([
+            loadAndSaveDataSourcesToCache({ cachePathDirectory: options.cachePathDirectory }),
+            loadAndSaveAgenciesToCache({ cachePathDirectory: options.cachePathDirectory }),
+            loadAndSaveServicesToCache({ cachePathDirectory: options.cachePathDirectory }),
+            loadAndSaveScenariosToCache({ cachePathDirectory: options.cachePathDirectory }),
+            loadAndSaveLinesToCache({
+                saveIndividualLines: options.saveLines,
+                cachePathDirectory: options.cachePathDirectory
+            }),
+            loadAndSaveNodesToCache({
+                refreshTransferrableNodes: options.refreshTransferrableNodes,
+                cachePathDirectory: options.cachePathDirectory
+            }),
+            loadAndSavePathsToCache({ cachePathDirectory: options.cachePathDirectory })
+        ]);
+    } catch (error) {
+        // Log and rethrow error
+        console.error('Failed to recreate all cache', error);
+        throw error;
+    } finally {
+        console.timeEnd('all cache save complete');
+    }
 };
