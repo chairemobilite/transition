@@ -57,7 +57,7 @@
         "knex-postgis": "^0.14.3",
         "lodash": "^4.18.1",
         "moment": "^2.30.1",
-        "nodemailer": "^8.0.4",
+        "nodemailer": "^8.0.5",
         "opentelemetry-instrumentation-socket.io": "^0.34.0",
         "osm2geojson-lite": "^1.2.0",
         "p-queue": "^6.6.2",
