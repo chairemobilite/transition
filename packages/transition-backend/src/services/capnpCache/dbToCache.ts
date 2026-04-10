@@ -232,18 +232,22 @@ export const recreateCache = async (
         saveLines: true
     }
 ) => {
-    await loadAndSaveDataSourcesToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveAgenciesToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveServicesToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveScenariosToCache({ cachePathDirectory: options.cachePathDirectory });
-    await loadAndSaveLinesToCache({
-        saveIndividualLines: options.saveLines,
-        cachePathDirectory: options.cachePathDirectory
-    });
-    await loadAndSaveNodesToCache({
-        refreshTransferrableNodes: options.refreshTransferrableNodes,
-        cachePathDirectory: options.cachePathDirectory
-    });
-    await loadAndSavePathsToCache({ cachePathDirectory: options.cachePathDirectory });
-    console.log('all cache save complete');
+    console.time('all cache save complete');
+    // Write all section of the cache in parallel with Promise.all
+    await Promise.all([
+        loadAndSaveDataSourcesToCache({ cachePathDirectory: options.cachePathDirectory }),
+        loadAndSaveAgenciesToCache({ cachePathDirectory: options.cachePathDirectory }),
+        loadAndSaveServicesToCache({ cachePathDirectory: options.cachePathDirectory }),
+        loadAndSaveScenariosToCache({ cachePathDirectory: options.cachePathDirectory }),
+        loadAndSaveLinesToCache({
+            saveIndividualLines: options.saveLines,
+            cachePathDirectory: options.cachePathDirectory
+        }),
+        loadAndSaveNodesToCache({
+            refreshTransferrableNodes: options.refreshTransferrableNodes,
+            cachePathDirectory: options.cachePathDirectory
+        }),
+        loadAndSavePathsToCache({ cachePathDirectory: options.cachePathDirectory })
+    ]);
+    console.timeEnd('all cache save complete');
 };
