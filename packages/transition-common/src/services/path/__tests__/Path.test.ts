@@ -782,3 +782,210 @@ describe('Segment geojson', () => {
         });
     });
 });
+
+describe('getSegmentTravelTimeForPeriod', () => {
+    const lineId = uuidV4();
+    const segmentsData = [
+        { distanceMeters: 510, travelTimeSeconds: 120 },
+        { distanceMeters: 515, travelTimeSeconds: 90 },
+        { distanceMeters: 444, travelTimeSeconds: 85 }
+    ];
+
+    test('should return base segment time when no period data exists', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'am_peak')).toBe(120);
+        expect(path.getSegmentTravelTimeForPeriod(1, 'am_peak')).toBe(90);
+        expect(path.getSegmentTravelTimeForPeriod(2, 'am_peak')).toBe(85);
+    });
+
+    test('should return period-specific time when data exists', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
+                    segments: [
+                        { distanceMeters: 510, travelTimeSeconds: 200 },
+                        { distanceMeters: 515, travelTimeSeconds: 150 },
+                        { distanceMeters: 444, travelTimeSeconds: 130 }
+                    ],
+                    dwellTimeSeconds: [0, 0, 0, 0],
+                    travelTimeWithoutDwellTimesSeconds: 480,
+                    operatingTimeWithoutLayoverTimeSeconds: 480,
+                    averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
+                    operatingSpeedMetersPerSecond: 3.06,
+                    tripCount: 1
+                }
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'am_peak')).toBe(200);
+        expect(path.getSegmentTravelTimeForPeriod(1, 'am_peak')).toBe(150);
+        expect(path.getSegmentTravelTimeForPeriod(2, 'am_peak')).toBe(130);
+    });
+
+    test('should return base time for period without data', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
+                    segments: [
+                        { distanceMeters: 510, travelTimeSeconds: 200 },
+                        { distanceMeters: 515, travelTimeSeconds: 150 },
+                        { distanceMeters: 444, travelTimeSeconds: 130 }
+                    ],
+                    dwellTimeSeconds: [0, 0, 0, 0],
+                    travelTimeWithoutDwellTimesSeconds: 480,
+                    operatingTimeWithoutLayoverTimeSeconds: 480,
+                    averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
+                    operatingSpeedMetersPerSecond: 3.06,
+                    tripCount: 1
+                }
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'midday')).toBe(120);
+    });
+
+    test('should return undefined for out-of-range segment index', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(999, 'am_peak')).toBeUndefined();
+    });
+
+    test('should return undefined when no segments exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        delete (attributes.data as any).segments;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimeForPeriod(0, 'am_peak')).toBeUndefined();
+    });
+});
+
+describe('getSegmentTravelTimesForPeriod', () => {
+    const lineId = uuidV4();
+    const segmentsData = [
+        { distanceMeters: 510, travelTimeSeconds: 120 },
+        { distanceMeters: 515, travelTimeSeconds: 90 },
+        { distanceMeters: 444, travelTimeSeconds: 85 }
+    ];
+
+    test('should return base times when no period data exists', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('am_peak')).toEqual([120, 90, 85]);
+    });
+
+    test('should return period times when data exists', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
+                    segments: [
+                        { distanceMeters: 510, travelTimeSeconds: 200 },
+                        { distanceMeters: 515, travelTimeSeconds: 150 },
+                        { distanceMeters: 444, travelTimeSeconds: 130 }
+                    ],
+                    dwellTimeSeconds: [0, 0, 0, 0],
+                    travelTimeWithoutDwellTimesSeconds: 480,
+                    operatingTimeWithoutLayoverTimeSeconds: 480,
+                    averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
+                    operatingSpeedMetersPerSecond: 3.06,
+                    tripCount: 1
+                }
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('am_peak')).toEqual([200, 150, 130]);
+    });
+
+    test('should fall back to base for periods without data', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).segments = segmentsData;
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
+                    segments: [
+                        { distanceMeters: 510, travelTimeSeconds: 200 },
+                        { distanceMeters: 515, travelTimeSeconds: 150 },
+                        { distanceMeters: 444, travelTimeSeconds: 130 }
+                    ],
+                    dwellTimeSeconds: [0, 0, 0, 0],
+                    travelTimeWithoutDwellTimesSeconds: 480,
+                    operatingTimeWithoutLayoverTimeSeconds: 480,
+                    averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
+                    operatingSpeedMetersPerSecond: 3.06,
+                    tripCount: 1
+                }
+            }
+        };
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('midday')).toEqual([120, 90, 85]);
+    });
+
+    test('should return empty array when no segments exist', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        delete (attributes.data as any).segments;
+        const path = new Path(attributes, false);
+        expect(path.getSegmentTravelTimesForPeriod('am_peak')).toEqual([]);
+    });
+});
+
+describe('getSegmentsForPeriod - averaging with tripCount 0', () => {
+    const lineId = uuidV4();
+
+    test('should average correctly when all services have tripCount 0', () => {
+        const attributes = getPathAttributesWithData(true, { lineId });
+        (attributes.data as any).totalDistanceMeters = 1000;
+        (attributes.data as any).segmentsByServiceAndPeriod = {
+            service1: {
+                am_peak: {
+                    segments: [
+                        { distanceMeters: 500, travelTimeSeconds: 100 },
+                        { distanceMeters: 500, travelTimeSeconds: 200 }
+                    ],
+                    dwellTimeSeconds: [0, 10, 15],
+                    travelTimeWithoutDwellTimesSeconds: 300,
+                    operatingTimeWithoutLayoverTimeSeconds: 325,
+                    averageSpeedWithoutDwellTimesMetersPerSecond: 3.33,
+                    operatingSpeedMetersPerSecond: 3.08,
+                    tripCount: 0
+                }
+            },
+            service2: {
+                am_peak: {
+                    segments: [
+                        { distanceMeters: 500, travelTimeSeconds: 200 },
+                        { distanceMeters: 500, travelTimeSeconds: 400 }
+                    ],
+                    dwellTimeSeconds: [0, 20, 25],
+                    travelTimeWithoutDwellTimesSeconds: 600,
+                    operatingTimeWithoutLayoverTimeSeconds: 645,
+                    averageSpeedWithoutDwellTimesMetersPerSecond: 1.67,
+                    operatingSpeedMetersPerSecond: 1.55,
+                    tripCount: 0
+                }
+            }
+        };
+
+        const path = new Path(attributes, false);
+        const result = path.getSegmentsForPeriod('am_peak');
+
+        expect(result).toBeDefined();
+        // With equal weights, should be simple average: (100+200)/2=150, (200+400)/2=300
+        expect(result!.segments[0].travelTimeSeconds).toBe(150);
+        expect(result!.segments[1].travelTimeSeconds).toBe(300);
+        expect(result!.dwellTimeSeconds[1]).toBe(15); // (10+20)/2
+        // Verify no NaN values
+        expect(Number.isFinite(result!.segments[0].travelTimeSeconds)).toBe(true);
+        expect(Number.isFinite(result!.segments[1].travelTimeSeconds)).toBe(true);
+        expect(Number.isFinite(result!.dwellTimeSeconds[1])).toBe(true);
+        expect(Number.isFinite(result!.averageSpeedWithoutDwellTimesMetersPerSecond)).toBe(true);
+        expect(Number.isFinite(result!.operatingSpeedMetersPerSecond)).toBe(true);
+    });
+});

@@ -12,8 +12,11 @@ import { TranslatableMessageWithParams } from 'chaire-lib-common/lib/utils/Trans
 import {
     generateGeographyAndSegmentsFromGtfs,
     generateGeographyAndSegmentsFromStopTimes,
-    computeSegmentTimesFromStopTimes
+    computeSegmentTimesFromStopTimes,
+    computeSegmentTimesByServiceAndPeriod
 } from '../PathGtfsGeographyGenerator';
+import { Period } from 'transition-common/lib/services/periods/Period';
+import { TripStopTimesWithService } from '../../gtfsImport/GtfsImportTypes';
 
 jest.spyOn(console, 'log').mockImplementation(() => { /* noop */ });
 
@@ -582,5 +585,125 @@ describe('computeSegmentTimesFromStopTimes', () => {
             [null]
         );
         expect(result.dwellTimeSecondsData[0]).toEqual(10);
+    });
+});
+
+describe('computeSegmentTimesByServiceAndPeriod', () => {
+    const makeTrip = (times: [number, number][], serviceId: string): TripStopTimesWithService => ({
+        stopTimes: times.map(([arrival, departure], i) => ({
+            trip_id: 'trip1',
+            stop_id: `stop${i}`,
+            stop_sequence: i,
+            arrivalTimeSeconds: arrival,
+            departureTimeSeconds: departure
+        })),
+        serviceId
+    });
+
+    const amPeak: Period = { shortname: 'am_peak', name: { en: 'AM Peak' }, startAtHour: 6, endAtHour: 9 };
+    const midday: Period = { shortname: 'midday', name: { en: 'Midday' }, startAtHour: 9, endAtHour: 15 };
+    const pmPeak: Period = { shortname: 'pm_peak', name: { en: 'PM Peak' }, startAtHour: 15, endAtHour: 18 };
+    const periods: Period[] = [amPeak, midday, pmPeak];
+
+    test('should return empty object when periods array is empty', () => {
+        const trip = makeTrip([[36000, 36000], [36100, 36100]], 'svc1');
+        const result = computeSegmentTimesByServiceAndPeriod([trip], [null], [], 1000);
+        expect(result).toEqual({});
+    });
+
+    test('should group by period and service', () => {
+        // 7:00 AM trip, service A — 100s segment
+        const amTripA = makeTrip([[25200, 25200], [25300, 25300]], 'svcA');
+        // 7:30 AM trip, service B — 120s segment
+        const amTripB = makeTrip([[27000, 27000], [27120, 27120]], 'svcB');
+        // 10:00 AM trip, service A — 80s segment
+        const middayTripA = makeTrip([[36000, 36000], [36080, 36080]], 'svcA');
+
+        const result = computeSegmentTimesByServiceAndPeriod([amTripA, amTripB, middayTripA], [500], periods, 1000);
+
+        expect(Object.keys(result)).toEqual(['svcA', 'svcB']);
+        expect(Object.keys(result['svcA'])).toEqual(['am_peak', 'midday']);
+        expect(result['svcA']['am_peak'].segments[0].travelTimeSeconds).toEqual(100);
+        expect(result['svcA']['am_peak'].tripCount).toEqual(1);
+        expect(result['svcB']['am_peak'].segments[0].travelTimeSeconds).toEqual(120);
+        expect(result['svcB']['am_peak'].tripCount).toEqual(1);
+        expect(Object.keys(result['svcA'])).toEqual(['am_peak', 'midday']);
+        expect(result['svcA']['midday'].segments[0].travelTimeSeconds).toEqual(80);
+    });
+
+    test('should average trips within same period and service', () => {
+        const trip1 = makeTrip([[25200, 25200], [25300, 25310]], 'svcA');
+        const trip2 = makeTrip([[27000, 27000], [27120, 27130]], 'svcA');
+
+        const result = computeSegmentTimesByServiceAndPeriod([trip1, trip2], [500], periods, 1000);
+
+        expect(result['svcA']['am_peak'].tripCount).toEqual(2);
+        expect(result['svcA']['am_peak'].segments[0].travelTimeSeconds).toEqual(110);
+    });
+
+    test('should assign trips shortly before first period to first period', () => {
+        // 3:00 AM (10800s) is 3h before am_peak start (6:00 AM), within 6h overflow
+        const earlyTrip = makeTrip([[10800, 10800], [10900, 10900]], 'svc1');
+        const amTrip = makeTrip([[25200, 25200], [25300, 25300]], 'svc1');
+
+        const result = computeSegmentTimesByServiceAndPeriod([earlyTrip, amTrip], [null], periods, 1000);
+
+        expect(Object.keys(result)).toEqual(['svc1']);
+        expect(result['svc1']['am_peak'].tripCount).toEqual(2);
+    });
+
+    test('should assign trip shortly after last period to last period', () => {
+        // 20:00 is 2h past pm_peak end (18:00), within 6h overflow
+        const lateTrip = makeTrip([[72000, 72000], [72100, 72100]], 'svc1');
+
+        const result = computeSegmentTimesByServiceAndPeriod([lateTrip], [null], periods, 1000);
+
+        expect(Object.keys(result)).toEqual(['svc1']);
+        expect(result['svc1']['pm_peak'].tripCount).toEqual(1);
+    });
+
+    test('should skip trip far beyond last period overflow threshold', () => {
+        // 01:00 next day = 90000s, which is 7h past pm_peak end (18:00), beyond 6h overflow
+        const veryLateTrip = makeTrip([[90000, 90000], [90100, 90100]], 'svc1');
+
+        const result = computeSegmentTimesByServiceAndPeriod([veryLateTrip], [null], periods, 1000);
+
+        expect(result).toEqual({});
+    });
+
+    test('should calculate speeds from total distance and period times', () => {
+        const trip = makeTrip([
+            [25200, 25200],
+            [25300, 25310],
+            [25410, 25410]
+        ], 'svc1');
+
+        const result = computeSegmentTimesByServiceAndPeriod([trip], [500, 500], periods, 1000);
+
+        const periodData = result['svc1']['am_peak'];
+        expect(periodData.travelTimeWithoutDwellTimesSeconds).toEqual(200);
+        expect(periodData.operatingTimeWithoutLayoverTimeSeconds).toEqual(210);
+        expect(periodData.averageSpeedWithoutDwellTimesMetersPerSecond).toEqual(5);
+        expect(periodData.operatingSpeedMetersPerSecond).toEqual(4.76);
+    });
+
+    test('should set speeds to 0 when travel time is zero', () => {
+        const trip = makeTrip([[25200, 25200], [25200, 25200]], 'svc1');
+
+        const result = computeSegmentTimesByServiceAndPeriod([trip], [null], periods, 1000);
+
+        expect(result['svc1']['am_peak'].averageSpeedWithoutDwellTimesMetersPerSecond).toEqual(0);
+        expect(result['svc1']['am_peak'].operatingSpeedMetersPerSecond).toEqual(0);
+    });
+
+    test('should keep different services separate in the same period', () => {
+        // Same departure time, different services, different travel times
+        const weekdayTrip = makeTrip([[25200, 25200], [25400, 25400]], 'weekday_svc');
+        const weekendTrip = makeTrip([[25200, 25200], [25300, 25300]], 'weekend_svc');
+
+        const result = computeSegmentTimesByServiceAndPeriod([weekdayTrip, weekendTrip], [null], periods, 1000);
+
+        expect(result['weekday_svc']['am_peak'].segments[0].travelTimeSeconds).toEqual(200);
+        expect(result['weekend_svc']['am_peak'].segments[0].travelTimeSeconds).toEqual(100);
     });
 });

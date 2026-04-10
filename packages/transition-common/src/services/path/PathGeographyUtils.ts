@@ -13,7 +13,7 @@ import routingServiceManager from 'chaire-lib-common/lib/services/routing/Routin
 import { Feature, FeatureCollection, Point } from 'geojson';
 import { MapMatchingResults, RoutingService } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import { generatePathGeographyFromRouting } from './PathGeographyGenerator';
+import { generatePathGeographyFromRouting, calculateSegmentDuration } from './PathGeographyGenerator';
 import type { SegmentChangeInfo } from './PathTypes';
 import { kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 
@@ -26,6 +26,12 @@ DEFAULT_ROUTING_SPEED_MPS is another arbitrary speed for matching which makes it
 const DEFAULT_MIN_MATCHING_TIMESTAMP = 500; // can be overriden by data.minMatchingTimestamp, in seconds
 const DEFAULT_ROUTING_SPEED_MPS = 20;
 const DEFAULT_WAYPOINT_RADIUS_METERS = 15;
+/** Start and end indices into the prepared points array, used to extract a subset of nodes/waypoints for routing */
+type FeatureIndexRange = { start: number; end: number };
+
+/** Distance in meters and duration in seconds for a routing leg */
+type RoutingLegTimeAndDistance = { distanceMeters: number; durationSeconds: number };
+
 export interface PathGeographyResults {
     direct: MapMatchingResults;
     points: FeatureCollection<Point>;
@@ -272,6 +278,160 @@ class PathGeographyUtils {
             throw this.getErrorsForDirectPath(nodesAndWaypointsGeojsons, error as any);
         }
     }
+
+    /**
+     * Find the feature indices in the prepared points array that correspond to a range of node indices.
+     * The prepared points array contains both nodes and waypoints — this maps node indices
+     * to their positions in that array.
+     *
+     * @param points - The prepared points collection (nodes + waypoints)
+     * @param fromNodeIndex - The starting node index (inclusive)
+     * @param toNodeIndex - The ending node index (inclusive)
+     * @returns The start/end feature indices, or null if either node index is out of bounds
+     */
+    private getFeatureIndexRangeForNodes = (
+        points: FeatureCollection<Point>,
+        fromNodeIndex: number,
+        toNodeIndex: number
+    ): FeatureIndexRange | null => {
+        let start = -1;
+        let end = -1;
+        let nodeCount = 0;
+        for (let i = 0; i < points.features.length; i++) {
+            if (points.features[i].properties?.isNode) {
+                if (nodeCount === fromNodeIndex) start = i;
+                if (nodeCount === toNodeIndex) {
+                    end = i;
+                    break;
+                }
+                nodeCount++;
+            }
+        }
+        return start !== -1 && end !== -1 ? { start, end } : null;
+    };
+
+    /**
+     * Extract flat list of legs from routing results.
+     * @returns The legs array, or null if any routing result has no matchings
+     */
+    private extractLegsFromResults = (segmentResults: MapMatchingResults[]): RoutingLegTimeAndDistance[] | null => {
+        const legs: RoutingLegTimeAndDistance[] = [];
+        for (const result of segmentResults) {
+            if (!result.matchings || result.matchings.length === 0) return null;
+            for (const leg of result.matchings[0].legs) {
+                legs.push({ distanceMeters: leg.distance, durationSeconds: leg.duration });
+            }
+        }
+        return legs;
+    };
+
+    /**
+     * Aggregate routing legs into node-to-node segments and compute physics-based travel times.
+     * Legs between waypoints are combined until the next node is reached.
+     *
+     * @param path - The path object (provides accel/decel config)
+     * @param legs - Flat list of routing legs
+     * @param points - The points used for routing (to identify node boundaries)
+     * @param segmentCount - Expected number of node-to-node segments
+     * @returns Array of physics-based travel times per segment, or null if leg count doesn't match
+     */
+    private computeSegmentTimesFromLegs = (
+        path: any,
+        legs: RoutingLegTimeAndDistance[],
+        points: FeatureCollection<Point>,
+        segmentCount: number
+    ): number[] | null => {
+        const osrmTimes: number[] = [];
+        let i = 0;
+
+        for (let segmentIndex = 0; segmentIndex < segmentCount; segmentIndex++) {
+            let segmentDistanceMeters = 0;
+            let segmentDurationSeconds = 0;
+
+            // Accumulate legs until we reach the next node
+            while (i < legs.length) {
+                segmentDistanceMeters += Math.ceil(legs[i].distanceMeters);
+                segmentDurationSeconds += legs[i].durationSeconds;
+                i++;
+                if (i >= points.features.length - 1 || points.features[i].properties?.isNode) {
+                    break;
+                }
+            }
+
+            const duration = calculateSegmentDuration(path, segmentDistanceMeters, segmentDurationSeconds);
+            osrmTimes.push(duration.calculatedSegmentDurationSeconds);
+        }
+
+        return osrmTimes.length === segmentCount ? osrmTimes : null;
+    };
+
+    /**
+     * Calculate OSRM-based segment travel times for a checkpoint span on a path.
+     * Routes the subset of nodes from fromNodeIndex to toNodeIndex through OSRM
+     * and applies the physics model (accel/decel). Returns raw OSRM times without scaling.
+     *
+     * @param path - The path object
+     * @param fromNodeIndex - Start node index (inclusive)
+     * @param toNodeIndex - End node index (inclusive)
+     * @returns Array of OSRM travel times per segment in the span, or null if routing fails
+     */
+    public calculateSegmentTimesForCheckpoint = async (
+        path: any,
+        fromNodeIndex: number,
+        toNodeIndex: number
+    ): Promise<number[] | null> => {
+        const defaultRunningSpeedKmH = path.getData('defaultRunningSpeedKmH') as number;
+        const defaultRunningSpeedMps = kphToMps(defaultRunningSpeedKmH);
+        const routingEngine = path.getData('routingEngine') as string;
+        const routingMode = path.getData('routingMode') as RoutingMode;
+
+        const fullPathPoints = this.prepareNodesAndWaypoints(path, defaultRunningSpeedMps, routingEngine);
+        const featureRange = this.getFeatureIndexRangeForNodes(fullPathPoints, fromNodeIndex, toNodeIndex);
+        if (!featureRange) return null;
+
+        const checkpointPoints: FeatureCollection<Point> = {
+            type: 'FeatureCollection',
+            features: fullPathPoints.features.slice(featureRange.start, featureRange.end + 1)
+        };
+
+        const routingSegments = this.getRoutingSegments(checkpointPoints, routingEngine);
+        const segmentResults = await this.routeSegments(routingSegments, routingMode, defaultRunningSpeedMps);
+
+        const legs = this.extractLegsFromResults(segmentResults);
+        if (!legs) return null;
+
+        const segmentCount = toNodeIndex - fromNodeIndex;
+        return this.computeSegmentTimesFromLegs(path, legs, checkpointPoints, segmentCount);
+    };
+
+    /**
+     * Scale an array of OSRM segment times so the total matches a target checkpoint time,
+     * adjusting the last segment for rounding errors.
+     *
+     * @param timeSegmentCheckpointSeconds - The OSRM times per segment
+     * @param targetTotalTimeSeconds - The desired total time for the checkpoint
+     * @returns Scaled times that sum exactly to targetTotalTimeSeconds, or null if total is 0
+     */
+    public scaleTimesToTarget = (
+        timeSegmentCheckpointSeconds: number[],
+        targetTotalTimeSeconds: number
+    ): number[] | null => {
+        const totalOsrmTimeCheckpoint = timeSegmentCheckpointSeconds.reduce((sum, t) => sum + t, 0);
+        if (totalOsrmTimeCheckpoint === 0) return null;
+
+        const ratio = targetTotalTimeSeconds / totalOsrmTimeCheckpoint;
+        const scaledTimes = timeSegmentCheckpointSeconds.map((t) => Math.round(t * ratio)); // round to nearest second
+
+        // Math.round on each segment can cause the sum to be off by 1-2 seconds,
+        // so we adjust the last segment to ensure the total matches the target exactly
+        const scaledTotal = scaledTimes.reduce((sum, v) => sum + v, 0);
+        if (scaledTotal !== targetTotalTimeSeconds && scaledTimes.length > 0) {
+            scaledTimes[scaledTimes.length - 1] += targetTotalTimeSeconds - scaledTotal;
+            scaledTimes[scaledTimes.length - 1] = Math.max(0, scaledTimes[scaledTimes.length - 1]);
+        }
+
+        return scaledTimes;
+    };
 
     public getPathGeography = async (path: any): Promise<PathGeographyResults | false> => {
         if (!this.shouldPathUpdate(path)) {

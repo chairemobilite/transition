@@ -13,7 +13,7 @@ import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMes
 import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsInternalData, StopTime } from './GtfsImportTypes';
+import { GtfsInternalData, StopTime, TripStopTimesWithService } from './GtfsImportTypes';
 import {
     generateGeographyAndSegmentsFromGtfs,
     generateGeographyAndSegmentsFromStopTimes
@@ -120,6 +120,31 @@ type PathGroup = {
     trips: TripData[];
 };
 
+/** Derive checkpoints from GTFS timepoint data on a representative trip's stop_times.
+ *  Only creates checkpoints if some (but not all) stops are timepoints. */
+const deriveCheckpointsFromTimepoints = (
+    newPath: Path,
+    allStopTimes: StopTime[][],
+    nodeIds: string[],
+    importData: GtfsInternalData
+): void => {
+    const representativeStopTimes = allStopTimes[0];
+    if (!representativeStopTimes || representativeStopTimes.length === 0) return;
+
+    const timepointNodeIds = representativeStopTimes
+        .filter((st) => st.timepoint === 1)
+        .map((st) => importData.nodeIdsByStopGtfsId[st.stop_id]);
+
+    // Only create checkpoints if there's actual segmentation (not all stops are timepoints)
+    if (timepointNodeIds.length >= 2 && timepointNodeIds.length < nodeIds.length) {
+        const checkpoints: { fromNodeId: string; toNodeId: string }[] = [];
+        for (let i = 0; i < timepointNodeIds.length - 1; i++) {
+            checkpoints.push({ fromNodeId: timepointNodeIds[i], toNodeId: timepointNodeIds[i + 1] });
+        }
+        newPath.attributes.data.segmentTimesCheckpoints = checkpoints;
+    }
+};
+
 const generatePathsForLine = (
     line: Line,
     tripsForLine: TripData[],
@@ -190,6 +215,10 @@ const generatePathsForLine = (
         }
 
         const allStopTimes = trips.map((t) => t.stopTimes);
+        const tripsWithService: TripStopTimesWithService[] = trips.map((t) => ({
+            stopTimes: t.stopTimes,
+            serviceId: importData.serviceIdsByGtfsId[t.trip.service_id] ?? t.trip.service_id
+        }));
 
         if (shapeId) {
             const { newPath, warnings } = generatePathFromShape(
@@ -198,8 +227,10 @@ const generatePathsForLine = (
                 allStopTimes,
                 shapeId,
                 nodeIds,
-                importData
+                importData,
+                tripsWithService
             );
+            deriveCheckpointsFromTimepoints(newPath, allStopTimes, nodeIds, importData);
             newPaths.push(newPath);
             const pathsForShape = pathByShapeId[shapeId] || [];
             pathsForShape.push(newPath);
@@ -213,7 +244,15 @@ const generatePathsForLine = (
                 text: GtfsMessages.TripWithNoShape,
                 params: { tripId: firstTrip.trip_id, lineShortName: line.attributes.shortname || firstTrip.route_id }
             });
-            const { newPath, warnings } = generatePathWithoutShape(line, firstTrip, allStopTimes, nodeIds, importData);
+            const { newPath, warnings } = generatePathWithoutShape(
+                line,
+                firstTrip,
+                allStopTimes,
+                nodeIds,
+                importData,
+                tripsWithService
+            );
+            deriveCheckpointsFromTimepoints(newPath, allStopTimes, nodeIds, importData);
             newPaths.push(newPath);
             pathsWithoutShape.push(newPath);
             for (const tripData of trips) {
@@ -232,7 +271,8 @@ const generatePathFromShape = (
     allTripsStopTimes: StopTime[][],
     shapeGtfsId: string,
     nodeIds: string[],
-    importData: GtfsInternalData
+    importData: GtfsInternalData,
+    tripsWithService: TripStopTimesWithService[] = []
 ): { newPath: Path; warnings: TranslatableMessage[] } => {
     const gtfsDirectionId = trip.direction_id || 0;
     const pathName = trip.trip_headsign;
@@ -248,7 +288,11 @@ const generatePathFromShape = (
         nodeIds,
         allTripsStopTimes,
         shapeGtfsId,
-        importData.stopCoordinatesByStopId
+        importData.stopCoordinatesByStopId,
+        undefined,
+        undefined,
+        importData.periodsGroup.periods,
+        tripsWithService
     );
     newPath.convertAllCoordinatesToWaypoints(newPath.attributes.data.routingEngine !== 'engine'); // set all coordinates to waypoints if routingEngine is not engine
 
@@ -260,7 +304,8 @@ const generatePathWithoutShape = (
     trip: GtfsTypes.Trip,
     allTripsStopTimes: StopTime[][],
     nodeIds: string[],
-    importData: GtfsInternalData
+    importData: GtfsInternalData,
+    tripsWithService: TripStopTimesWithService[] = []
 ): { newPath: Path; warnings: TranslatableMessage[] } => {
     const gtfsDirectionId = trip.direction_id || 0;
     const pathName = trip.trip_headsign;
@@ -273,7 +318,11 @@ const generatePathWithoutShape = (
         newPath,
         nodeIds,
         allTripsStopTimes,
-        importData.stopCoordinatesByStopId
+        importData.stopCoordinatesByStopId,
+        undefined,
+        undefined,
+        importData.periodsGroup.periods,
+        tripsWithService
     );
 
     return { newPath, warnings };
