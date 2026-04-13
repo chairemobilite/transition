@@ -19,14 +19,9 @@ import {
     objectFromCache as defaultObjectFromCache,
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
-} from 'chaire-lib-backend/lib/models/capnp/default.cache.queries';
+} from './default.cache.queries';
 import { _isBlank, _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import {
-    nullToMinusOne,
-    minusOneToUndefined,
-    boolToInt8,
-    int8ToBool
-} from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
+import { nullToMinusOne, minusOneToUndefined, boolToInt8, int8ToBool } from './CapnpConversionUtils';
 import { LineCollection as CacheCollection } from '../capnpDataModel/lineCollection.capnp';
 import { Line as CacheObjectClass } from '../capnpDataModel/line.capnp';
 import {

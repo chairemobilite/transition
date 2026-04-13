@@ -16,7 +16,7 @@ import {
     objectFromCache as defaultObjectFromCache,
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
-} from 'chaire-lib-backend/lib/models/capnp/default.cache.queries';
+} from './default.cache.queries';
 import {
     boolToInt8,
     int8ToBool,
@@ -24,7 +24,7 @@ import {
     minusOneToUndefined,
     latLonCoordinateToInt,
     intCoordinateToLatLon
-} from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
+} from './CapnpConversionUtils';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { NodeCollection as CacheCollection } from '../capnpDataModel/nodeCollection.capnp';
 import { Node as CacheObjectClass } from '../capnpDataModel/node.capnp';

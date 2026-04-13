@@ -9,12 +9,12 @@ import ScenarioCollection from 'transition-common/lib/services/scenario/Scenario
 import {
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
-} from 'chaire-lib-backend/lib/models/capnp/default.cache.queries';
+} from './default.cache.queries';
 import {
     ScenarioCollection as CacheCollection,
     Scenario as CacheObject
 } from '../capnpDataModel/scenarioCollection.capnp';
-import { boolToInt8, int8ToBool } from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
+import { boolToInt8, int8ToBool } from './CapnpConversionUtils';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 const collectionToCache = async (collection: ScenarioCollection, cachePathDirectory?: string) => {

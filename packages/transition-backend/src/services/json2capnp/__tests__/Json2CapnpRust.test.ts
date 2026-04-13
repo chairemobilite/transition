@@ -16,7 +16,7 @@ import json2CapnpRust from '../Json2CapnpRust';
 const writeCacheMock = jest.fn();
 const readCacheMock = jest.fn();
 
-jest.mock('../../../utils/json2capnp/Json2CapnpService', () => {
+jest.mock('../Json2CapnpService', () => {
     return {
         writeCache: jest.fn().mockImplementation(async (cacheName, jsonData, path) => writeCacheMock(cacheName, jsonData, path)),
         readCache: jest.fn().mockImplementation(async (cacheName, params) => readCacheMock(cacheName, params)),
