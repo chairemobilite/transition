@@ -9,10 +9,10 @@ import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollec
 import {
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
-} from 'chaire-lib-backend/lib/models/capnp/default.cache.queries';
+} from './default.cache.queries';
 import { AgencyCollection as CacheCollection, Agency as CacheObject } from '../capnpDataModel/agencyCollection.capnp';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { boolToInt8, int8ToBool } from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
+import { boolToInt8, int8ToBool } from './CapnpConversionUtils';
 
 const collectionToCache = function (collection: AgencyCollection, cachePathDirectory?: string) {
     return defaultCollectionToCache({

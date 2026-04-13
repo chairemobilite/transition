@@ -9,12 +9,12 @@ import ServiceCollection from 'transition-common/lib/services/service/ServiceCol
 import {
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
-} from 'chaire-lib-backend/lib/models/capnp/default.cache.queries';
+} from './default.cache.queries';
 import {
     ServiceCollection as CacheCollection,
     Service as CacheObject
 } from '../capnpDataModel/serviceCollection.capnp';
-import { boolToInt8, int8ToBool } from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
+import { boolToInt8, int8ToBool } from './CapnpConversionUtils';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 const collectionToCache = function (collection: ServiceCollection, cachePathDirectory?: string) {

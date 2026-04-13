@@ -13,13 +13,8 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import {
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
-} from 'chaire-lib-backend/lib/models/capnp/default.cache.queries';
-import {
-    boolToInt8,
-    int8ToBool,
-    nullToMinusOne,
-    minusOneToUndefined
-} from 'chaire-lib-backend/lib/utils/json2capnp/CapnpConversionUtils';
+} from './default.cache.queries';
+import { boolToInt8, int8ToBool, nullToMinusOne, minusOneToUndefined } from './CapnpConversionUtils';
 import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { PathCollection as CacheCollection, Path as CacheObject } from '../capnpDataModel/pathCollection.capnp';
 

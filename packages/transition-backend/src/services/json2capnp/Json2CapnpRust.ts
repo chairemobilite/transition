@@ -6,7 +6,7 @@
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Json2CapnpBase, collectionCacheParams, objectCacheParams, objectFromCacheParams } from './Json2CapnpBase';
-import json2CapnpService from '../../utils/json2capnp/Json2CapnpService';
+import json2CapnpService from './Json2CapnpService';
 
 /**
  * Json2Capnp service provider which saves/loads capnp data from an external

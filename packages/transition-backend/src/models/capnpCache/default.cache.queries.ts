@@ -8,8 +8,8 @@ import fs from 'fs';
 import pQueue from 'p-queue';
 import * as capnp from 'capnp-ts';
 
-import config from '../../config/server.config';
-import { fileManager } from '../../utils/filesystem/fileManager';
+import config from 'chaire-lib-backend/lib/config/server.config';
+import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { writePackedMessageToStream, readToEndOfStream } from '../../services/json2capnp/capnpMessagesManager';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
