@@ -6,7 +6,6 @@
  *
  */
 
-mod enum_mappings;
 mod utils;
 pub mod serialization;
 

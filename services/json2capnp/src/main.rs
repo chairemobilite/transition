@@ -117,27 +117,21 @@ fn main() {
                 Response::text(format!("empty response"))
               },
 
-              (POST) (/dataSources) => { routers::write_collection_route("dataSources", "dataSources", &config, &transition_capnp_data::serialization::data_source_collection::write_collection, request) },
               (POST) (/agencies)    => { routers::write_collection_route("agencies", "agencies", &config, &transition_capnp_data::serialization::agency_collection::write_collection, request) },
               (POST) (/paths)       => { routers::write_collection_route("paths", "paths", &config, &transition_capnp_data::serialization::path_collection::write_collection, request) },
               (POST) (/nodes)       => { routers::write_collection_route("nodes", "nodes", &config, &transition_capnp_data::serialization::node_collection::write_collection, request) },
               (POST) (/node)        => { routers::write_object_route("node", "nodes", &config, &transition_capnp_data::serialization::node::write_object, request) },
               (POST) (/lines)       => { routers::write_collection_route("lines", "lines", &config, &transition_capnp_data::serialization::line_collection::write_collection, request) },
               (POST) (/line)        => { routers::write_object_route("line", "lines", &config, &transition_capnp_data::serialization::line::write_object, request) },
-              (POST) (/odTrips)     => { routers::write_collection_route("odTrips", "odTrips", &config, &transition_capnp_data::serialization::od_trip_collection::write_collection, request) },
-              (POST) (/places)      => { routers::write_collection_route("places", "places", &config, &transition_capnp_data::serialization::place_collection::write_collection, request) },
               (POST) (/scenarios)   => { routers::write_collection_route("scenarios", "scenarios", &config, &transition_capnp_data::serialization::scenario_collection::write_collection, request) },
               (POST) (/services)    => { routers::write_collection_route("services", "services", &config, &transition_capnp_data::serialization::service_collection::write_collection, request) },
 
-              (GET) (/dataSources) => { routers::read_collection_route("dataSources", "dataSources", &config, &transition_capnp_data::serialization::data_source_collection::read_collection) },
               (GET) (/agencies)    => { routers::read_collection_route("agencies", "agencies", &config, &transition_capnp_data::serialization::agency_collection::read_collection) },
               (GET) (/paths)       => { routers::read_collection_route("paths", "paths", &config, &transition_capnp_data::serialization::path_collection::read_collection) },
               (GET) (/nodes)       => { routers::read_collection_route("nodes", "nodes", &config, &transition_capnp_data::serialization::node_collection::read_collection) },
               (GET) (/node)        => { routers::read_object_route("node", &object_uuid, "nodes", &config, &transition_capnp_data::serialization::node::read_object) },
               (GET) (/lines)       => { routers::read_collection_route("lines", "lines", &config, &transition_capnp_data::serialization::line_collection::read_collection) },
               (GET) (/line)        => { routers::read_object_route("line", &object_uuid, "lines", &config, &transition_capnp_data::serialization::line::read_object) },
-              (GET) (/odTrips)     => { routers::read_collection_route("odTrips", "odTrips", &config, &transition_capnp_data::serialization::od_trip_collection::read_collection) },
-              (GET) (/places)      => { routers::read_collection_route("places", "places", &config, &transition_capnp_data::serialization::place_collection::read_collection) },
               (GET) (/scenarios)   => { routers::read_collection_route("scenarios", "scenarios", &config, &transition_capnp_data::serialization::scenario_collection::read_collection) },
               (GET) (/services)    => { routers::read_collection_route("services", "services", &config, &transition_capnp_data::serialization::service_collection::read_collection) },
 
