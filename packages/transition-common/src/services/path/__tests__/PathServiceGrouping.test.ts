@@ -112,39 +112,39 @@ describe('groupServicesByTravelTimes', () => {
         expect(weekendGroup!.activeDays.sort()).toEqual(['saturday', 'sunday']);
     });
 
-    test('holiday services are grouped separately when unmatched', () => {
+    test('services with different day patterns and travel times stay in separate groups', () => {
         const path = makePath([
             {
                 periodShortname: 'AM',
                 services: [
-                    { id: 'regular', travelTimeSeconds: [100, 100] },
-                    { id: 'holiday', travelTimeSeconds: [150, 150] }
+                    { id: 'weekday', travelTimeSeconds: [100, 100] },
+                    { id: 'mondayOnly', travelTimeSeconds: [150, 150] }
                 ]
             }
         ]);
 
         const services = makeServicesCollection({
-            regular: makeService(
-                'regular',
+            weekday: makeService(
+                'weekday',
                 { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
                 '2026-01-01',
                 '2026-12-31'
             ),
-            holiday: makeService('holiday', { monday: true }, '2026-12-25', '2026-12-25')
+            mondayOnly: makeService('mondayOnly', { monday: true }, '2026-12-25', '2026-12-25')
         });
 
-        const groups = groupServicesByTravelTimes(path, ['regular', 'holiday'], 200, services);
+        const groups = groupServicesByTravelTimes(path, ['weekday', 'mondayOnly'], 200, services);
 
         expect(groups.length).toEqual(2);
-        const regularGroup = groups.find((g) => g.serviceIds.includes('regular'));
-        const holidayGroup = groups.find((g) => g.serviceIds.includes('holiday'));
-        expect(regularGroup).toBeDefined();
-        expect(regularGroup!.activeDays.sort()).toEqual(['friday', 'monday', 'thursday', 'tuesday', 'wednesday']);
-        expect(holidayGroup).toBeDefined();
-        expect(holidayGroup!.hasHolidayService).toBe(true);
+        const weekdayGroup = groups.find((g) => g.serviceIds.includes('weekday'));
+        const mondayGroup = groups.find((g) => g.serviceIds.includes('mondayOnly'));
+        expect(weekdayGroup).toBeDefined();
+        expect(weekdayGroup!.activeDays.sort()).toEqual(['friday', 'monday', 'thursday', 'tuesday', 'wednesday']);
+        expect(mondayGroup).toBeDefined();
+        expect(mondayGroup!.activeDays).toEqual(['monday']);
     });
 
-    test('separates weekday, saturday, sunday and holiday services with different travel times', () => {
+    test('separates weekday, saturday, sunday and monday-only services with different travel times', () => {
         const path = makePath([
             {
                 periodShortname: 'AM',
@@ -152,13 +152,13 @@ describe('groupServicesByTravelTimes', () => {
                     { id: 'weekday', travelTimeSeconds: [100, 100] },
                     { id: 'saturday', travelTimeSeconds: [120, 120] },
                     { id: 'sunday', travelTimeSeconds: [140, 140] },
-                    { id: 'holiday', travelTimeSeconds: [160, 160] }
+                    { id: 'mondayOnly', travelTimeSeconds: [160, 160] }
                 ]
             }
         ]);
 
         const services = makeServicesCollection({
-            holiday: makeService('holiday', { monday: true }, '2026-12-25', '2026-12-25'),
+            mondayOnly: makeService('mondayOnly', { monday: true }, '2026-12-25', '2026-12-25'),
             weekday: makeService(
                 'weekday',
                 { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
@@ -169,45 +169,51 @@ describe('groupServicesByTravelTimes', () => {
             sunday: makeService('sunday', { sunday: true }, '2026-01-01', '2026-12-31')
         });
 
-        const groups = groupServicesByTravelTimes(path, ['holiday', 'weekday', 'saturday', 'sunday'], 200, services);
+        const groups = groupServicesByTravelTimes(
+            path,
+            ['mondayOnly', 'weekday', 'saturday', 'sunday'],
+            200,
+            services
+        );
 
         expect(groups.length).toEqual(4);
         const weekdayGroup = groups.find((g) => g.serviceIds.includes('weekday'));
         const saturdayGroup = groups.find((g) => g.serviceIds.includes('saturday'));
         const sundayGroup = groups.find((g) => g.serviceIds.includes('sunday'));
-        const holidayGroup = groups.find((g) => g.serviceIds.includes('holiday'));
+        const mondayGroup = groups.find((g) => g.serviceIds.includes('mondayOnly'));
         expect(weekdayGroup!.activeDays.sort()).toEqual(['friday', 'monday', 'thursday', 'tuesday', 'wednesday']);
         expect(saturdayGroup!.activeDays).toEqual(['saturday']);
         expect(sundayGroup!.activeDays).toEqual(['sunday']);
-        expect(holidayGroup!.hasHolidayService).toBe(true);
+        expect(mondayGroup!.activeDays).toEqual(['monday']);
     });
 
-    test('holiday services merge into matching group when travel times match', () => {
+    test('services with overlapping day patterns and matching travel times merge into one group', () => {
         const path = makePath([
             {
                 periodShortname: 'AM',
                 services: [
-                    { id: 'regular', travelTimeSeconds: [100, 100] },
-                    { id: 'holiday', travelTimeSeconds: [100, 100] }
+                    { id: 'weekday', travelTimeSeconds: [100, 100] },
+                    { id: 'mondayOnly', travelTimeSeconds: [100, 100] }
                 ]
             }
         ]);
 
         const services = makeServicesCollection({
-            regular: makeService(
-                'regular',
+            weekday: makeService(
+                'weekday',
                 { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
                 '2026-01-01',
                 '2026-12-31'
             ),
-            holiday: makeService('holiday', { monday: true }, '2026-12-25', '2026-12-25')
+            mondayOnly: makeService('mondayOnly', { monday: true }, '2026-12-25', '2026-12-25')
         });
 
-        const groups = groupServicesByTravelTimes(path, ['regular', 'holiday'], 200, services);
+        const groups = groupServicesByTravelTimes(path, ['weekday', 'mondayOnly'], 200, services);
 
         expect(groups.length).toEqual(1);
-        expect(groups[0].serviceIds).toContain('regular');
-        expect(groups[0].serviceIds).toContain('holiday');
+        expect(groups[0].serviceIds).toContain('weekday');
+        expect(groups[0].serviceIds).toContain('mondayOnly');
+        expect(groups[0].activeDays.sort()).toEqual(['friday', 'monday', 'thursday', 'tuesday', 'wednesday']);
     });
 
     test('service with subset of periods merges into group with more periods', () => {
@@ -240,8 +246,55 @@ describe('groupServicesByTravelTimes', () => {
         expect(groups[0].activeDays.sort()).toEqual(['friday', 'monday', 'saturday', 'sunday', 'thursday', 'tuesday', 'wednesday']);
     });
 
+    test('representative (serviceIds[0]) is the service with the most periods even when passed last', () => {
+        // subsetService has 3 periods, fullService has 4. They share the same times for
+        // the 3 common periods, so subsetService is merged into fullService's bucket.
+        // Passing subsetService first in serviceIds must not make it the representative.
+        const path = makePath([
+            {
+                periodShortname: 'AM',
+                services: [
+                    { id: 'subsetService', travelTimeSeconds: [100, 100] },
+                    { id: 'fullService', travelTimeSeconds: [100, 100] }
+                ]
+            },
+            {
+                periodShortname: 'MD',
+                services: [
+                    { id: 'subsetService', travelTimeSeconds: [90, 90] },
+                    { id: 'fullService', travelTimeSeconds: [90, 90] }
+                ]
+            },
+            {
+                periodShortname: 'PM',
+                services: [
+                    { id: 'subsetService', travelTimeSeconds: [110, 110] },
+                    { id: 'fullService', travelTimeSeconds: [110, 110] }
+                ]
+            },
+            // Only fullService has an EV period — this is what makes its key a superset.
+            { periodShortname: 'EV', services: [{ id: 'fullService', travelTimeSeconds: [80, 80] }] }
+        ]);
+
+        const services = makeServicesCollection({
+            subsetService: makeService(
+                'subsetService',
+                { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
+                '2026-01-01',
+                '2026-12-31'
+            ),
+            fullService: makeService('fullService', { saturday: true, sunday: true }, '2026-01-01', '2026-12-31')
+        });
+
+        const groups = groupServicesByTravelTimes(path, ['subsetService', 'fullService'], 800, services);
+
+        expect(groups.length).toEqual(1);
+        expect(groups[0].serviceIds).toHaveLength(2);
+        expect(groups[0].serviceIds[0]).toEqual('fullService');
+        expect(Object.keys(groups[0].averageTimesByPeriod).sort()).toEqual(['AM', 'EV', 'MD', 'PM']);
+    });
+
     test('service with no trips for the path produces empty fingerprint', () => {
-        // TODO: Check if we keep this test
         const path = makePath([
             {
                 periodShortname: 'AM',
@@ -310,26 +363,118 @@ describe('groupServicesByTravelTimes', () => {
         expect(groups[0].activeDays).toEqual(['saturday']);
     });
 
-    test('only holiday services stay separate', () => {
+    test('services with no segment data are not grouped together by empty fingerprint', () => {
+        // Brand-new line: no GTFS import, no segmentsByServiceAndPeriod on the path.
+        // Two services with no segment data must not be falsely merged into a single
+        // group just because their fingerprints are both empty strings.
+        const path = { attributes: { data: {} } } as Path;
+
+        const services = makeServicesCollection({
+            weekday: makeService(
+                'weekday',
+                { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
+                '2026-01-01',
+                '2026-12-31'
+            ),
+            weekend: makeService('weekend', { saturday: true, sunday: true }, '2026-01-01', '2026-12-31')
+        });
+
+        const groups = groupServicesByTravelTimes(path, ['weekday', 'weekend'], 200, services);
+
+        expect(groups.length).toEqual(2);
+        const weekdayGroup = groups.find((g) => g.serviceIds.includes('weekday'));
+        const weekendGroup = groups.find((g) => g.serviceIds.includes('weekend'));
+        expect(weekdayGroup!.serviceIds).toEqual(['weekday']);
+        expect(weekendGroup!.serviceIds).toEqual(['weekend']);
+    });
+
+    test('services on different periods groups are never merged even when travel time keys overlap', () => {
+        // Both services share the same shortname "morning" for MD and PM travel times,
+        // but they belong to different periods groups. Without the periods-group check,
+        // service A's fingerprint would be a subset of B's and subset-merge would
+        // collapse them into one group. The periods-group partitioning must prevent that.
         const path = makePath([
             {
-                periodShortname: 'AM',
+                periodShortname: 'morning',
                 services: [
-                    { id: 'christmas', travelTimeSeconds: [100, 100] },
-                    { id: 'newYear', travelTimeSeconds: [150, 150] }
+                    { id: 'serviceOnDefault', travelTimeSeconds: [100, 100] },
+                    { id: 'serviceOnExtended', travelTimeSeconds: [100, 100] }
                 ]
             }
         ]);
 
         const services = makeServicesCollection({
-            christmas: makeService('christmas', { wednesday: true }, '2026-12-25', '2026-12-25', 'Christmas'),
-            newYear: makeService('newYear', { thursday: true }, '2027-01-01', '2027-01-01', 'New Year')
+            serviceOnDefault: makeService(
+                'serviceOnDefault',
+                { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
+                '2026-01-01',
+                '2026-12-31'
+            ),
+            serviceOnExtended: makeService(
+                'serviceOnExtended',
+                { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
+                '2026-01-01',
+                '2026-12-31'
+            )
         });
 
-        const groups = groupServicesByTravelTimes(path, ['christmas', 'newYear'], 200, services);
+        const periodsGroupByServiceId = {
+            serviceOnDefault: 'default',
+            serviceOnExtended: 'extended_morning_peak'
+        };
+
+        const groups = groupServicesByTravelTimes(
+            path,
+            ['serviceOnDefault', 'serviceOnExtended'],
+            200,
+            services,
+            false,
+            periodsGroupByServiceId
+        );
 
         expect(groups.length).toEqual(2);
-        expect(groups.every((g) => g.hasHolidayService)).toBe(true);
+        const defaultGroup = groups.find((g) => g.serviceIds.includes('serviceOnDefault'));
+        const extendedGroup = groups.find((g) => g.serviceIds.includes('serviceOnExtended'));
+        expect(defaultGroup!.serviceIds).toEqual(['serviceOnDefault']);
+        expect(extendedGroup!.serviceIds).toEqual(['serviceOnExtended']);
+    });
+
+    test('services with no day-of-week flags are not grouped and each stay as a singleton', () => {
+        // calendar_dates-only services (no day-of-week flags set) must not be grouped with
+        // anything, even if their travel times match other services or each other.
+        const path = makePath([
+            {
+                periodShortname: 'AM',
+                services: [
+                    { id: 'weekday', travelTimeSeconds: [100, 100] },
+                    { id: 'exception1', travelTimeSeconds: [100, 100] },
+                    { id: 'exception2', travelTimeSeconds: [100, 100] }
+                ]
+            }
+        ]);
+
+        const services = makeServicesCollection({
+            weekday: makeService(
+                'weekday',
+                { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true },
+                '2026-01-01',
+                '2026-12-31'
+            ),
+            exception1: makeService('exception1', {}, '2026-12-25', '2026-12-25', 'Exception 1'),
+            exception2: makeService('exception2', {}, '2027-01-01', '2027-01-01', 'Exception 2')
+        });
+
+        const groups = groupServicesByTravelTimes(path, ['weekday', 'exception1', 'exception2'], 200, services);
+
+        expect(groups.length).toEqual(3);
+        const weekdayGroup = groups.find((g) => g.serviceIds.includes('weekday'));
+        const exception1Group = groups.find((g) => g.serviceIds.includes('exception1'));
+        const exception2Group = groups.find((g) => g.serviceIds.includes('exception2'));
+        expect(weekdayGroup!.activeDays.length).toBe(5);
+        expect(exception1Group!.activeDays).toEqual([]);
+        expect(exception1Group!.serviceIds).toEqual(['exception1']);
+        expect(exception2Group!.activeDays).toEqual([]);
+        expect(exception2Group!.serviceIds).toEqual(['exception2']);
     });
 
     test('assigns commonName only to duplicate-labelled groups', () => {
@@ -384,12 +529,13 @@ describe('expandGroupedDataToServices', () => {
             {
                 serviceIds: ['s1', 's2', 's3'],
                 activeDays: ['monday'],
-                hasHolidayService: false,
                 averageTimesByPeriod: {}
             }
         ];
         const localData = {
-            s1: { AM: [100, 200] }
+            s1: { AM: [100, 200] },
+            s2: { AM: [50, 60] },
+            s3: { AM: [70, 80] }
         };
 
         const expanded = expandGroupedDataToServices(localData, groups);
@@ -401,7 +547,7 @@ describe('expandGroupedDataToServices', () => {
 
     test('does not copy when no service in group has edits', () => {
         const groups = [
-            { serviceIds: ['s1', 's2'], activeDays: ['monday'], hasHolidayService: false, averageTimesByPeriod: {} }
+            { serviceIds: ['s1', 's2'], activeDays: ['monday'], averageTimesByPeriod: {} }
         ];
         const localData = {};
 
@@ -416,12 +562,13 @@ describe('expandGroupedDataToServices', () => {
             {
                 serviceIds: ['s1', 's2', 's3'],
                 activeDays: ['monday'],
-                hasHolidayService: false,
                 averageTimesByPeriod: {}
             }
         ];
         const localData = {
-            s1: { AM: [100, 200], PM: [300, 400] }
+            s1: { AM: [100, 200], PM: [300, 400] },
+            s2: { AM: [10, 20], PM: [30, 40] },
+            s3: { AM: [50, 60], PM: [70, 80] }
         };
 
         const expanded = expandGroupedDataToServices(localData, groups);
@@ -437,5 +584,66 @@ describe('expandGroupedDataToServices', () => {
         expanded.s2.PM[1] = 888;
         expect(expanded.s1.PM[1]).toBe(400);
         expect(expanded.s3.PM[1]).toBe(400);
+    });
+
+    test('does not propagate periods to services that did not originally have them', () => {
+        // fullService is the representative (4 periods), subsetService was merged in
+        // via mergeServicesWithSubsetPeriods and only has 3 periods. Editing EV on the
+        // representative must not create an EV entry on subsetService.
+        const groups = [
+            {
+                serviceIds: ['fullService', 'subsetService'],
+                activeDays: ['monday'],
+                averageTimesByPeriod: {}
+            }
+        ];
+        const localData = {
+            fullService: {
+                AM: [100, 200],
+                MD: [90, 180],
+                PM: [110, 220],
+                EV: [80, 160]
+            },
+            subsetService: {
+                AM: [100, 200],
+                MD: [90, 180],
+                PM: [110, 220]
+            }
+        };
+
+        const expanded = expandGroupedDataToServices(localData, groups);
+
+        expect(Object.keys(expanded.subsetService).sort()).toEqual(['AM', 'MD', 'PM']);
+        expect(expanded.subsetService.EV).toBeUndefined();
+        expect(expanded.fullService.EV).toEqual([80, 160]);
+    });
+
+    test('propagates edited shared periods to the subset service without adding new ones', () => {
+        // User edits AM and EV on the representative. AM is shared, EV is representative-only.
+        // subsetService should receive the AM edits but nothing for EV.
+        const groups = [
+            {
+                serviceIds: ['fullService', 'subsetService'],
+                activeDays: ['monday'],
+                averageTimesByPeriod: {}
+            }
+        ];
+        const localData = {
+            fullService: {
+                AM: [111, 222],
+                PM: [110, 220],
+                EV: [77, 155]
+            },
+            subsetService: {
+                AM: [100, 200],
+                PM: [110, 220]
+            }
+        };
+
+        const expanded = expandGroupedDataToServices(localData, groups);
+
+        expect(expanded.subsetService.AM).toEqual([111, 222]);
+        expect(expanded.subsetService.PM).toEqual([110, 220]);
+        expect(expanded.subsetService.EV).toBeUndefined();
     });
 });

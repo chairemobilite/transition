@@ -136,7 +136,6 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                     <p className="_orange warning-msg">{t('transit:transitPath:SegmentLengthMismatch')}</p>
                 )}
 
-<<<<<<< HEAD
                 {serviceChoices.length === 0 && (
                     <p className="_orange warning-msg">{t('transit:transitPath:NoServicesForPath')}</p>
                 )}

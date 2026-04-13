@@ -31,17 +31,17 @@ import {
 const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
 
 const dayKeyMap: Record<string, string> = {
-    monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu',
-    friday: 'Fri', saturday: 'Sat', sunday: 'Sun'
+    monday: 'Mon',
+    tuesday: 'Tue',
+    wednesday: 'Wed',
+    thursday: 'Thu',
+    friday: 'Fri',
+    saturday: 'Sat',
+    sunday: 'Sun'
 };
 
 /** Build a human-readable label for a service group based on its active days. */
-const buildGroupLabel = (
-    activeDays: string[],
-    hasHolidayService: boolean,
-    t: (key: string) => string,
-    commonName?: string
-): string => {
+const buildGroupLabel = (activeDays: string[], t: (key: string) => string, commonName?: string): string => {
     const prefix = 'transit:transitPath:serviceGroupDays';
     const daysSet = new Set(activeDays);
     const hasAllWeekdays = weekdays.every((d) => daysSet.has(d));
@@ -67,14 +67,6 @@ const buildGroupLabel = (
         const individualDays = weekdays.filter((d) => daysSet.has(d)).map((d) => t(`${prefix}:${dayKeyMap[d]}`));
         if (individualDays.length > 0) {
             parts.push(individualDays.join('-'));
-        }
-    }
-
-    if (hasHolidayService) {
-        if (parts.length > 0) {
-            parts[parts.length - 1] = `${parts[parts.length - 1]}, ${t(`${prefix}:Holiday`)}`;
-        } else {
-            parts.push(t(`${prefix}:Holiday`));
         }
     }
 
@@ -118,17 +110,34 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     const totalPathTime = segments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
 
     const [noGrouping, setNoGrouping] = React.useState<boolean>(false);
+    const periodsGroupByServiceId: Record<string, string | undefined> = React.useMemo(() => {
+        const map: Record<string, string | undefined> = {};
+        if (!line) return map;
+        for (const serviceId of serviceIds) {
+            const schedule = line.getSchedule(serviceId);
+            map[serviceId] = schedule?.attributes?.periods_group_shortname ?? undefined;
+        }
+        return map;
+    }, [serviceIds.join(','), line]);
     const serviceGroups: ServiceGroup[] = React.useMemo(
-        () => groupServicesByTravelTimes(path, serviceIds, totalPathTime, servicesCollection, noGrouping),
-        [serviceIds.join(','), noGrouping]
+        () =>
+            groupServicesByTravelTimes(
+                path,
+                serviceIds,
+                totalPathTime,
+                servicesCollection,
+                noGrouping,
+                periodsGroupByServiceId
+            ),
+        [serviceIds.join(','), noGrouping, periodsGroupByServiceId]
     );
 
     const getGroupLabel = (group: ServiceGroup): string => {
-        if (noGrouping) {
+        if (noGrouping || group.serviceIds.length === 1) {
             const service = servicesCollection?.getById(group.serviceIds[0]);
             return service ? service.toString(false) : group.serviceIds[0];
         }
-        return buildGroupLabel(group.activeDays, group.hasHolidayService, t, group.commonName);
+        return buildGroupLabel(group.activeDays, t, group.commonName);
     };
 
     const serviceChoices = serviceGroups.map((group, index) => ({
