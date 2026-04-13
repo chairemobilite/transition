@@ -35,26 +35,8 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import pathsDbQueries from '../../models/db/transitPaths.db.queries';
 import { collectionToCache as pathCollectionToCache } from '../../models/capnpCache/transitPaths.cache.queries';
 
-import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
-import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
-import { collectionToCache as dataSourceCollectionToCache } from '../../models/capnpCache/dataSources.cache.queries';
-
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-
-/**
- * Load data sources from database and save to cache
- * @param options.cachePathDirectory - Optional cache directory path
- */
-export const loadAndSaveDataSourcesToCache = async ({
-    cachePathDirectory
-}: { cachePathDirectory?: string } = {}): Promise<void> => {
-    const dataSourceCollection = new DataSourceCollection([], {});
-    const dataSources = await dataSourceDbQueries.collection();
-    dataSourceCollection.loadFromCollection(dataSources);
-    await dataSourceCollectionToCache(dataSourceCollection, cachePathDirectory);
-    console.log('saved data sources collection to cache');
-};
 
 /**
  * Load agencies from database and save to cache
@@ -238,7 +220,6 @@ export const recreateCache = async (
         // If only one of them fail, the promise.all will fail and return, while
         // the others might complete. This should be fine, but we might have partial cache on disk
         await Promise.all([
-            loadAndSaveDataSourcesToCache({ cachePathDirectory: options.cachePathDirectory }),
             loadAndSaveAgenciesToCache({ cachePathDirectory: options.cachePathDirectory }),
             loadAndSaveServicesToCache({ cachePathDirectory: options.cachePathDirectory }),
             loadAndSaveScenariosToCache({ cachePathDirectory: options.cachePathDirectory }),

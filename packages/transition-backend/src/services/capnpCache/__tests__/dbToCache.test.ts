@@ -11,7 +11,6 @@ import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../../nodes/NodeColl
 
 import { 
     recreateCache,
-    loadAndSaveDataSourcesToCache,
     loadAndSaveAgenciesToCache,
     loadAndSaveServicesToCache,
     loadAndSaveScenariosToCache,
@@ -27,37 +26,10 @@ import transitPathsDbQueries from '../../../models/db/transitPaths.db.queries';
 import transitScenariosDbQueries from '../../../models/db/transitScenarios.db.queries';
 import transitAgenciesDbQueries from '../../../models/db/transitAgencies.db.queries';
 import transitServicesDbQueries from '../../../models/db/transitServices.db.queries';
-import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import Line from 'transition-common/lib/services/line/Line';
 
 //serviceLocator.socketEventManager = new EventEmitter();
-
-// Mock data sources
-const dataSourceAttributes = {
-    id: uuidV4(),
-    shortname: 'new_test_data_source',
-    type: 'transitSmartCardData' as const,
-    name: 'new test data source',
-    description: "description for new test data source",
-    is_frozen: true,
-    data: {
-      foo: 'bar',
-      bar: 'foo'
-    }
-};
-jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries', () => ({
-    collection: jest.fn().mockImplementation(async () => [dataSourceAttributes])
-}));
-const mockedDataSourceDbCollection = dataSourcesDbQueries.collection as jest.MockedFunction<typeof dataSourcesDbQueries.collection>;
-const mockedDsToCache = jest.fn();
-jest.mock('../../../models/capnpCache/dataSources.cache.queries', () => {
-    return {
-        collectionToCache: jest.fn().mockImplementation(async (collection, cachePath) => {
-            return mockedDsToCache(collection, cachePath);
-        })
-    }
-});
 
 // Mock agencies
 const agencyAttributes = {  
@@ -310,24 +282,6 @@ jest.mock('../../../models/capnpCache/transitPaths.cache.queries', () => {
             return mockedPathToCache(collection, cachePath);
         })
     }
-});
-
-describe('loadAndSaveDataSourcesToCache', () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    test.each([
-        { cachePathDirectory: undefined, expectedPath: undefined },
-        { cachePathDirectory: '/custom/cache/path', expectedPath: '/custom/cache/path' }
-    ])('should load and save data sources to cache with cachePathDirectory=$cachePathDirectory', async ({ cachePathDirectory, expectedPath }) => {
-        await loadAndSaveDataSourcesToCache({ cachePathDirectory });
-        expect(mockedDataSourceDbCollection).toHaveBeenCalledTimes(1);
-        expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
-            _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
-        }), expectedPath);
-        expect(mockedDsToCache).toHaveBeenCalledTimes(1);
-    });
 });
 
 describe('loadAndSaveAgenciesToCache', () => {
@@ -587,10 +541,6 @@ describe('Recreate cache', () => {
 
     test('no refresh nodes, no schedules', async () => {
         await recreateCache({refreshTransferrableNodes: false, saveLines: false});
-        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
-        expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
-            _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
-        }), undefined);
         expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
@@ -638,10 +588,6 @@ describe('Recreate cache', () => {
 
     test('refresh nodes, no schedules', async () => {
         await recreateCache({refreshTransferrableNodes: true, saveLines: false});
-        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
-        expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
-            _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
-        }), undefined);
         expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
@@ -689,10 +635,6 @@ describe('Recreate cache', () => {
 
     test('no refresh nodes, refresh schedules', async () => {
         await recreateCache({refreshTransferrableNodes: false, saveLines: true});
-        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
-        expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
-            _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
-        }), undefined);
         expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
@@ -743,10 +685,6 @@ describe('Recreate cache', () => {
 
     test('refresh nodes and schedules', async () => {
         await recreateCache({refreshTransferrableNodes: true, saveLines: true});
-        expect(mockedDataSourceDbCollection).toHaveBeenCalled();
-        expect(mockedDsToCache).toHaveBeenCalledWith(expect.objectContaining({
-            _features: [expect.objectContaining({_attributes: expect.objectContaining(dataSourceAttributes)})]
-        }), undefined);
         expect(mockedAgencyDbCollection).toHaveBeenCalled();
         expect(mockedAgToCache).toHaveBeenCalledWith(expect.objectContaining({
             _features: [expect.objectContaining({_attributes: expect.objectContaining(agencyAttributes)})]
