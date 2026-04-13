@@ -15,10 +15,8 @@ const allDayKeys = [...weekdays, ...weekendDays];
 export type ServiceGroup = {
     /** IDs of the services in this group */
     serviceIds: string[];
-    /** Days of the week covered by regular (non-holiday) services in this group */
+    /** Days of the week covered by the services in this group */
     activeDays: string[];
-    /** Whether this group contains holiday services */
-    hasHolidayService: boolean;
     /** Average travel times per segment, keyed by period shortname */
     averageTimesByPeriod: Record<string, number[]>;
     /** Shared token extracted from the service names, used to differentiate groups */
@@ -54,13 +52,15 @@ const findDistinguishingToken = (groupNames: string[], otherNames: string[]): st
 };
 
 /**
- * Calculate average segment travel times per period from actual trip data in a schedule.
- * For each period, averages the travel time of each segment across all trips on the given path.
+ * Read the stored per-segment travel times for a service from the path's
+ * segmentsByServiceAndPeriod cache. The values were averaged upstream (at GTFS
+ * import time or when the segment times modal was saved)
  *
- * @param path - The path object (provides segments data)
- * @param serviceId - The service ID to look up the schedule
- * @returns Record keyed by period shortname, each value is an array of average times per segment,
- * or an empty array if there is no corresponding service for a given period
+ * @param path - The path object (provides segmentsByServiceAndPeriod)
+ * @param serviceId - The service ID to look up
+ * @returns Record keyed by period shortname, each value is the array of stored
+ * segment travel times for that period. Returns an empty object if the service
+ * has no stored data on this path.
  */
 const getAverageSegmentTimesByPeriod = (path: Path, serviceId: string): Record<string, number[]> => {
     const serviceData = path.attributes.data.segmentsByServiceAndPeriod?.[serviceId];
@@ -75,16 +75,11 @@ const getAverageSegmentTimesByPeriod = (path: Path, serviceId: string): Record<s
 };
 
 /**
- * Determine if a service is a holiday service based on its duration.
- * A service lasting 7 days or less is considered a holiday.
+ * Return the list of day-of-week keys for which the service has its flag set to true.
  */
-const isHolidayService = (service: any): boolean => {
-    if (!service) return false;
-    const startDate = service.get('start_date');
-    const endDate = service.get('end_date');
-    if (!startDate || !endDate) return false;
-    const durationDays = (new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24);
-    return durationDays <= 7;
+const getServiceActiveDays = (service: any): string[] => {
+    if (!service) return [];
+    return allDayKeys.filter((day) => service.get(day));
 };
 
 /**
@@ -122,47 +117,22 @@ const parseTravelTimeKey = (key: string): Map<string, string> =>
     );
 
 /**
- * Separate service IDs into regular and holiday services.
- * Holiday services have a duration of 7 days or less.
- *
- * @param serviceIds - All service IDs to classify
- * @param servicesCollection - Collection to look up service attributes (dates)
- * @returns Object with regularIds and holidayIds arrays
- */
-const separateHolidayServices = (
-    serviceIds: string[],
-    servicesCollection: any
-): { regularIds: string[]; holidayIds: string[] } => {
-    const regularIds: string[] = [];
-    const holidayIds: string[] = [];
-    for (const serviceId of serviceIds) {
-        const service = servicesCollection?.getById(serviceId);
-        if (isHolidayService(service)) {
-            holidayIds.push(serviceId);
-        } else {
-            regularIds.push(serviceId);
-        }
-    }
-    return { regularIds, holidayIds };
-};
-
-/**
- * Group regular services by their travel time similarity.
+ * Group services by their travel time similarity.
  * Services with the same bucketed total per period get the same key.
  *
- * @param regularIds - Service IDs of regular (non-holiday) services
+ * @param serviceIds - Service IDs to group
  * @param path - The path object (provides segments data)
  * @param tolerance - Bucketing tolerance in seconds
  *
  * @returns Record keyed by travel time key, each value is an array of service IDs
  */
-const groupRegularServicesByTravelTimes = (
-    regularIds: string[],
+const groupServicesByTravelTimeKey = (
+    serviceIds: string[],
     path: Path,
     tolerance: number
 ): Record<string, string[]> => {
     const groups: Record<string, string[]> = {};
-    for (const serviceId of regularIds) {
+    for (const serviceId of serviceIds) {
         const key = getServiceTravelTimeKey(path, serviceId, tolerance);
         if (!groups[key]) {
             groups[key] = [];
@@ -201,48 +171,6 @@ const mergeServicesWithSubsetPeriods = (serviceGroups: Record<string, string[]>)
 };
 
 /**
- * Try to match each holiday service to an existing regular group by travel time similarity.
- *
- * @param holidayIds - Service IDs of holiday services to match
- * @param serviceGroups - Existing groups to match against, mutated in place when matched
- * @param path - The path object (provides segments data)
- * @param tolerance - Bucketing tolerance in seconds
- * @returns IDs of holidays that couldn't be matched to any group
- */
-const matchHolidaysToGroups = (
-    holidayIds: string[],
-    serviceGroups: Record<string, string[]>,
-    path: Path,
-    tolerance: number
-): string[] => {
-    const unmatchedIds: string[] = [];
-    const groupKeys = Object.keys(serviceGroups);
-    for (const holidayId of holidayIds) {
-        const holidayKey = getServiceTravelTimeKey(path, holidayId, tolerance);
-        const holidayParts = parseTravelTimeKey(holidayKey);
-        let matched = false;
-        if (serviceGroups[holidayKey]) {
-            serviceGroups[holidayKey].push(holidayId);
-            matched = true;
-        } else {
-            for (const groupKey of groupKeys) {
-                const groupParts = parseTravelTimeKey(groupKey);
-                const isSubset = [...holidayParts.entries()].every(([k, v]) => groupParts.get(k) === v);
-                if (isSubset) {
-                    serviceGroups[groupKey].push(holidayId);
-                    matched = true;
-                    break;
-                }
-            }
-        }
-        if (!matched) {
-            unmatchedIds.push(holidayId);
-        }
-    }
-    return unmatchedIds;
-};
-
-/**
  * Look up each service's name from the collection and return the list of names
  * (ignoring services with no name or missing from the collection).
  */
@@ -269,56 +197,30 @@ const computeGroupCommonName = (groupNames: string[], otherGroupsNames: string[]
 
 /**
  * Build the final ServiceGroup array from grouped service IDs.
- * Collects active days from regular services and computes average times per period.
+ * Aggregates active days across each group's services and computes average times per period.
  *
  * @param serviceGroups - Record keyed by travel time key, each value is an array of service IDs
- * @param unmatchedHolidayIds - Holiday service IDs that didn't match any group
  * @param path - The path object (provides segments data)
  * @param servicesCollection - Collection to look up service attributes (days)
  * @returns Array of ServiceGroup objects
  */
 const buildServiceGroups = (
     serviceGroups: Record<string, string[]>,
-    unmatchedHolidayIds: string[],
     path: Path,
     servicesCollection: any
 ): ServiceGroup[] => {
-    // All services are holidays — keep each one separate
-    if (Object.keys(serviceGroups).length === 0 && unmatchedHolidayIds.length > 0) {
-        return unmatchedHolidayIds.map((holidayId) => ({
-            serviceIds: [holidayId],
-            activeDays: [],
-            hasHolidayService: true,
-            averageTimesByPeriod: getAverageSegmentTimesByPeriod(path, holidayId)
-        }));
-    }
-
-    const builtServiceGroups = Object.values(serviceGroups).map((ids): ServiceGroup => {
+    return Object.values(serviceGroups).map((ids): ServiceGroup => {
         const activeDaysSet = new Set<string>();
         for (const serviceId of ids) {
             const service = servicesCollection?.getById(serviceId);
-            if (!service || isHolidayService(service)) continue;
-            allDayKeys.filter((day) => service.get(day)).forEach((d) => activeDaysSet.add(d));
+            getServiceActiveDays(service).forEach((d) => activeDaysSet.add(d));
         }
-        const averageTimesByPeriod = getAverageSegmentTimesByPeriod(path, ids[0]);
         return {
             serviceIds: ids,
             activeDays: [...activeDaysSet],
-            hasHolidayService: false,
-            averageTimesByPeriod
+            averageTimesByPeriod: getAverageSegmentTimesByPeriod(path, ids[0])
         };
     });
-
-    if (unmatchedHolidayIds.length === 0) return builtServiceGroups;
-
-    builtServiceGroups.push({
-        serviceIds: unmatchedHolidayIds,
-        activeDays: [],
-        hasHolidayService: true,
-        averageTimesByPeriod: getAverageSegmentTimesByPeriod(path, unmatchedHolidayIds[0])
-    });
-
-    return builtServiceGroups;
 };
 
 /**
@@ -328,8 +230,7 @@ const buildServiceGroups = (
  * be present in the group's service names but absent from sibling groups.
  */
 const assignCommonNamesForDuplicates = (groups: ServiceGroup[], servicesCollection: any): void => {
-    const buildSignature = (group: ServiceGroup) =>
-        `${[...group.activeDays].sort().join(',')}|${group.hasHolidayService}`;
+    const buildSignature = (group: ServiceGroup) => [...group.activeDays].sort().join(',');
 
     const signatureToGroups = new Map<string, ServiceGroup[]>();
     for (const group of groups) {
@@ -350,16 +251,50 @@ const assignCommonNamesForDuplicates = (groups: ServiceGroup[], servicesCollecti
 };
 
 /**
+ * Build a single-service ServiceGroup for a serviceId, bypassing any grouping.
+ * Used for services that cannot or should not be grouped with others (e.g. when
+ * grouping is disabled, or when a service has no day-of-week flags and is thus
+ * not comparable on a recurring-day basis).
+ *
+ * @param path - The path object (provides segments data)
+ * @param serviceId - The service to wrap in its own group
+ * @param servicesCollection - Collection to look up the service's day flags
+ * @returns A ServiceGroup containing only this service
+ */
+const buildSingletonGroup = (path: Path, serviceId: string, servicesCollection: any): ServiceGroup => {
+    const service = servicesCollection?.getById(serviceId);
+    return {
+        serviceIds: [serviceId],
+        activeDays: getServiceActiveDays(service),
+        averageTimesByPeriod: getAverageSegmentTimesByPeriod(path, serviceId)
+    };
+};
+
+/**
  * Group services by average travel times for a path. Services with similar
- * total travel times (within 1% tolerance) per period are grouped together.
- * Holiday services (duration <= 7 days) are matched to existing groups when possible,
- * or placed in their own group(s). Each group includes the active days of the week
- * from its regular services and average segment times per period.
+ * total travel times (within 1% tolerance) per period are grouped together,
+ * and groups whose period signature is a subset of another group's signature
+ * are merged into it. Services that have no day-of-week flags set (e.g.
+ * calendar_dates-only GTFS services) are not grouped and each become their
+ * own single-service group.
+ *
+ * When `periodsGroupByServiceId` is provided, services are first partitioned
+ * by their schedule's periods group shortname: services belonging to different
+ * periods groups are never grouped together, even if their travel time
+ * fingerprints happen to match or be a subset of one another. This prevents
+ * cross-periods-group merges when period shortnames collide between groups.
+ *
+ * Each group includes the aggregated active days and average segment times per
+ * period.
  *
  * @param path - The path object (provides segments data)
  * @param serviceIds - All service IDs to consider for grouping
- * @param totalPathTime - Total path travel time in seconds (used to compute 1% tolerance)
- * @param servicesCollection - Collection to look up service attributes (days, dates)
+ * @param totalPathTime - Total path travel time in seconds (used to compute the 1% tolerance)
+ * @param servicesCollection - Collection to look up service attributes (day flags, name)
+ * @param noGrouping - When true, bypass grouping and return one singleton group per service
+ * @param periodsGroupByServiceId - Optional map from serviceId to the periods_group_shortname
+ * of its schedule. When provided, services with different periods groups stay in
+ * separate buckets and are never merged together.
  * @returns Array of service groups with their active days and average times
  */
 export const groupServicesByTravelTimes = (
@@ -367,38 +302,54 @@ export const groupServicesByTravelTimes = (
     serviceIds: string[],
     totalPathTime: number,
     servicesCollection: any,
-    noGrouping: boolean = false
+    noGrouping: boolean = false,
+    periodsGroupByServiceId?: Record<string, string | undefined>
 ): ServiceGroup[] => {
     if (noGrouping) {
-        return serviceIds.map((serviceId): ServiceGroup => {
-            const service = servicesCollection?.getById(serviceId);
-            const hasHolidayService = service ? isHolidayService(service) : false;
-            const activeDays = service && !hasHolidayService ? allDayKeys.filter((day) => service.get(day)) : [];
-            return {
-                serviceIds: [serviceId],
-                activeDays,
-                hasHolidayService,
-                averageTimesByPeriod: getAverageSegmentTimesByPeriod(path, serviceId)
-            };
-        });
+        return serviceIds.map((serviceId) => buildSingletonGroup(path, serviceId, servicesCollection));
     }
 
     const tolerance = Math.max(1, totalPathTime * 0.01);
 
-    const { regularIds, holidayIds } = separateHolidayServices(serviceIds, servicesCollection);
-    const serviceGroupsByKey = groupRegularServicesByTravelTimes(regularIds, path, tolerance);
-    mergeServicesWithSubsetPeriods(serviceGroupsByKey);
-    const unmatchedHolidayIds = matchHolidaysToGroups(holidayIds, serviceGroupsByKey, path, tolerance);
+    // Partition groupable services by their schedule's periods group shortname so
+    // that services on different periods groups (e.g. default vs extended_morning_peak)
+    // are never considered for merging together, even if their keys happen to overlap.
+    // Services with no day flags or no segment data stay as singletons.
+    const serviceIdsByPeriodsGroup = new Map<string, string[]>();
+    const ungroupedSingletons: ServiceGroup[] = [];
+    for (const serviceId of serviceIds) {
+        const service = servicesCollection?.getById(serviceId);
+        const hasDays = getServiceActiveDays(service).length > 0;
+        const hasFingerprint = hasDays && getServiceTravelTimeKey(path, serviceId, tolerance) !== '';
+        if (!hasFingerprint) {
+            ungroupedSingletons.push(buildSingletonGroup(path, serviceId, servicesCollection));
+            continue;
+        }
+        const periodsGroup = periodsGroupByServiceId?.[serviceId] ?? '';
+        const serviceIdsForPeriodsGroup = serviceIdsByPeriodsGroup.get(periodsGroup) ?? [];
+        serviceIdsForPeriodsGroup.push(serviceId);
+        serviceIdsByPeriodsGroup.set(periodsGroup, serviceIdsForPeriodsGroup);
+    }
 
-    const groups = buildServiceGroups(serviceGroupsByKey, unmatchedHolidayIds, path, servicesCollection);
+    const groups: ServiceGroup[] = [];
+    for (const serviceIds of serviceIdsByPeriodsGroup.values()) {
+        const serviceGroupsByKey = groupServicesByTravelTimeKey(serviceIds, path, tolerance);
+        mergeServicesWithSubsetPeriods(serviceGroupsByKey);
+        groups.push(...buildServiceGroups(serviceGroupsByKey, path, servicesCollection));
+    }
+    groups.push(...ungroupedSingletons);
     assignCommonNamesForDuplicates(groups, servicesCollection);
     return groups;
 };
 
 /**
  * Expand grouped segment time overrides to all services in each group.
- * When saving, the edits made on the representative service of a group
- * are copied to all other services in the same group.
+ * When saving, edits made on the representative service of a group are
+ * propagated to the other services in the same group — but only for
+ * periods that those services already had in their original data.
+ * Periods that exist only on the representative (e.g. when a smaller
+ * service was merged into a superset via mergeServicesWithSubsetPeriods)
+ * are not injected into services that never had them.
  *
  * @param localData - Edited segment times keyed by service ID then period shortname
  * @param serviceGroups - The service groups to expand across
@@ -411,14 +362,17 @@ export const expandGroupedDataToServices = (
     const expanded = { ...localData };
     for (const group of serviceGroups) {
         const editedServiceId = group.serviceIds.find((id) => expanded[id]);
-        if (editedServiceId) {
-            for (const otherId of group.serviceIds) {
-                if (otherId !== editedServiceId) {
-                    expanded[otherId] = Object.fromEntries(
-                        Object.entries(expanded[editedServiceId]).map(([k, arr]) => [k, [...arr]])
-                    );
-                }
+        if (!editedServiceId) continue;
+        const editedEntries = expanded[editedServiceId];
+        for (const otherId of group.serviceIds) {
+            if (otherId === editedServiceId) continue;
+            const existing = expanded[otherId];
+            if (!existing) continue;
+            const merged: Record<string, number[]> = {};
+            for (const period of Object.keys(existing)) {
+                merged[period] = editedEntries[period] ? [...editedEntries[period]] : existing[period];
             }
+            expanded[otherId] = merged;
         }
     }
     return expanded;
