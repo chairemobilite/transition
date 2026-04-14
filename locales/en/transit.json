@@ -454,6 +454,8 @@
         "ConfirmForceRecalculate": "Confirm route recalculation",
         "ConfirmForceRecalculateWillWipePeriodSegmentTimes": "Recalculating the route will erase all per-service and per-period segment times stored on this path. Continue?",
         "ForceRecalculatePathEditWillWipePeriodSegmentTimes": "Warning: while this option is enabled, any path edit will erase all per-service and per-period segment times stored on this path.",
+        "ScheduleRegenerationFailuresTitle": "### Some schedules could not be regenerated",
+        "ScheduleRegenerationFailuresIntro": "The following services have periods that could not be regenerated because the number of vehicles or the interval is not set. Go to the timetable section of this line to configure them so trips can be generated.",
         "RecalculateRoute": "Recalculate route",
         "Uuid": "UUID",
         "Line": "Line",

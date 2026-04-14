@@ -54,6 +54,12 @@ interface PathFormProps extends WithTranslation {
     availableRoutingModes: string[];
 }
 
+type ScheduleRegenerationFailure = {
+    serviceId: string;
+    totalPeriods: number;
+    failedPeriods: number;
+};
+
 interface PathFormState extends SaveableObjectState<Path> {
     pathErrors: string[];
     confirmModalSchedulesAffectedlIsOpen: boolean;
@@ -62,6 +68,7 @@ interface PathFormState extends SaveableObjectState<Path> {
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
     forceRecalculate: boolean;
+    scheduleRegenerationFailures: ScheduleRegenerationFailure[];
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
@@ -82,7 +89,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             confirmModalSchedulesAffectedlIsOpen: false,
             confirmModalForceRecalculateIsOpen: false,
             forceRecalculate: false,
-            segmentTimesByPeriodModalIsOpen: false
+            segmentTimesByPeriodModalIsOpen: false,
+            scheduleRegenerationFailures: []
         };
     }
 
@@ -215,13 +223,33 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         line.attributes.data._pathsChangeTimestamp = Date.now();
         serviceLocator.eventManager.emit('progress', { name: 'SavingPath', progress: 0.0 });
         await path.save(serviceLocator.socketEventManager);
-        serviceLocator.selectedObjectsManager.deselect('path');
         serviceLocator.eventManager.emit('progress', { name: 'SavingPath', progress: 1.0 });
         serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 0.0 });
-        await line.updateSchedulesForPathId(path.getId(), true);
+        const failures = await line.updateSchedulesForPathId(path.getId(), true);
         line.refreshPaths();
         serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
         this.closeSchedulesAffectedConfirmModal(e);
+        // Only surface services where *every* period failed to regenerate. If at least one
+        // period succeeded, the service already has some useful schedule data, and we don't
+        // want to flag it as broken in the UI.
+        const fullyFailedServices = (failures || []).filter(
+            (serviceRegeneration) =>
+                serviceRegeneration.totalPeriods > 0 &&
+                serviceRegeneration.failedPeriods === serviceRegeneration.totalPeriods
+        );
+        // We have to keep the path selected while the modal is shown so TransitPathEdit
+        // stays mounted; otherwise deselecting the path before the modal opens would
+        // unmount this component and swallow the setState call silently.
+        if (fullyFailedServices.length > 0) {
+            this.setState({ scheduleRegenerationFailures: fullyFailedServices });
+        } else {
+            serviceLocator.selectedObjectsManager.deselect('path');
+        }
+    };
+
+    closeScheduleRegenerationFailuresModal = () => {
+        this.setState({ scheduleRegenerationFailures: [] });
+        serviceLocator.selectedObjectsManager.deselect('path');
     };
 
     openSegmentTimesByPeriodModal = (e: React.MouseEvent) => {
@@ -923,6 +951,38 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                 closeModal={this.closeForceRecalculateConfirmModal}
                             />
                         )}
+                        {this.state.scheduleRegenerationFailures.length > 0 &&
+                            (() => {
+                                const servicesCollection = serviceLocator.collectionManager?.get('services');
+                                const serviceNames = this.state.scheduleRegenerationFailures.map((failure) => {
+                                    const service = servicesCollection?.getById?.(failure.serviceId);
+                                    return {
+                                        id: failure.serviceId,
+                                        name: service
+                                            ? service.toString?.(false) || failure.serviceId
+                                            : failure.serviceId
+                                    };
+                                });
+                                return (
+                                    <ConfirmModal
+                                        isOpen={true}
+                                        title={this.props.t('transit:transitPath:ScheduleRegenerationFailuresTitle')}
+                                        showCancelButton={false}
+                                        confirmButtonColor="blue"
+                                        confirmAction={this.closeScheduleRegenerationFailuresModal}
+                                        closeModal={this.closeScheduleRegenerationFailuresModal}
+                                    >
+                                        <p style={{ textAlign: 'center' }}>
+                                            {this.props.t('transit:transitPath:ScheduleRegenerationFailuresIntro')}
+                                        </p>
+                                        <ul style={{ marginLeft: '1.5rem', marginTop: '4rem' }}>
+                                            {serviceNames.map((service) => (
+                                                <li key={service.id}>{service.name}</li>
+                                            ))}
+                                        </ul>
+                                    </ConfirmModal>
+                                );
+                            })()}
                         {this.state.confirmModalSchedulesAffectedlIsOpen && (
                             <ConfirmModal
                                 isOpen={true}

@@ -452,6 +452,8 @@
         "ConfirmForceRecalculate": "Confirmer le recalcul de la route",
         "ConfirmForceRecalculateWillWipePeriodSegmentTimes": "Le recalcul de la route va effacer tous les temps de parcours de segments par service et par période stockés sur ce tracé. Continuer?",
         "ForceRecalculatePathEditWillWipePeriodSegmentTimes": "Attention: tant que cette option est activée, toute modification du tracé effacera les temps de parcours de segments par service et par période stockés sur ce tracé.",
+        "ScheduleRegenerationFailuresTitle": "### Certains horaires n'ont pas pu être régénérés",
+        "ScheduleRegenerationFailuresIntro": "Les services suivants ont des périodes qui n'ont pas pu être régénérées parce que le nombre de véhicules ou l'intervalle n'est pas défini. Rendez-vous dans la section des horaires de cette ligne pour les configurer afin que les trajets puissent être générés.",
         "RecalculateRoute": "Recalculer le trajet",
         "MinDwellTimeSeconds": "Temps d'arrêt minimum aux noeuds [sec.]",
         "MinMatchingTimestamp": "Intervalle minimum d'horodatage pour le calcul de chemin (en secondes), 500 par défaut",
