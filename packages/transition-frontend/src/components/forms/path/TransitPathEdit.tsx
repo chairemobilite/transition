@@ -57,6 +57,7 @@ interface PathFormProps extends WithTranslation {
 interface PathFormState extends SaveableObjectState<Path> {
     pathErrors: string[];
     confirmModalSchedulesAffectedlIsOpen: boolean;
+    confirmModalForceRecalculateIsOpen: boolean;
     segmentTimesByPeriodModalIsOpen: boolean;
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
@@ -79,6 +80,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             collectionName: 'paths',
             pathErrors: [],
             confirmModalSchedulesAffectedlIsOpen: false,
+            confirmModalForceRecalculateIsOpen: false,
             forceRecalculate: false,
             segmentTimesByPeriodModalIsOpen: false
         };
@@ -225,6 +227,52 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
     openSegmentTimesByPeriodModal = (e: React.MouseEvent) => {
         e.stopPropagation();
         this.setState({ segmentTimesByPeriodModalIsOpen: true });
+    };
+
+    /**
+     * Trigger a full route recalculation against OSRM. On a path that has stored
+     * per-service-per-period segment data, ask the user to confirm first since the
+     * recalculation wipes that data.
+     */
+    onRecalculateRouteClick = () => {
+        const path = this.props.path;
+        const hasPeriodData =
+            !!path.attributes.data.segmentsByServiceAndPeriod &&
+            Object.keys(path.attributes.data.segmentsByServiceAndPeriod).length > 0;
+        if (hasPeriodData) {
+            this.setState({ confirmModalForceRecalculateIsOpen: true });
+            return;
+        }
+        this.runRecalculateRoute();
+    };
+
+    runRecalculateRoute = () => {
+        const path = this.props.path;
+        serviceLocator.eventManager.emit('progress', {
+            name: 'UpdatingPathRoute',
+            progress: 0.0
+        });
+        path.updateGeography({ forceRecalculate: true })
+            .then((_response) => {
+                serviceLocator.selectedObjectsManager.setSelection('path', [path]);
+                this.updateLayers();
+                serviceLocator.eventManager.emit('progress', {
+                    name: 'UpdatingPathRoute',
+                    progress: 1.0
+                });
+            })
+            .catch((error) => {
+                console.error('cannot update path geography', error);
+            });
+    };
+
+    onConfirmForceRecalculate = () => {
+        this.setState({ confirmModalForceRecalculateIsOpen: false });
+        this.runRecalculateRoute();
+    };
+
+    closeForceRecalculateConfirmModal = () => {
+        this.setState({ confirmModalForceRecalculateIsOpen: false });
     };
 
     closeSegmentTimesByPeriodModal = () => {
@@ -658,6 +706,14 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                             this.setState({ forceRecalculate: e.target.value });
                                         }}
                                     />
+                                    {this.state.forceRecalculate && (
+                                        <FormErrors
+                                            errors={[
+                                                'transit:transitPath:ForceRecalculatePathEditWillWipePeriodSegmentTimes'
+                                            ]}
+                                            errorType="Warning"
+                                        />
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -782,25 +838,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     iconClass="_icon-alone"
                                     label=""
                                     disabled={!path.canRoute().canRoute}
-                                    onClick={() => {
-                                        // recalculate routing with same nodes
-                                        serviceLocator.eventManager.emit('progress', {
-                                            name: 'UpdatingPathRoute',
-                                            progress: 0.0
-                                        });
-                                        path.updateGeography({ forceRecalculate: true })
-                                            .then((_response) => {
-                                                serviceLocator.selectedObjectsManager.setSelection('path', [path]);
-                                                this.updateLayers();
-                                                serviceLocator.eventManager.emit('progress', {
-                                                    name: 'UpdatingPathRoute',
-                                                    progress: 1.0
-                                                });
-                                            })
-                                            .catch((error) => {
-                                                console.error('cannot update path geography', error);
-                                            });
-                                    }}
+                                    onClick={this.onRecalculateRouteClick}
                                 />
                             </span>
                         )}
@@ -871,6 +909,17 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                 confirmButtonColor="red"
                                 confirmButtonLabel={this.props.t('transit:transitPath:Delete')}
                                 closeModal={this.closeDeleteConfirmModal}
+                            />
+                        )}
+                        {this.state.confirmModalForceRecalculateIsOpen && (
+                            <ConfirmModal
+                                isOpen={true}
+                                title={this.props.t('transit:transitPath:ConfirmForceRecalculate')}
+                                text={this.props.t(
+                                    'transit:transitPath:ConfirmForceRecalculateWillWipePeriodSegmentTimes'
+                                )}
+                                confirmAction={this.onConfirmForceRecalculate}
+                                closeModal={this.closeForceRecalculateConfirmModal}
                             />
                         )}
                         {this.state.confirmModalSchedulesAffectedlIsOpen && (
