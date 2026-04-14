@@ -392,12 +392,22 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         delete this.attributes.scheduleByServiceId[serviceId];
     }
 
-    // update all schedules that uses the path id
-    async updateSchedulesForPathId(pathId: string, saveSchedules = false) {
+    /**
+     * Updates all schedules that use the given path id, regenerating their trips.
+     *
+     * @param pathId - The id of the path whose associated schedules must be updated
+     * @param saveSchedules - When true, persist each updated schedule via the socket
+     *                        event manager
+     * @returns The ids of the services whose schedule had generation problems
+     *          and should be raised to the user. See `updateForAllPeriods` in
+     *          `services/schedules/Schedule.ts` for the exact failure conditions.
+     */
+    async updateSchedulesForPathId(pathId: string, saveSchedules = false): Promise<string[]> {
         const associatedServiceIds = this.getScheduleServiceIdsForPathId(pathId);
         if (associatedServiceIds.length > 0) {
-            await this.updateSchedules(associatedServiceIds, saveSchedules);
+            return this.updateSchedules(associatedServiceIds, saveSchedules);
         }
+        return [];
     }
 
     // source: https://stackoverflow.com/a/41491220
@@ -427,17 +437,32 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         return L > threshold ? darkColor : lightColor;
     }
 
-    async updateSchedules(serviceIds: string[] = [], saveSchedules = false) {
+    /**
+     * Regenerates trips for the given services' schedules. When no service id
+     * is provided, every schedule attached to the line is regenerated.
+     *
+     * @param serviceIds - The ids of the services to update. Pass an empty array
+     *                     (default) to update every schedule on the line.
+     * @param saveSchedules - When true, persist each updated schedule via the
+     *                        socket event manager
+     * @returns The ids of the services whose schedule had generation problems
+     *          and should be raised to the user. See `updateForAllPeriods` in
+     *          `services/schedules/Schedule.ts` for the exact failure conditions.
+     */
+    async updateSchedules(serviceIds: string[] = [], saveSchedules = false): Promise<string[]> {
         // update all services if serviceIds is empty
         const schedulesObjectsByServiceId = this.getSchedules();
         if (serviceIds.length === 0) {
             serviceIds = Object.keys(schedulesObjectsByServiceId);
         }
         const savePromises: Promise<unknown>[] = [];
+        const serviceIdsWithFailedScheduleGeneration: string[] = [];
         for (const serviceId in schedulesObjectsByServiceId) {
             if (serviceIds.includes(serviceId)) {
                 const schedule = schedulesObjectsByServiceId[serviceId];
-                schedule.updateForAllPeriods();
+                if (!schedule.updateForAllPeriods()) {
+                    serviceIdsWithFailedScheduleGeneration.push(serviceId);
+                }
                 if (saveSchedules) {
                     savePromises.push(schedule.save(serviceLocator.socketEventManager));
                 }
@@ -445,6 +470,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
             }
         }
         await Promise.all(savePromises);
+        return serviceIdsWithFailedScheduleGeneration;
     }
 
     // TODO This function does not seem to be called anywhere
