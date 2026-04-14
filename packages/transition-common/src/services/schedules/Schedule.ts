@@ -1312,13 +1312,19 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
         return Status.createOk(result.trips);
     }
-    updateForAllPeriods() {
-        // re-generate (after modifying path by instance)
+    updateForAllPeriods(): { totalPeriods: number; failedPeriods: number } {
+        // Re-generate trips for every period (after modifying path by instance) and
+        // return how many periods failed to regenerate so the caller can react.
         const periods = this.attributes.periods;
+        let failedPeriods = 0;
         for (let i = 0, countI = periods.length; i < countI; i++) {
             // TODO period_shortname can be undefined, fix typing to avoid this or add check
-            this.generateForPeriodFunction(periods[i].period_shortname as string);
+            const result = this.generateForPeriodFunction(periods[i].period_shortname as string);
+            if (Status.isStatusError(result)) {
+                failedPeriods++;
+            }
         }
+        return { totalPeriods: periods.length, failedPeriods };
     }
 
     //TODO update test . (probably it's better to test generateForPeriodfunction instead. if the other test works, this one probably works too)

@@ -392,12 +392,17 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         delete this.attributes.scheduleByServiceId[serviceId];
     }
 
-    // update all schedules that uses the path id
-    async updateSchedulesForPathId(pathId: string, saveSchedules = false) {
+    // Update all schedules that use the path id. Returns the regeneration result per
+    // service (count of periods that failed vs total) so the caller can report to the user.
+    async updateSchedulesForPathId(
+        pathId: string,
+        saveSchedules = false
+    ): Promise<{ serviceId: string; totalPeriods: number; failedPeriods: number }[]> {
         const associatedServiceIds = this.getScheduleServiceIdsForPathId(pathId);
         if (associatedServiceIds.length > 0) {
-            await this.updateSchedules(associatedServiceIds, saveSchedules);
+            return this.updateSchedules(associatedServiceIds, saveSchedules);
         }
+        return [];
     }
 
     // source: https://stackoverflow.com/a/41491220
@@ -427,17 +432,24 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
         return L > threshold ? darkColor : lightColor;
     }
 
-    async updateSchedules(serviceIds: string[] = [], saveSchedules = false) {
+    async updateSchedules(
+        serviceIds: string[] = [],
+        saveSchedules = false
+    ): Promise<{ serviceId: string; totalPeriods: number; failedPeriods: number }[]> {
         // update all services if serviceIds is empty
         const schedulesObjectsByServiceId = this.getSchedules();
         if (serviceIds.length === 0) {
             serviceIds = Object.keys(schedulesObjectsByServiceId);
         }
         const savePromises: Promise<unknown>[] = [];
+        const regenerationStats: { serviceId: string; totalPeriods: number; failedPeriods: number }[] = [];
         for (const serviceId in schedulesObjectsByServiceId) {
             if (serviceIds.includes(serviceId)) {
                 const schedule = schedulesObjectsByServiceId[serviceId];
-                schedule.updateForAllPeriods();
+                const { totalPeriods, failedPeriods } = schedule.updateForAllPeriods();
+                if (failedPeriods > 0) {
+                    regenerationStats.push({ serviceId, totalPeriods, failedPeriods });
+                }
                 if (saveSchedules) {
                     savePromises.push(schedule.save(serviceLocator.socketEventManager));
                 }
@@ -445,6 +457,7 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
             }
         }
         await Promise.all(savePromises);
+        return regenerationStats;
     }
 
     // TODO This function does not seem to be called anywhere
