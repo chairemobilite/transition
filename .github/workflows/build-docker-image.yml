@@ -7,6 +7,7 @@ on:
       - "validationTrajets"
       - "evolutionaryTransitNetworkDesign"
       - "railCurveRadius"
+      - "pathSegmentByPeriod"
   workflow_dispatch:
   schedule:
     # Do a daily rebuild at 2:00 AM UTC
