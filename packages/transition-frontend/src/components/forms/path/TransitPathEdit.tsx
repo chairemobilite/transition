@@ -277,6 +277,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
 
     closeSegmentTimesByPeriodModal = () => {
         this.setState({ segmentTimesByPeriodModalIsOpen: false, object: this.props.path });
+        serviceLocator.selectedObjectsManager.setSelection('path', [this.props.path]);
     };
 
     onDeselect = () => {

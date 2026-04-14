@@ -816,7 +816,7 @@ describe('getSegmentTravelTimeForPeriod', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 480,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
                     operatingSpeedMetersPerSecond: 3.06,
-                    tripCount: 1
+
                 }
             }
         };
@@ -842,7 +842,7 @@ describe('getSegmentTravelTimeForPeriod', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 480,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
                     operatingSpeedMetersPerSecond: 3.06,
-                    tripCount: 1
+
                 }
             }
         };
@@ -896,7 +896,7 @@ describe('getSegmentTravelTimesForPeriod', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 480,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
                     operatingSpeedMetersPerSecond: 3.06,
-                    tripCount: 1
+
                 }
             }
         };
@@ -920,7 +920,7 @@ describe('getSegmentTravelTimesForPeriod', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 480,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 3.06,
                     operatingSpeedMetersPerSecond: 3.06,
-                    tripCount: 1
+
                 }
             }
         };
@@ -936,10 +936,10 @@ describe('getSegmentTravelTimesForPeriod', () => {
     });
 });
 
-describe('getSegmentsForPeriod - averaging with tripCount 0', () => {
+describe('getSegmentsForPeriod - averaging across services', () => {
     const lineId = uuidV4();
 
-    test('should average correctly when all services have tripCount 0', () => {
+    test('should average correctly across services with equal weight', () => {
         const attributes = getPathAttributesWithData(true, { lineId });
         (attributes.data as any).totalDistanceMeters = 1000;
         (attributes.data as any).segmentsByServiceAndPeriod = {
@@ -954,7 +954,7 @@ describe('getSegmentsForPeriod - averaging with tripCount 0', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 325,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 3.33,
                     operatingSpeedMetersPerSecond: 3.08,
-                    tripCount: 0
+
                 }
             },
             service2: {
@@ -968,7 +968,7 @@ describe('getSegmentsForPeriod - averaging with tripCount 0', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 645,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 1.67,
                     operatingSpeedMetersPerSecond: 1.55,
-                    tripCount: 0
+
                 }
             }
         };

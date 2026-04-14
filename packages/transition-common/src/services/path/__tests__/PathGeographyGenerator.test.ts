@@ -1428,7 +1428,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
                 operatingTimeWithoutLayoverTimeSeconds: 530,
                 averageSpeedWithoutDwellTimesMetersPerSecond: 10.28,
                 operatingSpeedMetersPerSecond: 6.98,
-                tripCount: 5,
+
+
             },
             off_peak: {
                 segments: _cloneDeep(offPeakSegments),
@@ -1437,7 +1438,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
                 operatingTimeWithoutLayoverTimeSeconds: 420,
                 averageSpeedWithoutDwellTimesMetersPerSecond: 14.8,
                 operatingSpeedMetersPerSecond: 8.81,
-                tripCount: 8,
+
+
             }
         }
     });
@@ -1536,7 +1538,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         ]);
         expect(amData.segments[1].travelTimeSeconds).toEqual(segmentDuration(legs[1].distance, legs[1].duration) * amRatio);
         expect(amData.segments[2].travelTimeSeconds).toEqual(segmentDuration(legs[2].distance, legs[2].duration) * amRatio);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         // Off peak: same structure as AM peak, different ratio
         const offData = periodData.service1.off_peak;
@@ -1549,7 +1552,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         ]);
         expect(offData.segments[1].travelTimeSeconds).toEqual(segmentDuration(legs[1].distance, legs[1].duration) * offRatio);
         expect(offData.segments[2].travelTimeSeconds).toEqual(segmentDuration(legs[2].distance, legs[2].duration) * offRatio);
-        expect(offData.tripCount).toEqual(8);
+
+
 
         // Verify AM and off-peak ratios are different (AM peak should be higher due to congestion)
         expect(amRatio).not.toEqual(offRatio);
@@ -1614,7 +1618,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[3].distance, routedDuration: legs[3].duration },
         ]);
         expect(amData.segments[0].travelTimeSeconds).toEqual(segmentDuration(legs[0].distance, legs[0].duration) * amRatio);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         // Off peak
         const offData = periodData.service1.off_peak;
@@ -1628,7 +1633,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[3].distance, routedDuration: legs[3].duration },
         ]);
         expect(offData.segments[0].travelTimeSeconds).toEqual(segmentDuration(legs[0].distance, legs[0].duration) * offRatio);
-        expect(offData.tripCount).toEqual(8);
+
+
 
         verifyPeriodAggregates(amData);
         verifyPeriodAggregates(offData);
@@ -1676,7 +1682,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[2].distance, routedDuration: legs[2].duration },
         ]);
         expect(amData.segments[3].travelTimeSeconds).toEqual(segmentDuration(legs[3].distance, legs[3].duration) * amRatio);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         // Off peak
         const offData = periodData.service1.off_peak;
@@ -1690,7 +1697,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[2].distance, routedDuration: legs[2].duration },
         ]);
         expect(offData.segments[3].travelTimeSeconds).toEqual(segmentDuration(legs[3].distance, legs[3].duration) * offRatio);
-        expect(offData.tripCount).toEqual(8);
+
+
 
         verifyPeriodAggregates(amData);
         verifyPeriodAggregates(offData);
@@ -1732,7 +1740,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[1].distance, routedDuration: legs[1].duration },
         ]);
         expect(amData.segments[0].travelTimeSeconds).toEqual(segmentDuration(legs[0].distance, legs[0].duration) * amRatio);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         // Off peak
         const offData = periodData.service1.off_peak;
@@ -1742,7 +1751,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[1].distance, routedDuration: legs[1].duration },
         ]);
         expect(offData.segments[0].travelTimeSeconds).toEqual(segmentDuration(legs[0].distance, legs[0].duration) * offRatio);
-        expect(offData.tripCount).toEqual(8);
+
+
 
         verifyPeriodAggregates(amData);
         verifyPeriodAggregates(offData);
@@ -1780,14 +1790,16 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         expect(amData.segments.length).toEqual(2);
         expect(amData.segments[0].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[2].travelTimeSeconds);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         // Off peak
         const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(2);
         expect(offData.segments[0].travelTimeSeconds).toEqual(offPeakSegments[1].travelTimeSeconds);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[2].travelTimeSeconds);
-        expect(offData.tripCount).toEqual(8);
+
+
 
         verifyPeriodAggregates(amData);
         verifyPeriodAggregates(offData);
@@ -1825,14 +1837,16 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         expect(amData.segments.length).toEqual(2);
         expect(amData.segments[0].travelTimeSeconds).toEqual(amPeakSegments[0].travelTimeSeconds);
         expect(amData.segments[1].travelTimeSeconds).toEqual(amPeakSegments[1].travelTimeSeconds);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         // Off peak
         const offData = periodData.service1.off_peak;
         expect(offData.segments.length).toEqual(2);
         expect(offData.segments[0].travelTimeSeconds).toEqual(offPeakSegments[0].travelTimeSeconds);
         expect(offData.segments[1].travelTimeSeconds).toEqual(offPeakSegments[1].travelTimeSeconds);
-        expect(offData.tripCount).toEqual(8);
+
+
 
         verifyPeriodAggregates(amData);
         verifyPeriodAggregates(offData);
@@ -1874,7 +1888,6 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
                 operatingTimeWithoutLayoverTimeSeconds: 570,
                 averageSpeedWithoutDwellTimesMetersPerSecond: 9.25,
                 operatingSpeedMetersPerSecond: 6.49,
-                tripCount: 3,
             }
         };
         // Insert node3 at end (index 4)
@@ -1914,7 +1927,6 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[2].distance, routedDuration: legs[2].duration },
         ]);
         expect(amService1.segments[3].travelTimeSeconds).toEqual(segmentDuration(legs[3].distance, legs[3].duration) * s1Ratio);
-        expect(amService1.tripCount).toEqual(5);
 
         // Service2: segs 0-2 preserved, seg 3 new with service2's own ratio (different from service1)
         const service2Segments = [
@@ -1933,7 +1945,6 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
             { initialIdx: 2, distance: legs[2].distance, routedDuration: legs[2].duration },
         ]);
         expect(amService2.segments[3].travelTimeSeconds).toEqual(segmentDuration(legs[3].distance, legs[3].duration) * s2Ratio);
-        expect(amService2.tripCount).toEqual(3);
 
         // The two services should have different ratios and therefore different new segment times
         expect(s1Ratio).not.toEqual(s2Ratio);
@@ -1978,7 +1989,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
                             operatingTimeWithoutLayoverTimeSeconds: 385,
                             averageSpeedWithoutDwellTimesMetersPerSecond: 10.42,
                             operatingSpeedMetersPerSecond: 6.49,
-                            tripCount: 5,
+            
+
                         }
                     },
                 },
@@ -2022,7 +2034,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         const changedSegDistance = Math.ceil(legs[0].distance) + Math.ceil(legs[1].distance);
         const changedSegDuration = legs[0].duration + legs[1].duration;
         expect(amData.segments[0].travelTimeSeconds).toEqual(segmentDuration(changedSegDistance, changedSegDuration) * amRatio);
-        expect(amData.tripCount).toEqual(5);
+
+
 
         verifyPeriodAggregates(amData);
     });
@@ -2041,7 +2054,8 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
                     operatingTimeWithoutLayoverTimeSeconds: 360,
                     averageSpeedWithoutDwellTimesMetersPerSecond: 10.28,
                     operatingSpeedMetersPerSecond: 10.28,
-                    tripCount: 5,
+    
+
                 }
             }
         };
@@ -2124,7 +2138,6 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
                             operatingTimeWithoutLayoverTimeSeconds: 155,
                             averageSpeedWithoutDwellTimesMetersPerSecond: 9.23,
                             operatingSpeedMetersPerSecond: 7.74,
-                            tripCount: 4,
                         }
                     }
                 },
@@ -2152,7 +2165,6 @@ describe('segmentsByServiceAndPeriod remapping on path edits', () => {
         // Ratio = 1.0 (no preserved segments), so times = pure physics duration
         expect(amData.segments[0].travelTimeSeconds).toEqual(segmentDuration(legs[0].distance, legs[0].duration) * 1.0);
         expect(amData.segments[1].travelTimeSeconds).toEqual(segmentDuration(legs[1].distance, legs[1].duration) * 1.0);
-        expect(amData.tripCount).toEqual(4);
 
         verifyPeriodAggregates(amData);
     });

@@ -6,7 +6,8 @@
  */
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
-import { Path, PeriodSegmentData } from 'transition-common/lib/services/path/Path';
+import { Path, type PeriodSegmentData } from 'transition-common/lib/services/path/Path';
+import { buildPeriodSegmentData } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import type { TimeAndDistance } from 'transition-common/lib/services/path/PathTypes';
 import { StopTime, TripStopTimesWithService } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
@@ -151,31 +152,12 @@ export const computeSegmentTimesByServiceAndPeriod = (params: {
     for (const [key, bucketTrips] of tripsByBucket) {
         const { period, serviceId } = bucketMeta.get(key)!;
         const segmentTimes = computeSegmentTimesFromStopTimes(bucketTrips, segmentDistancesMeters);
-        const {
-            segmentsData,
-            dwellTimeSecondsData,
-            totalTravelTimeWithoutDwellTimesSeconds,
-            totalTravelTimeWithDwellTimesSeconds
-        } = segmentTimes;
+        const { segmentsData, dwellTimeSecondsData } = segmentTimes;
 
         if (!result[serviceId]) {
             result[serviceId] = {};
         }
-        result[serviceId][period] = {
-            segments: segmentsData,
-            dwellTimeSeconds: dwellTimeSecondsData,
-            travelTimeWithoutDwellTimesSeconds: totalTravelTimeWithoutDwellTimesSeconds,
-            operatingTimeWithoutLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds,
-            averageSpeedWithoutDwellTimesMetersPerSecond:
-                totalTravelTimeWithoutDwellTimesSeconds > 0
-                    ? Math.round((totalDistanceMeters / totalTravelTimeWithoutDwellTimesSeconds) * 100) / 100
-                    : 0,
-            operatingSpeedMetersPerSecond:
-                totalTravelTimeWithDwellTimesSeconds > 0
-                    ? Math.round((totalDistanceMeters / totalTravelTimeWithDwellTimesSeconds) * 100) / 100
-                    : 0,
-            tripCount: bucketTrips.length
-        };
+        result[serviceId][period] = buildPeriodSegmentData(segmentsData, dwellTimeSecondsData, totalDistanceMeters);
     }
 
     return result;
