@@ -105,10 +105,23 @@ describe('getAssociatedPathIds', () => {
         expect(schedule.getAssociatedPathIds()).toEqual([]);
     });
 
-    test('Periods with no trips', () => {
+    test('Periods with no trips but with configured paths', () => {
+        // A period that has outbound_path_id/inbound_path_id set is associated
+        // with those paths even if no trips have been generated yet.
         const testAttributes = _cloneDeep(scheduleAttributes);
         testAttributes.periods.forEach(period => {
             period.trips = [];
+        })
+        const schedule = new Schedule(testAttributes, true);
+        expect(schedule.getAssociatedPathIds()).toEqual([pathId]);
+    });
+
+    test('Periods with no trips and no configured paths', () => {
+        const testAttributes = _cloneDeep(scheduleAttributes);
+        testAttributes.periods.forEach(period => {
+            period.trips = [];
+            period.outbound_path_id = undefined;
+            period.inbound_path_id = undefined;
         })
         const schedule = new Schedule(testAttributes, true);
         expect(schedule.getAssociatedPathIds()).toEqual([]);
@@ -221,6 +234,120 @@ describe('updateForAllPeriods', () => {
             const periodEnd = period.custom_end_at_str ? timeStrToSecondsSinceMidnight(period.custom_end_at_str) as number : period.end_at_hour * 60 * 60;
             expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart)/ interval));
         }
+    });
+
+    describe('return value (flag for the user)', () => {
+        test('returns false when the schedule has no period at all', () => {
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods = [];
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            expect(schedule.updateForAllPeriods()).toBe(false);
+        });
+
+        test('returns false when no period is configured (all interval/units blank)', () => {
+            // Every period has neither interval nor number_of_units set: nothing
+            // will ever be generated for this schedule, the user should be flagged.
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods.forEach(period => {
+                period.interval_seconds = undefined;
+                period.inbound_interval_seconds = undefined;
+                period.number_of_units = undefined;
+                period.trips = [];
+            });
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            expect(schedule.updateForAllPeriods()).toBe(false);
+        });
+
+        test('returns true when at least one configured period generates trips', () => {
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods.forEach(period => {
+                period.interval_seconds = 30 * 60;
+                period.number_of_units = undefined;
+                period.trips = [];
+            });
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            expect(schedule.updateForAllPeriods()).toBe(true);
+        });
+
+        test('returns true when configured periods succeed and unconfigured ones are skipped', () => {
+            // Mix: first period is configured and should produce trips, the rest
+            // are intentionally empty (no config and no existing trips) and must
+            // be skipped silently.
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods.forEach((period, idx) => {
+                if (idx === 0) {
+                    period.interval_seconds = 30 * 60;
+                    period.number_of_units = undefined;
+                    period.trips = [];
+                } else {
+                    period.interval_seconds = undefined;
+                    period.inbound_interval_seconds = undefined;
+                    period.number_of_units = undefined;
+                    period.trips = [];
+                }
+            });
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            expect(schedule.updateForAllPeriods()).toBe(true);
+        });
+
+        test('returns false when a configured period fails to generate (missing outbound path)', () => {
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods.forEach(period => {
+                period.interval_seconds = 30 * 60;
+                period.number_of_units = undefined;
+                (period as any).outbound_path_id = undefined;
+                period.trips = [];
+            });
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            expect(schedule.updateForAllPeriods()).toBe(false);
+        });
+
+        test('returns false when every period generation succeeds but produces zero trips overall', () => {
+            // Stub generateForPeriodFunction so every period returns Status.OK
+            // with an empty trip list. This simulates the case where generation
+            // does not error out but still produces no trips at all.
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods.forEach(period => {
+                period.interval_seconds = 30 * 60;
+                period.number_of_units = undefined;
+                period.trips = [];
+            });
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            const generateSpy = jest
+                .spyOn(schedule as any, 'generateForPeriodFunction')
+                .mockImplementation(() => Status.createOk([]));
+            try {
+                expect(schedule.updateForAllPeriods()).toBe(false);
+                expect(generateSpy).toHaveBeenCalled();
+                schedule.attributes.periods.forEach(period => {
+                    expect(period.trips?.length ?? 0).toBe(0);
+                });
+            } finally {
+                generateSpy.mockRestore();
+            }
+        });
+
+        test('returns false when an unconfigured period still has existing trips that fail to regenerate', () => {
+            // Period had trips before but lost its interval/units configuration:
+            // we must try to regenerate it (because trips existed) and fail since
+            // it is no longer configured, so the schedule should be flagged.
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            testAttributes.periods.forEach((period, idx) => {
+                if (idx === 0) {
+                    period.interval_seconds = undefined;
+                    period.inbound_interval_seconds = undefined;
+                    period.number_of_units = undefined;
+                    // keep existing trips so periodHadTrips is true
+                } else {
+                    period.interval_seconds = undefined;
+                    period.inbound_interval_seconds = undefined;
+                    period.number_of_units = undefined;
+                    period.trips = [];
+                }
+            });
+            const schedule = new Schedule(testAttributes, true, collectionManager);
+            expect(schedule.updateForAllPeriods()).toBe(false);
+        });
     });
 });
 

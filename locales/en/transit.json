@@ -455,6 +455,8 @@
         "IncreaseRoutingRadiiToIncludeExistingPathShape": "Adapt nodes radii to fit current shape",
         "IncreaseRoutingRadiiToIncludeExistingPathShapeHelp": "Increase path nodes routing radii if the path shape is too far from some nodes (max 200m). Nodes routing radii will be ignored.",
         "ForceRecalculateFromRouting": "Recalculate all segment travel times",
+        "ScheduleGenerationFailuresTitle": "### Some schedules could not be regenerated",
+        "ScheduleGenerationFailuresIntro": "The following services have periods that could not be regenerated because the number of vehicles or the interval is not set. Go to the timetable section of this line to configure them so trips can be generated.",
         "Uuid": "UUID",
         "Line": "Line",
         "InternalId": "Internal ID",
