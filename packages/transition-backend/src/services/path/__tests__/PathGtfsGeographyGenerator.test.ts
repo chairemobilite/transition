@@ -624,9 +624,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         expect(Object.keys(result)).toEqual(['svcA', 'svcB']);
         expect(Object.keys(result['svcA'])).toEqual(['am_peak', 'midday']);
         expect(result['svcA']['am_peak'].segments[0].travelTimeSeconds).toEqual(100);
-        expect(result['svcA']['am_peak'].tripCount).toEqual(1);
         expect(result['svcB']['am_peak'].segments[0].travelTimeSeconds).toEqual(120);
-        expect(result['svcB']['am_peak'].tripCount).toEqual(1);
         expect(Object.keys(result['svcA'])).toEqual(['am_peak', 'midday']);
         expect(result['svcA']['midday'].segments[0].travelTimeSeconds).toEqual(80);
     });
@@ -637,7 +635,6 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
 
         const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip1, trip2], segmentDistancesMeters: [500], periods, totalDistanceMeters: 1000 });
 
-        expect(result['svcA']['am_peak'].tripCount).toEqual(2);
         expect(result['svcA']['am_peak'].segments[0].travelTimeSeconds).toEqual(110);
     });
 
@@ -649,7 +646,6 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [earlyTrip, amTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(Object.keys(result)).toEqual(['svc1']);
-        expect(result['svc1']['am_peak'].tripCount).toEqual(2);
     });
 
     test('should assign trip shortly after last period to last period', () => {
@@ -659,7 +655,6 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [lateTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(Object.keys(result)).toEqual(['svc1']);
-        expect(result['svc1']['pm_peak'].tripCount).toEqual(1);
     });
 
     test('should skip trip far beyond last period overflow threshold', () => {

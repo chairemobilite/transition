@@ -19,7 +19,8 @@ import {
     EditMode,
     getCheckpointKey,
     checkpointsOverlap,
-    resolveCheckpoints
+    resolveCheckpoints,
+    buildPeriodSegmentData
 } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import { pathGeographyUtils } from 'transition-common/lib/services/path/PathGeographyUtils';
 import {
@@ -511,36 +512,23 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
             const baseDwell = localDwellTimes;
 
             // Convert local flat times back to segmentsByServiceAndPeriod format
+            const distTotal = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
             const result: Record<string, Record<string, PeriodSegmentData>> = {};
             for (const [serviceId, periodEntries] of Object.entries(expandedData)) {
                 for (const [periodShortname, times] of Object.entries(periodEntries)) {
                     if (!times || times.length === 0) continue;
                     if (!result[serviceId]) result[serviceId] = {};
-                    const segmentData: PeriodSegmentData['segments'] = times.map((t, i) => ({
+                    const segments = times.map((t, i) => ({
                         travelTimeSeconds: t,
                         distanceMeters: baseSegments[i]?.distanceMeters ?? null
                     }));
-                    const travelTotal = times.reduce((sum, t) => sum + t, 0);
-                    const dwellTotal = baseDwell.reduce((sum, d) => sum + d, 0);
-                    const distTotal = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
-                    result[serviceId][periodShortname] = {
-                        segments: segmentData,
-                        dwellTimeSeconds: baseDwell,
-                        travelTimeWithoutDwellTimesSeconds: travelTotal,
-                        operatingTimeWithoutLayoverTimeSeconds: travelTotal + dwellTotal,
-                        averageSpeedWithoutDwellTimesMetersPerSecond:
-                            travelTotal > 0 ? Math.round((distTotal / travelTotal) * 100) / 100 : 0,
-                        operatingSpeedMetersPerSecond:
-                            travelTotal + dwellTotal > 0
-                                ? Math.round((distTotal / (travelTotal + dwellTotal)) * 100) / 100
-                                : 0,
-                        tripCount: 0
-                    };
+                    result[serviceId][periodShortname] = buildPeriodSegmentData(segments, baseDwell, distTotal);
                 }
             }
             path.set('data.segmentsByServiceAndPeriod', Object.keys(result).length > 0 ? result : undefined);
             path.set('data.segmentTimesCheckpoints', checkpoints.length > 0 ? checkpoints : undefined);
             path.set('data.dwellTimeSeconds', localDwellTimes);
+            path.updateBaseFromServicePeriodData();
 
             onClose();
         } catch (error) {

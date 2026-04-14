@@ -15,6 +15,7 @@ import {
     kphToMps
 } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 import Path, { type PeriodSegmentData } from './Path';
+import { buildPeriodSegmentData } from './PathSegmentTimeUtils';
 import type { TimeAndDistance, TypeNodeChange, SegmentChangeInfo } from './PathTypes';
 
 const MIN_TRAVEL_TIME_FOR_DWELL_SECONDS = 15;
@@ -901,26 +902,9 @@ const remapPeriodSegmentData = (
 
     remappedDwellTimes.push(getDwellTimeSecondsForNode(path, nodeIds[nodeIds.length - 1]));
 
-    const travelTimeWithoutDwellTimesSeconds = remappedSegments.reduce((sum, seg) => sum + seg.travelTimeSeconds, 0);
-    const totalDwellTimeSeconds = remappedDwellTimes.reduce((sum, d) => sum + d, 0);
-    const operatingTimeWithoutLayoverTimeSeconds = travelTimeWithoutDwellTimesSeconds + totalDwellTimeSeconds;
     const totalDistanceMeters = remappedSegments.reduce((sum, seg) => sum + (seg.distanceMeters || 0), 0);
 
-    return {
-        segments: remappedSegments,
-        dwellTimeSeconds: remappedDwellTimes,
-        travelTimeWithoutDwellTimesSeconds,
-        operatingTimeWithoutLayoverTimeSeconds,
-        averageSpeedWithoutDwellTimesMetersPerSecond:
-            travelTimeWithoutDwellTimesSeconds > 0
-                ? Math.round((totalDistanceMeters / travelTimeWithoutDwellTimesSeconds) * 100) / 100
-                : 0,
-        operatingSpeedMetersPerSecond:
-            operatingTimeWithoutLayoverTimeSeconds > 0
-                ? Math.round((totalDistanceMeters / operatingTimeWithoutLayoverTimeSeconds) * 100) / 100
-                : 0,
-        tripCount: initialPeriod.tripCount
-    };
+    return buildPeriodSegmentData(remappedSegments, remappedDwellTimes, totalDistanceMeters);
 };
 
 /**

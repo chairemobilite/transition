@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import type { PeriodSegmentData } from './Path';
+
 // === Types ===
 
 export type Checkpoint = {
@@ -48,4 +50,26 @@ export const formatSeconds = (seconds: number): string => {
     const mins = Math.floor(rounded / 60);
     const secs = rounded % 60;
     return `${mins}m${secs < 10 ? '0' : ''}${secs}s`;
+};
+
+/** Build a PeriodSegmentData object from segments, dwell times, and total distance.
+ *  Computes travel/operating totals and speed metrics. */
+export const buildPeriodSegmentData = (
+    segments: { travelTimeSeconds: number; distanceMeters: number | null }[],
+    dwellTimeSeconds: number[],
+    totalDistanceMeters: number
+): PeriodSegmentData => {
+    const travelTotal = segments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
+    const dwellTotal = dwellTimeSeconds.reduce((sum, d) => sum + d, 0);
+    const operatingTotal = travelTotal + dwellTotal;
+    return {
+        segments,
+        dwellTimeSeconds,
+        travelTimeWithoutDwellTimesSeconds: travelTotal,
+        operatingTimeWithoutLayoverTimeSeconds: operatingTotal,
+        averageSpeedWithoutDwellTimesMetersPerSecond:
+            travelTotal > 0 ? Math.round((totalDistanceMeters / travelTotal) * 100) / 100 : 0,
+        operatingSpeedMetersPerSecond:
+            operatingTotal > 0 ? Math.round((totalDistanceMeters / operatingTotal) * 100) / 100 : 0
+    };
 };
