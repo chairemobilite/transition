@@ -31,6 +31,7 @@ import {
     expandGroupedDataToServices,
     ServiceGroup
 } from 'transition-common/lib/services/path/PathServiceGrouping';
+import { assignCommonNamesForDuplicates } from './PathServiceGroupingLabels';
 
 const weekdays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'] as const;
 
@@ -129,18 +130,18 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         }
         return map;
     }, [serviceIds.join(','), line]);
-    const serviceGroups: ServiceGroup[] = React.useMemo(
-        () =>
-            groupServicesByTravelTimes(
-                path,
-                serviceIds,
-                totalPathTime,
-                servicesCollection,
-                noGrouping,
-                periodsGroupByServiceId
-            ),
-        [serviceIds.join(','), noGrouping, periodsGroupByServiceId]
-    );
+    const serviceGroups: ServiceGroup[] = React.useMemo(() => {
+        const groups = groupServicesByTravelTimes(
+            path,
+            serviceIds,
+            totalPathTime,
+            servicesCollection,
+            noGrouping,
+            periodsGroupByServiceId
+        );
+        assignCommonNamesForDuplicates(groups, servicesCollection);
+        return groups;
+    }, [serviceIds.join(','), noGrouping, periodsGroupByServiceId]);
 
     const getGroupLabel = (group: ServiceGroup): string => {
         if (noGrouping || group.serviceIds.length === 1) {

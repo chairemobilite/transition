@@ -477,50 +477,6 @@ describe('groupServicesByTravelTimes', () => {
         expect(exception2Group!.serviceIds).toEqual(['exception2']);
     });
 
-    test('assigns commonName only to duplicate-labelled groups', () => {
-        const path = makePath([
-            {
-                periodShortname: 'AM',
-                services: [
-                    { id: 'slow1', travelTimeSeconds: [100, 100] },
-                    { id: 'slow2', travelTimeSeconds: [100, 100] },
-                    { id: 'fast1', travelTimeSeconds: [60, 60] },
-                    { id: 'fast2', travelTimeSeconds: [60, 60] },
-                    { id: 'sat', travelTimeSeconds: [80, 80] }
-                ]
-            }
-        ]);
-
-        const weekdayDays = {
-            monday: true,
-            tuesday: true,
-            wednesday: true,
-            thursday: true,
-            friday: true
-        };
-        const services = makeServicesCollection({
-            slow1: makeService('slow1', weekdayDays, '2026-01-01', '2026-06-30', '25S-H55S000S-82-S'),
-            slow2: makeService('slow2', weekdayDays, '2026-07-01', '2026-12-31', '25N-H55N000S-80-S'),
-            fast1: makeService('fast1', weekdayDays, '2026-01-01', '2026-06-30', '25S-H59S000S-81-S'),
-            fast2: makeService('fast2', weekdayDays, '2026-07-01', '2026-12-31', '25N-H59N000S-80-S'),
-            sat: makeService('sat', { saturday: true }, '2026-01-01', '2026-12-31', 'Saturday service')
-        });
-
-        const groups = groupServicesByTravelTimes(
-            path,
-            ['slow1', 'slow2', 'fast1', 'fast2', 'sat'],
-            200,
-            services
-        );
-
-        const weekdayGroups = groups.filter((g) => g.activeDays.length === 5);
-        const saturdayGroup = groups.find((g) => g.activeDays.includes('saturday'));
-        expect(weekdayGroups).toHaveLength(2);
-        expect(weekdayGroups.every((g) => g.commonName !== undefined)).toBe(true);
-        expect(weekdayGroups.map((g) => g.commonName).sort()).toEqual(['H55', 'H59']);
-        // Saturday group has a unique base label, so no commonName is assigned
-        expect(saturdayGroup?.commonName).toBeUndefined();
-    });
 });
 
 describe('expandGroupedDataToServices', () => {
