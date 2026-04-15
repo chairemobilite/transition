@@ -27,7 +27,7 @@ type SwitchLanguageTest = (params: { languageToSwitch: AvailableLanguages } & Co
 type HasUrlTest = (params: { expectedUrl: Url } & CommonTestParameters) => void;
 type LoginTest = (params: { loginMethod: LoginMethods } & CommonTestParameters) => void;
 type LogoutTest = (params: CommonTestParameters) => void;
-type LeftMenuTest = (params: { section: LeftMenuSections } & CommonTestParameters) => void;
+type LeftMenuTest = (params: { section: LeftMenuSections; expectedRightPanelTitle: string } & CommonTestParameters) => void;
 
 const testUsername = process.env.PLAYWRIGHT_TEST_USER || 'testUser';
 const testPassword = process.env.PLAYWRIGHT_TEST_PASSWORD || 'testPassword';
@@ -177,31 +177,15 @@ export const logoutTest: LogoutTest = ({ context }) => {
  * Click on one of the sections on the left menu, and check that the right panel is the correct one.
  * @param {Object} options - The options for the test.
  * @param {string} options.section - The section we click.
+ * @param {string} options.expectedRightPanelTitle - The expected title of the right panel.
  */
-export const clickLeftMenuTest: LeftMenuTest = ({ context, section }) => {
+export const clickLeftMenuTest: LeftMenuTest = ({ context, section, expectedRightPanelTitle }) => {
     test(`Click the ${section} section of the left menu - ${getTestCounter(context, `${section}`)}`, async () => {
         const leftMenu = context.page.locator('//nav[@id="tr__left-menu"]/ul[@class="tr__left-menu-container"]');
         const sectionButton = leftMenu.locator(`//li/button[@data-section='${section}']/span/img`);
         await sectionButton.click();
         const rightPanel = context.page.locator('//section[@id="tr__right-panel"]/div[@class="tr__right-panel-inner"]');
         const rightPanelTitle = rightPanel.getByRole('heading').nth(0);
-        let expectedRightPanelTitle;
-        // To avoid making this function hard to maintain, we only leave the options that are clicked on during the "Test left menu" test, which are commonly used options whose title is unlikely to change
-        // The expectedRightPanelTitle is the english title of each panel, taken directly from the translation files
-        switch(section) {
-        case 'agencies':
-            expectedRightPanelTitle = 'Agencies';
-            break;
-        case 'routing':
-            expectedRightPanelTitle = 'Routing';
-            break;
-        case 'preferences':
-            expectedRightPanelTitle = 'Preferences';
-            break;
-        }
-        // The routing section keeps a full-panel LoadingPage until the scenario collection is ready, so the first
-        // real heading appears later than for agencies/preferences. Playwright retries this assert until match or
-        // expect.timeout (aligned with test timeout in playwright.config—not a fixed sleep).
         await expect(rightPanelTitle).toContainText(expectedRightPanelTitle);
     });
 };
