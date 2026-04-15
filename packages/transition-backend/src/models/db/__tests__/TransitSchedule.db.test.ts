@@ -298,7 +298,7 @@ const expectSchedulesSame = (actual: ScheduleAttributes, expected: ScheduleAttri
         // Make sure all expected trips are there
         for (let tripIdx = 0; tripIdx < expectedTrips.length; tripIdx++) {
             const { id: expectedTripUuid, integer_id: expectedTripId, schedule_period_id, path_id: originalPathId, ...expectedTripAttributes } = expectedTrips[tripIdx];
-            const matchingTrip = matchIds === true ? trips.find(trip => trip.id === expectedTrips[tripIdx].id) : trips[tripIdx];
+            const matchingTrip = matchIds === true ? trips!.find(trip => trip.id === expectedTrips[tripIdx].id) : trips![tripIdx];
             expect(matchingTrip).toBeDefined();
             expect(matchingTrip).toEqual(expect.objectContaining(expectedTripAttributes));
             expect(matchingTrip!.path_id).toEqual(pathIdMapping[originalPathId] || originalPathId);
@@ -308,7 +308,7 @@ const expectSchedulesSame = (actual: ScheduleAttributes, expected: ScheduleAttri
                 expect(schedule_period_id).toEqual(expectedPeriodId);
             }
         }
-        expect(trips.length).toEqual(expectedTrips.length);
+        expect(trips!.length).toEqual(expectedTrips.length);
     }
     expect(periods.length).toEqual(expectedPeriods.length);
 }
@@ -409,7 +409,7 @@ describe(`schedules`, function () {
         const updatedSchedule = _cloneDeep(scheduleDataRead);
         updatedSchedule.periods_group_shortname = 'New_period_name';
         updatedSchedule.periods[1].custom_start_at_str = "13:45";
-        updatedSchedule.periods[1].trips[0].seated_capacity = 30;
+        updatedSchedule.periods[1].trips![0].seated_capacity = 30;
 
         // Update the object
         const updatedId = await dbQueries.save(updatedSchedule);
@@ -419,7 +419,7 @@ describe(`schedules`, function () {
         updatedSchedule.updated_at = expect.anything();
         updatedSchedule.periods.forEach((period) => {
             delete period.updated_at;
-            period.trips.forEach((trip) => delete trip.updated_at);
+            period.trips!.forEach((trip) => delete trip.updated_at);
         });
 
         // Read the object again and make sure it matches
@@ -438,7 +438,7 @@ describe(`schedules`, function () {
         // Remove 2nd period and a trip from first period
         const updatedSchedule = _cloneDeep(scheduleDataRead);
         updatedSchedule.periods.splice(1, 1);
-        updatedSchedule.periods[0].trips.splice(2, 1);
+        updatedSchedule.periods[0].trips!.splice(2, 1);
 
         // Update the object
         const updatedId = await dbQueries.save(updatedSchedule);
@@ -448,7 +448,7 @@ describe(`schedules`, function () {
         updatedSchedule.updated_at = expect.anything();
         updatedSchedule.periods.forEach((period) => {
             delete period.updated_at;
-            period.trips.forEach((trip) => delete trip.updated_at);
+            period.trips!.forEach((trip) => delete trip.updated_at);
         });
 
         // Read the object again and make sure it matches
@@ -456,7 +456,7 @@ describe(`schedules`, function () {
         // Recursively remove the updated_at field
         scheduleDataUpdatedRead.periods.forEach((period) => {
             delete period.updated_at;
-            period.trips.forEach((trip) => delete trip.updated_at);
+            period.trips!.forEach((trip) => delete trip.updated_at);
         });
         expectSchedulesSame(scheduleDataUpdatedRead, updatedSchedule);
     });
@@ -471,7 +471,7 @@ describe(`schedules`, function () {
         updatedSchedule.periods.splice(1, 0, scheduleForServiceId.periods[1] as any);
         const newTrip = scheduleForServiceId.periods[0].trips ? scheduleForServiceId.periods[0].trips[2] : undefined;
         expect(newTrip).toBeDefined();
-        updatedSchedule.periods[0].trips.push(newTrip as any);
+        updatedSchedule.periods[0].trips!.push(newTrip as any);
 
         // Update the object
         const updatedId = await dbQueries.save(updatedSchedule);
@@ -481,7 +481,7 @@ describe(`schedules`, function () {
         updatedSchedule.updated_at = expect.anything();
         updatedSchedule.periods.forEach((period) => {
             delete period.updated_at;
-            period.trips.forEach((trip) => delete trip.updated_at);
+            period.trips!.forEach((trip) => delete trip.updated_at);
         });
 
         // Read the object again and make sure it matches
@@ -590,7 +590,7 @@ describe('Schedules, with transactions', () => {
             })
             // Remove 2nd period and a trip from first period, then
             updatedSchedule.periods.splice(1, 1);
-            updatedSchedule.periods[0].trips.splice(2, 1);
+            updatedSchedule.periods[0].trips!.splice(2, 1);
             originalUpdatedSchedule = updatedSchedule;
             await dbQueries.save(updatedSchedule, { transaction: trx });
         });
@@ -624,7 +624,7 @@ describe('Schedules, with transactions', () => {
                 // Update some fields, but change uuid of one trip for not a uuid
                 updatedSchedule.allow_seconds_based_schedules = true;
                 updatedSchedule.periods.splice(1, 1);
-                updatedSchedule.periods[0].trips[0].id = 'not a uuid';
+                updatedSchedule.periods[0].trips![0].id = 'not a uuid';
                 originalUpdatedSchedule = updatedSchedule;
 
                 // Save the updated schedule with one less period and trip
@@ -648,7 +648,7 @@ describe('Schedules, with transactions', () => {
         const updatedSchedule = await dbQueries.read(newId);
         // Remove 2nd period and a trip from first period, then
         updatedSchedule.periods.splice(1, 1);
-        updatedSchedule.periods[0].trips.splice(2, 1);
+        updatedSchedule.periods[0].trips!.splice(2, 1);
 
         let error: any = undefined;
         try {
@@ -714,7 +714,7 @@ describe('Schedules save', () => {
                 
                 if (schedule.line_id === scheduleForServiceId.line_id) {
                     schedule.periods.splice(1, 1);
-                    schedule.periods[0].trips.splice(2, 1);
+                    schedule.periods[0].trips!.splice(2, 1);
                 } else {
                     schedule.periods.splice(0, 1);
                 }
@@ -816,8 +816,8 @@ describe('Schedules duplication', () => {
         // Save the original schedule, after adding inbound path to one of the periods
         const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
         originalSchedule.periods[0].inbound_path_id = inboundPathId;
-        originalSchedule.periods[0].trips[0].path_id = inboundPathId;
-        
+        originalSchedule.periods[0].trips![0].path_id = inboundPathId;
+
         const originalScheduleId = await dbQueries.save(originalSchedule);
 
         // Duplicate the schedule with a line and path id mapping
@@ -1013,7 +1013,7 @@ describe('Schedules duplication', () => {
         // Save the original schedule, after adding inbound path to one of the periods
         const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
         originalSchedule.periods[0].inbound_path_id = inboundPathId;
-        originalSchedule.periods[0].trips[0].path_id = inboundPathId;
+        originalSchedule.periods[0].trips![0].path_id = inboundPathId;
         await dbQueries.save(originalSchedule);
 
         // Duplicate the schedule with a line and path id mapping

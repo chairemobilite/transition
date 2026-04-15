@@ -180,7 +180,10 @@ const _createPeriods = async function (
         period.integer_id = ids[idx].id;
     });
     const tripPromises = schedulePeriods
-        .filter((period) => period.trips !== undefined)
+        .filter(
+            (period): period is SchedulePeriod & { trips: Exclude<SchedulePeriod['trips'], undefined> } =>
+                period.trips !== undefined
+        )
         .map((period) => {
             period.trips.forEach((trip) => {
                 if (!trip.id) {

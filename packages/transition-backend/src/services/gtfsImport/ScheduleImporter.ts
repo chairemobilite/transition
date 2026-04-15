@@ -359,7 +359,11 @@ const generateExactTrips = (schedule: Schedule, periods: TripAndStopTimes[][], i
                 // TODO: We ignore the block_id during import, so we set it to null here. When we do something with the block,
             };
 
-            (schedule as Schedule).attributes.periods[periodIndex].trips.push(newTrip);
+            const period = (schedule as Schedule).attributes.periods[periodIndex];
+            if (!period.trips) {
+                period.trips = [];
+            }
+            period.trips.push(newTrip);
         });
     }
 };

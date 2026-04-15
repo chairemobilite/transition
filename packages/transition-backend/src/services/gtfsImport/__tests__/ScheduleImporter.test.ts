@@ -355,8 +355,8 @@ describe('Generate schedules for lines', () => {
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname,
         }));
-        expect(scheduleAttributes.periods[0].trips.length).toEqual(2);
-        expect(scheduleAttributes.periods[0].trips[0]).toEqual(expect.objectContaining({
+        expect(scheduleAttributes.periods[0].trips!.length).toEqual(2);
+        expect(scheduleAttributes.periods[0].trips![0]).toEqual(expect.objectContaining({
             schedule_period_id: scheduleAttributes.periods[0].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
@@ -366,7 +366,7 @@ describe('Generate schedules for lines', () => {
             nodes_can_board: [true, true, true, false],
             nodes_can_unboard: [false, true, true, true],
         }));
-        expect(scheduleAttributes.periods[0].trips[1]).toEqual(expect.objectContaining({
+        expect(scheduleAttributes.periods[0].trips![1]).toEqual(expect.objectContaining({
             schedule_period_id: scheduleAttributes.periods[0].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
@@ -433,8 +433,8 @@ describe('Generate schedules for lines', () => {
             end_at_hour: importData.periodsGroup.periods[0].endAtHour,
             period_shortname: importData.periodsGroup.periods[0].shortname
         }));
-        expect(scheduleAttributes.periods[0].trips.length).toEqual(1);
-        expect(scheduleAttributes.periods[0].trips[0]).toEqual(expect.objectContaining({
+        expect(scheduleAttributes.periods[0].trips!.length).toEqual(1);
+        expect(scheduleAttributes.periods[0].trips![0]).toEqual(expect.objectContaining({
             schedule_period_id: scheduleAttributes.periods[0].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [baseTripAndStopTimes.stopTimes[0].departureTimeSeconds, baseTripAndStopTimes.stopTimes[1].departureTimeSeconds, baseTripAndStopTimes.stopTimes[2].departureTimeSeconds, baseTripAndStopTimes.stopTimes[3].departureTimeSeconds],
@@ -452,8 +452,8 @@ describe('Generate schedules for lines', () => {
             end_at_hour: importData.periodsGroup.periods[1].endAtHour,
             period_shortname: importData.periodsGroup.periods[1].shortname,
         }));
-        expect(scheduleAttributes.periods[1].trips.length).toEqual(2);
-        expect(scheduleAttributes.periods[1].trips[0]).toEqual(expect.objectContaining({
+        expect(scheduleAttributes.periods[1].trips!.length).toEqual(2);
+        expect(scheduleAttributes.periods[1].trips![0]).toEqual(expect.objectContaining({
             schedule_period_id: scheduleAttributes.periods[1].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [tripsByRouteId[routeId][1].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][1].stopTimes[3].departureTimeSeconds],
@@ -463,7 +463,7 @@ describe('Generate schedules for lines', () => {
             nodes_can_board: [true, true, true, false],
             nodes_can_unboard: [false, true, true, true],
         }));
-        expect(scheduleAttributes.periods[1].trips[1]).toEqual(expect.objectContaining({
+        expect(scheduleAttributes.periods[1].trips![1]).toEqual(expect.objectContaining({
             schedule_period_id: scheduleAttributes.periods[1].integer_id,
             path_id: pathId,
             node_departure_times_seconds: [tripsByRouteId[routeId][2].stopTimes[0].departureTimeSeconds, tripsByRouteId[routeId][2].stopTimes[1].departureTimeSeconds, tripsByRouteId[routeId][2].stopTimes[2].departureTimeSeconds, tripsByRouteId[routeId][2].stopTimes[3].departureTimeSeconds],

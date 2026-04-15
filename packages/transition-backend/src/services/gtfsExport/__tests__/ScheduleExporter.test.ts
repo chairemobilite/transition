@@ -262,37 +262,37 @@ test('Test exporting one schedule', async () => {
     expect(mockWriteTripStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteTripStream.write).toHaveBeenLastCalledWith([
         '"route_id","service_id","trip_id","trip_headsign","trip_short_name","direction_id","block_id","shape_id","wheelchair_accessible","bikes_allowed"',
-        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips[0].id}","${pathAttributes.name}",,0,"${scheduleAttributes1.periods[0].trips[0].block_id}","${pathAttributes.id}",,`,
-        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips[1].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
-        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips[2].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
-        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[1].trips[0].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
+        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips![0].id}","${pathAttributes.name}",,0,"${scheduleAttributes1.periods[0].trips![0].block_id}","${pathAttributes.id}",,`,
+        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips![1].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
+        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[0].trips![2].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
+        `"${lineId}","${sluggedServiceId}","${scheduleAttributes1.periods[1].trips![0].id}","${pathAttributes.name}",,0,,"${pathAttributes.id}",,`,
     ].join('\n') + '\n');
     expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
     // Match strings for each trip individually, to better catch errors in one trip
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
         '"trip_id","arrival_time","departure_time","stop_id","stop_sequence","stop_headsign","pickup_type","drop_off_type","continuous_pickup","continuous_drop_off","shape_dist_traveled","timepoint"',
-        `"${scheduleAttributes1.periods[0].trips[0].id}","7:00:00","7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
-        `"${scheduleAttributes1.periods[0].trips[0].id}","7:00:51","7:01:01","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
-        `"${scheduleAttributes1.periods[0].trips[0].id}","7:17:30","7:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[0].trips[0].id}","7:30:15","7:30:15","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[0].trips![0].id}","7:00:00","7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[0].trips![0].id}","7:00:51","7:01:01","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
+        `"${scheduleAttributes1.periods[0].trips![0].id}","7:17:30","7:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
+        `"${scheduleAttributes1.periods[0].trips![0].id}","7:30:15","7:30:15","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes1.periods[0].trips[1].id}","8:30:01","8:30:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
-        `"${scheduleAttributes1.periods[0].trips[1].id}","8:30:52","8:31:02","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
-        `"${scheduleAttributes1.periods[0].trips[1].id}","8:47:30","8:47:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[0].trips[1].id}","9:00:16","9:00:16","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[0].trips![1].id}","8:30:01","8:30:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[0].trips![1].id}","8:30:52","8:31:02","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
+        `"${scheduleAttributes1.periods[0].trips![1].id}","8:47:30","8:47:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
+        `"${scheduleAttributes1.periods[0].trips![1].id}","9:00:16","9:00:16","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes1.periods[0].trips[2].id}","9:00:01","9:00:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
-        `"${scheduleAttributes1.periods[0].trips[2].id}","9:00:52","9:01:02","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
-        `"${scheduleAttributes1.periods[0].trips[2].id}","9:17:30","9:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[0].trips[2].id}","9:30:16","9:30:16","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[0].trips![2].id}","9:00:01","9:00:01","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[0].trips![2].id}","9:00:52","9:01:02","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
+        `"${scheduleAttributes1.periods[0].trips![2].id}","9:17:30","9:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
+        `"${scheduleAttributes1.periods[0].trips![2].id}","9:30:16","9:30:16","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes1.periods[1].trips[0].id}","13:20:00","13:20:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
-        `"${scheduleAttributes1.periods[1].trips[0].id}","13:20:50","13:21:00","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
-        `"${scheduleAttributes1.periods[1].trips[0].id}","13:44:10","13:44:20","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes1.periods[1].trips[0].id}","13:53:20","13:53:20","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes1.periods[1].trips![0].id}","13:20:00","13:20:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes1.periods[1].trips![0].id}","13:20:50","13:21:00","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
+        `"${scheduleAttributes1.periods[1].trips![0].id}","13:44:10","13:44:20","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
+        `"${scheduleAttributes1.periods[1].trips![0].id}","13:53:20","13:53:20","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
@@ -308,23 +308,23 @@ test('Test exporting one schedule including multiple paths', async () => {
     expect(mockWriteTripStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteTripStream.write).toHaveBeenLastCalledWith([
         '"route_id","service_id","trip_id","trip_headsign","trip_short_name","direction_id","block_id","shape_id","wheelchair_accessible","bikes_allowed"',
-        `"${lineId}","${sluggedServiceId2}","${scheduleAttributes2.periods[0].trips[0].id}","${pathAttributes.name}",,0,"${scheduleAttributes2.periods[0].trips[0].block_id}","${scheduleAttributes2.periods[0].trips[0].path_id}",,`,
-        `"${lineId}","${sluggedServiceId2}","${scheduleAttributes2.periods[0].trips[1].id}","${pathAttributes.name}",,0,"${scheduleAttributes2.periods[0].trips[1].block_id}","${scheduleAttributes2.periods[0].trips[1].path_id}",,`,
+        `"${lineId}","${sluggedServiceId2}","${scheduleAttributes2.periods[0].trips![0].id}","${pathAttributes.name}",,0,"${scheduleAttributes2.periods[0].trips![0].block_id}","${scheduleAttributes2.periods[0].trips![0].path_id}",,`,
+        `"${lineId}","${sluggedServiceId2}","${scheduleAttributes2.periods[0].trips![1].id}","${pathAttributes.name}",,0,"${scheduleAttributes2.periods[0].trips![1].block_id}","${scheduleAttributes2.periods[0].trips![1].path_id}",,`,
     ].join('\n') + '\n');
     expect(mockWriteStopTimeStream.write).toHaveBeenCalledTimes(1);
     // Match strings for each trip individually, to better catch errors in one trip
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
         '"trip_id","arrival_time","departure_time","stop_id","stop_sequence","stop_headsign","pickup_type","drop_off_type","continuous_pickup","continuous_drop_off","shape_dist_traveled","timepoint"',
-        `"${scheduleAttributes2.periods[0].trips[0].id}","7:00:00","7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
-        `"${scheduleAttributes2.periods[0].trips[0].id}","7:00:51","7:01:01","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
-        `"${scheduleAttributes2.periods[0].trips[0].id}","7:17:30","7:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes2.periods[0].trips[0].id}","7:30:15","7:30:15","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes2.periods[0].trips![0].id}","7:00:00","7:00:00","${pathAttributes.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes2.periods[0].trips![0].id}","7:00:51","7:01:01","${pathAttributes.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
+        `"${scheduleAttributes2.periods[0].trips![0].id}","7:17:30","7:17:40","${pathAttributes.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
+        `"${scheduleAttributes2.periods[0].trips![0].id}","7:30:15","7:30:15","${pathAttributes.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockWriteStopTimeStream.write).toHaveBeenLastCalledWith(expect.stringContaining([
-        `"${scheduleAttributes2.periods[0].trips[1].id}","7:00:00","7:00:00","${pathAttributes2.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
-        `"${scheduleAttributes2.periods[0].trips[1].id}","7:00:51","7:01:01","${pathAttributes2.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
-        `"${scheduleAttributes2.periods[0].trips[1].id}","7:17:30","7:17:40","${pathAttributes2.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
-        `"${scheduleAttributes2.periods[0].trips[1].id}","7:30:15","7:30:15","${pathAttributes2.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
+        `"${scheduleAttributes2.periods[0].trips![1].id}","7:00:00","7:00:00","${pathAttributes2.nodes[0]}",1,,0,1,1,1,${pathDistances[0]},1`,
+        `"${scheduleAttributes2.periods[0].trips![1].id}","7:00:51","7:01:01","${pathAttributes2.nodes[1]}",2,,0,0,1,1,${pathDistances[1]},1`,
+        `"${scheduleAttributes2.periods[0].trips![1].id}","7:17:30","7:17:40","${pathAttributes2.nodes[2]}",3,,0,0,1,1,${pathDistances[2]},1`,
+        `"${scheduleAttributes2.periods[0].trips![1].id}","7:30:15","7:30:15","${pathAttributes2.nodes[3]}",4,,1,0,1,1,${pathDistances[4]},1`,
     ].join('\n')));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/trips.txt'));
     expect(mockCreateStream).toHaveBeenCalledWith(expect.stringContaining('test/stop_times.txt'));
@@ -412,7 +412,7 @@ test('Test exporting multiple chunks of lines', async () => {
 test('Test exporting a schedule with an unknown path', async () => {
     const unknownPathId = uuidV4();
     const schedulesWithNoPath = Object.assign({}, scheduleAttributes2);
-    schedulesWithNoPath.periods[0].trips.forEach((trip, index) => schedulesWithNoPath.periods[0].trips[index].path_id = unknownPathId);
+    schedulesWithNoPath.periods[0].trips!.forEach((trip, index) => schedulesWithNoPath.periods[0].trips![index].path_id = unknownPathId);
     mockReadForLines.mockResolvedValueOnce([schedulesWithNoPath]);
     const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
     expect(response.status).toEqual('success');
