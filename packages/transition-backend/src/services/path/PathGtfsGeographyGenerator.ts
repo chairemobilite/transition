@@ -6,10 +6,12 @@
  */
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
-import { Path } from 'transition-common/lib/services/path/Path';
+import { Path, type PeriodSegmentData } from 'transition-common/lib/services/path/Path';
+import { buildPeriodSegmentData } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import type { TimeAndDistance } from 'transition-common/lib/services/path/PathTypes';
-import { StopTime } from '../gtfsImport/GtfsImportTypes';
+import { StopTime, TripStopTimesWithService } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
+import { Period, findPeriodShortname } from 'transition-common/lib/services/periods/Period';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import {
     length as turfLength,
@@ -102,6 +104,63 @@ export const computeSegmentTimesFromStopTimes = (
         totalTravelTimeWithoutDwellTimesSeconds,
         totalTravelTimeWithDwellTimesSeconds: totalDwellTimeSeconds + totalTravelTimeWithoutDwellTimesSeconds
     };
+};
+
+/**
+ * Groups trips by (period, service) and computes averaged segment travel times per bucket.
+ *
+ * @param params.tripsWithService - Stop times and service ID for each trip on this path
+ * @param params.segmentDistancesMeters - Distance in meters per segment, or null if unavailable
+ * @param params.periods - Period definitions (from import config)
+ * @param params.totalDistanceMeters - Total path distance in meters (for speed calculations)
+ * @returns Nested map: service ID → period shortname → PeriodSegmentData
+ */
+export const computeSegmentTimesByServiceAndPeriod = (params: {
+    tripsWithService: TripStopTimesWithService[];
+    segmentDistancesMeters: (number | null)[];
+    periods: Period[];
+    totalDistanceMeters: number;
+}): { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } => {
+    const { tripsWithService, segmentDistancesMeters, periods, totalDistanceMeters } = params;
+    if (periods.length === 0) {
+        return {};
+    }
+
+    // Group trips by (period, serviceId) using first stop's departure time
+    const bucketKey = (period: string, service: string) => `${period}\0${service}`;
+    const tripsByBucket = new Map<string, StopTime[][]>();
+    const bucketMeta = new Map<string, { period: string; serviceId: string }>();
+
+    for (const { stopTimes, serviceId } of tripsWithService) {
+        const departureTime = stopTimes[0].departureTimeSeconds;
+        const periodShortname = findPeriodShortname(periods, departureTime);
+        if (periodShortname === null) {
+            continue;
+        }
+        const key = bucketKey(periodShortname, serviceId);
+        const bucket = tripsByBucket.get(key);
+        if (bucket) {
+            bucket.push(stopTimes);
+        } else {
+            tripsByBucket.set(key, [stopTimes]);
+            bucketMeta.set(key, { period: periodShortname, serviceId });
+        }
+    }
+
+    // Compute per-bucket segment averages
+    const result: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } = {};
+    for (const [key, bucketTrips] of tripsByBucket) {
+        const { period, serviceId } = bucketMeta.get(key)!;
+        const segmentTimes = computeSegmentTimesFromStopTimes(bucketTrips, segmentDistancesMeters);
+        const { segmentsData, dwellTimeSecondsData } = segmentTimes;
+
+        if (!result[serviceId]) {
+            result[serviceId] = {};
+        }
+        result[serviceId][period] = buildPeriodSegmentData(segmentsData, dwellTimeSecondsData, totalDistanceMeters);
+    }
+
+    return result;
 };
 
 /**
@@ -419,7 +478,9 @@ export const generateGeographyAndSegmentsFromGtfs = (
     shapeGtfsId: string,
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
-    defaultMinLayoverTimeSeconds = 180
+    defaultMinLayoverTimeSeconds = 180,
+    periods: Period[] = [],
+    tripsWithService: TripStopTimesWithService[] = []
 ): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
@@ -510,9 +571,16 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
+        const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
+            tripsWithService,
+            segmentDistancesMeters: nullDistances,
+            periods,
+            totalDistanceMeters: totalDistanceInMeters
+        });
+
         // FIXME: segments should have the same length as nodes, but we have no shape data to generate them from
         path.attributes.segments = [];
-        path.attributes.data = Object.assign(path.attributes.data, pathData);
+        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByServiceAndPeriod });
     } else {
         if (!shapeDistancesAreInMeters) {
             normalizeDistancesToMeters(stopTimeDistances, totalDistanceInMeters);
@@ -532,10 +600,17 @@ export const generateGeographyAndSegmentsFromGtfs = (
             totalDistanceMeters: totalDistanceInMeters
         });
 
+        const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
+            tripsWithService,
+            segmentDistancesMeters: sliceResult.segmentDistancesMeters,
+            periods,
+            totalDistanceMeters: totalDistanceInMeters
+        });
+
         completeShape.geometry.coordinates = sliceResult.pathCoordinates;
 
         path.attributes.segments = sliceResult.segments;
-        path.attributes.data = Object.assign(path.attributes.data, pathData);
+        path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByServiceAndPeriod });
 
         const terminalsGeojsons = [
             path.collectionManager.get('nodes').getById(nodeIds[0]),
@@ -563,7 +638,9 @@ export const generateGeographyAndSegmentsFromStopTimes = (
     allTripsStopTimes: StopTime[][],
     stopCoordinatesByStopId: { [key: string]: [number, number] },
     defaultLayoverRatioOverTotalTravelTime = 0.1,
-    defaultMinLayoverTimeSeconds = 180
+    defaultMinLayoverTimeSeconds = 180,
+    periods: Period[] = [],
+    tripsWithService: TripStopTimesWithService[] = []
 ): TranslatableMessage[] => {
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
@@ -624,9 +701,15 @@ export const generateGeographyAndSegmentsFromStopTimes = (
         defaultMinLayoverTimeSeconds
     );
     const pathData = buildPathData({ segmentTimes, layoverTimeSeconds, totalDistanceMeters: totalDistanceInMeters });
+    const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
+        tripsWithService,
+        segmentDistancesMeters: nullDistances,
+        periods,
+        totalDistanceMeters: totalDistanceInMeters
+    });
 
     path.attributes.segments = segments;
-    path.attributes.data = Object.assign(path.attributes.data, pathData);
+    path.attributes.data = Object.assign(path.attributes.data, pathData, { segmentsByServiceAndPeriod });
 
     path.setData('gtfs', { shape_id: undefined });
     path.setData('from_gtfs', true);

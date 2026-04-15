@@ -540,3 +540,90 @@ describe('One line, 3 trips with no shape', () => {
     });
 
 });
+
+describe('Timepoint to checkpoint mapping', () => {
+    beforeEach(() => {
+        importData.shapeById = {};
+        importData.shapeById['timepointShape'] = [
+            { shape_id: 'timepointShape', shape_pt_lat: 45.538, shape_pt_lon: -73.614, shape_pt_sequence: 0 },
+            { shape_id: 'timepointShape', shape_pt_lat: 45.539, shape_pt_lon: -73.613, shape_pt_sequence: 5 },
+            { shape_id: 'timepointShape', shape_pt_lat: 45.540, shape_pt_lon: -73.612, shape_pt_sequence: 10 },
+            { shape_id: 'timepointShape', shape_pt_lat: 45.541, shape_pt_lon: -73.611, shape_pt_sequence: 20 },
+        ];
+        importData.stopCoordinatesByStopId = {
+            stop1: [-73.614, 45.538] as [number, number],
+            stop2: [-73.613, 45.539] as [number, number],
+            stop3: [-73.612, 45.540] as [number, number],
+            stop4: [-73.611, 45.541] as [number, number]
+        };
+    });
+
+    test('Creates checkpoints from mixed timepoint values', async () => {
+        const tripId = 'timepointTrip';
+        const tripsByRouteId = {};
+        tripsByRouteId[routeId] = [{
+            trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripId, trip_headsign: 'Test', direction_id: 0, shape_id: 'timepointShape' },
+            stopTimes: [
+                { trip_id: tripId, stop_id: 'stop1', stop_sequence: 1, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000, timepoint: 1 },
+                { trip_id: tripId, stop_id: 'stop2', stop_sequence: 2, arrivalTimeSeconds: 36090, departureTimeSeconds: 36100, timepoint: 0 },
+                { trip_id: tripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200, timepoint: 1 },
+                { trip_id: tripId, stop_id: 'stop4', stop_sequence: 4, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300, timepoint: 1 }
+            ]
+        }];
+
+        const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
+        expect(result.status).toEqual('success');
+
+        const createdPathAttribs = (pathsDbQueries.createMultiple as any).mock.calls[0][0][0];
+        // Timepoint stops: stop1 (nodeId1), stop3 (nodeId3), stop4 (nodeId4)
+        // → checkpoints: [{nodeId1, nodeId3}, {nodeId3, nodeId4}]
+        expect(createdPathAttribs.data.segmentTimesCheckpoints).toEqual([
+            { fromNodeId: nodeId1, toNodeId: nodeId3 },
+            { fromNodeId: nodeId3, toNodeId: nodeId4 }
+        ]);
+    });
+
+    test('Does not create checkpoints when all stops are timepoints', async () => {
+        const tripId = 'allTimepointTrip';
+        const tripsByRouteId = {};
+        tripsByRouteId[routeId] = [{
+            trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripId, trip_headsign: 'Test', direction_id: 0, shape_id: 'timepointShape' },
+            stopTimes: [
+                { trip_id: tripId, stop_id: 'stop1', stop_sequence: 1, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000, timepoint: 1 },
+                { trip_id: tripId, stop_id: 'stop2', stop_sequence: 2, arrivalTimeSeconds: 36090, departureTimeSeconds: 36100, timepoint: 1 },
+                { trip_id: tripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200, timepoint: 1 },
+                { trip_id: tripId, stop_id: 'stop4', stop_sequence: 4, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300, timepoint: 1 }
+            ]
+        }];
+
+        const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
+        expect(result.status).toEqual('success');
+
+        const createdPathAttribs = (pathsDbQueries.createMultiple as any).mock.calls[0][0][0];
+        expect(createdPathAttribs.data.segmentTimesCheckpoints).toBeUndefined();
+    });
+
+    test('Creates checkpoints from timepoints without shape', async () => {
+        const tripId = 'noShapeTimepointTrip';
+        const tripsByRouteId = {};
+        tripsByRouteId[routeId] = [{
+            trip: { route_id: routeId, service_id: uuidV4(), trip_id: tripId, trip_headsign: 'Test', direction_id: 0 },
+            stopTimes: [
+                { trip_id: tripId, stop_id: 'stop1', stop_sequence: 1, arrivalTimeSeconds: 36000, departureTimeSeconds: 36000, timepoint: 1 },
+                { trip_id: tripId, stop_id: 'stop2', stop_sequence: 2, arrivalTimeSeconds: 36090, departureTimeSeconds: 36100, timepoint: 0 },
+                { trip_id: tripId, stop_id: 'stop3', stop_sequence: 3, arrivalTimeSeconds: 36180, departureTimeSeconds: 36200, timepoint: 0 },
+                { trip_id: tripId, stop_id: 'stop4', stop_sequence: 4, arrivalTimeSeconds: 36300, departureTimeSeconds: 36300, timepoint: 1 }
+            ]
+        }];
+
+        const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
+        expect(result.status).toEqual('success');
+
+        const createdPathAttribs = (pathsDbQueries.createMultiple as any).mock.calls[0][0][0];
+        // Timepoint stops: stop1 (nodeId1), stop4 (nodeId4)
+        // → checkpoints: [{nodeId1, nodeId4}]
+        expect(createdPathAttribs.data.segmentTimesCheckpoints).toEqual([
+            { fromNodeId: nodeId1, toNodeId: nodeId4 }
+        ]);
+    });
+});

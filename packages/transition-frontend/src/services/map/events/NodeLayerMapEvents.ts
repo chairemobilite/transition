@@ -48,11 +48,12 @@ const onNodeMouseEnter = (e: MapLayerMouseEvent) => {
         const nodeGeojson = e.features[0];
         const hoverNodeIntegerId = nodeGeojson.id;
         const hoverNodeId = nodeGeojson.properties?.id;
-        const node = new Node(
-            serviceLocator.collectionManager.get('nodes').getById(hoverNodeId).properties,
-            false,
-            serviceLocator.collectionManager
-        );
+        const nodesCollection = serviceLocator.collectionManager?.get('nodes');
+        const nodeFeature = nodesCollection?.getById(hoverNodeId);
+        if (!nodeFeature) {
+            return;
+        }
+        const node = new Node(nodeFeature.properties, false, serviceLocator.collectionManager);
 
         // unhover previous node:
         if (map._hoverNodeIntegerId && map._hoverNodeSource && map._hoverNodeId) {
