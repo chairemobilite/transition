@@ -283,7 +283,8 @@ class MapLibreLayerManager {
         this._layersByName[layerName].source.data = newGeojson;
 
         if (this._map && this.layerIsEnabled(layerName)) {
-            (this._map.getSource(layerName) as GeoJSONSource).setData(this._layersByName[layerName].source.data);
+            const source = this._map.getSource(layerName) as GeoJSONSource | undefined;
+            source?.setData(this._layersByName[layerName].source.data);
         }
         serviceLocator.eventManager.emit('map.updatedLayer', layerName);
     }
@@ -299,7 +300,8 @@ class MapLibreLayerManager {
                         : defaultGeojson;
             this._layersByName[layerName].source.data = newGeojson;
             if (this._map && this.layerIsEnabled(layerName)) {
-                (this._map.getSource(layerName) as GeoJSONSource).setData(this._layersByName[layerName].source.data);
+                const source = this._map.getSource(layerName) as GeoJSONSource | undefined;
+                source?.setData(this._layersByName[layerName].source.data);
             }
         }
         serviceLocator.eventManager.emit('map.updatedLayers', Object.keys(geojsonByLayerName));
