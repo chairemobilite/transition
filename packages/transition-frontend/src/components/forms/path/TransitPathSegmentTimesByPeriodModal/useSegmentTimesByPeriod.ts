@@ -8,7 +8,7 @@ import React from 'react';
 import _cloneDeep from 'lodash/cloneDeep';
 import { useTranslation } from 'react-i18next';
 
-import Path, { PeriodSegmentData } from 'transition-common/lib/services/path/Path';
+import Path from 'transition-common/lib/services/path/Path';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
@@ -17,10 +17,13 @@ import {
     Checkpoint,
     ResolvedCheckpoint,
     EditMode,
+    LocalSegmentTimes,
     getCheckpointKey,
     checkpointsOverlap,
     resolveCheckpoints,
-    buildPeriodSegmentData
+    distributeCheckpointForService,
+    applyPendingCheckpointDistributions,
+    buildSegmentsByServiceAndPeriod
 } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import { pathGeographyUtils } from 'transition-common/lib/services/path/PathGeographyUtils';
 import {
@@ -79,7 +82,6 @@ const buildGroupLabel = (activeDays: string[], t: (key: string) => string, commo
 };
 
 /** Local editing state: serviceId -> periodShortname -> travelTimeSeconds per segment. */
-type LocalSegmentTimes = Record<string, Record<string, number[]>>;
 
 type UseSegmentTimesByPeriodArgs = {
     path: Path;
@@ -88,7 +90,14 @@ type UseSegmentTimesByPeriodArgs = {
 
 /**
  * Hook managing all state and logic for the segment times editing modal.
- * Handles per-service/period time overrides, checkpoint distribution, dwell time editing, and saving back to the path.
+ *
+ * Kept as a single hook because `handleSave` needs to see everything (localData,
+ * localDwellTimes, checkpoints, serviceGroups) to build the payload written back to
+ * the path, and localData is also shared between cell-by-cell editing and checkpoint
+ * distribution. Splitting would force this state into a Context or lifted to the
+ * parent, which hides the coupling without removing it. Returns are grouped by
+ * feature (pathDisplay, serviceSelection, navigation, segmentEdit, checkpointEdit,
+ * save)
  */
 const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs) => {
     const { t, i18n } = useTranslation('transit');
@@ -187,27 +196,6 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     );
     const [activeCheckpointIndex, setActiveCheckpointIndex] = React.useState<number>(0);
     const [checkpointTargets, setCheckpointTargets] = React.useState<Record<string, Record<string, number>>>({});
-    const [newCheckpointFrom, setNewCheckpointFrom] = React.useState<number>(0);
-    const [newCheckpointTo, setNewCheckpointTo] = React.useState<number>(Math.min(2, segmentCount));
-
-    // Compute allowed range for new checkpoint endpoints based on existing checkpoints
-    const sortedResolved = React.useMemo(
-        () => [...resolvedCheckpoints].sort((a, b) => a.fromNodeIndex - b.fromNodeIndex),
-        [resolvedCheckpoints]
-    );
-    const nextCheckpointAfterFrom = sortedResolved.find((cp) => cp.fromNodeIndex > newCheckpointFrom);
-    const newCheckpointMaxTo = nextCheckpointAfterFrom ? nextCheckpointAfterFrom.fromNodeIndex : segmentCount;
-    const isNodeInsideCheckpoint = React.useCallback(
-        (idx: number) => sortedResolved.some((cp) => cp.fromNodeIndex < idx && idx < cp.toNodeIndex),
-        [sortedResolved]
-    );
-
-    // Clamp "to" when maxTo shrinks (e.g. "from" moved before an existing checkpoint)
-    React.useEffect(() => {
-        if (newCheckpointTo > newCheckpointMaxTo) {
-            setNewCheckpointTo(newCheckpointMaxTo);
-        }
-    }, [newCheckpointMaxTo, newCheckpointTo]);
 
     const collectPeriodsWithTripsForGroup = (group: ServiceGroup | undefined): any[] => {
         const periodsByShortname = new Map<string, any>();
@@ -306,30 +294,11 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     const isSegmentInAnyCheckpoint = (segIdx: number): boolean =>
         resolvedCheckpoints.some((checkpoint) => segIdx >= checkpoint.fromNodeIndex && segIdx < checkpoint.toNodeIndex);
 
-    const getAverageTotal = (): number => segments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
-
-    const getPeriodTotal = (periodShortname: string): number => {
-        const periodTimes = localData[selectedServiceId]?.[periodShortname];
-        if (!periodTimes) {
-            const avgTimes = selectedGroup?.averageTimesByPeriod[periodShortname];
-            return avgTimes ? avgTimes.reduce((sum, val) => sum + val, 0) : getAverageTotal();
-        }
-        return periodTimes.reduce((sum, val) => sum + val, 0);
-    };
-
     // Checkpoint helpers (use ResolvedCheckpoint for index-based calculations)
     const getCheckpointCurrentTotal = (checkpoint: ResolvedCheckpoint, periodShortname: string): number => {
         let total = 0;
         for (let i = checkpoint.fromNodeIndex; i < checkpoint.toNodeIndex; i++) {
             total += getTimeForCell(i, periodShortname);
-        }
-        return total;
-    };
-
-    const getCheckpointAverageTotal = (checkpoint: ResolvedCheckpoint): number => {
-        let total = 0;
-        for (let i = checkpoint.fromNodeIndex; i < checkpoint.toNodeIndex; i++) {
-            total += segments[i].travelTimeSeconds;
         }
         return total;
     };
@@ -362,48 +331,6 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         }));
     };
 
-    const distributeCheckpointForService = (
-        data: Record<string, Record<string, number[]>>,
-        serviceId: string,
-        checkpoint: ResolvedCheckpoint,
-        osrmTimes: number[] | null,
-        targetTimesByPeriod: Record<string, number>
-    ) => {
-        if (!data[serviceId]) {
-            data[serviceId] = {};
-        }
-
-        for (const [periodShortname, targetTotalSeconds] of Object.entries(targetTimesByPeriod)) {
-            if (!data[serviceId][periodShortname]) {
-                data[serviceId][periodShortname] = segments.map((_, i) => getDefaultTime(i, periodShortname));
-            }
-
-            // Skip periods where the target matches the current total
-            const currentTotal = getCheckpointCurrentTotal(checkpoint, periodShortname);
-            if (currentTotal === targetTotalSeconds) continue;
-
-            let scaledSegmentTimesSeconds: number[] | null = null;
-            if (osrmTimes) {
-                scaledSegmentTimesSeconds = pathGeographyUtils.scaleTimesToTarget(osrmTimes, targetTotalSeconds);
-            }
-
-            if (!scaledSegmentTimesSeconds) {
-                // Fallback: distribute evenly if OSRM fails
-                const segmentCount = checkpoint.toNodeIndex - checkpoint.fromNodeIndex;
-                const timePerSegmentSeconds = Math.floor(targetTotalSeconds / segmentCount);
-                const remainderSeconds = targetTotalSeconds - timePerSegmentSeconds * segmentCount;
-                scaledSegmentTimesSeconds = Array.from(
-                    { length: segmentCount },
-                    (_, i) => timePerSegmentSeconds + (i < remainderSeconds ? 1 : 0)
-                );
-            }
-
-            for (let i = 0; i < scaledSegmentTimesSeconds.length; i++) {
-                data[serviceId][periodShortname][checkpoint.fromNodeIndex + i] = scaledSegmentTimesSeconds[i];
-            }
-        }
-    };
-
     const handleDistribute = async (checkpoint: ResolvedCheckpoint) => {
         const key = getCheckpointTargetKey(checkpoint);
         const targetTimesByPeriod = checkpointTargets[key];
@@ -415,35 +342,46 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
             checkpoint.toNodeIndex
         );
 
+        if (!selectedGroup) return;
         setLocalData((previousLocalData) => {
             const updatedLocalData = _cloneDeep(previousLocalData);
-            distributeCheckpointForService(
-                updatedLocalData,
-                selectedServiceId,
+            distributeCheckpointForService({
+                data: updatedLocalData,
+                group: selectedGroup,
                 checkpoint,
                 osrmTimes,
-                targetTimesByPeriod
-            );
+                targetTimesByPeriod,
+                baseSegments: segments
+            });
             return updatedLocalData;
         });
     };
 
-    const addCheckpoint = () => {
-        if (newCheckpointFrom >= newCheckpointTo) return;
+    const addCheckpoint = (fromNodeIndex: number, toNodeIndex: number) => {
+        if (fromNodeIndex >= toNodeIndex) return;
         const newResolved: ResolvedCheckpoint = {
-            fromNodeId: nodeIds[newCheckpointFrom],
-            toNodeId: nodeIds[newCheckpointTo],
-            fromNodeIndex: newCheckpointFrom,
-            toNodeIndex: newCheckpointTo
+            fromNodeId: nodeIds[fromNodeIndex],
+            toNodeId: nodeIds[toNodeIndex],
+            fromNodeIndex,
+            toNodeIndex
         };
         const overlaps = resolvedCheckpoints.some((checkpoint) => checkpointsOverlap(checkpoint, newResolved));
         if (overlaps) return;
         const newCheckpoint: Checkpoint = {
-            fromNodeId: nodeIds[newCheckpointFrom],
-            toNodeId: nodeIds[newCheckpointTo]
+            fromNodeId: nodeIds[fromNodeIndex],
+            toNodeId: nodeIds[toNodeIndex]
         };
-        setCheckpoints((prev) => [...prev, newCheckpoint]);
-        setActiveCheckpointIndex(checkpoints.length);
+        // Insert the new checkpoint in chronological order along the path so the array
+        // stays sorted by fromNodeIndex and the navigation arrows move through
+        // checkpoints in the same order the user sees them on the line overview.
+        const nextCheckpointIndex = resolvedCheckpoints.findIndex((cp) => cp.fromNodeIndex > fromNodeIndex);
+        const insertIndex = nextCheckpointIndex === -1 ? resolvedCheckpoints.length : nextCheckpointIndex;
+        setCheckpoints((prev) =>
+            insertIndex >= prev.length
+                ? [...prev, newCheckpoint]
+                : [...prev.slice(0, insertIndex), newCheckpoint, ...prev.slice(insertIndex)]
+        );
+        setActiveCheckpointIndex(insertIndex);
         setEditMode('checkpoint');
     };
 
@@ -469,63 +407,27 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     const handleSave = async () => {
         setSaveError(null);
         try {
-            // Auto-distribute undistributed checkpoint targets for all groups.
-            // OSRM times are calculated once per checkpoint and reused across groups.
             const updatedLocalData = _cloneDeep(localData);
-            for (const checkpoint of resolvedCheckpoints) {
-                // Check if any group has targets that differ from current totals before calling OSRM
-                const hasChangedTargets = serviceGroups.some((group) => {
-                    const targetKey = `${getCheckpointKey(checkpoint)}_${group.serviceIds[0]}`;
-                    const targets = checkpointTargets[targetKey];
-                    if (!targets) return false;
-                    return Object.entries(targets).some(
-                        ([periodShortname, targetSeconds]) =>
-                            getCheckpointCurrentTotal(checkpoint, periodShortname) !== targetSeconds
-                    );
-                });
-                if (!hasChangedTargets) continue;
-
-                const osrmTimes = await pathGeographyUtils.calculateSegmentTimesForCheckpoint(
-                    path,
-                    checkpoint.fromNodeIndex,
-                    checkpoint.toNodeIndex
-                );
-
-                for (const group of serviceGroups) {
-                    const representativeServiceId = group.serviceIds[0];
-                    const targetKey = `${getCheckpointKey(checkpoint)}_${representativeServiceId}`;
-                    const targetTimesByPeriod = checkpointTargets[targetKey];
-                    if (!targetTimesByPeriod) continue;
-                    distributeCheckpointForService(
-                        updatedLocalData,
-                        representativeServiceId,
-                        checkpoint,
-                        osrmTimes,
-                        targetTimesByPeriod
-                    );
-                }
-            }
+            await applyPendingCheckpointDistributions({
+                dataToUpdate: updatedLocalData,
+                path,
+                resolvedCheckpoints,
+                serviceGroups,
+                checkpointTargets
+            });
             setLocalData(updatedLocalData);
 
             const expandedData = expandGroupedDataToServices(updatedLocalData, serviceGroups);
-            const baseSegments = path.attributes.data.segments || [];
-            const baseDwell = localDwellTimes;
+            const segmentsByServiceAndPeriod = buildSegmentsByServiceAndPeriod({
+                expandedData,
+                path,
+                dwellTimes: localDwellTimes
+            });
 
-            // Convert local flat times back to segmentsByServiceAndPeriod format
-            const distTotal = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
-            const result: Record<string, Record<string, PeriodSegmentData>> = {};
-            for (const [serviceId, periodEntries] of Object.entries(expandedData)) {
-                for (const [periodShortname, times] of Object.entries(periodEntries)) {
-                    if (!times || times.length === 0) continue;
-                    if (!result[serviceId]) result[serviceId] = {};
-                    const segments = times.map((t, i) => ({
-                        travelTimeSeconds: t,
-                        distanceMeters: baseSegments[i]?.distanceMeters ?? null
-                    }));
-                    result[serviceId][periodShortname] = buildPeriodSegmentData(segments, baseDwell, distTotal);
-                }
-            }
-            path.set('data.segmentsByServiceAndPeriod', Object.keys(result).length > 0 ? result : undefined);
+            path.set(
+                'data.segmentsByServiceAndPeriod',
+                Object.keys(segmentsByServiceAndPeriod).length > 0 ? segmentsByServiceAndPeriod : undefined
+            );
             path.set('data.segmentTimesCheckpoints', checkpoints.length > 0 ? checkpoints : undefined);
             path.set('data.dwellTimeSeconds', localDwellTimes);
             path.updateBaseFromServicePeriodData();
@@ -594,15 +496,6 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         return getDepartureTimeAtSegment(segmentIndex, periodShortname) + getTimeForCell(segmentIndex, periodShortname);
     };
 
-    /** Average arrival time at the end of a segment (using base segment times) */
-    const getAverageArrivalTimeAfterSegment = (segmentIndex: number): number => {
-        let cumulativeTime = 0;
-        for (let i = 0; i <= segmentIndex; i++) {
-            cumulativeTime += (localDwellTimes[i] || 0) + segments[i].travelTimeSeconds;
-        }
-        return cumulativeTime;
-    };
-
     // Navigation — wrapped in startTransition so the UI stays responsive during re-renders
     const goToPrevSegment = () => React.startTransition(() => setActiveSegmentIndex((prev) => Math.max(0, prev - 1)));
     const goToNextSegment = () =>
@@ -631,65 +524,71 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     const activeCheckpoint = resolvedCheckpoints[activeCheckpointIndex];
 
     return {
-        // Derived data
-        segments,
-        segmentCount,
-        periods,
-        serviceChoices,
-        nodeLabels,
-        nodeChoices,
-
-        // State
-        selectedGroupIndex,
-        setSelectedGroupIndex,
-        noGrouping,
-        setNoGrouping,
-        activeSegmentIndex,
-        editMode,
-        checkpoints: resolvedCheckpoints,
-        activeCheckpointIndex,
-        activeCheckpoint,
-        newCheckpointFrom,
-        newCheckpointTo,
-        newCheckpointMaxTo,
-        isNodeInsideCheckpoint,
-        setNewCheckpointFrom,
-        setNewCheckpointTo,
-
-        // Segment handlers
-        getTimeForCell,
-        handleCellChange,
-        isSegmentInAnyCheckpoint,
-        getAverageTotal,
-        getPeriodTotal,
-        getDwellTimeForSegment,
-        setDwellTimeForSegment,
-        getDepartureTimeAtSegment,
-        getArrivalTimeAfterSegment,
-        getAverageArrivalTimeAfterSegment,
-
-        // Checkpoint handlers
-        getCheckpointCurrentTotal,
-        getCheckpointAverageTotal,
-        getCheckpointTotalDwellTime,
-        getCheckpointTarget,
-        setCheckpointTarget,
-        handleDistribute,
-        addCheckpoint,
-        removeCheckpoint,
-
-        // Navigation
-        goToPrevSegment,
-        goToNextSegment,
-        goToPrevCheckpoint,
-        goToNextCheckpoint,
-        handleSegmentClick,
-        handleCheckpointClick,
-
-        // Save
-        handleSave,
-        hasLengthMismatch,
-        saveError
+        // Derived display data from the path: references the sub-components use
+        // to render the labels, period list, and segment count.
+        pathDisplay: {
+            segmentCount,
+            periods,
+            nodeLabels,
+            nodeChoices
+        },
+        // Service/group selection UI. The selected group drives which period set is edited
+        // and which service's data gets written back to the path on save.
+        serviceSelection: {
+            serviceChoices,
+            selectedGroupIndex,
+            setSelectedGroupIndex,
+            noGrouping,
+            setNoGrouping
+        },
+        // Navigation between segments and checkpoints inside the modal. Mutates
+        // activeSegmentIndex / activeCheckpointIndex / editMode, which are all shared
+        // across multiple sub-components (overview, carousel, tables) so they must live
+        // in the hook rather than in any individual sub-component.
+        navigation: {
+            activeSegmentIndex,
+            activeCheckpointIndex,
+            activeCheckpoint,
+            editMode,
+            goToPrevSegment,
+            goToNextSegment,
+            goToPrevCheckpoint,
+            goToNextCheckpoint,
+            handleSegmentClick,
+            handleCheckpointClick
+        },
+        // Per-segment editing and read helpers. All of these ultimately read or write
+        // localData and must stay here because localData is shared with the checkpoint
+        // distribution flow and with handleSave.
+        segmentEdit: {
+            getTimeForCell,
+            handleCellChange,
+            isSegmentInAnyCheckpoint,
+            getDwellTimeForSegment,
+            setDwellTimeForSegment,
+            getDepartureTimeAtSegment,
+            getArrivalTimeAfterSegment
+        },
+        // Checkpoint editing and the calculated totals per period. `checkpoints` is the
+        // resolved (index-based) form used for all checkpoint-based calculations.
+        checkpointEdit: {
+            checkpoints: resolvedCheckpoints,
+            addCheckpoint,
+            removeCheckpoint,
+            getCheckpointCurrentTotal,
+            getCheckpointTotalDwellTime,
+            getCheckpointTarget,
+            setCheckpointTarget,
+            handleDistribute
+        },
+        // Save flow and related error/validity state. handleSave is the reason this hook
+        // is a single big hook: it must see localData, checkpoints, localDwellTimes, and
+        // serviceGroups all at once to build the payload written to the path.
+        save: {
+            handleSave,
+            hasLengthMismatch,
+            saveError
+        }
     };
 };
 
