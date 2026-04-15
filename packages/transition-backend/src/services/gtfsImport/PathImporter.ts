@@ -242,14 +242,14 @@ const generatePathFromShape = (
 
     const coordinatesWithDistances = importData.shapeById[shapeGtfsId];
     // TODO Those 2 parameters were added to the call:  this.get('defaultLayoverRatioOverTotalTravelTime', null), this.get('defaultMinLayoverTimeSeconds', null));
-    const warnings = generateGeographyAndSegmentsFromGtfs(
-        newPath,
-        coordinatesWithDistances,
+    const warnings = generateGeographyAndSegmentsFromGtfs({
+        path: newPath,
+        shapeCoordinatesWithDistances: coordinatesWithDistances,
         nodeIds,
         allTripsStopTimes,
         shapeGtfsId,
-        importData.stopCoordinatesByStopId
-    );
+        stopCoordinatesByStopId: importData.stopCoordinatesByStopId
+    });
     newPath.convertAllCoordinatesToWaypoints(newPath.attributes.data.routingEngine !== 'engine'); // set all coordinates to waypoints if routingEngine is not engine
 
     return { newPath, warnings };
@@ -269,12 +269,12 @@ const generatePathWithoutShape = (
     const newPath = line.newPath({ direction, name: pathName });
 
     // TODO Those 2 parameters were added to the call: this.get('defaultLayoverRatioOverTotalTravelTime', null), this.get('defaultMinLayoverTimeSeconds', null)). See if we can/need to configure them
-    const warnings = generateGeographyAndSegmentsFromStopTimes(
-        newPath,
+    const warnings = generateGeographyAndSegmentsFromStopTimes({
+        path: newPath,
         nodeIds,
         allTripsStopTimes,
-        importData.stopCoordinatesByStopId
-    );
+        stopCoordinatesByStopId: importData.stopCoordinatesByStopId
+    });
 
     return { newPath, warnings };
 };
