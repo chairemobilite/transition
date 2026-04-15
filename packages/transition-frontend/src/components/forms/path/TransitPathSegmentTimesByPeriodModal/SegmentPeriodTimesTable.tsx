@@ -18,7 +18,6 @@ type Period = {
 type SegmentPeriodTimesTableProps = {
     isFirstSegment: boolean;
     periods: Period[];
-    language: string;
     locked: boolean;
     lockedMessage?: string;
     getTimeForPeriod: (periodShortname: string) => number;
@@ -33,7 +32,6 @@ type SegmentPeriodTimesTableProps = {
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
     isFirstSegment,
     periods,
-    language,
     locked,
     lockedMessage,
     getTimeForPeriod,
@@ -44,7 +42,7 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
     getArrivalTime,
     onTimeChange
 }) => {
-    const { t } = useTranslation('transit');
+    const { t, i18n } = useTranslation('transit');
     const stopTimeSeconds = getStopTime();
     const columnWidth = isFirstSegment ? '30%' : '18%';
 
@@ -89,7 +87,7 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                 <tbody>
                     {periods.map((period) => (
                         <tr key={period.shortname} className="period-table-row" style={{ opacity: locked ? 0.5 : 1 }}>
-                            <td className="period-table-td">{period.name[language] || period.shortname}</td>
+                            <td className="period-table-td">{period.name[i18n.language] || period.shortname}</td>
                             {!isFirstSegment && (
                                 <td className="period-table-td center">
                                     {formatSeconds(getArrivalTimePrevSegment(period.shortname))}

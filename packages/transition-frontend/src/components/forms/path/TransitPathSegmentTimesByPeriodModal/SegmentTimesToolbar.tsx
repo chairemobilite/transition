@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
+import { ResolvedCheckpoint } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 
 type NodeChoice = {
     value: string;
@@ -23,14 +24,9 @@ type ServiceChoice = {
 
 type SegmentTimesToolbarProps = {
     nodeChoices: NodeChoice[];
-    newCheckpointFrom: number;
-    newCheckpointTo: number;
-    newCheckpointMaxTo: number;
-    isNodeInsideCheckpoint: (idx: number) => boolean;
+    resolvedCheckpoints: ResolvedCheckpoint[];
     segmentCount: number;
-    onNewCheckpointFromChange: (value: number) => void;
-    onNewCheckpointToChange: (value: number) => void;
-    onAddCheckpoint: () => void;
+    onAddCheckpoint: (from: number, to: number) => void;
     selectedServiceId: string;
     serviceChoices: ServiceChoice[];
     onServiceChange: (value: string) => void;
@@ -40,13 +36,8 @@ type SegmentTimesToolbarProps = {
 
 const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = ({
     nodeChoices,
-    newCheckpointFrom,
-    newCheckpointTo,
-    newCheckpointMaxTo,
-    isNodeInsideCheckpoint,
+    resolvedCheckpoints,
     segmentCount,
-    onNewCheckpointFromChange,
-    onNewCheckpointToChange,
     onAddCheckpoint,
     selectedServiceId,
     serviceChoices,
@@ -55,6 +46,29 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
     onNoGroupingChange
 }) => {
     const { t } = useTranslation('transit');
+
+    // Local UI state for the "add checkpoint" mini-form. Kept inside this component
+    // so the parent hook doesn't have to carry purely-local checkpoint-creation state.
+    const [newCheckpointFrom, setNewCheckpointFrom] = React.useState<number>(0);
+    const [newCheckpointTo, setNewCheckpointTo] = React.useState<number>(Math.min(2, segmentCount));
+
+    const sortedCheckpoints = React.useMemo(
+        () => [...resolvedCheckpoints].sort((a, b) => a.fromNodeIndex - b.fromNodeIndex),
+        [resolvedCheckpoints]
+    );
+    const nextCheckpointAfterFrom = sortedCheckpoints.find((cp) => cp.fromNodeIndex > newCheckpointFrom);
+    const newCheckpointMaxTo = nextCheckpointAfterFrom ? nextCheckpointAfterFrom.fromNodeIndex : segmentCount;
+    const isNodeInsideCheckpoint = React.useCallback(
+        (idx: number) => sortedCheckpoints.some((cp) => cp.fromNodeIndex < idx && idx < cp.toNodeIndex),
+        [sortedCheckpoints]
+    );
+
+    // Clamp "to" when maxTo shrinks (e.g. "from" moved before an existing checkpoint)
+    React.useEffect(() => {
+        if (newCheckpointTo > newCheckpointMaxTo) {
+            setNewCheckpointTo(newCheckpointMaxTo);
+        }
+    }, [newCheckpointMaxTo, newCheckpointTo]);
 
     return (
         <div className="toolbar">
@@ -66,8 +80,8 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                     value={String(newCheckpointFrom)}
                     onChange={(e) => {
                         const v = parseInt(e.target.value, 10);
-                        onNewCheckpointFromChange(v);
-                        if (v >= newCheckpointTo) onNewCheckpointToChange(Math.min(v + 1, segmentCount));
+                        setNewCheckpointFrom(v);
+                        if (v >= newCheckpointTo) setNewCheckpointTo(Math.min(v + 1, segmentCount));
                     }}
                     className="toolbar-select"
                 >
@@ -84,7 +98,7 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                 <select
                     data-testid="new-cp-to"
                     value={String(newCheckpointTo)}
-                    onChange={(e) => onNewCheckpointToChange(parseInt(e.target.value, 10))}
+                    onChange={(e) => setNewCheckpointTo(parseInt(e.target.value, 10))}
                     className="toolbar-select"
                 >
                     {nodeChoices
@@ -95,7 +109,11 @@ const SegmentTimesToolbar: React.FunctionComponent<SegmentTimesToolbarProps> = (
                             </option>
                         ))}
                 </select>
-                <Button color="blue" label={`+ ${t('transit:transitPath:AddCheckpoint')}`} onClick={onAddCheckpoint} />
+                <Button
+                    color="blue"
+                    label={`+ ${t('transit:transitPath:AddCheckpoint')}`}
+                    onClick={() => onAddCheckpoint(newCheckpointFrom, newCheckpointTo)}
+                />
             </span>
 
             <span className="toolbar-spacer" />

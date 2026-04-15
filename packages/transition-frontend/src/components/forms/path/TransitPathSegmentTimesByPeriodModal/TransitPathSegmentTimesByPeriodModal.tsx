@@ -29,53 +29,47 @@ type TransitPathSegmentTimesByPeriodModalProps = {
 const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathSegmentTimesByPeriodModalProps> = (
     props
 ) => {
-    const { t, i18n } = useTranslation('transit');
+    const { t } = useTranslation('transit');
 
+    const { pathDisplay, serviceSelection, navigation, segmentEdit, checkpointEdit, save } = useSegmentTimesByPeriod({
+        path: props.path,
+        onClose: props.onClose
+    });
+
+    const { segmentCount, periods, nodeLabels, nodeChoices } = pathDisplay;
+    const { serviceChoices, selectedGroupIndex, setSelectedGroupIndex, noGrouping, setNoGrouping } = serviceSelection;
     const {
-        segmentCount,
-        periods,
-        serviceChoices,
-        nodeLabels,
-        nodeChoices,
-        selectedGroupIndex,
-        setSelectedGroupIndex,
-        noGrouping,
-        setNoGrouping,
         activeSegmentIndex,
-        editMode,
-        checkpoints,
         activeCheckpointIndex,
         activeCheckpoint,
-        newCheckpointFrom,
-        newCheckpointTo,
-        newCheckpointMaxTo,
-        isNodeInsideCheckpoint,
-        setNewCheckpointFrom,
-        setNewCheckpointTo,
+        editMode,
+        goToPrevSegment,
+        goToNextSegment,
+        goToPrevCheckpoint,
+        goToNextCheckpoint,
+        handleSegmentClick,
+        handleCheckpointClick
+    } = navigation;
+    const {
         getTimeForCell,
         handleCellChange,
         isSegmentInAnyCheckpoint,
         getDwellTimeForSegment,
         setDwellTimeForSegment,
         getDepartureTimeAtSegment,
-        getArrivalTimeAfterSegment,
+        getArrivalTimeAfterSegment
+    } = segmentEdit;
+    const {
+        checkpoints,
+        addCheckpoint,
+        removeCheckpoint,
         getCheckpointCurrentTotal,
         getCheckpointTotalDwellTime,
         getCheckpointTarget,
         setCheckpointTarget,
-        handleDistribute,
-        addCheckpoint,
-        removeCheckpoint,
-        goToPrevSegment,
-        goToNextSegment,
-        goToPrevCheckpoint,
-        goToNextCheckpoint,
-        handleSegmentClick,
-        handleCheckpointClick,
-        handleSave,
-        hasLengthMismatch,
-        saveError
-    } = useSegmentTimesByPeriod({ path: props.path, onClose: props.onClose });
+        handleDistribute
+    } = checkpointEdit;
+    const { handleSave, hasLengthMismatch, saveError } = save;
 
     if (segmentCount === 0) {
         return (
@@ -117,13 +111,8 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
             <div className="scrollable-body">
                 <SegmentTimesToolbar
                     nodeChoices={nodeChoices}
-                    newCheckpointFrom={newCheckpointFrom}
-                    newCheckpointTo={newCheckpointTo}
-                    newCheckpointMaxTo={newCheckpointMaxTo}
-                    isNodeInsideCheckpoint={isNodeInsideCheckpoint}
+                    resolvedCheckpoints={checkpoints}
                     segmentCount={segmentCount}
-                    onNewCheckpointFromChange={setNewCheckpointFrom}
-                    onNewCheckpointToChange={setNewCheckpointTo}
                     onAddCheckpoint={addCheckpoint}
                     selectedServiceId={selectedGroupIndex}
                     serviceChoices={serviceChoices}
@@ -179,7 +168,6 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             <SegmentPeriodTimesTable
                                 isFirstSegment={activeSegmentIndex === 0}
                                 periods={periods}
-                                language={i18n.language}
                                 locked={isSegmentInAnyCheckpoint(activeSegmentIndex)}
                                 lockedMessage={t('transit:transitPath:SegmentLockedByCheckpoint')}
                                 getTimeForPeriod={(periodShortname) =>
@@ -258,7 +246,6 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                             <CheckpointPeriodTimesTable
                                 totalDwellTimeSeconds={getCheckpointTotalDwellTime(activeCheckpoint)}
                                 periods={periods}
-                                language={i18n.language}
                                 getCurrentTotal={(periodShortname) =>
                                     getCheckpointCurrentTotal(activeCheckpoint, periodShortname)
                                 }

@@ -17,7 +17,6 @@ type Period = {
 type CheckpointPeriodTimesTableProps = {
     totalDwellTimeSeconds: number;
     periods: Period[];
-    language: string;
     getCurrentTotal: (periodShortname: string) => number;
     getTarget: (periodShortname: string) => number;
     onTargetChange: (periodShortname: string, newSeconds: number) => void;
@@ -26,12 +25,11 @@ type CheckpointPeriodTimesTableProps = {
 const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesTableProps> = ({
     totalDwellTimeSeconds,
     periods,
-    language,
     getCurrentTotal,
     getTarget,
     onTargetChange
 }) => {
-    const { t } = useTranslation('transit');
+    const { t, i18n } = useTranslation('transit');
 
     return (
         <div className="period-table-wrapper">
@@ -60,7 +58,7 @@ const CheckpointPeriodTimesTable: React.FunctionComponent<CheckpointPeriodTimesT
                         const totalWithDwell = target + totalDwellTimeSeconds;
                         return (
                             <tr key={period.shortname} className="period-table-row">
-                                <td className="period-table-td">{period.name[language] || period.shortname}</td>
+                                <td className="period-table-td">{period.name[i18n.language] || period.shortname}</td>
                                 <td className="period-table-td center">
                                     <strong>{formatSeconds(current)}</strong>
                                 </td>
