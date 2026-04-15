@@ -12,7 +12,8 @@ import pQueue from 'p-queue';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { hoursToSeconds, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsInternalData, StopTime, Frequencies, Period, ProgressEmitFn } from './GtfsImportTypes';
+import { GtfsInternalData, StopTime, Frequencies, ProgressEmitFn } from './GtfsImportTypes';
+import { TransitSchedulePeriod, findPeriodShortname } from 'transition-common/lib/services/schedules/Period';
 import Schedule, { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
 import Line from 'transition-common/lib/services/line/Line';
 import linesDbQueries from '../../models/db/transitLines.db.queries';
@@ -173,23 +174,6 @@ const generateAndImportSchedules = async (
     return { status: 'success', warnings: warnings };
 };
 
-const findPeriodShortname = (periods: Period[], timeSecondsSinceMidnight: number) => {
-    for (let i = 0, count = periods.length; i < count; i++) {
-        const period = periods[i];
-        if (
-            timeSecondsSinceMidnight >= period.startAtHour * 3600 &&
-            timeSecondsSinceMidnight < period.endAtHour * 3600
-        ) {
-            return period.shortname;
-        }
-    }
-    if (timeSecondsSinceMidnight >= periods[periods.length - 1].endAtHour) {
-        // assign to last period if outside range
-        return periods[periods.length - 1].shortname;
-    }
-    return null;
-};
-
 const isTripValid = (stopTimes: StopTime[]) => {
     // verify that all stop times for this trip are sequential
     // (ignore trips with erroneous or reversed times)
@@ -225,7 +209,7 @@ const createSchedule = (
     line: Line,
     serviceId: string,
     importData: GtfsInternalData,
-    periods: Period[],
+    periods: TransitSchedulePeriod[],
     collectionManager: CollectionManager
 ) => {
     const schedule = new Schedule(
