@@ -132,11 +132,23 @@ const saveLineObjectsToCache = async (lines: LineCollection, cachePathDirectory?
     // Copy the array to chunk it
     const linesToSave = [...lineObjects];
     while (linesToSave.length > 0) {
+        const memoryBefore = process.memoryUsage();
+        console.log('saving a chunk of lines: before');
+        console.log(`- RSS: ${Math.round(memoryBefore.rss / 1024 / 1024)} MB`); // Convert bytes to MB
+        console.log(`- Heap Total: ${Math.round(memoryBefore.heapTotal / 1024 / 1024)} MB`);
+        console.log(`- Heap Used: ${Math.round(memoryBefore.heapUsed / 1024 / 1024)} MB`);
+        console.log(`- External: ${Math.round(memoryBefore.external / 1024 / 1024)} MB\n`);
         // Save line objects with their schedules to cache in chunks
         const chunk = linesToSave.splice(0, chunkSize);
         // Load lines with schedules
         await linesDbQueries.collectionWithSchedules(chunk);
         await lineObjectsToCache(chunk, cachePathDirectory);
+        const memoryAfter = process.memoryUsage();
+        console.log('saving a chunk of lines: after');
+        console.log(`- RSS: ${Math.round(memoryAfter.rss / 1024 / 1024)} MB`); // Convert bytes to MB
+        console.log(`- Heap Total: ${Math.round(memoryAfter.heapTotal / 1024 / 1024)} MB`);
+        console.log(`- Heap Used: ${Math.round(memoryAfter.heapUsed / 1024 / 1024)} MB`);
+        console.log(`- External: ${Math.round(memoryAfter.external / 1024 / 1024)} MB\n`);
     }
     console.log(`saved ${lineObjects.length} individual line(s) with schedules to cache`);
 };
