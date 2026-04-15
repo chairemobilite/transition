@@ -16,7 +16,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export interface GtfsImportNodesComponentProps extends WithTranslation {
     id: string;
-    updateSelectedValue: (path: keyof GtfsImportData, value: string | boolean | number | undefined) => void;
+    updateSelectedValue: <T extends keyof GtfsImportData>(path: T, value: GtfsImportData[T]) => void;
     gtfsImportData: GtfsImportData;
 }
 
