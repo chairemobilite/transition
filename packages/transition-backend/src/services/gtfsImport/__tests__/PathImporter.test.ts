@@ -32,12 +32,12 @@ const setPathGeography = (path: Path, nodeIds: string[], gtfsShapeId: string | u
     };
     path.setData('gtfs', { shape_id: gtfsShapeId });
 };
-mockedPathGenerationFromGTFS.mockImplementation((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
-    setPathGeography(path, nodeIds, gtfsShapeId);
+mockedPathGenerationFromGTFS.mockImplementation((params) => {
+    setPathGeography(params.path, params.nodeIds, params.shapeGtfsId);
     return [];
 });
-mockedPathGenerationFromStopTimes.mockImplementation((path, nodeIds, _allStopTimes, _stopCoords) => {
-    setPathGeography(path, nodeIds, undefined);
+mockedPathGenerationFromStopTimes.mockImplementation((params) => {
+    setPathGeography(params.path, params.nodeIds, undefined);
     return [];
 });
 
@@ -112,15 +112,15 @@ describe('One line, 2 identical simple trips', () => {
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         // verify that the generator receives stop times from both trips
         expect(mockedPathGenerationFromGTFS).toHaveBeenCalledTimes(1);
-        const callArgs = mockedPathGenerationFromGTFS.mock.calls[0];
-        expect(callArgs[2]).toEqual([nodeId1, nodeId2, nodeId3, nodeId4]);
-        expect(callArgs[3]).toEqual([baseTripAndStopTimes.stopTimes, offsetStopTimesForTrip2]);
+        const callArgs = mockedPathGenerationFromGTFS.mock.calls[0][0];
+        expect(callArgs.nodeIds).toEqual([nodeId1, nodeId2, nodeId3, nodeId4]);
+        expect(callArgs.allTripsStopTimes).toEqual([baseTripAndStopTimes.stopTimes, offsetStopTimesForTrip2]);
     });
 
     test('Generate path with warnings', async () => {
         const warnings = ['warning1', 'warning2'];
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
-            setPathGeography(path, nodeIds, gtfsShapeId);
+        mockedPathGenerationFromGTFS.mockImplementationOnce((params) => {
+            setPathGeography(params.path, params.nodeIds, params.shapeGtfsId);
             return warnings;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -213,9 +213,9 @@ describe('One line, 2 different trip IDs with same shape', () => {
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         // verify that the generator receives stop times from both trips
         expect(mockedPathGenerationFromGTFS).toHaveBeenCalledTimes(1);
-        const callArgs = mockedPathGenerationFromGTFS.mock.calls[0];
-        expect(callArgs[2]).toEqual([nodeId1, nodeId2, nodeId3, nodeId4]);
-        expect(callArgs[3]).toEqual([baseTripAndStopTimes.stopTimes, trip2StopTimes]);
+        const callArgs = mockedPathGenerationFromGTFS.mock.calls[0][0];
+        expect(callArgs.nodeIds).toEqual([nodeId1, nodeId2, nodeId3, nodeId4]);
+        expect(callArgs.allTripsStopTimes).toEqual([baseTripAndStopTimes.stopTimes, trip2StopTimes]);
     });
 
 });
@@ -296,8 +296,8 @@ describe('One line, multiple trips resulting in 2 paths', () => {
 
     test('Generate path with warnings', async () => {
         const warnings = ['warning1', 'warning2'];
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
-            setPathGeography(path, nodeIds, gtfsShapeId);
+        mockedPathGenerationFromGTFS.mockImplementationOnce((params) => {
+            setPathGeography(params.path, params.nodeIds, params.shapeGtfsId);
             return warnings;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -330,7 +330,7 @@ describe('One line, multiple trips resulting in 2 paths', () => {
 
     test('Throw an error during generation', async () => {
         const error = 'error';
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce(() => {
             throw error;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -447,12 +447,12 @@ describe('Multiple lines, with 2 paths each', () => {
     test('Generate path with warnings', async () => {
         const warningsLine1 = ['warning1', 'warning2'];
         const warningsLine2 = ['warning3'];
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
-            setPathGeography(path, nodeIds, gtfsShapeId);
+        mockedPathGenerationFromGTFS.mockImplementationOnce((params) => {
+            setPathGeography(params.path, params.nodeIds, params.shapeGtfsId);
             return warningsLine1;
         });
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path, _coords, nodeIds, _allStopTimes, gtfsShapeId) => {
-            setPathGeography(path, nodeIds, gtfsShapeId);
+        mockedPathGenerationFromGTFS.mockImplementationOnce((params) => {
+            setPathGeography(params.path, params.nodeIds, params.shapeGtfsId);
             return warningsLine2;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -466,7 +466,7 @@ describe('Multiple lines, with 2 paths each', () => {
 
     test('Throw an error during generation', async () => {
         const error = 'error';
-        mockedPathGenerationFromGTFS.mockImplementationOnce((path) => {
+        mockedPathGenerationFromGTFS.mockImplementationOnce(() => {
             throw error;
         });
         const result = await PathImporter.generateAndImportPaths(tripsByRouteId, importData, collectionManager) as any;
@@ -530,13 +530,13 @@ describe('One line, 3 trips with no shape', () => {
         expect(pathsDbQueries.createMultiple).toHaveBeenCalledTimes(1);
         expect(mockedPathGenerationFromStopTimes).toHaveBeenCalledTimes(2);
         // forward path should receive stop times from both trips
-        const forwardCallArgs = mockedPathGenerationFromStopTimes.mock.calls[0];
-        expect(forwardCallArgs[1]).toEqual([nodeId1, nodeId2, nodeId3, nodeId4]);
-        expect(forwardCallArgs[2]).toEqual([baseTripAndStopTimes.stopTimes, offsetStopTimesForTrip2]);
+        const forwardCallArgs = mockedPathGenerationFromStopTimes.mock.calls[0][0];
+        expect(forwardCallArgs.nodeIds).toEqual([nodeId1, nodeId2, nodeId3, nodeId4]);
+        expect(forwardCallArgs.allTripsStopTimes).toEqual([baseTripAndStopTimes.stopTimes, offsetStopTimesForTrip2]);
         // return path should receive stop times from the single return trip
-        const returnCallArgs = mockedPathGenerationFromStopTimes.mock.calls[1];
-        expect(returnCallArgs[1]).toEqual([nodeId4, nodeId3, nodeId2, nodeId1]);
-        expect(returnCallArgs[2]).toEqual([tripsByRouteId[routeId][2].stopTimes]);
+        const returnCallArgs = mockedPathGenerationFromStopTimes.mock.calls[1][0];
+        expect(returnCallArgs.nodeIds).toEqual([nodeId4, nodeId3, nodeId2, nodeId1]);
+        expect(returnCallArgs.allTripsStopTimes).toEqual([tripsByRouteId[routeId][2].stopTimes]);
     });
 
 });

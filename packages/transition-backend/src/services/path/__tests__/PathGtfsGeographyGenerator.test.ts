@@ -148,9 +148,9 @@ const createPath = (nodeCoordinates: { [nodeId: string]: [number, number] } = no
 const simpleNodeIds = ['node1', 'node2', 'node3', 'node4'];
 
 const runSimpleGtfs = (path: Path, nodeIds = simpleNodeIds) =>
-    generateGeographyAndSegmentsFromGtfs(
-        path, simpleShapeCoordinates, nodeIds, [simpleStopTimes], 'shape1', simpleStopCoordinates
-    );
+    generateGeographyAndSegmentsFromGtfs({
+        path, shapeCoordinatesWithDistances: simpleShapeCoordinates, nodeIds, allTripsStopTimes: [simpleStopTimes], shapeGtfsId: 'shape1', stopCoordinatesByStopId: simpleStopCoordinates
+    });
 
 describe('generateGeographyAndSegmentsFromGtfs', () => {
     describe('with valid shape and stops near shape', () => {
@@ -192,17 +192,17 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
 
     test('should set geography to null for empty or undefined shape', () => {
         const path1 = createPath();
-        const errors1 = generateGeographyAndSegmentsFromGtfs(
-            path1, [], ['node1', 'node2'], [simpleStopTimes], 'emptyShape', simpleStopCoordinates
-        );
+        const errors1 = generateGeographyAndSegmentsFromGtfs({
+            path: path1, shapeCoordinatesWithDistances: [], nodeIds: ['node1', 'node2'], allTripsStopTimes: [simpleStopTimes], shapeGtfsId: 'emptyShape', stopCoordinatesByStopId: simpleStopCoordinates
+        });
         expect(errors1).toHaveLength(0);
         expect(path1.attributes.geography).toBeNull();
         expect(path1.attributes.data.gtfs).toEqual({ shape_id: 'emptyShape' });
 
         const path2 = createPath();
-        const errors2 = generateGeographyAndSegmentsFromGtfs(
-            path2, undefined as any, ['node1'], [simpleStopTimes], 'noShape', simpleStopCoordinates
-        );
+        const errors2 = generateGeographyAndSegmentsFromGtfs({
+            path: path2, shapeCoordinatesWithDistances: undefined as any, nodeIds: ['node1'], allTripsStopTimes: [simpleStopTimes], shapeGtfsId: 'noShape', stopCoordinatesByStopId: simpleStopCoordinates
+        });
         expect(errors2).toHaveLength(0);
         expect(path2.attributes.geography).toBeNull();
     });
@@ -217,9 +217,9 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
             stop4: simpleStopCoordinates.stop4
         };
         const path = createPath(nodeCoordinatesFromStops(stopCoordinatesWithFarStop));
-        const errors = generateGeographyAndSegmentsFromGtfs(
-            path, simpleShapeCoordinates, simpleNodeIds, [simpleStopTimes], 'shape1', stopCoordinatesWithFarStop
-        );
+        const errors = generateGeographyAndSegmentsFromGtfs({
+            path, shapeCoordinatesWithDistances: simpleShapeCoordinates, nodeIds: simpleNodeIds, allTripsStopTimes: [simpleStopTimes], shapeGtfsId: 'shape1', stopCoordinatesByStopId: stopCoordinatesWithFarStop
+        });
 
         expect(errors).toHaveLength(1);
         const error = errors[0] as TranslatableMessageWithParams;
@@ -240,9 +240,9 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
     test('should handle loop shape without errors', () => {
         const path = createPath(nodeCoordinatesFromStops(loopStopCoordinates));
         const nodeIds = ['node1', 'node2', 'node3', 'node4', 'node5', 'node6'];
-        const errors = generateGeographyAndSegmentsFromGtfs(
-            path, loopShapeCoordinates, nodeIds, [loopStopTimes], 'loopShape', loopStopCoordinates
-        );
+        const errors = generateGeographyAndSegmentsFromGtfs({
+            path, shapeCoordinatesWithDistances: loopShapeCoordinates, nodeIds, allTripsStopTimes: [loopStopTimes], shapeGtfsId: 'loopShape', stopCoordinatesByStopId: loopStopCoordinates
+        });
 
         expect(errors).toHaveLength(0);
         expect(path.attributes.geography).toBeDefined();
@@ -267,9 +267,9 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
         }));
 
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
-        const errors = generateGeographyAndSegmentsFromGtfs(
-            path, shapesWithDist, simpleNodeIds, [stopTimesWithDist], 'shape1', simpleStopCoordinates
-        );
+        const errors = generateGeographyAndSegmentsFromGtfs({
+            path, shapeCoordinatesWithDistances: shapesWithDist, nodeIds: simpleNodeIds, allTripsStopTimes: [stopTimesWithDist], shapeGtfsId: 'shape1', stopCoordinatesByStopId: simpleStopCoordinates
+        });
 
         expect(errors).toHaveLength(0);
         expect(path.attributes.segments).toHaveLength(3);
@@ -296,9 +296,9 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
                 ['stop1', 'stop2', 'stop3', 'stop4'],
                 [[36000, 36000], [36700, 36710], [37400, 37420], [38100, 38100]]
             );
-            generateGeographyAndSegmentsFromGtfs(
-                path, simpleShapeCoordinates, simpleNodeIds, [longStopTimes], 'shape1', simpleStopCoordinates
-            );
+            generateGeographyAndSegmentsFromGtfs({
+                path, shapeCoordinatesWithDistances: simpleShapeCoordinates, nodeIds: simpleNodeIds, allTripsStopTimes: [longStopTimes], shapeGtfsId: 'shape1', stopCoordinatesByStopId: simpleStopCoordinates
+            });
             // totalTravelTimeWithDwellTimes = (0+700) + (10+690) + (20+680) = 2100s
             // layover = ceil(max(0.1 * 2100, 180)) = 210
             expect(getData(path, 'layoverTimeSeconds')).toEqual(210);
@@ -306,18 +306,18 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
 
         test('should respect custom ratio and minimum parameters', () => {
             const path1 = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
-            generateGeographyAndSegmentsFromGtfs(
-                path1, simpleShapeCoordinates, simpleNodeIds,
-                [simpleStopTimes], 'shape1', simpleStopCoordinates, 0.5, 60
-            );
+            generateGeographyAndSegmentsFromGtfs({
+                path: path1, shapeCoordinatesWithDistances: simpleShapeCoordinates, nodeIds: simpleNodeIds,
+                allTripsStopTimes: [simpleStopTimes], shapeGtfsId: 'shape1', stopCoordinatesByStopId: simpleStopCoordinates, defaultLayoverRatioOverTotalTravelTime: 0.5, defaultMinLayoverTimeSeconds: 60
+            });
             // totalTravelTimeWithDwellTimes = 300s; layover = ceil(max(0.5 * 300, 60)) = 150
             expect(getData(path1, 'layoverTimeSeconds')).toEqual(150);
 
             const path2 = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
-            generateGeographyAndSegmentsFromGtfs(
-                path2, simpleShapeCoordinates, simpleNodeIds,
-                [simpleStopTimes], 'shape1', simpleStopCoordinates, 0.01, 120
-            );
+            generateGeographyAndSegmentsFromGtfs({
+                path: path2, shapeCoordinatesWithDistances: simpleShapeCoordinates, nodeIds: simpleNodeIds,
+                allTripsStopTimes: [simpleStopTimes], shapeGtfsId: 'shape1', stopCoordinatesByStopId: simpleStopCoordinates, defaultLayoverRatioOverTotalTravelTime: 0.01, defaultMinLayoverTimeSeconds: 120
+            });
             // layover = ceil(max(0.01 * 300, 120)) = 120 (minimum wins)
             expect(getData(path2, 'layoverTimeSeconds')).toEqual(120);
         });
@@ -342,9 +342,9 @@ describe('generateGeographyAndSegmentsFromGtfs', () => {
     test('should produce a single segment for 2-stop path', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         const twoStopTimes = makeStopTimes('trip1', ['stop1', 'stop4'], [[36000, 36000], [36300, 36300]]);
-        const errors = generateGeographyAndSegmentsFromGtfs(
-            path, simpleShapeCoordinates, ['node1', 'node4'], [twoStopTimes], 'shape1', simpleStopCoordinates
-        );
+        const errors = generateGeographyAndSegmentsFromGtfs({
+            path, shapeCoordinatesWithDistances: simpleShapeCoordinates, nodeIds: ['node1', 'node4'], allTripsStopTimes: [twoStopTimes], shapeGtfsId: 'shape1', stopCoordinatesByStopId: simpleStopCoordinates
+        });
 
         expect(errors).toHaveLength(0);
         expect(path.attributes.segments).toHaveLength(1);
@@ -359,9 +359,9 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
 
         beforeEach(() => {
             path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
-            errors = generateGeographyAndSegmentsFromStopTimes(
-                path, simpleNodeIds, [simpleStopTimes], simpleStopCoordinates
-            );
+            errors = generateGeographyAndSegmentsFromStopTimes({
+                path, nodeIds: simpleNodeIds, allTripsStopTimes: [simpleStopTimes], stopCoordinatesByStopId: simpleStopCoordinates
+            });
         });
 
         test('should set path geography and metadata', () => {
@@ -405,14 +405,14 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
 
     test('should return error and null geography on missing stop coordinates', () => {
         const path = createPath();
-        const errors = generateGeographyAndSegmentsFromStopTimes(
-            path, simpleNodeIds, [simpleStopTimes], {
+        const errors = generateGeographyAndSegmentsFromStopTimes({
+            path, nodeIds: simpleNodeIds, allTripsStopTimes: [simpleStopTimes], stopCoordinatesByStopId: {
                 stop1: simpleStopCoordinates.stop1,
                 stop2: simpleStopCoordinates.stop2,
                 // stop3 is missing
                 stop4: simpleStopCoordinates.stop4
             }
-        );
+        });
 
         expect(errors).toHaveLength(1);
         const error = errors[0] as TranslatableMessageWithParams;
@@ -425,16 +425,16 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
     test('should use customLayoverMinutes when set', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         path.attributes.data.customLayoverMinutes = 3;
-        generateGeographyAndSegmentsFromStopTimes(path, simpleNodeIds, [simpleStopTimes], simpleStopCoordinates);
+        generateGeographyAndSegmentsFromStopTimes({ path, nodeIds: simpleNodeIds, allTripsStopTimes: [simpleStopTimes], stopCoordinatesByStopId: simpleStopCoordinates });
         expect(getData(path, 'layoverTimeSeconds')).toEqual(180);
     });
 
     test('should produce a single segment for 2-stop path', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
         const twoStopTimes = makeStopTimes('trip1', ['stop1', 'stop4'], [[36000, 36000], [36300, 36300]]);
-        const errors = generateGeographyAndSegmentsFromStopTimes(
-            path, ['node1', 'node4'], [twoStopTimes], simpleStopCoordinates
-        );
+        const errors = generateGeographyAndSegmentsFromStopTimes({
+            path, nodeIds: ['node1', 'node4'], allTripsStopTimes: [twoStopTimes], stopCoordinatesByStopId: simpleStopCoordinates
+        });
 
         expect(errors).toHaveLength(0);
         expect(path.attributes.segments).toEqual([0]);
@@ -444,7 +444,7 @@ describe('generateGeographyAndSegmentsFromStopTimes', () => {
 
     test('timing consistency: layover equation and dwell time sum', () => {
         const path = createPath(nodeCoordinatesFromStops(simpleStopCoordinates));
-        generateGeographyAndSegmentsFromStopTimes(path, simpleNodeIds, [simpleStopTimes], simpleStopCoordinates);
+        generateGeographyAndSegmentsFromStopTimes({ path, nodeIds: simpleNodeIds, allTripsStopTimes: [simpleStopTimes], stopCoordinatesByStopId: simpleStopCoordinates });
 
         expect(path.attributes.data.operatingTimeWithLayoverTimeSeconds).toEqual(
             path.attributes.data.operatingTimeWithoutLayoverTimeSeconds! +

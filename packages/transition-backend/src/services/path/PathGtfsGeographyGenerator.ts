@@ -411,16 +411,26 @@ const calculateDistances = (
     return result.status === 'success' ? result : calculateDistancesBySegments(params);
 };
 
-export const generateGeographyAndSegmentsFromGtfs = (
-    path: Path,
-    shapeCoordinatesWithDistances: GtfsTypes.Shapes[],
-    nodeIds: string[],
-    allTripsStopTimes: StopTime[][],
-    shapeGtfsId: string,
-    stopCoordinatesByStopId: { [key: string]: [number, number] },
-    defaultLayoverRatioOverTotalTravelTime = 0.1,
-    defaultMinLayoverTimeSeconds = 180
-): TranslatableMessage[] => {
+export const generateGeographyAndSegmentsFromGtfs = (params: {
+    path: Path;
+    shapeCoordinatesWithDistances: GtfsTypes.Shapes[];
+    nodeIds: string[];
+    allTripsStopTimes: StopTime[][];
+    shapeGtfsId: string;
+    stopCoordinatesByStopId: { [key: string]: [number, number] };
+    defaultLayoverRatioOverTotalTravelTime?: number;
+    defaultMinLayoverTimeSeconds?: number;
+}): TranslatableMessage[] => {
+    const {
+        path,
+        shapeCoordinatesWithDistances,
+        nodeIds,
+        allTripsStopTimes,
+        shapeGtfsId,
+        stopCoordinatesByStopId,
+        defaultLayoverRatioOverTotalTravelTime = 0.1,
+        defaultMinLayoverTimeSeconds = 180
+    } = params;
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
     // Use first trip's stopTimes for distance calculations (geometry is same for all trips)
@@ -557,14 +567,22 @@ export const generateGeographyAndSegmentsFromGtfs = (
     return errors;
 };
 
-export const generateGeographyAndSegmentsFromStopTimes = (
-    path: Path,
-    nodeIds: string[],
-    allTripsStopTimes: StopTime[][],
-    stopCoordinatesByStopId: { [key: string]: [number, number] },
-    defaultLayoverRatioOverTotalTravelTime = 0.1,
-    defaultMinLayoverTimeSeconds = 180
-): TranslatableMessage[] => {
+export const generateGeographyAndSegmentsFromStopTimes = (params: {
+    path: Path;
+    nodeIds: string[];
+    allTripsStopTimes: StopTime[][];
+    stopCoordinatesByStopId: { [key: string]: [number, number] };
+    defaultLayoverRatioOverTotalTravelTime?: number;
+    defaultMinLayoverTimeSeconds?: number;
+}): TranslatableMessage[] => {
+    const {
+        path,
+        nodeIds,
+        allTripsStopTimes,
+        stopCoordinatesByStopId,
+        defaultLayoverRatioOverTotalTravelTime = 0.1,
+        defaultMinLayoverTimeSeconds = 180
+    } = params;
     path.attributes.nodes = nodeIds; // reset nodes, they will be regenerated from stop times
 
     // Use first trip's stopTimes for distance calculations (geometry is same for all trips)
