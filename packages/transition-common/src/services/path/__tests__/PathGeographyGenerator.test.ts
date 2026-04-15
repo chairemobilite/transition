@@ -10,6 +10,7 @@ import { generatePathGeographyFromRouting } from '../PathGeographyGenerator';
 import { pathGeographyUtils as PathGeographyUtils } from '../PathGeographyUtils';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import { durationFromAccelerationDecelerationDistanceAndRunningSpeed } from 'chaire-lib-common/lib/utils/PhysicsUtils';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 // Intentionally different from DEFAULT_DWELL_TIME to test that node-level overrides take precedence over the path default
 const NODE4_DWELL_TIME = 120;
@@ -553,6 +554,86 @@ test('Generate From Routing With Errors', async() => {
     expect(complexPath.attributes.data.geographyErrors.nodes[0].geometry.coordinates).toEqual(node6.geometry.coordinates);
     expect(complexPath.attributes.data.geographyErrors.waypoints.length).toEqual(0);
     expect(complexPath.attributes.segments).toBeFalsy();
+});
+
+test('Generate From Routing throws on zero OSRM duration', () => {
+    const simplePath = new TransitPathStub({
+        id: 'path1',
+        line_id: line.get('id'),
+        nodes: [ node1.properties.id, node4.properties.id ],
+        data: {
+            nodeTypes: ['engine', 'engine'],
+            routingEngine: 'engine',
+            routingMode: 'driving',
+            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+            defaultAcceleration: DEFAULT_ACC_DEC,
+            defaultDeceleration: DEFAULT_ACC_DEC,
+            defaultRunningSpeedKmH: DEFAULT_SPEED,
+            maxRunningSpeedKmH: DEFAULT_MAX_SPEED
+        }
+    }) as any;
+
+    const zeroDurationResult = {
+        tracepoints: [node1, node4],
+        matchings: [{
+            confidence: 99,
+            distance: 1000,
+            duration: 0,
+            legs: [{
+                distance: 1000,
+                duration: 0,
+                steps: [{
+                    distance: 1000,
+                    geometry: { type: 'LineString' as const,
+                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
+                }]
+            }]
+        }]
+    };
+
+    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(simplePath, DEFAULT_SPEED / 3.6);
+    expect(() => generatePathGeographyFromRouting(simplePath, nodeGeojson, [zeroDurationResult])).toThrow(TrError);
+});
+
+test('Generate From Routing throws on NaN physics duration (zero-distance segment)', () => {
+    const simplePath = new TransitPathStub({
+        id: 'path1',
+        line_id: line.get('id'),
+        nodes: [ node1.properties.id, node4.properties.id ],
+        data: {
+            nodeTypes: ['engine', 'engine'],
+            routingEngine: 'engine',
+            routingMode: 'driving',
+            defaultDwellTimeSeconds: DEFAULT_DWELL_TIME,
+            defaultAcceleration: DEFAULT_ACC_DEC,
+            defaultDeceleration: DEFAULT_ACC_DEC,
+            defaultRunningSpeedKmH: DEFAULT_SPEED,
+            maxRunningSpeedKmH: DEFAULT_MAX_SPEED
+        }
+    }) as any;
+
+    // distance=0 with duration>0 gives runningSpeedMps=0, which makes the
+    // physics model return NaN (0/0 in the cruising term)
+    const zeroDistanceResult = {
+        tracepoints: [node1, node4],
+        matchings: [{
+            confidence: 99,
+            distance: 0,
+            duration: 10,
+            legs: [{
+                distance: 0,
+                duration: 10,
+                steps: [{
+                    distance: 0,
+                    geometry: { type: 'LineString' as const,
+                        coordinates: [node1.geometry.coordinates, node4.geometry.coordinates] }
+                }]
+            }]
+        }]
+    };
+
+    const nodeGeojson = PathGeographyUtils.prepareNodesAndWaypoints(simplePath, DEFAULT_SPEED / 3.6);
+    expect(() => generatePathGeographyFromRouting(simplePath, nodeGeojson, [zeroDistanceResult])).toThrow(TrError);
 });
 
 describe('Node insert and remove operations', () => {
