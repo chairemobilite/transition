@@ -34,37 +34,6 @@ const deleteCacheDirectory = async (pathDirectory: string) => {
     return pathDirectory;
 };
 
-// TODO Are saveToFile and getFromFile really useful or can they be replaced by object[To/From]Cache?
-const saveToFile = (
-    params: { fileName?: string; data?: { [key: string]: any }; cachePathDirectory?: string } = {}
-): string | undefined => {
-    const cachePathDirectory =
-        `${prefix}cache/${config.projectShortname}` +
-        (params.cachePathDirectory ? '/' + params.cachePathDirectory : '');
-    const fileName = params.fileName;
-    const data = params.data;
-    if (fileName && data) {
-        fileManager.directoryManager.createDirectoryIfNotExists(cachePathDirectory);
-        fileManager.writeFile(cachePathDirectory + '/' + fileName, data);
-        return cachePathDirectory + '/' + fileName;
-    } else {
-        console.log('missing path directory, filename or data');
-        return undefined;
-    }
-};
-
-// TODO: Consider returning the json object instead of the string here
-const getFromFile = (params: { path: string }): string | undefined => {
-    const filePath = `${prefix}cache/${config.projectShortname}/${params.path}`;
-    if (fileManager.fileExists(filePath)) {
-        const data = fileManager.readFile(filePath);
-        return data ? data : undefined;
-    } else {
-        console.log('could not find cache file');
-        return undefined;
-    }
-};
-
 // TODO: Remove unnecessary parameters when javascript writer is extracted
 export interface CollectionCacheParams {
     cacheName: string;
@@ -510,7 +479,5 @@ export {
     deleteObjectCache,
     deleteObjectsCache,
     emptyCacheDirectory,
-    deleteCacheDirectory,
-    saveToFile,
-    getFromFile
+    deleteCacheDirectory
 };
