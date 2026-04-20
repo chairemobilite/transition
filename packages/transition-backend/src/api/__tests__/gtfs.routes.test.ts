@@ -9,7 +9,7 @@ import { EventEmitter } from 'events';
 import gtfsRoutes from '../gtfs.socketRoutes';
 import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import GtfsImporter from '../../services/gtfsImport/GtfsImporter';
-import { GtfsConstants, GtfsExportStatus } from 'transition-common/lib/api/gtfs';
+import { GtfsConstants, GtfsExportParameters, GtfsExportStatus } from 'transition-common/lib/api/gtfs';
 import { exportGtfs } from '../../services/gtfsExport/GtfsExporter';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
@@ -74,10 +74,11 @@ describe('GTFS data import', () => {
 
 describe('GTFS data export', () => {
 
-    const exportData = {
+    const exportData: GtfsExportParameters = {
         gtfsExporterId: 'arbitraryId',
         selectedAgencies: ['agency1Id', 'agency2Id'],
         selectedServices: ['service1Id', 'service2Id'],
+        includeTransitionCustomFields: true,
         filename: 'foo_gtfs.zip'
     }
 
@@ -93,7 +94,7 @@ describe('GTFS data export', () => {
             expect(results.gtfsExporterId).toEqual(exportData.gtfsExporterId);
             // Make sure it contains everything else also
             expect((results as any).zipFilePath).toEqual(`exports/${gtfsFileName}`);
-            expect(mockedGtfsExport).toHaveBeenCalledWith({ selectedAgencies: exportData.selectedAgencies, selectedServices: exportData.selectedServices }, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
+            expect(mockedGtfsExport).toHaveBeenCalledWith({ selectedAgencies: exportData.selectedAgencies, selectedServices: exportData.selectedServices, includeTransitionCustomFields: exportData.includeTransitionCustomFields }, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
             done();
         });
         socketStub.emit(GtfsConstants.GTFS_EXPORT_PREPARE, exportData);
@@ -106,7 +107,7 @@ describe('GTFS data export', () => {
             expect(results.status).toEqual('failed');
             expect(results.gtfsExporterId).toEqual(exportData.gtfsExporterId);
             expect((results as any).errors).toEqual([GtfsMessages.GtfsExportError]);
-            expect(mockedGtfsExport).toHaveBeenCalledWith({ selectedAgencies: exportData.selectedAgencies, selectedServices: exportData.selectedServices }, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
+            expect(mockedGtfsExport).toHaveBeenCalledWith({ selectedAgencies: exportData.selectedAgencies, selectedServices: exportData.selectedServices, includeTransitionCustomFields: exportData.includeTransitionCustomFields }, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
             done();
         })
         socketStub.emit(GtfsConstants.GTFS_EXPORT_PREPARE, exportData);

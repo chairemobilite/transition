@@ -47,7 +47,8 @@ export default function (socket: EventEmitter, userId: number) {
             const zipFilePath = await exportGtfs(
                 {
                     selectedAgencies: parameters.selectedAgencies,
-                    selectedServices: parameters.selectedServices
+                    selectedServices: parameters.selectedServices,
+                    includeTransitionCustomFields: parameters.includeTransitionCustomFields
                 },
                 exportAbsoluteDirectory,
                 socket

@@ -33,7 +33,7 @@ const directory = fileManager.getAbsolutePath('exports');
 const expectedGtfsDir = `${directory}/gtfs`;
 // Prepare ids for data
 const selectedAgencyIds = [uuidV4(), uuidV4()];
-const gtfsExportOptions = { selectedAgencies: selectedAgencyIds, selectedServices: [] };
+const gtfsExportOptions = { selectedAgencies: selectedAgencyIds, selectedServices: [], includeTransitionCustomFields: true };
 const agencyToGtfsId = { [selectedAgencyIds[0]]: 'test', [selectedAgencyIds[1]]: 'test2' };
 const lineIds = [uuidV4(), uuidV4()];
 const serviceIds = [uuidV4(), uuidV4(), uuidV4()];
@@ -218,7 +218,10 @@ describe('Test valid workflow', () => {
         });
     });
 
-    test('With both exported agencies and services only', async() => {
+    test.each([
+        { title: 'with include custom fields', includeTransitionCustomFields: true },
+        { title: 'without include custom fields', includeTransitionCustomFields: false }
+    ])('With both exported agencies and services only and $title', async({ includeTransitionCustomFields }) => {
         // Prepare test data:
         // Services, and agency are selected, services should import both agencies, but agencies should limit to the first one, so second service is not required after all
         const selectedServiceIds = [uuidV4(), uuidV4()];
@@ -230,7 +233,8 @@ describe('Test valid workflow', () => {
         const testGtfsExportOptions = {
             ...gtfsExportOptions,
             selectedAgencies:[selectedAgencyIds[0]],
-            selectedServices: selectedServiceIds
+            selectedServices: selectedServiceIds,
+            includeTransitionCustomFields
         }
 
         // There are no actual file written, so the zip will not zip anything. Ideally, we should mock JSZip, but it works
@@ -244,14 +248,14 @@ describe('Test valid workflow', () => {
         expect(mockedAgencyExport).toHaveBeenCalledWith([selectedAgencyIds[0]], {
             directoryPath: expectedGtfsDir,
             quotesFct: expect.anything(),
-            includeTransitionFields: expect.anything()
+            includeTransitionFields: includeTransitionCustomFields
         });
 
         expect(mockedLineExport).toHaveBeenCalledTimes(1);
         expect(mockedLineExport).toHaveBeenCalledWith(expectedLineIds, {
             directoryPath: expectedGtfsDir,
             quotesFct: expect.anything(),
-            includeTransitionFields: expect.anything(),
+            includeTransitionFields: includeTransitionCustomFields,
             agencyToGtfsId
         });
 
@@ -259,14 +263,14 @@ describe('Test valid workflow', () => {
         expect(mockedServiceExport).toHaveBeenCalledWith([selectedServiceIds[0]], {
             directoryPath: expectedGtfsDir,
             quotesFct: expect.anything(),
-            includeTransitionFields: expect.anything()
+            includeTransitionFields: includeTransitionCustomFields
         });
 
         expect(mockedScheduleExport).toHaveBeenCalledTimes(1);
         expect(mockedScheduleExport).toHaveBeenCalledWith(expectedLineIds, {
             directoryPath: expectedGtfsDir,
             quotesFct: expect.anything(),
-            includeTransitionFields: expect.anything(),
+            includeTransitionFields: includeTransitionCustomFields,
             serviceToGtfsId
         });
 
@@ -274,14 +278,14 @@ describe('Test valid workflow', () => {
         expect(mockedStopExport).toHaveBeenCalledWith(nodeIds, {
             directoryPath: expectedGtfsDir,
             quotesFct: expect.anything(),
-            includeTransitionFields: expect.anything(),
+            includeTransitionFields: includeTransitionCustomFields,
         });
 
         expect(mockedPathExport).toHaveBeenCalledTimes(1);
         expect(mockedPathExport).toHaveBeenCalledWith(pathIds, {
             directoryPath: expectedGtfsDir,
             quotesFct: expect.anything(),
-            includeTransitionFields: expect.anything(),
+            includeTransitionFields: includeTransitionCustomFields,
         });
     });
 
