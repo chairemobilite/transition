@@ -11,12 +11,19 @@ import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMes
 export interface GtfsExportParameters {
     gtfsExporterId: string;
     /**
-     * IDs of the agencies to export
-     *
-     * @type {string[]}
-     * @memberof GtfsExportParameters
+     * IDs of the agencies to export. At least one of `selectedAgencies` and
+     * `selectedServices` should be provided to export something. If services
+     * are provided, leaving empty will export all agencies with lines using
+     * those services.
      */
     selectedAgencies: string[];
+    /**
+     * IDs of the services to export. At least one of `selectedAgencies` and
+     * `selectedServices` should be provided to export something. If agencies
+     * are provided, leaving empty will export all services of the selected
+     * agencies.
+     */
+    selectedServices: string[];
     filename: string;
 }
 

@@ -43,10 +43,7 @@ const objectToGtfs = (agency: Agency, includeCustomFields = false): GtfsAgency =
 export const exportAgency = async (
     agencyIds: string[],
     options: { directoryPath: string; quotesFct: (value: unknown) => boolean; includeTransitionFields?: boolean }
-): Promise<
-    | { status: 'success'; lineIds: string[]; agencyToGtfsId: { [key: string]: string } }
-    | { status: 'error'; error: unknown }
-> => {
+): Promise<{ status: 'success'; agencyToGtfsId: { [key: string]: string } } | { status: 'error'; error: unknown }> => {
     // Prepare the file stream
     const filePath = `${options.directoryPath}/${gtfsFiles.agency.name}`;
     fileManager.truncateFileAbsolute(filePath);
@@ -55,7 +52,6 @@ export const exportAgency = async (
     const agencies = await dbQueries.collection();
     const agencyCollection = new AgencyCollection([], {});
     agencyCollection.loadFromCollection(agencies);
-    const lineIds: string[][] = [];
     const agencyToGtfsId: { [key: string]: string } = {};
 
     try {
@@ -64,7 +60,6 @@ export const exportAgency = async (
             if (!agency) {
                 throw new TrError(`Unknow agency for GTFS export ${agencyId}`, 'GTFSEXP0001');
             }
-            lineIds.push(agency.attributes.line_ids || []);
             const gtfsAgency = objectToGtfs(agency, options.includeTransitionFields || false);
             agencyToGtfsId[agencyId] = gtfsAgency.agency_id;
             return gtfsAgency;
@@ -77,7 +72,7 @@ export const exportAgency = async (
                 header: true
             })
         );
-        return { status: 'success', lineIds: lineIds.flatMap((ids) => ids), agencyToGtfsId };
+        return { status: 'success', agencyToGtfsId };
     } catch (error) {
         return { status: 'error', error };
     } finally {

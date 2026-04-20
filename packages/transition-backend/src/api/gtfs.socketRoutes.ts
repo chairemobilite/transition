@@ -44,7 +44,14 @@ export default function (socket: EventEmitter, userId: number) {
 
     socket.on(GtfsConstants.GTFS_EXPORT_PREPARE, async (parameters: GtfsExportParameters) => {
         try {
-            const zipFilePath = await exportGtfs(parameters.selectedAgencies, exportAbsoluteDirectory, socket);
+            const zipFilePath = await exportGtfs(
+                {
+                    selectedAgencies: parameters.selectedAgencies,
+                    selectedServices: parameters.selectedServices
+                },
+                exportAbsoluteDirectory,
+                socket
+            );
             console.log('GTFS export prepared');
             socket.emit(GtfsConstants.GTFS_EXPORT_READY, {
                 status: 'success',
@@ -52,7 +59,9 @@ export default function (socket: EventEmitter, userId: number) {
                 zipFilePath: `exports/${zipFilePath}`
             });
         } catch (error) {
-            console.error(`Error exporting GTFS for agencies ${parameters.selectedAgencies}: ${error}`);
+            console.error(
+                `Error exporting GTFS for data: agencies => ${parameters.selectedAgencies}, services => ${parameters.selectedServices}: ${error}`
+            );
             socket.emit(GtfsConstants.GTFS_EXPORT_READY, {
                 status: 'failed',
                 gtfsExporterId: parameters.gtfsExporterId,

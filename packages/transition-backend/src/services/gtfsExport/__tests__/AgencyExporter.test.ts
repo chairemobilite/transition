@@ -84,7 +84,6 @@ beforeEach(() => {
 test('Test exporting one agency originally from gtfs', async () => {
     const response = await exportAgency([agencyAttributes1.id], { directoryPath: 'test', quotesFct: quoteFct });
     expect(response.status).toEqual('success');
-    expect((response as any).lineIds).toEqual(agencyAttributes1.line_ids);
     expect((response as any).agencyToGtfsId).toEqual({ [agencyAttributes1.id]: agencyAttributes1.acronym });
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
@@ -98,7 +97,6 @@ test('Test exporting one agency originally from gtfs', async () => {
 test('Test exporting an agency not from gtfs with custom fields', async () => {
     const response = await exportAgency([agencyAttributes2.id], { directoryPath: 'test', quotesFct: quoteFct, includeTransitionFields: true });
     expect(response.status).toEqual('success');
-    expect((response as any).lineIds).toEqual(agencyAttributes2.line_ids);
     expect((response as any).agencyToGtfsId).toEqual({ [agencyAttributes2.id]: sluggedId });
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
@@ -112,7 +110,6 @@ test('Test exporting an agency not from gtfs with custom fields', async () => {
 test('Test exporting multiple agencies', async () => {
     const response = await exportAgency([agencyAttributes1.id, agencyAttributes2.id], { directoryPath: 'test', quotesFct: quoteFct });
     expect(response.status).toEqual('success');
-    expect((response as any).lineIds).toEqual([...agencyAttributes1.line_ids, ...agencyAttributes2.line_ids]);
     expect((response as any).agencyToGtfsId).toEqual({ [agencyAttributes1.id]: agencyAttributes1.acronym, [agencyAttributes2.id]: sluggedId });
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([

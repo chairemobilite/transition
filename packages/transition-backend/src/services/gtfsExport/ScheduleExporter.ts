@@ -164,9 +164,14 @@ const exportScheduleForLineSubset = async (
 
     let shouldWriteTripHeader = options.shouldWriteTripHeader;
     let shouldWriteStopTimesHeader = options.shouldWriteStopTimesHeader;
+
+    // Filter the schedules to export only those that have a service_id with a mapping to gtfs, otherwise we cannot export them since service_id is required in gtfs trips
+    const filteredSchedulesAttributes = allSchedulesAttributes.filter(
+        (schedule) => schedule.service_id && options.serviceToGtfsId[schedule.service_id] !== undefined
+    );
     // Save schedules in batches to avoid out of memory exceptions, some schedules may have a lot of trips
-    while (allSchedulesAttributes.length > 0) {
-        const scheduleBatch = allSchedulesAttributes.splice(0, schedulesBatchSize);
+    while (filteredSchedulesAttributes.length > 0) {
+        const scheduleBatch = filteredSchedulesAttributes.splice(0, schedulesBatchSize);
 
         const gtfsScheduleData = scheduleBatch.map((schedule) =>
             !schedule.service_id || !options.serviceToGtfsId[schedule.service_id]

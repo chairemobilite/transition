@@ -27,6 +27,7 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
         const uuid = uuidV4();
         const gtfsExporter = new GtfsExporter({
             selectedAgencies: [],
+            selectedServices: [],
             filename: '',
             id: uuid,
             data: {},
@@ -37,7 +38,8 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
             object: gtfsExporter,
             formValues: {
                 filename: gtfsExporter.get('filename', ''),
-                selectedAgencies: gtfsExporter.get('selectedAgencies', [])
+                selectedAgencies: gtfsExporter.get('selectedAgencies', []),
+                selectedServices: gtfsExporter.get('selectedServices', [])
             }
         };
     }

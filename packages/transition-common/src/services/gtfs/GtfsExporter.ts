@@ -13,6 +13,7 @@ import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMes
 
 export interface GtfsExporterAttributes extends GenericAttributes {
     selectedAgencies: string[];
+    selectedServices: string[];
     filename: string;
     isPrepared?: boolean;
     exportErrors?: TranslatableMessage[];
@@ -37,12 +38,21 @@ export default class GtfsExporter extends ObjectWithHistory<GtfsExporterAttribut
         super(attributes, isNew);
     }
 
+    protected _prepareAttributes(attributes: Partial<GtfsExporterAttributes>): GtfsExporterAttributes {
+        const preparedAttributes = super._prepareAttributes(attributes);
+        return {
+            ...preparedAttributes,
+            selectedAgencies: attributes.selectedAgencies || [],
+            selectedServices: attributes.selectedServices || []
+        };
+    }
+
     public validate(): boolean {
         this._isValid = true;
         this.errors = [];
-        if (_isBlank(this.get('selectedAgencies'))) {
+        if (_isBlank(this.get('selectedAgencies')) && _isBlank(this.get('selectedServices'))) {
             this._isValid = false;
-            this.errors.push('transit:gtfs:errors:SelectedAgenciesMissing');
+            this.errors.push('transit:gtfs:errors:SelectedElementMissing');
         }
         if (_isBlank(this.get('filename'))) {
             this._isValid = false;
@@ -57,6 +67,7 @@ export default class GtfsExporter extends ObjectWithHistory<GtfsExporterAttribut
         serviceLocator.socketEventManager.emit(GtfsConstants.GTFS_EXPORT_PREPARE, {
             gtfsExporterId: this.id,
             selectedAgencies: this.get('selectedAgencies'),
+            selectedServices: this.get('selectedServices'),
             filename: this.get('filename')
         });
         return;
