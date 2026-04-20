@@ -84,21 +84,12 @@ fn main() {
             "project_cache_directory_path": project_cache_directory_path.to_str().unwrap(),
             "custom_subdirectory_path"    : json!(null),
             "project_shortname"           : json!(project_shortname),
-            "data_source_uuid"            : json!(null)
         });
 
         match &request.get_param("cache_directory_path") {
             Some(cache_directory_path) => {
                 println!("request cache_directory_path {}", cache_directory_path);
                 config["custom_subdirectory_path"] = json!(format!("{}", cache_directory_path));
-            },
-            _ => {}
-        }
-
-        match &request.get_param("data_source_uuid") {
-            Some(data_source_uuid) => {
-                println!("request data_source_uuid {}", data_source_uuid);
-                config["data_source_uuid"] = json!(format!("{}", data_source_uuid));
             },
             _ => {}
         }

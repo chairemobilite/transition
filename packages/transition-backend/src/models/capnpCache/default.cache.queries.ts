@@ -40,14 +40,11 @@ export interface CollectionCacheParams {
     collection: GenericCollection<any>;
     cachePathDirectory?: string;
     parser?: any;
-    dataSourceId?: string;
     pluralizedCollectionName: string;
-    cachePath?: string;
     CacheCollection: any;
     CollectionClass: any;
     capnpParser: any;
     maxNumberOfObjectsPerFile?: number;
-    emptyDirectory?: boolean;
 }
 
 // TODO: Type the promise
@@ -72,9 +69,6 @@ const collectionToCache = async (params: CollectionCacheParams): Promise<any> =>
             `${prefix}cache/${config.projectShortname}/${cachePathDirectory}`
         );
         bodyData.cache_directory_path = cachePathDirectory;
-    }
-    if (params.emptyDirectory) {
-        fileManager.directoryManager.emptyDirectory(`${prefix}cache/${config.projectShortname}/${cachePathDirectory}`);
     }
 
     // TODO: Callers should send the right type, the first 'if' can totally change the collection type! But make sure all callers are fixed first
@@ -101,9 +95,7 @@ const collectionToCache = async (params: CollectionCacheParams): Promise<any> =>
             cacheName: collectionName,
             bodyData,
             parser,
-            dataSourceId: params.dataSourceId,
-            cachePathDirectory,
-            cachePath
+            cachePathDirectory
         });
     } else {
         const features =
@@ -198,9 +190,6 @@ const collectionFromCache = async (params: CollectionCacheParams): Promise<any> 
     if (cachePathDirectory) {
         bodyData.cache_directory_path = cachePathDirectory;
     }
-    if (params.dataSourceId) {
-        bodyData.data_source_uuid = params.dataSourceId;
-    }
 
     if (Preferences.get('json2Capnp.enabled', false)) {
         if (!collection) {
@@ -217,8 +206,7 @@ const collectionFromCache = async (params: CollectionCacheParams): Promise<any> 
             cacheName: collectionName,
             bodyData,
             parser,
-            cachePathDirectory,
-            cachePath
+            cachePathDirectory
         });
     } else {
         const countFiles = fileManager.fileExists(`${cachePath}.count`)
@@ -288,8 +276,6 @@ export interface ObjectCacheParams {
     cacheName: string;
     cachePathDirectory: string;
     parser?: any;
-    dataSourceId?: string;
-    cachePath?: string;
     CacheObjectClass: any;
     ObjectClass: any;
     capnpParser: any;
@@ -318,9 +304,6 @@ const objectToCache = async (params: ObjectToCacheParams) => {
             `${prefix}cache/${config.projectShortname}/${cachePathDirectory}`
         );
         bodyData.cache_directory_path = cachePathDirectory;
-    }
-    if (params.dataSourceId) {
-        bodyData.data_source_uuid = params.dataSourceId;
     }
 
     if (Preferences.get('json2Capnp.enabled', false)) {
@@ -391,9 +374,6 @@ const objectFromCache = async (params: ObjectFromCacheParams) => {
 
     if (cachePathDirectory) {
         bodyData.cache_directory_path = cachePathDirectory;
-    }
-    if (params.dataSourceId) {
-        bodyData.data_source_uuid = params.dataSourceId;
     }
 
     if (Preferences.get('json2Capnp.enabled', false)) {

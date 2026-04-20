@@ -30,10 +30,6 @@ class Json2CapnpRust implements Json2CapnpBase {
             );
         }
 
-        if (args.dataSourceId) {
-            args.bodyData.data_source_uuid = args.dataSourceId;
-        }
-
         return await json2CapnpService.writeCache(args.cacheName, args.bodyData, args.cachePathDirectory);
     }
 

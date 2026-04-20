@@ -16,16 +16,13 @@ export interface baseCacheParams {
 export interface collectionCacheParams extends baseCacheParams {
     collection: GenericCollection<any>;
     parser?: any;
-    dataSourceId?: string;
     cachePathDirectory?: string;
-    cachePath?: string;
 }
 
 export interface objectCacheParams extends baseCacheParams {
     object: GenericObject<any>;
     parser?: any;
     cachePathDirectory?: string;
-    cachePath?: string;
 }
 
 export interface objectFromCacheParams extends baseCacheParams {
