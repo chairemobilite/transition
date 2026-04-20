@@ -69,32 +69,17 @@ pub fn write_collection_route(collection_name: &str, cache_file_name: &str, conf
 
     let json : serde_json::Value   = try_or_400!(rouille::input::json_input(request));
     let json_cache_directory_path  = json.get("cache_directory_path").unwrap_or(&serde_json::Value::Null);
-    let json_data_source_uuid      = json.get("data_source_uuid").unwrap_or(&serde_json::Value::Null);
 
     let cache_directory_path;
 
     if json_cache_directory_path.is_null() // no custom path
     {
-        if !json_data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}", config["project_cache_directory_path"].as_str().unwrap(), json_data_source_uuid.as_str().unwrap());
-        }
-        else
-        {
-            cache_directory_path = format!("{}", config["project_cache_directory_path"].as_str().unwrap());
-        }
+        cache_directory_path = format!("{}", config["project_cache_directory_path"].as_str().unwrap());
         println!("cache_directory_path: {}", cache_directory_path);
     }
     else
     {
-        if !json_data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_data_source_uuid.as_str().unwrap(), json_cache_directory_path.as_str().unwrap(), );
-        }
-        else
-        {
-            cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_cache_directory_path.as_str().unwrap());
-        }
+        cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_cache_directory_path.as_str().unwrap());
         println!("cache_directory_path_custom: {}", cache_directory_path);
     }
 
@@ -138,32 +123,17 @@ pub fn write_collection_route(collection_name: &str, cache_file_name: &str, conf
 pub fn read_collection_route(collection_name: &str, cache_file_name: &str, config: &serde_json::Value, read_fn: &dyn Fn(&mut std::fs::File) -> ::std::result::Result<serde_json::Value, capnp::Error>) -> rouille::Response {
 
     let custom_subdirectory_path  = config.get("custom_subdirectory_path").unwrap_or(&serde_json::Value::Null);
-    let data_source_uuid          = config.get("data_source_uuid").unwrap_or(&serde_json::Value::Null);
 
     let cache_directory_path;
 
     if custom_subdirectory_path.is_null() // no custom path
     {
-        if !data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}", config["project_cache_directory_path"].as_str().unwrap(), data_source_uuid.as_str().unwrap());
-        }
-        else
-        {
-            cache_directory_path = format!("{}", config["project_cache_directory_path"].as_str().unwrap());
-        }
+        cache_directory_path = format!("{}", config["project_cache_directory_path"].as_str().unwrap());
         //println!("cache_directory_path: {}", cache_directory_path);
     }
     else
     {
-        if !data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}/{}", config["project_cache_directory_path"].as_str().unwrap(), data_source_uuid.as_str().unwrap(), custom_subdirectory_path.as_str().unwrap());
-        }
-        else
-        {
-            cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), custom_subdirectory_path.as_str().unwrap());
-        }
+        cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), custom_subdirectory_path.as_str().unwrap());
         //println!("cache_directory_path_custom: {}", cache_directory_path);
     }
 
@@ -208,32 +178,17 @@ pub fn write_object_route(collection_name: &str, subdirectory: &str, config: &se
 
     let json : serde_json::Value   = try_or_400!(rouille::input::json_input(request));
     let json_cache_directory_path  = json.get("cache_directory_path").unwrap_or(&serde_json::Value::Null);
-    let json_data_source_uuid      = json.get("data_source_uuid").unwrap_or(&serde_json::Value::Null);
 
     let cache_directory_path;
 
     if json_cache_directory_path.is_null() // no custom path
     {
-        if !json_data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_data_source_uuid.as_str().unwrap(), subdirectory);
-        }
-        else
-        {
-            cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), subdirectory);
-        }
+        cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), subdirectory);
         //println!("cache_directory_path: {}", cache_directory_path);
     }
     else
     {
-        if !json_data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_data_source_uuid.as_str().unwrap(), json_cache_directory_path.as_str().unwrap(), );
-        }
-        else
-        {
-            cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_cache_directory_path.as_str().unwrap());
-        }
+        cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), json_cache_directory_path.as_str().unwrap());
         //println!("cache_directory_path_custom: {}", cache_directory_path);
     }
 
@@ -257,33 +212,18 @@ pub fn write_object_route(collection_name: &str, subdirectory: &str, config: &se
 pub fn read_object_route(object_name: &str, object_uuid: &String, subdirectory: &str, config: &serde_json::Value, read_fn: &dyn Fn(&String, &str) -> ::std::result::Result<serde_json::Value, capnp::Error>) -> rouille::Response {
 
     let custom_subdirectory_path  = config.get("custom_subdirectory_path").unwrap_or(&serde_json::Value::Null);
-    let data_source_uuid          = config.get("data_source_uuid").unwrap_or(&serde_json::Value::Null);
 
     let cache_directory_path;
 
 
     if custom_subdirectory_path.is_null() // no custom path
     {
-        if !data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}/{}", config["project_cache_directory_path"].as_str().unwrap(), data_source_uuid.as_str().unwrap(), subdirectory);
-        }
-        else
-        {
-            cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), subdirectory);
-        }
+        cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), subdirectory);
         //println!("cache_directory_path: {}", cache_directory_path);
     }
     else
     {
-        if !data_source_uuid.is_null()
-        {
-            cache_directory_path = format!("{}/dataSources/{}/{}", config["project_cache_directory_path"].as_str().unwrap(), data_source_uuid.as_str().unwrap(), custom_subdirectory_path.as_str().unwrap());
-        }
-        else
-        {
-            cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), custom_subdirectory_path.as_str().unwrap());
-        }
+        cache_directory_path = format!("{}/{}", config["project_cache_directory_path"].as_str().unwrap(), custom_subdirectory_path.as_str().unwrap());
         //println!("cache_directory_path_custom: {}", cache_directory_path);
     }
 
