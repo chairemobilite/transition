@@ -80,7 +80,7 @@ export const exportLine = async (
         includeTransitionFields?: boolean;
         agencyToGtfsId: { [key: string]: string };
     }
-): Promise<{ status: 'success'; serviceIds: string[] } | { status: 'error'; error: unknown }> => {
+): Promise<{ status: 'success' } | { status: 'error'; error: unknown }> => {
     // Prepare the file stream
     const filePath = `${options.directoryPath}/${gtfsFiles.routes.name}`;
     fileManager.truncateFileAbsolute(filePath);
@@ -89,7 +89,6 @@ export const exportLine = async (
     const lines = await dbQueries.collection();
     const lineCollection = new LineCollection([], {});
     lineCollection.loadFromCollection(lines);
-    const serviceIds: { [key: string]: boolean } = {};
 
     try {
         const gtfsLines = lineIds.map((lineId) => {
@@ -99,9 +98,6 @@ export const exportLine = async (
             }
             const agencyId = options.agencyToGtfsId[line.attributes.agency_id];
             const gtfsRoute = objectToGtfs(line, agencyId, options.includeTransitionFields || false);
-            if (gtfsRoute !== undefined && line.attributes.service_ids !== undefined) {
-                line.attributes.service_ids.forEach((serviceId: string) => (serviceIds[serviceId] = true));
-            }
             return gtfsRoute;
         });
         const gtfsLinesNoUndef = gtfsLines.filter((line) => line !== undefined) as GtfsRoute[];
@@ -113,7 +109,7 @@ export const exportLine = async (
                 header: true
             })
         );
-        return { status: 'success', serviceIds: Object.keys(serviceIds) };
+        return { status: 'success' };
     } catch (error) {
         return { status: 'error', error };
     } finally {

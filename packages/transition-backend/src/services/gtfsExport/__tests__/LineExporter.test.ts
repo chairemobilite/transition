@@ -117,7 +117,6 @@ beforeEach(() => {
 test('Test exporting one line originally from gtfs', async () => {
     const response = await exportLine([lineAttributes1.id], { directoryPath: 'test', quotesFct: quoteFct, agencyToGtfsId });
     expect(response.status).toEqual('success');
-    expect((response as any).serviceIds).toEqual([]);
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
         '"route_id","agency_id","route_short_name","route_long_name","route_desc","route_type","route_url","route_color","route_text_color","route_sort_order","continuous_pickup","continuous_drop_off"',
@@ -130,7 +129,6 @@ test('Test exporting one line originally from gtfs', async () => {
 test('Test exporting a line not from gtfs with custom fields', async () => {
     const response = await exportLine([lineAttributes2.id], { directoryPath: 'test', quotesFct: quoteFct, includeTransitionFields: true, agencyToGtfsId });
     expect(response.status).toEqual('success');
-    expect((response as any).serviceIds).toEqual(lineAttributes2.service_ids);
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
         '"route_id","agency_id","route_short_name","route_long_name","route_desc","route_type","route_url","route_color","route_text_color","route_sort_order","continuous_pickup","continuous_drop_off","tr_route_internal_id","tr_route_row_category","tr_is_autonomous","tr_allow_same_route_transfers"',
@@ -143,7 +141,6 @@ test('Test exporting a line not from gtfs with custom fields', async () => {
 test('Test exporting multiple lines, with transferable that should not be exported', async () => {
     const response = await exportLine([lineAttributes1.id, lineAttributes2.id, lineAttributesNotForExport.id], { directoryPath: 'test', quotesFct: quoteFct, agencyToGtfsId });
     expect(response.status).toEqual('success');
-    expect((response as any).serviceIds).toEqual(lineAttributes2.service_ids);
     expect(mockWriteStream.write).toHaveBeenCalledTimes(1);
     expect(mockWriteStream.write).toHaveBeenLastCalledWith([
         '"route_id","agency_id","route_short_name","route_long_name","route_desc","route_type","route_url","route_color","route_text_color","route_sort_order","continuous_pickup","continuous_drop_off"',

@@ -77,6 +77,7 @@ describe('GTFS data export', () => {
     const exportData = {
         gtfsExporterId: 'arbitraryId',
         selectedAgencies: ['agency1Id', 'agency2Id'],
+        selectedServices: ['service1Id', 'service2Id'],
         filename: 'foo_gtfs.zip'
     }
 
@@ -92,7 +93,7 @@ describe('GTFS data export', () => {
             expect(results.gtfsExporterId).toEqual(exportData.gtfsExporterId);
             // Make sure it contains everything else also
             expect((results as any).zipFilePath).toEqual(`exports/${gtfsFileName}`);
-            expect(mockedGtfsExport).toHaveBeenCalledWith(exportData.selectedAgencies, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
+            expect(mockedGtfsExport).toHaveBeenCalledWith({ selectedAgencies: exportData.selectedAgencies, selectedServices: exportData.selectedServices }, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
             done();
         });
         socketStub.emit(GtfsConstants.GTFS_EXPORT_PREPARE, exportData);
@@ -105,7 +106,7 @@ describe('GTFS data export', () => {
             expect(results.status).toEqual('failed');
             expect(results.gtfsExporterId).toEqual(exportData.gtfsExporterId);
             expect((results as any).errors).toEqual([GtfsMessages.GtfsExportError]);
-            expect(mockedGtfsExport).toHaveBeenCalledWith(exportData.selectedAgencies, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
+            expect(mockedGtfsExport).toHaveBeenCalledWith({ selectedAgencies: exportData.selectedAgencies, selectedServices: exportData.selectedServices }, `${directoryManager.userDataDirectory}/${userId}/exports`, socketStub);
             done();
         })
         socketStub.emit(GtfsConstants.GTFS_EXPORT_PREPARE, exportData);

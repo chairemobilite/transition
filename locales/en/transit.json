@@ -840,7 +840,7 @@
             "ErrorUploadingFile": "Error on the server when uploading and extracting the zip file. Please try again, if the error persist, consult the system administrator.",
             "ErrorImportingSchedulesForLine": "Error importing timetables for line {{shortname}} - {{longname}}.",
             "TooManyErrorsImportingSchedules": "Too many errors importing timetables, aborting.",
-            "SelectedAgenciesMissing": "Please select at least one agency.",
+            "SelectedElementMissing": "Please select the elements to export",
             "FilenameMissing": "File name is required.",
             "CannotGenerateShapeFromGtfs": "Line {{lineShortName}} - {{lineName}}: shape in GTFS file {{shapeGtfsId}}: something is wrong with the stops order, or there are ambiguous loops.",
             "CannotGenerateShapeFromStopTimes": "Line {{lineShortName}} - {{lineName}}: some stops do not have coordinates specified.",

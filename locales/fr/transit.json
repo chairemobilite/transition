@@ -840,7 +840,7 @@
             "ErrorUploadingFile": "Erreur sur le serveur lors du téléversement et extraction du fichier. SVP, essayer de nouveau. Si l'erreur persiste, consultez les administrateurs du système.",
             "ErrorImportingSchedulesForLine": "Erreur d'importation d'horaire pour la ligne {{shortname}} - {{longname}}.",
             "TooManyErrorsImportingSchedules": "Trop d'erreurs d'importation d'horaires. Arrêt de l'importation.",
-            "SelectedAgenciesMissing": "Veuillez sélectionner au moins une agence.",
+            "SelectedElementMissing": "Veuillez sélectionner au moins un élément à exporter.",
             "FilenameMissing": "Le nom de fichier est requis.",
             "CannotGenerateShapeFromGtfs": "Ligne {{lineShortName}} - {{lineName}}: forme dans le GTFS {{shapeGtfsId}}: il y a un problème avec l'ordre des arrêts ou une boucle ambiguë sur le parcours.",
             "CannotGenerateShapeFromStopTimes": "Ligne {{lineShortName}} - {{lineName}}: certains arrêts n'ont pas de coordonnées spécifiées.",
