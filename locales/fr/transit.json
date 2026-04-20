@@ -809,6 +809,8 @@
         "SelectedAgencies": "Quelles agences désirez-vous importer?",
         "SelectedAgenciesExport": "Quelles agences désirez-vous exporter?",
         "ExportFileName": "Nom de l'archive GTFS",
+        "IncludeTransitionCustomFields": "Inclure les champs personnalisés de Transition dans l'archive exportée ?",
+        "IncludeTransitionCustomFieldsHelp": "Si coché, les champs personnalisés ajoutés à la spécification GTFS dans Transition seront inclus dans le flux GTFS exporté, facilitant l'importation dans une autre instance de Transition. Si non coché, seuls les champs GTFS standard seront inclus.",
         "SelectedLines": "Quelles lignes désirez-vous importer?",
         "SelectedServices": "Quels services désirez-vous importer?",
         "MergeSamePeriodServices": "Combiner les services pour les mêmes périodes? (attention, le service résultant contiendra tous les services combinés)",

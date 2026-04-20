@@ -17,20 +17,11 @@ export interface GtfsExporterAttributes extends GenericAttributes {
     filename: string;
     isPrepared?: boolean;
     exportErrors?: TranslatableMessage[];
+    includeTransitionCustomFields: boolean;
     data: {
         zipFilePath?: string;
     };
 }
-
-/*type GtfsData = {
-    agency: {[key: string]: any}[],
-    routes: {[key: string]: any}[],
-    calendar: {[key: string]: any}[],
-    shapes: {[key: string]: any}[],
-    //trips: {[key: string]: any}[],
-    //stop_times: {[key: string]: any}[],
-    stops: {[key: string]: any}[]
-};*/
 
 export default class GtfsExporter extends ObjectWithHistory<GtfsExporterAttributes> {
     constructor(attributes: GtfsExporterAttributes, isNew = false) {
@@ -43,7 +34,8 @@ export default class GtfsExporter extends ObjectWithHistory<GtfsExporterAttribut
         return {
             ...preparedAttributes,
             selectedAgencies: attributes.selectedAgencies || [],
-            selectedServices: attributes.selectedServices || []
+            selectedServices: attributes.selectedServices || [],
+            includeTransitionCustomFields: attributes.includeTransitionCustomFields ?? false
         };
     }
 
@@ -68,6 +60,7 @@ export default class GtfsExporter extends ObjectWithHistory<GtfsExporterAttribut
             gtfsExporterId: this.id,
             selectedAgencies: this.get('selectedAgencies'),
             selectedServices: this.get('selectedServices'),
+            includeTransitionCustomFields: this.get('includeTransitionCustomFields'),
             filename: this.get('filename')
         });
         return;

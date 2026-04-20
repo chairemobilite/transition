@@ -13,6 +13,8 @@ import { v4 as uuidV4 } from 'uuid';
 
 import InputCheckbox from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
+import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
+import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -39,6 +41,7 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
         const gtfsExporter = new GtfsExporter({
             selectedAgencies: [],
             selectedServices: [],
+            includeTransitionCustomFields: false,
             filename: '',
             id: uuid,
             data: {},
@@ -50,7 +53,8 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
             formValues: {
                 filename: gtfsExporter.get('filename', ''),
                 selectedAgencies: gtfsExporter.get('selectedAgencies', []),
-                selectedServices: gtfsExporter.get('selectedServices', [])
+                selectedServices: gtfsExporter.get('selectedServices', []),
+                includeTransitionCustomFields: gtfsExporter.get('includeTransitionCustomFields', false)
             },
             agenciesToDisplay: serviceLocator.collectionManager.get('agencies')?.getFeatures() ?? [],
             servicesToDisplay: serviceLocator.collectionManager.get('services')?.getFeatures() ?? []
@@ -199,6 +203,21 @@ class GtfsExportForm extends ChangeEventsForm<WithTranslation, ChangeEventsState
                             value={gtfsExporter.attributes.filename}
                             onValueChange={(e) => this.onValueChange('filename', { value: e.target.value })}
                         />
+                    </div>
+                    <div className="apptr__form-input-container _two-columns">
+                        <InputWrapper
+                            smallInput={true}
+                            label={this.props.t('transit:gtfs:IncludeTransitionCustomFields')}
+                            help={this.props.t('transit:gtfs:IncludeTransitionCustomFieldsHelp')}
+                        >
+                            <InputCheckboxBoolean
+                                id={`formFieldTransitGtfsExporterIncludeFields${exporterId}`}
+                                isChecked={gtfsExporter.attributes.includeTransitionCustomFields}
+                                onValueChange={(e) =>
+                                    this.onValueChange('includeTransitionCustomFields', { value: e.target.value })
+                                }
+                            />
+                        </InputWrapper>
                     </div>
                     {agenciesChoices.length > 0 && (
                         <div className="apptr__form-input-container">

@@ -24,6 +24,14 @@ export interface GtfsExportParameters {
      * agencies.
      */
     selectedServices: string[];
+    /**
+     * Whether to include custom Transition fields in the exported GTFS feed. If
+     * true, custom fields added to the GTFS specification in Transition will be
+     * included in the exported GTFS feed, making it easier to import in another
+     * Transition instance. If false, only standard GTFS fields will be
+     * included.
+     */
+    includeTransitionCustomFields: boolean;
     filename: string;
 }
 

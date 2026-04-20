@@ -71,7 +71,10 @@ const writeZipFile = async (
     });
 };
 
-type DataFilterOptions = Pick<GtfsExportParameters, 'selectedAgencies' | 'selectedServices'>;
+type DataFilterOptions = Pick<
+    GtfsExportParameters,
+    'selectedAgencies' | 'selectedServices' | 'includeTransitionCustomFields'
+>;
 
 // Get the services to export based on the selected agencies.
 const getServicesToExportForAgencies = async (
@@ -193,7 +196,7 @@ export const exportGtfs = async (
     progressEmitter?.emit('progress', { name: preparationProgressName, progress: 0.0 });
 
     const gtfsFileDirectory = `${exportAbsoluteDirectory}/gtfs`;
-    const includeCustomFields = true;
+    const includeCustomFields = dataFilterOptions.includeTransitionCustomFields ?? false;
     try {
         const nbExportSteps = 7;
         let currentStepCompleted = 0;
