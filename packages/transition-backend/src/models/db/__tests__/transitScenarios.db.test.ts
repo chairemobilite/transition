@@ -256,10 +256,11 @@ describe(`${objectName}`, () => {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
-        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+        // One is already deleted, only one should be deleted here
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCount).toEqual(1);
 
-        // All services should still be there
+        // All services should still be there, as they are not recursively deleted with scenarios
         const serviceCollection = await servicesDbQueries.collection();
         expect(serviceCollection.length).toEqual(3);
 
@@ -325,10 +326,56 @@ describe(`${objectName}`, () => {
         expect(serviceCollection.length).toEqual(1);
         expect(serviceCollection[0].id).toEqual(serviceId2);
 
-        // Delete multiple with cascade
-        await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id], true);
+        // Delete multiple with cascade, only service 2 reamains
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id], true);
+        expect(deletedCount).toEqual(1);
         const serviceCollection2 = await servicesDbQueries.collection();
         expect(serviceCollection2.length).toEqual(0);
+    });
+
+    test('Do not delete frozen scenarios', async() => {
+        // Put services in the database
+        await servicesDbQueries.createMultiple([{
+            id: serviceId1,
+            name: 'Service test 1',
+            ...defaultServiceAttribs
+        }, {
+            id: serviceId2,
+            name: 'Service test 2',
+            ...defaultServiceAttribs
+        }, {
+            id: serviceId3,
+            name: 'Service test 3',
+            ...defaultServiceAttribs
+        }]);
+
+        // Create a frozen scenario and a non frozen one in the database, services should not be deleted for frozen scenarios
+        await dbQueries.createMultiple([{
+            ...newObjectAttributes,
+            services: [serviceId1, serviceId3],
+            is_frozen: true
+        }, {
+            ...newObjectAttributes2,
+            services: [serviceId2],
+            is_frozen: false
+        }])
+        
+        // Delete multiple with cascade, only the non frozen should be deleted
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id], true);
+        expect(deletedCount).toEqual(1);
+
+        // First scenario should not have been deleted
+        const scenarioCollection = await dbQueries.collection();
+        expect(scenarioCollection.length).toEqual(1);
+        expect(scenarioCollection[0].id).toEqual(newObjectAttributes.id);
+
+        // serviceId1 and serviceId3 should not have been deleted since they are used by the frozen scenario, but serviceId2 should have been deleted
+        const serviceCollection = await servicesDbQueries.collection();
+        expect(serviceCollection.length).toEqual(2);
+        const serviceIds = serviceCollection.map(service => service.id);
+        expect(serviceIds).toContain(serviceId1);
+        expect(serviceIds).toContain(serviceId3);
+        expect(serviceIds).not.toContain(serviceId2);
     });
 
 });

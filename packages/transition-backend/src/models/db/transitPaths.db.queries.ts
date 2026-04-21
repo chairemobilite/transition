@@ -244,8 +244,8 @@ export default {
         updateMultiple(knex, tableName, attributesCleaner, updatedObjects, options),
     delete: async (id: string, options?: Parameters<typeof deleteRecord>[3]) =>
         deleteRecord(knex, tableName, id, options),
-    deleteMultiple: async (ids: string[], options?: Parameters<typeof deleteMultiple>[3]) =>
-        deleteMultiple(knex, tableName, ids, options),
+    deleteMultiple: async (ids: string[], options?: Parameters<typeof deleteMultiple>[4]) =>
+        deleteMultiple(knex, tableName, true, ids, options),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,

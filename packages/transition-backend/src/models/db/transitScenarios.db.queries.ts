@@ -273,7 +273,10 @@ const _cascadeDeleteServices = async (scenarioId: string, { transaction }: { tra
     const innerScenarioServiceQuery = knex
         .select('service_id')
         .from(`${scenarioServiceTableName}`)
-        .where('scenario_id', scenarioId);
+        // Avoid deleting services if the scenario is frozen
+        .innerJoin(`${tableName} as sc`, 'sc.id', `${scenarioServiceTableName}.scenario_id`)
+        .where('scenario_id', scenarioId)
+        .andWhereNot('sc.is_frozen', true);
     const countServiceQuery = knex
         .select('service_id')
         .from(`${scenarioServiceTableName}`)
@@ -312,7 +315,7 @@ const deleteScenario = async (
 const deleteMultipleScenarios = async (
     ids: string[],
     cascade = false,
-    { transaction, ...options }: Parameters<typeof deleteMultiple>[3] = {}
+    { transaction, ...options }: Parameters<typeof deleteMultiple>[4] = {}
 ) => {
     try {
         // Nested function to require a transaction around the deletes
@@ -323,7 +326,7 @@ const deleteMultipleScenarios = async (
                     await _cascadeDeleteServices(ids[i], { transaction: trx });
                 }
             }
-            return deleteMultiple(knex, tableName, ids, { transaction: trx, ...options });
+            return deleteMultiple(knex, tableName, true, ids, { transaction: trx, ...options });
         };
         // Make sure the deletes are done in a transaction, use the one in the options if available
         return await (transaction ? deleteWithTransaction(transaction) : knex.transaction(deleteWithTransaction));

@@ -500,12 +500,12 @@ const readForLine = async function (lineId: string) {
 
 // Private function to delete periods by ids, within a transaction
 const _deleteSchedulePeriods = async function (ids: number[], options: { transaction: Knex.Transaction }) {
-    return await deleteMultiple(knex, periodTable, ids, options);
+    return await deleteMultiple(knex, periodTable, false, ids, options);
 };
 
 // Private function to delete trips by id, within a transaction
 const _deleteSchedulePeriodTrips = async function (ids: number[], options: { transaction: Knex.Transaction }) {
-    return await deleteMultiple(knex, tripTable, ids, options);
+    return await deleteMultiple(knex, tripTable, false, ids, options);
 };
 
 const deleteScheduleData = async function (id: number | string, options: Parameters<typeof deleteRecord>[3] = {}) {

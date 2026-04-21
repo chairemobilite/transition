@@ -278,7 +278,7 @@ export default {
         return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
     delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    deleteMultiple: deleteMultiple.bind(null, knex, tableName, false),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,

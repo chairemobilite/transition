@@ -253,7 +253,7 @@ const deleteMultipleRun = async (ids: string[], cascade = false) => {
             await cascadeDeleteScenario(ids[i]);
         }
     }
-    return deleteMultiple(knex, tableName, ids);
+    return deleteMultiple(knex, tableName, false, ids);
 };
 
 export default {

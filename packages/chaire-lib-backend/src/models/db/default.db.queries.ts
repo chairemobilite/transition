@@ -408,28 +408,40 @@ export const deleteRecord = async (
  *
  * @param knex The database configuration object
  * @param tableName The name of the table on which to execute the operation
+ * @param hasFrozenField Whether the table has an `is_frozen` field that should
+ * prevent deletion of frozen records
  * @param {string[]|number[]} ids An array of record IDs to delete, numeric for
  * tables that have numeric primary keys, or uuid strings for tables that have
  * uuid primary keys
  * @param options Additional options parameter. `transaction` is an optional
  * transaction of which this delete is part of.
- * @returns The array of deleted IDs
+ * @returns The number of deleted records
  */
 export const deleteMultiple = async (
     knex: Knex,
     tableName: string,
+    hasFrozenField: boolean,
     ids: string[] | number[],
     options: {
         transaction?: Knex.Transaction;
     } = {}
-): Promise<string[] | number[]> => {
+): Promise<number> => {
     try {
-        const query = knex(tableName).whereIn('id', ids).del();
+        const query = knex(tableName).whereIn('id', ids);
+        // If the table has an `is_frozen` field, only delete records that are
+        // not frozen, by default the field may be null, so make sure the value
+        // is _not_ true
+        if (hasFrozenField) {
+            query.andWhere((builder) => {
+                builder.where('is_frozen', false).orWhereNull('is_frozen');
+            });
+        }
+        query.del();
         if (options.transaction) {
             query.transacting(options.transaction);
         }
-        await query;
-        return ids;
+        const deletedCount = await query;
+        return typeof deletedCount === 'number' ? deletedCount : ids.length;
     } catch (error) {
         throw new TrError(
             `Cannot delete objects with ids ${ids} from table ${tableName} (knex error: ${error})`,
