@@ -358,7 +358,11 @@ describe(`${objectName}`, () => {
             ...newObjectAttributes2,
             services: [serviceId2],
             is_frozen: false
-        }])
+        }]);
+
+        // Try to delete frozen scenario, it should not be deleted
+        const id = await dbQueries.delete(newObjectAttributes.id, true);
+        expect(id).toBeUndefined();
         
         // Delete multiple with cascade, only the non frozen should be deleted
         const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id], true);

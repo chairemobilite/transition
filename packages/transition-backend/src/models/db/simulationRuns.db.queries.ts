@@ -243,7 +243,7 @@ const deleteRun = async (id: string, cascade = false) => {
     if (cascade) {
         await cascadeDeleteScenario(id);
     }
-    return deleteRecord(knex, tableName, id);
+    return deleteRecord(knex, tableName, false, id);
 };
 
 const deleteMultipleRun = async (ids: string[], cascade = false) => {

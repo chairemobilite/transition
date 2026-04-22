@@ -365,21 +365,25 @@ export const updateMultiple = async <T extends Idable, U>(
  *
  * @param knex The database configuration object
  * @param tableName The name of the table on which to execute the operation
+ * @param hasFrozenField Whether the table has an `is_frozen` field that should
+ * prevent deletion of a frozen record
  * @param {string|number} id The ID of the record to delete, numeric for tables
  * that have numeric primary keys, or uuid strings for tables that have uuid
  * primary keys
  * @param options Additional options parameter. `transaction` is an optional
  * transaction of which this delete is part of.
- * @returns The ID of the deleted object
+ * @returns The ID of the deleted object, or undefined if the object was not
+ * deleted because it did not exist or was frozen
  */
 export const deleteRecord = async (
     knex: Knex,
     tableName: string,
+    hasFrozenField: boolean,
     id: string | number,
     options: {
         transaction?: Knex.Transaction;
     } = {}
-) => {
+): Promise<string | number | undefined> => {
     try {
         if (typeof id === 'string' && !uuidValidate(id)) {
             throw new TrError(
@@ -388,12 +392,21 @@ export const deleteRecord = async (
                 'ObjectCannotDeleteBecauseIdIsMissingOrInvalid'
             );
         }
-        const query = knex(tableName).where('id', id).del();
+        const query = knex(tableName).where('id', id);
+        // If the table has an `is_frozen` field, only delete records that are
+        // not frozen, by default the field may be null, so make sure the value
+        // is _not_ true
+        if (hasFrozenField) {
+            query.andWhere((builder) => {
+                builder.where('is_frozen', false).orWhereNull('is_frozen');
+            });
+        }
+        query.del();
         if (options.transaction) {
             query.transacting(options.transaction);
         }
-        await query;
-        return id;
+        const deletedCount = await query;
+        return typeof deletedCount === 'number' && deletedCount === 0 ? undefined : id;
     } catch (error) {
         throw new TrError(
             `Cannot delete object with id ${id} from table ${tableName} (knex error: ${error})`,

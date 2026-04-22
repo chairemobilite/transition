@@ -291,7 +291,7 @@ const _cascadeDeleteServices = async (scenarioId: string, { transaction }: { tra
 const deleteScenario = async (
     id: string,
     cascade = false,
-    { transaction, ...options }: Parameters<typeof deleteRecord>[3] = {}
+    { transaction, ...options }: Parameters<typeof deleteRecord>[4] = {}
 ) => {
     try {
         // Nested function to require a transaction around the delete
@@ -299,7 +299,7 @@ const deleteScenario = async (
             if (cascade) {
                 await _cascadeDeleteServices(id, { transaction: trx });
             }
-            return deleteRecord(knex, tableName, id, { transaction: trx, ...options });
+            return deleteRecord(knex, tableName, true, id, { transaction: trx, ...options });
         };
         // Make sure the delete is done in a transaction, use the one in the options if available
         return await (transaction ? deleteWithTransaction(transaction) : knex.transaction(deleteWithTransaction));

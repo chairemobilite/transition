@@ -272,6 +272,9 @@ describe(`${objectName}`, () => {
 
         const collectionBefore = await dbQueries.collection();
 
+        const id = await dbQueries.delete(frozenObjectAttributes.id)
+        expect(id).toBeUndefined();
+
         const deletedCount = await dbQueries.deleteMultiple([frozenObjectAttributes.id, frozenObjectAttributes2.id]);
         expect(deletedCount).toEqual(0);
 
