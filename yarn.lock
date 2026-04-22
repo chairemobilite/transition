@@ -786,10 +786,10 @@
   resolved "https://registry.yarnpkg.com/@cap.js/widget/-/widget-0.1.33.tgz#3f62446d1b3dbc6b885368d358b48de98694a72a"
   integrity sha512-opQqn8sWIe4tIFSkQ06pAiGzlljCIqQ7QWEqLt2sV6MlQLrmQT8EUNWAgfrB1hTFoYygutnVViWEaaJr3Vb44A==
 
-"@casl/ability@^6.7.5":
-  version "6.7.5"
-  resolved "https://registry.yarnpkg.com/@casl/ability/-/ability-6.7.5.tgz#9468b210005ab5cbd7a5e030fb48d3a3720de92b"
-  integrity sha512-NaOHPi9JMn8Kesh+GRkjNKAYkl4q8qMFAlqw7w2yrE+cBQZSbV9GkBGKvgzs3CdzEc5Yl1cn3JwDxxbBN5gjog==
+"@casl/ability@^6.8.1":
+  version "6.8.1"
+  resolved "https://registry.yarnpkg.com/@casl/ability/-/ability-6.8.1.tgz#f026af0eaeef0159e84451b42ad83a9a992b63e9"
+  integrity sha512-VX5DD1JbSP/DdewZnNwXXaCzve+0pLe14mcUj2l93CdOFAQUT/ylAptNqxf3Wc/jlsuSanAgXza4Z1Iq23dzpQ==
   dependencies:
     "@ucast/mongo2js" "^1.3.0"
 
