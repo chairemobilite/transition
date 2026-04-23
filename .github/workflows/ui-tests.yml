@@ -36,11 +36,11 @@ jobs:
       PLAYWRIGHT_TEST_EMAIL: user@test.ts
       PLAYWRIGHT_TEST_PASSWORD: testPassword
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: copy env file
       run: cp .env.example .env
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ matrix.node-version }}
     - name: Install
@@ -65,7 +65,7 @@ jobs:
       run: yarn test:ui
     - name: Archive UI Test results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: playwright-results-${{matrix.node-version}} # This is to make sure that the results are stored in a unique name
         path: packages/transition-frontend/test-results
