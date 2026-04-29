@@ -238,7 +238,7 @@ class InputCheckboxBooleanInner extends React.Component<InputCheckboxBoolProps> 
     render(): React.ReactNode {
         return (
             <InputCheckbox
-                choices={[{ value: 'true', label: this.props.t(`${this.props.localePrefix}:${this.props.label}`) }]}
+                choices={[{ value: 'true', label: this.props.label }]}
                 localePrefix={this.props.localePrefix}
                 disabled={this.props.disabled}
                 id={this.props.id}
