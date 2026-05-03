@@ -84,6 +84,22 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
     const inboundPathId =
         actualInboundPathId || (inboundPathsChoices.length === 1 ? inboundPathsChoices[0].value : undefined);
 
+    // When only one path is available, sync the auto-selected default into form state
+    // so it gets saved even if the user never interacts with the dropdown.
+    React.useEffect(() => {
+        if (isFrozen) return;
+        if (outboundPathId && outboundPathId !== actualOutboundPathId) {
+            onValueChange(`periods[${periodIndex}].outbound_path_id`, { value: outboundPathId });
+        }
+    }, [outboundPathId, actualOutboundPathId, periodIndex, isFrozen]);
+
+    React.useEffect(() => {
+        if (isFrozen) return;
+        if (inboundPathId && inboundPathId !== actualInboundPathId) {
+            onValueChange(`periods[${periodIndex}].inbound_path_id`, { value: inboundPathId });
+        }
+    }, [inboundPathId, actualInboundPathId, periodIndex, isFrozen]);
+
     const outboundTripsCells: React.ReactNode[] = [];
     const inboundTripsCells: React.ReactNode[] = [];
     const tripRows: React.ReactNode[] = [];
