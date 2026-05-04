@@ -403,14 +403,29 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             nodeTypes.splice(removeIndex, 1);
             this.attributes.nodes = nodeIds;
             this.attributes.data.nodeTypes = nodeTypes;
-            // FIXME: This has the effect of removing all waypoints on the node before and the node to remove. Is that desired? Or should we rather merge them?
+            // `waypoints[k]` / `waypointTypes[k]` are for the segment from node k to k+1. Removing node
+            // `removeIndex` joins that segment with the next; concatenate their waypoints in path order.
+            // If we remove the first node, it will delete the first segment, so the existing waypoints
+            // in this removed segment will be deleted too, as they should be.
             const waypointsByNodeIndex = this.attributes.data.waypoints;
             const waypointTypesByNodeIndex = this.attributes.data.waypointTypes;
+            let mergedWaypoints: [number, number][] | undefined;
+            let mergedWaypointTypes: string[] | undefined;
+            if (removeIndex > 0) {
+                mergedWaypoints = [
+                    ...(waypointsByNodeIndex[removeIndex - 1] || []),
+                    ...(waypointsByNodeIndex[removeIndex] || [])
+                ];
+                mergedWaypointTypes = [
+                    ...(waypointTypesByNodeIndex[removeIndex - 1] || []),
+                    ...(waypointTypesByNodeIndex[removeIndex] || [])
+                ];
+            }
             waypointsByNodeIndex.splice(removeIndex, 1);
             waypointTypesByNodeIndex.splice(removeIndex, 1);
-            if (waypointsByNodeIndex[removeIndex - 1]) {
-                waypointsByNodeIndex[removeIndex - 1] = []; //afterNodeWaypoints;
-                waypointTypesByNodeIndex[removeIndex - 1] = []; //afterNodeWaypointTypes;
+            if (removeIndex > 0 && mergedWaypoints !== undefined && mergedWaypointTypes !== undefined) {
+                waypointsByNodeIndex[removeIndex - 1] = mergedWaypoints;
+                waypointTypesByNodeIndex[removeIndex - 1] = mergedWaypointTypes;
             }
             this._attributes.nodes = nodeIds;
             this._attributes.data.nodeTypes = nodeTypes;
