@@ -18,7 +18,7 @@ import {
     EvolutionaryTransitNetworkDesignJobType
 } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
 import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
-import { SIMULATION_METHODS_FACTORY } from '../../simulation/methods/SimulationMethod';
+import { SIMULATION_METHODS_FACTORY, SimulationMethod } from '../../simulation/methods/SimulationMethod';
 import { CandidateResult, ResultSerialization } from './types';
 
 // Proportion between the number of vehicles used and the available number under which this candidate is considered invalid
@@ -27,6 +27,7 @@ const USED_VEHICLES_THRESHOLD = 0.75;
 class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
     private scenario: Scenario | undefined;
     private source: CandidateSource | undefined;
+    private simulationMethod: undefined | SimulationMethod;
 
     constructor(
         chromosome: AlgoTypes.CandidateChromosome,
@@ -177,6 +178,7 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         // FIXME Type properly when the methods are typed better (see issues #1533, #1560 and #1553)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const simulationMethod = factory.create(methodOptions as any, this.wrappedJob);
+        this.simulationMethod = simulationMethod;
         const results = await simulationMethod.simulate(scenario.getId());
         allResults[simulationMethodType] = results;
 
@@ -281,6 +283,14 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
      */
     getSource(): CandidateSource | undefined {
         return this.source;
+    }
+
+    cleanup(): Promise<void> {
+        // Call the cleanup method of the simulation method if it exists, to clean up any resources used for the simulation (e.g. tasks, results, etc.)
+        if (this.simulationMethod !== undefined) {
+            return this.simulationMethod.cleanup();
+        }
+        return Promise.resolve();
     }
 }
 

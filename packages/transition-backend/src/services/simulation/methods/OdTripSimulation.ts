@@ -246,6 +246,7 @@ export default class OdTripSimulation implements SimulationMethod {
     private fitnessFunction: FitnessFunction;
     private odTripFitnessFunction: OdTripFitnessFunction;
     private nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
+    private routingJob: ExecutableJob<BatchRouteJobType> | undefined;
 
     constructor(
         private options: OdTripSimulationOptions,
@@ -352,51 +353,56 @@ export default class OdTripSimulation implements SimulationMethod {
                 files: { input: `sampled_transit_demand_${scenarioId}.csv` }
             }
         });
+        // Keep the job until the cleanup function is called, in case we still need the results after simulations
+        this.routingJob = routingJob;
 
-        try {
-            // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
-            await this.sampleOdTripFileForJob(routingJob);
+        // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
+        await this.sampleOdTripFileForJob(routingJob);
 
-            //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
-            // I would normally do routingJob.run() here, but it was not implemented like that :P
+        //TODO Normally we would yeild the execution here. To let the child run. For now run it directly.
+        // I would normally do routingJob.run() here, but it was not implemented like that :P
 
-            // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
+        // This is copied from wrapBatchRoute in `TransitionWorkerPool.ts`
 
-            // Child job needs its own progress emitter to avoid conflicts with the parent's
-            const childProgressEmitter = new EventEmitter();
+        // Child job needs its own progress emitter to avoid conflicts with the parent's
+        const childProgressEmitter = new EventEmitter();
 
-            const batchJobExecutor = new TrRoutingBatchExecutor(
-                routingJob,
-                {
-                    progressEmitter: childProgressEmitter,
-                    isCancelled: this.jobWrapper.privexecutorOptions.isCancelled,
-                    suppressExpectedRouteErrors: true
-                },
-                this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
+        const batchJobExecutor = new TrRoutingBatchExecutor(
+            routingJob,
+            {
+                progressEmitter: childProgressEmitter,
+                isCancelled: this.jobWrapper.privexecutorOptions.isCancelled,
+                suppressExpectedRouteErrors: true
+            },
+            this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
+        );
+        const execResults = await batchJobExecutor.run();
+        if (execResults.completed === true) {
+            const facPerField = this.options.demandAttributes.fileAndMapping.fieldMappings.expansionFactor;
+            // Handle results using the visitor pattern
+            const fitnessVisitor = new OdTripFitnessVisitor(routingJob, {
+                odTripFitnessFunction: this.odTripFitnessFunction,
+                nonRoutableOdTripFitnessFunction: this.nonRoutableOdTripFitnessFunction,
+                expansionFactorField: facPerField,
+                getOriginalFitness: this.jobWrapper.getOriginalFitness
+            });
+            const results = await batchJobExecutor.handleResults(fitnessVisitor);
+            const fitness = this.fitnessFunction(results);
+            console.log(
+                `OdTripSimulation: scenario=${scenarioId} fitness=${fitness.toFixed(2)} routed=${results.routedCount} nonRouted=${results.nonRoutedCount} total=${results.totalCount}`
             );
-            const execResults = await batchJobExecutor.run();
-            if (execResults.completed === true) {
-                const facPerField = this.options.demandAttributes.fileAndMapping.fieldMappings.expansionFactor;
-                // Handle results using the visitor pattern
-                const fitnessVisitor = new OdTripFitnessVisitor(routingJob, {
-                    odTripFitnessFunction: this.odTripFitnessFunction,
-                    nonRoutableOdTripFitnessFunction: this.nonRoutableOdTripFitnessFunction,
-                    expansionFactorField: facPerField,
-                    getOriginalFitness: this.jobWrapper.getOriginalFitness
-                });
-                const results = await batchJobExecutor.handleResults(fitnessVisitor);
-                const fitness = this.fitnessFunction(results);
-                console.log(
-                    `OdTripSimulation: scenario=${scenarioId} fitness=${fitness.toFixed(2)} routed=${results.routedCount} nonRouted=${results.nonRoutedCount} total=${results.totalCount}`
-                );
 
-                return { fitness, results };
-            } else {
-                throw new Error('Batch routing job did not complete successfully');
-            }
-        } finally {
-            // Delete the child job to avoid clutter, no need to await
-            routingJob.delete();
+            return { fitness, results };
+        } else {
+            throw new Error('Batch routing job did not complete successfully');
+        }
+    }
+
+    async cleanup(): Promise<void> {
+        if (this.routingJob) {
+            return this.routingJob.delete().then(() => {
+                this.routingJob = undefined;
+            });
         }
     }
 }

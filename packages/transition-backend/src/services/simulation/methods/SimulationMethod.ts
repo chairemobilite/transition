@@ -23,6 +23,7 @@ import { AccessibilityMapSimulationFactory } from './AccessibilityMapSimulation'
  */
 export interface SimulationMethod {
     simulate: (scenarioId: string) => Promise<{ fitness: number; results: unknown }>;
+    cleanup: () => Promise<void>;
 }
 
 /**
