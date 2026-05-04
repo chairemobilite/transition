@@ -285,6 +285,16 @@ class LineAndNumberOfVehiclesNetworkCandidate extends Candidate {
         return this.source;
     }
 
+    saveResultsFile(): Promise<void> {
+        const simulationMethod = this.simulationMethod;
+        if (simulationMethod !== undefined) {
+            if (typeof (simulationMethod as any).saveResultsFile === 'function') {
+                return (simulationMethod as any).saveResultsFile(this.chromosome.name);
+            }
+        }
+        return Promise.resolve();
+    }
+
     cleanup(): Promise<void> {
         // Call the cleanup method of the simulation method if it exists, to clean up any resources used for the simulation (e.g. tasks, results, etc.)
         if (this.simulationMethod !== undefined) {

@@ -1210,12 +1210,11 @@
             }
         },
         "evolutionaryTransitNetworkDesign": {
-            "files": {
-                "transitDemand": "Demand file: {{filename}}",
-                "nodeWeight": "Node weights file: {{filename}}",
-                "simulationResults": "Simulation results for candidates",
-                "linesResult": "Candidate lines"
-            }
+            "files_linesResult": "Candidate lines",
+            "files_simulationResults": "Simulation results for candidates",
+            "files_transitDemand": "Demand file: {{filename}}",
+            "files_nodeWeight": "Node weights file: {{filename}}",
+            "files": "Simulation result file: {{filename}}"
         }
     },
     "batchCalculation": {
