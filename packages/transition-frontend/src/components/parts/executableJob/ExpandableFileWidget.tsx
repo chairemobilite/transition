@@ -7,6 +7,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { JobsConstants } from 'transition-common/lib/api/jobs';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { withTranslation, WithTranslation } from 'react-i18next';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export interface ExpandableFileProps {
     jobId: number;
@@ -14,7 +15,7 @@ export interface ExpandableFileProps {
 }
 
 type JobFileType = {
-    [fileName: string]: { url: string; downloadName: string; title: string | { text: string; fileName: string } };
+    [fileName: string]: { url: string; downloadName: string; title: TranslatableMessage };
 };
 
 const getFilesFromSocket = (id: number): Promise<Status.Status<JobFileType>> => {
@@ -64,11 +65,9 @@ const ExpandableFileWidget: React.FunctionComponent<ExpandableFileProps & WithTr
                 Object.keys(files).map((fileName, fileIdx) => (
                     <p key={`jobFile${props.jobId}_${fileIdx}`}>
                         <a href={files[fileName].url} download={files[fileName].downloadName}>
-                            {typeof files[fileName].title === 'string'
-                                ? props.t(files[fileName].title as string)
-                                : props.t((files[fileName].title as any).text, {
-                                    filename: (files[fileName].title as any).fileName
-                                })}
+                            {typeof files[fileName].title === 'object'
+                                ? props.t(files[fileName].title.text, files[fileName].title.params)
+                                : props.t(files[fileName].title)}
                         </a>
                     </p>
                 ))}
