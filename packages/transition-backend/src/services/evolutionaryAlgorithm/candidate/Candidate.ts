@@ -47,6 +47,8 @@ abstract class Candidate {
     abstract simulate(): Promise<CandidateResult>;
 
     abstract getScenario(): Scenario | undefined;
+
+    abstract cleanup(): Promise<void>;
 }
 
 export default Candidate;

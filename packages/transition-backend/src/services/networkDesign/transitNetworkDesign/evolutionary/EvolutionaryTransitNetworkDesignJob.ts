@@ -383,68 +383,73 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             do {
                 previousGeneration = await this._prepareOrResumeGeneration(previousGeneration);
 
-                // FIXME Handle checkpointing with simulations that can be long
-                // Simulate the generation
-                await previousGeneration.simulate();
+                try {
+                    // FIXME Handle checkpointing with simulations that can be long
+                    // Simulate the generation
+                    await previousGeneration.simulate();
 
-                // TODO For now, we keep the best of each generation, but we
-                // should be smarter about it, knowing that the end of the
-                // simulation can follow various rules, like a number of
-                // generation or convergence of results. edit: Now that we save
-                // results to db at each generation, we may not even need this.
-                // See if runtime messages are useful or not.
-                algorithmResults.generations.push(previousGeneration.serializeBestResult());
-                await this.addMessages({
-                    infos: [
-                        `Completed generation ${this.currentIteration} with best results: ${JSON.stringify(previousGeneration.serializeBestResult())}.`
-                    ]
-                });
-                this.job.attributes.data.results = algorithmResults;
-                // Await saving simulation to avoid race condition if next generation is very fast
-                await this.job.save(this.executorOptions.progressEmitter);
-
-                // Save best scenarios if necessary
-                // FIXME Refactor this so we can map a candidate with the scenario it generated and save it in the result's data for output in files
-                // FIXME2 Extract this block to a function when we clean up this class
-                if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
-                    const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
-                    const scenarioSavePromises = bestScenarios?.map((scenario) =>
-                        saveSimulationScenario(scenario, this)
-                    );
-                    const scenarioSaveResults = (await Promise.all(scenarioSavePromises)).filter(
-                        (scenarioSaveResult) => scenarioSaveResult !== undefined
-                    );
-                    algorithmResults.scenarioIds.push(...scenarioSaveResults.map((result) => result!.scenarioId));
+                    // TODO For now, we keep the best of each generation, but we
+                    // should be smarter about it, knowing that the end of the
+                    // simulation can follow various rules, like a number of
+                    // generation or convergence of results. edit: Now that we save
+                    // results to db at each generation, we may not even need this.
+                    // See if runtime messages are useful or not.
+                    algorithmResults.generations.push(previousGeneration.serializeBestResult());
+                    await this.addMessages({
+                        infos: [
+                            `Completed generation ${this.currentIteration} with best results: ${JSON.stringify(previousGeneration.serializeBestResult())}.`
+                        ]
+                    });
                     this.job.attributes.data.results = algorithmResults;
+                    // Await saving simulation to avoid race condition if next generation is very fast
                     await this.job.save(this.executorOptions.progressEmitter);
 
-                    // Update the main cache with the saved scenarios to allow analyzing them from Transition UI
-                    await loadAndSaveScenariosToCache();
-                    await loadAndSaveServicesToCache();
-                    await loadAndSaveLinesByIdsToCache({
-                        lineIds: scenarioSaveResults.flatMap((result) => result!.lineIds)
-                    });
-                    // FIXME Should signal the main thread to restart trRouting. Or maybe it works directly?
+                    // Save best scenarios if necessary
+                    // FIXME Refactor this so we can map a candidate with the scenario it generated and save it in the result's data for output in files
+                    // FIXME2 Extract this block to a function when we clean up this class
+                    if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
+                        const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
+                        const scenarioSavePromises = bestScenarios?.map((scenario) =>
+                            saveSimulationScenario(scenario, this)
+                        );
+                        const scenarioSaveResults = (await Promise.all(scenarioSavePromises)).filter(
+                            (scenarioSaveResult) => scenarioSaveResult !== undefined
+                        );
+                        algorithmResults.scenarioIds.push(...scenarioSaveResults.map((result) => result!.scenarioId));
+                        this.job.attributes.data.results = algorithmResults;
+                        await this.job.save(this.executorOptions.progressEmitter);
+
+                        // Update the main cache with the saved scenarios to allow analyzing them from Transition UI
+                        await loadAndSaveScenariosToCache();
+                        await loadAndSaveServicesToCache();
+                        await loadAndSaveLinesByIdsToCache({
+                            lineIds: scenarioSaveResults.flatMap((result) => result!.lineIds)
+                        });
+                        // FIXME Should signal the main thread to restart trRouting. Or maybe it works directly?
+                    }
+
+                    // Save the results of this generation to the database
+
+                    // FIXME Consider doing it somewhere else, and maybe in multiple
+                    // steps (save candidate at the beginning and simulation results
+                    // at the end), to help with checkpoint recovery. It could avoid
+                    // saving the big blog of current generation in the job's
+                    // checkpointing, as well as re-run already completed candidate
+                    // simulations.
+                    const candidateResultsPromises = previousGeneration.getCandidates().map((candidate, index) =>
+                        resultsDbQueries.create({
+                            jobId: this.job.id,
+                            generationIndex: this.currentIteration,
+                            candidateIndex: index,
+                            scenarioName: candidate.getScenario()?.attributes.name || '',
+                            resultData: candidate.serialize()
+                        })
+                    );
+                    await Promise.all(candidateResultsPromises);
+                } finally {
+                    // Make sure the generation is cleaned up even if it throws an exception.
+                    await previousGeneration.cleanupCandidates();
                 }
-
-                // Save the results of this generation to the database
-
-                // FIXME Consider doing it somewhere else, and maybe in multiple
-                // steps (save candidate at the beginning and simulation results
-                // at the end), to help with checkpoint recovery. It could avoid
-                // saving the big blog of current generation in the job's
-                // checkpointing, as well as re-run already completed candidate
-                // simulations.
-                const candidateResultsPromises = previousGeneration.getCandidates().map((candidate, index) =>
-                    resultsDbQueries.create({
-                        jobId: this.job.id,
-                        generationIndex: this.currentIteration,
-                        candidateIndex: index,
-                        scenarioName: candidate.getScenario()?.attributes.name || '',
-                        resultData: candidate.serialize()
-                    })
-                );
-                await Promise.all(candidateResultsPromises);
 
                 // Increment generation number
                 this.currentIteration++;

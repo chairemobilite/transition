@@ -197,4 +197,9 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
         return { fitness: currentTotalAverage, results: { placesCost: placesAvgCosts } }; */
         return { fitness: 0, results: { placesCost: [] } };
     }
+
+    async cleanup(): Promise<void> {
+        // Nothing to clean up for now, but if we keep results during simulation, we may want to clean them up here
+        return Promise.resolve();
+    }
 }

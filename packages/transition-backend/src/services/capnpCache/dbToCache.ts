@@ -144,9 +144,9 @@ const saveLineObjectsToCache = async (lines: LineCollection, cachePathDirectory?
         await linesDbQueries.collectionWithSchedules(chunk);
         await lineObjectsToCache(chunk, cachePathDirectory);
         // Reset the line's schedules, to not load the memory
-        chunk.forEach(line => {
-            line.attributes.scheduleByServiceId = {}
-        })
+        chunk.forEach((line) => {
+            line.attributes.scheduleByServiceId = {};
+        });
         const memoryAfter = process.memoryUsage();
         console.log('saving a chunk of lines: after');
         console.log(`- RSS: ${Math.round(memoryAfter.rss / 1024 / 1024)} MB`); // Convert bytes to MB
