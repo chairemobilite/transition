@@ -18,26 +18,26 @@ import Path from '../Path';
 import Node from '../../nodes/Node';
 import NodeCollection from '../../nodes/NodeCollection';
 import { getPathAttributesWithData } from './PathData';
-import updatePathGeography from '../PathGeographyUtils'
+import updatePathGeography from '../PathGeographyUtils';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 jest.mock('../PathGeographyUtils', () => jest.fn().mockImplementation(async (path) => {
-        // Just do a line string with nodes and waypoints
-        const coordinates: [number, number][] = [];
-        const waypoints = path.attributes.data.waypoints || [];
-        const segments: number[] = [];
-        for (let i = 0; i < path.attributes.nodes.length; i++) {
-            // Add the node, with arbitrary coordinates
-            coordinates.push([-73 + (i * 0.001), 45 + (i * 0.001)]);
-            segments.push(coordinates.length - 1);
-            // Add the waypoints
-            const currentWaypoints = waypoints[i] || [];
-            currentWaypoints.forEach(waypoint => coordinates.push(waypoint));
-        }
-        const geography = coordinates.length > 1 ? turfLineString(coordinates) : undefined;
-        path.attributes.geography = geography === undefined ? undefined : geography.geometry;
-        path.attributes.segments = segments;
-        return { path };
+    // Just do a line string with nodes and waypoints
+    const coordinates: [number, number][] = [];
+    const waypoints = path.attributes.data.waypoints || [];
+    const segments: number[] = [];
+    for (let i = 0; i < path.attributes.nodes.length; i++) {
+        // Add the node, with arbitrary coordinates
+        coordinates.push([-73 + (i * 0.001), 45 + (i * 0.001)]);
+        segments.push(coordinates.length - 1);
+        // Add the waypoints
+        const currentWaypoints = waypoints[i] || [];
+        currentWaypoints.forEach((waypoint) => coordinates.push(waypoint));
+    }
+    const geography = coordinates.length > 1 ? turfLineString(coordinates) : undefined;
+    path.attributes.geography = geography === undefined ? undefined : geography.geometry;
+    path.attributes.segments = segments;
+    return { path };
 }));
 const updateGeographyMock = updatePathGeography as jest.MockedFunction<typeof updatePathGeography>;
 
@@ -59,7 +59,7 @@ const pathPreferences = {
     }
 };
 
-Preferences.setAttributes(Object.assign({}, Preferences.attributes, pathPreferences));
+Preferences.mergeAttributes(pathPreferences);
 
 const lineId = uuidV4();
 const node1Id = uuidV4();
@@ -479,11 +479,11 @@ describe('Update waypoints', () => {
 
 describe('Remove waypoints', () => {
     each([
-        ['No geography, unexisting waypoint', { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]], calculateGeography: false }, { calculateGeography: false}, 0, 0],
+        ['No geography, unexisting waypoint', { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]], calculateGeography: false }, { calculateGeography: false }, 0, 0],
         ['No geography, with existing waypoint', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[newWaypoint], []], waypointTypes: [['manual'], []], calculateGeography: false }, { waypoints: [[], []], waypointTypes: [[], []], calculateGeography: true }, 0, 0],
         ['Existing waypoint', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[newWaypoint, [newWaypoint[0] + 0.00001, newWaypoint[1] - 0.001], [newWaypoint[0] + 0.01, newWaypoint[1] - 0.01] ], []], waypointTypes: [['manual', 'manual', 'manual'], []] }, { waypoints: [[newWaypoint, [newWaypoint[0] + 0.01, newWaypoint[1] - 0.01]], []], waypointTypes: [['manual', 'manual'], []], calculateGeography: true }, 0, 1],
         ['Existing node, unexisting waypoint', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[newWaypoint, [newWaypoint[0] + 0.00001, newWaypoint[1] - 0.001]], []], waypointTypes: [['manual'], []] }, { calculateGeography: false }, 0, 4],
-        ['Unexisting node and waypoint', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[newWaypoint], []], waypointTypes: [['manual'], []] }, {calculateGeography: false }, 2, 2],
+        ['Unexisting node and waypoint', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[newWaypoint], []], waypointTypes: [['manual'], []] }, { calculateGeography: false }, 2, 2],
     ]).test('%s', async (_title, preData: NodeAndWaypointData, expected: NodeAndWaypointData, insertAfterNodeIdx: number, insertAfterWaypointIdx: number) => {
         // Prepare test data
         const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
@@ -584,8 +584,17 @@ describe('Remove node', () => {
         ['In empty path', { }, { calculateGeography: false }],
         ['Single node of a path', { nodes: [replacingNodeId], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, { nodes: [], nodeTypes: [], waypoints: [], waypointTypes: [] }],
         ['Last node of the path', { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }],
-        ['Node in the middle of a path, with waypoints after', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint] ], waypointTypes: [[], [], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint]], waypointTypes: [[], ['manual']]}],
-        ['Node in the middle of a path, with waypoints before, on and after the node, waypoints are deleted', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01]], [newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]] ], waypointTypes: [['manual'], ['manual'], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]]], waypointTypes: [[], ['manual']] }],
+        ['Node in the middle of a path, with waypoints after', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint] ], waypointTypes: [[], [], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint]], waypointTypes: [[], ['manual']] }],
+        [
+            'Node in the middle of a path, with waypoints before, on and after the node, waypoints are concatenated on the merged segment',
+            { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01]], [newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]] ], waypointTypes: [['manual'], ['manual'], ['manual']] },
+            {
+                nodes: [node1Id, node2Id],
+                nodeTypes: ['manual', 'manual'],
+                waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01], newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]]],
+                waypointTypes: [['manual', 'manual'], ['manual']],
+            },
+        ],
         ['Node that is duplicated in the path, not deleted', { nodes: [replacingNodeId, node1Id, replacingNodeId], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { calculateGeography: false }],
         ['Node between 2 duplicated nodes', { nodes: [node1Id, replacingNodeId, node1Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] } ],
         ['Node not part of the path', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { calculateGeography: false }],
@@ -621,8 +630,18 @@ describe('Remove node', () => {
         ['In empty path, unexisting index', { }, { calculateGeography: false }, 2],
         ['Single node of a path', { nodes: [replacingNodeId], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, { nodes: [], nodeTypes: [], waypoints: [], waypointTypes: [] }, 0],
         ['Last node of the path', { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, 1],
-        ['Node in the middle of a path, with waypoints after', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint] ], waypointTypes: [[], [], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint]], waypointTypes: [[], ['manual']]}, 1],
-        ['Node in the middle of a path, with waypoints before, on and after the node, waypoints are deleted', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01]], [newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]] ], waypointTypes: [['manual'], ['manual'], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]]], waypointTypes: [[], ['manual']] }, 1],
+        ['Node in the middle of a path, with waypoints after', { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], [newWaypoint] ], waypointTypes: [[], [], ['manual']] }, { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], [newWaypoint]], waypointTypes: [[], ['manual']] }, 1],
+        [
+            'Node in the middle of a path, with waypoints before, on and after the node, waypoints are concatenated on the merged segment',
+            { nodes: [node1Id, replacingNodeId, node2Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01]], [newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]] ], waypointTypes: [['manual'], ['manual'], ['manual']] },
+            {
+                nodes: [node1Id, node2Id],
+                nodeTypes: ['manual', 'manual'],
+                waypoints: [[[newWaypoint[0] + 0.01, newWaypoint[1] + 0.01], newWaypoint], [[newWaypoint[0] + 0.02, newWaypoint[1] + 0.02]]],
+                waypointTypes: [['manual', 'manual'], ['manual']],
+            },
+            1,
+        ],
         ['Node that is duplicated in the path', { nodes: [replacingNodeId, node1Id, replacingNodeId], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { nodes: [node1Id, replacingNodeId], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, 0],
         ['Node between 2 duplicated nodes', { nodes: [node1Id, replacingNodeId, node1Id], nodeTypes: ['manual', 'manual', 'manual'], waypoints: [[], [], []], waypointTypes: [[], [], []] }, { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]] }, 1 ],
         ['Unexisting index', { nodes: [node1Id, node2Id], nodeTypes: ['manual', 'manual'], waypoints: [[], []], waypointTypes: [[], []] }, { calculateGeography: false }, 3],
@@ -668,9 +687,9 @@ describe('Segment geojson', () => {
                 coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
             },
             segments: [ 0, 2, 3 ] }, {
-                type: 'LineString',
-                coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001]]
-            }, 0, 2],
+            type: 'LineString',
+            coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001]]
+        }, 0, 2],
         ['Path with geography, identical start/end', {
             geography: {
                 type: 'LineString',
@@ -689,9 +708,9 @@ describe('Segment geojson', () => {
                 coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
             },
             segments: [ 0, 2, 3 ] }, {
-                type: 'LineString',
-                coordinates: [[basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
-            }, 1, 5],
+            type: 'LineString',
+            coordinates: [[basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+        }, 1, 5],
         ['Path with geography, start higher than end', {
             geography: {
                 type: 'LineString',
@@ -704,18 +723,18 @@ describe('Segment geojson', () => {
                 coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
             },
             segments: [ 0, 2, 4 ] }, {
-                type: 'LineString',
-                coordinates: [[basePoint[0] - 0.0004, basePoint[1]], [basePoint[0] - 0.0004, basePoint[1]]]
-            }, 2, 3],
+            type: 'LineString',
+            coordinates: [[basePoint[0] - 0.0004, basePoint[1]], [basePoint[0] - 0.0004, basePoint[1]]]
+        }, 2, 3],
         ['Path with geography, start is the end, with waypoints', {
             geography: {
                 type: 'LineString',
                 coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
             },
             segments: [ 0, 2, 3 ] }, {
-                type: 'LineString',
-                coordinates: [[basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
-            }, 2, 3],
+            type: 'LineString',
+            coordinates: [[basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+        }, 2, 3],
         ['Path with geography, invalid segment data', {
             geography: {
                 type: 'LineString',
@@ -740,7 +759,7 @@ describe('Segment geojson', () => {
         // Compare with the expected data
         if (typeof expected === 'string') {
             expect(error).toBeDefined();
-            expect((error as TrError).getCode()).toEqual(expected)
+            expect((error as TrError).getCode()).toEqual(expected);
         } else {
             expect(error).toBeUndefined();
             expect(segmentGeojson).toEqual({
@@ -755,17 +774,17 @@ describe('Segment geojson', () => {
 
     test('With additional properties', () => {
         const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
-        path.attributes.geography = { 
-            type: 'LineString', 
-            coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]] 
-        }
+        path.attributes.geography = {
+            type: 'LineString',
+            coordinates: [basePoint, [basePoint[0] - 0.0001, basePoint[1] + 0.0001], [basePoint[0] - 0.0002, basePoint[1]], [basePoint[0] - 0.0003, basePoint[1] + 0.0001], [basePoint[0] - 0.0004, basePoint[1]]]
+        };
         path.attributes.segments = [ 0, 2, 3 ];
 
         // get segment geojson
         const additionalProperties = {
             test: 'abc',
             foo: 23
-        }
+        };
         const segmentGeojson = path.segmentGeojson(0, 1, additionalProperties);
 
         // Compare with the expected data

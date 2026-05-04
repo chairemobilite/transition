@@ -43,7 +43,9 @@ const lineModePreferences = {
     }
 };
 
-Preferences.setAttributes(Object.assign({}, Preferences.attributes, linePreferences));
+Preferences.mergeAttributes(linePreferences);
+
+
 
 beforeEach(() => {
     EventManagerMock.mockClear();
@@ -172,7 +174,7 @@ test('newPath', () => {
 });
 
 test('newPath with custom line mode default values', () => {
-    Preferences.setAttributes(Object.assign({}, Preferences.attributes, lineModePreferences));
+    Preferences.mergeAttributes(lineModePreferences);
     const line = new Line(lineAttributesBaseData, true);
     const newPath = line.newPath();
     expect(newPath.attributes.data.defaultDwellTimeSeconds).toEqual(24);
