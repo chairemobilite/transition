@@ -34,6 +34,7 @@ import {
 } from './OdTripSimulationFitnessFunctions';
 import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import { BatchRouteFileResultVisitor } from '../../transitRouting/batchRouteCalculation/BatchRouteFileResultVisitor';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 const timeCsvColumnHeader = 'time';
@@ -246,7 +247,7 @@ export default class OdTripSimulation implements SimulationMethod {
     private fitnessFunction: FitnessFunction;
     private odTripFitnessFunction: OdTripFitnessFunction;
     private nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
-    private routingJob: ExecutableJob<BatchRouteJobType> | undefined;
+    private routingJobExecutor: TrRoutingBatchExecutor | undefined;
 
     constructor(
         private options: OdTripSimulationOptions,
@@ -331,7 +332,7 @@ export default class OdTripSimulation implements SimulationMethod {
             routingModes: ['transit'],
             withAlternatives: false,
             withGeometries: false,
-            detailed: false,
+            detailed: true,
             scenarioId: scenarioId
         };
 
@@ -353,8 +354,6 @@ export default class OdTripSimulation implements SimulationMethod {
                 files: { input: `sampled_transit_demand_${scenarioId}.csv` }
             }
         });
-        // Keep the job until the cleanup function is called, in case we still need the results after simulations
-        this.routingJob = routingJob;
 
         // Create the input file for the batch routing job as a random sample of the original demand file (from the currently running job)
         await this.sampleOdTripFileForJob(routingJob);
@@ -376,6 +375,9 @@ export default class OdTripSimulation implements SimulationMethod {
             },
             this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
         );
+        // Keep the job until the cleanup function is called, in case we still need the results after simulations
+        this.routingJobExecutor = batchJobExecutor;
+
         const execResults = await batchJobExecutor.run();
         if (execResults.completed === true) {
             const facPerField = this.options.demandAttributes.fileAndMapping.fieldMappings.expansionFactor;
@@ -398,11 +400,27 @@ export default class OdTripSimulation implements SimulationMethod {
         }
     }
 
+    async saveResultsFile(fileSuffix: string): Promise<void> {
+        const routingJobExecutor = this.routingJobExecutor;
+        if (routingJobExecutor !== undefined) {
+            // Run the file result visitor to generate the files and save them into the main jobs storage
+            const resultVisitor = new BatchRouteFileResultVisitor(
+                this.jobWrapper.job,
+                routingJobExecutor.getJob().attributes.data.parameters.transitRoutingAttributes,
+                fileSuffix
+            );
+            await routingJobExecutor.handleResults(resultVisitor);
+        }
+    }
+
     async cleanup(): Promise<void> {
-        if (this.routingJob) {
-            return this.routingJob.delete().then(() => {
-                this.routingJob = undefined;
-            });
+        if (this.routingJobExecutor) {
+            return this.routingJobExecutor
+                .getJob()
+                .delete()
+                .then(() => {
+                    this.routingJobExecutor = undefined;
+                });
         }
     }
 }
