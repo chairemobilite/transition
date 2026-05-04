@@ -62,13 +62,19 @@ export const batchRoute = async (
         options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 0.0 });
         // FIXME We hardcode the result visitor to file output for now, but we could have other implementations (like calculating statistics, or nothing at all)
         // FIXME2 Also, since we do not have any way of handling the results after the job is done yet, the visitor handler is now part of the job, but later, handling results could be done on completed jobs, and not as part of the job
-        const resultVisitor = new BatchRouteFileResultVisitor(job);
+        const resultVisitor = new BatchRouteFileResultVisitor(
+            job,
+            job.attributes.data.parameters.transitRoutingAttributes
+        );
         const { files } = await batchRoutingExecutor.handleResults(resultVisitor);
         options.progressEmitter.emit('progress', { name: 'GeneratingBatchRoutingResults', progress: 1.0 });
 
         const routingResult = {
             ...execResults,
-            files
+            files: {
+                input: job.getInputFileName(),
+                ...files
+            }
         };
         return routingResult;
     } else {
@@ -336,4 +342,6 @@ export class TrRoutingBatchExecutor {
             console.error(`Error getting od trip result for ${odTripIndex}: ${error}`);
         }
     };
+
+    public getJob = (): ExecutableJob<BatchRouteJobType> => this.job;
 }
