@@ -49,6 +49,8 @@ abstract class Candidate {
     abstract getScenario(): Scenario | undefined;
 
     abstract cleanup(): Promise<void>;
+
+    abstract saveResultsFile(): Promise<void>;
 }
 
 export default Candidate;

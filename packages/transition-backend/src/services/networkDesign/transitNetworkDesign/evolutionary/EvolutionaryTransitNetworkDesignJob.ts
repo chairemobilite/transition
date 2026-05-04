@@ -408,10 +408,14 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                     // FIXME Refactor this so we can map a candidate with the scenario it generated and save it in the result's data for output in files
                     // FIXME2 Extract this block to a function when we clean up this class
                     if (this.options.numberOfGenerations - this.currentIteration < this.options.keepGenerations) {
-                        const bestScenarios = previousGeneration.getBestScenarios(this.options.keepCandidates);
-                        const scenarioSavePromises = bestScenarios?.map((scenario) =>
-                            saveSimulationScenario(scenario, this)
-                        );
+                        const bestCandidates = previousGeneration.getBestCandidates(this.options.keepCandidates);
+                        const saveFilePromises = bestCandidates.map((candidate) => candidate.saveResultsFile());
+                        const scenarioSavePromises = bestCandidates.map((candidate) => {
+                            const scenario = candidate.getScenario();
+                            if (scenario) {
+                                return saveSimulationScenario(scenario, this);
+                            }
+                        });
                         const scenarioSaveResults = (await Promise.all(scenarioSavePromises)).filter(
                             (scenarioSaveResult) => scenarioSaveResult !== undefined
                         );
@@ -425,6 +429,8 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                         await loadAndSaveLinesByIdsToCache({
                             lineIds: scenarioSaveResults.flatMap((result) => result!.lineIds)
                         });
+                        // Make sure all files are saved for the candidates
+                        await Promise.all(saveFilePromises);
                         // FIXME Should signal the main thread to restart trRouting. Or maybe it works directly?
                     }
 

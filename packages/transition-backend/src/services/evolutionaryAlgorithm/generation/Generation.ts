@@ -171,16 +171,9 @@ abstract class Generation {
      * @param top The number of top scenarios to return
      * @returns An array of the top scenarios
      */
-    getBestScenarios(top = 1): Scenario[] {
-        const bestScenarios: Scenario[] = [];
-        for (let i = 0; i < Math.min(top, this.candidates.length); i++) {
-            const bestCandidate = this.candidates[i];
-            const scenario = bestCandidate.getScenario();
-            if (scenario !== undefined) {
-                bestScenarios.push(scenario);
-            }
-        }
-        return bestScenarios;
+    getBestCandidates(top = 1): NetworkCandidate[] {
+        this.sortCandidates();
+        return this.candidates.slice(0, top);
     }
 
     abstract sortCandidates(): void;
