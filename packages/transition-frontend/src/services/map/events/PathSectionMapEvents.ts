@@ -12,7 +12,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from 'transition-common/lib/services/path/Path';
 import TransitLine from 'transition-common/lib/services/line/Line';
 import { unhoverPath } from './PathLayerMapEvents';
-import { WAYPOINT_MIN_ZOOM } from '../../../config/layers.config';
+import { getWaypointMinZoom } from '../../../config/layers.config';
 import { addDraggingClass, removeDraggingClass, removeHoverClass } from '../MapCursorHelper';
 
 /* This file encapsulates map events specific for the paths */
@@ -83,9 +83,10 @@ const onPathWaypointMouseUp = (e: MapMouseEvent) => {
             map._hoverNodeSource = null;
         }
 
-        const features = e.target.queryRenderedFeatures(e.point);
-        const featureSources = features.map((feature) => feature.source);
-        const hoverNodeIndex = featureSources.indexOf('transitNodes');
+        // Restrict to MapLibre layer to avoid deck.gl interleaved overlay
+        // returning a 'overlay' source instead of 'transitNodes'.
+        const features = e.target.queryRenderedFeatures(e.point, { layers: ['transitNodes'] });
+        const hoverNodeIndex = features.length > 0 ? 0 : -1;
         if (hoverNodeIndex >= 0) {
             // replace waypoint by node
             const nodeGeojson = features[hoverNodeIndex];
@@ -221,11 +222,25 @@ const showPathSelectionContextMenu = (paths: MapGeoJSONFeature[], e: MapMouseEve
 // Click tolerance in pixels for path/node/waypoint detection
 const CLICK_TOLERANCE = 5;
 
+// MapLibre layers consulted by the path-section click handler. Restricting the
+// query excludes deck.gl interleaved layers (source: 'overlay') which would
+// otherwise occlude these and make every click look like it landed on nothing.
+const PATH_SECTION_CLICK_LAYERS = [
+    'transitNodes',
+    'transitNodesSelected',
+    'transitPathWaypoints',
+    'transitPathsSelected',
+    'transitPaths'
+];
+
 const onPathSectionMapClick = async (e: MapMouseEvent) => {
-    const features = e.target.queryRenderedFeatures([
-        [e.point.x - CLICK_TOLERANCE, e.point.y - CLICK_TOLERANCE],
-        [e.point.x + CLICK_TOLERANCE, e.point.y + CLICK_TOLERANCE]
-    ]);
+    const features = e.target.queryRenderedFeatures(
+        [
+            [e.point.x - CLICK_TOLERANCE, e.point.y - CLICK_TOLERANCE],
+            [e.point.x + CLICK_TOLERANCE, e.point.y + CLICK_TOLERANCE]
+        ],
+        { layers: PATH_SECTION_CLICK_LAYERS }
+    );
 
     const map = e.target;
     const featureSources = features.map((feature) => {
@@ -320,7 +335,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
             clickedNodeIndex < 0
         ) {
             // Skip waypoint operations below minimum zoom level (waypoints are hidden below this zoom)
-            if (map.getZoom() < WAYPOINT_MIN_ZOOM) {
+            if (map.getZoom() < getWaypointMinZoom()) {
                 return;
             }
             // Skip if another path update is in progress to prevent race conditions
@@ -365,7 +380,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
             } else {
                 // add waypoint
                 // Skip waypoint operations below minimum zoom level (waypoints are hidden below this zoom)
-                if (map.getZoom() < WAYPOINT_MIN_ZOOM) {
+                if (map.getZoom() < getWaypointMinZoom()) {
                     return;
                 }
                 // Skip if another path update is in progress to prevent race conditions

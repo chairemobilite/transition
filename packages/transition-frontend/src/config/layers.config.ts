@@ -5,8 +5,39 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-/** Minimum zoom level for waypoint visibility and operations */
-export const WAYPOINT_MIN_ZOOM = 14;
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
+
+/** Default and allowed bounds for `map.pathWaypointMinZoom` (must match preferences validation) */
+export const WAYPOINT_MIN_ZOOM_DEFAULT = 10;
+export const WAYPOINT_MIN_ZOOM_ALLOWED_MIN = 1;
+export const WAYPOINT_MIN_ZOOM_ALLOWED_MAX = 15;
+
+/** MapLibre layers whose `minzoom` follows the waypoint preference */
+export const TRANSIT_PATH_WAYPOINT_MAP_LAYER_NAMES = [
+    'transitPathWaypoints',
+    'transitPathWaypointsSelected',
+    'transitPathWaypointsErrors'
+] as const;
+
+/**
+ * Minimum map zoom for waypoint visibility and add/remove/drag operations.
+ * Reads `map.pathWaypointMinZoom`, or legacy `transit.paths.waypointMinZoom`, then clamps.
+ */
+export const getWaypointMinZoom = (): number => {
+    const fromMap = Preferences.get('map.pathWaypointMinZoom');
+    const legacy = Preferences.get('transit.paths.waypointMinZoom');
+    let raw = WAYPOINT_MIN_ZOOM_DEFAULT;
+    if (typeof fromMap === 'number' && Number.isFinite(fromMap)) {
+        raw = fromMap;
+    } else if (typeof legacy === 'number' && Number.isFinite(legacy)) {
+        raw = legacy;
+    }
+    const n = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
+    if (!Number.isFinite(n)) {
+        return WAYPOINT_MIN_ZOOM_DEFAULT;
+    }
+    return Math.min(WAYPOINT_MIN_ZOOM_ALLOWED_MAX, Math.max(WAYPOINT_MIN_ZOOM_ALLOWED_MIN, Math.round(n)));
+};
 
 // Define which layers should be visible for each section
 export const sectionLayers = {
@@ -343,7 +374,7 @@ const layersConfig = {
 
     transitPathWaypoints: {
         type: 'circle',
-        minzoom: WAYPOINT_MIN_ZOOM,
+        minzoom: getWaypointMinZoom(),
         paint: {
             'circle-radius': {
                 base: 1,
@@ -369,7 +400,7 @@ const layersConfig = {
 
     transitPathWaypointsSelected: {
         type: 'circle',
-        minzoom: WAYPOINT_MIN_ZOOM,
+        minzoom: getWaypointMinZoom(),
         paint: {
             'circle-radius': {
                 base: 1,
@@ -395,7 +426,7 @@ const layersConfig = {
 
     transitPathWaypointsErrors: {
         type: 'circle',
-        minzoom: WAYPOINT_MIN_ZOOM,
+        minzoom: getWaypointMinZoom(),
         paint: {
             'circle-radius': {
                 base: 1,

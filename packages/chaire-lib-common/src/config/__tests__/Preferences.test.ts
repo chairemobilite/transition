@@ -26,9 +26,12 @@ stubEmitter.on('preferences.read', mockStubReadPreferences);
 
 const originalPreferences = _cloneDeep(Preferences.attributes);
 
-beforeEach(() => {
-    // Reset preferences to the default value
-    Preferences.setAttributes(_cloneDeep(originalPreferences));
+beforeEach(async () => {
+    // Full reset via load (merge defaults + project + {}), same as a fresh session; update() cannot drop keys missing from the patch
+    mockStubReadPreferences.mockImplementationOnce((callback) => {
+        callback(Status.createOk({}));
+    });
+    await Preferences.load(stubEmitter);
     jest.clearAllMocks();
     fetchMock.doMock();
     fetchMock.mockClear();
@@ -191,6 +194,63 @@ describe('map.basemapShortname preference', () => {
         Preferences.set('map.basemapShortname', 'aerial');
         const mapPrefs = Preferences.get('map');
         expect(mapPrefs).toHaveProperty('basemapShortname', 'aerial');
+    });
+});
+
+describe('map.pathWaypointMinZoom preference', () => {
+    const waypointZoomError = 'transit:transitPath:errors:WaypointMinZoomOutOfRange';
+
+    test('has 10 as default value', () => {
+        expect(Preferences.get('map.pathWaypointMinZoom')).toBe(10);
+    });
+
+    test.each(Array.from({ length: 15 }, (_, i) => ({ z: i + 1 })))(
+        'validate passes for pathWaypointMinZoom=$z',
+        ({ z }) => {
+            Preferences.set('map.pathWaypointMinZoom', z);
+            expect(Preferences.validate()).toBe(true);
+            expect(Preferences.errors).not.toContain(waypointZoomError);
+        }
+    );
+
+    test('resetPathToDefault restores default zoom', () => {
+        Preferences.set('map.pathWaypointMinZoom', 3);
+        Preferences.resetPathToDefault('map.pathWaypointMinZoom');
+        expect(Preferences.get('map.pathWaypointMinZoom')).toBe(10);
+        expect(Preferences.validate()).toBe(true);
+    });
+
+    test.each<{ value: unknown; desc: string }>([
+        { value: 0, desc: 'zero' },
+        { value: 16, desc: 'above range' },
+        { value: -1, desc: 'negative' },
+        { value: null, desc: 'null' },
+        { value: '8', desc: 'string' }
+    ])('validate fails for invalid pathWaypointMinZoom ($desc)', ({ value }) => {
+        Preferences.set('map.pathWaypointMinZoom', value);
+        expect(Preferences.validate()).toBe(false);
+        expect(Preferences.errors).toContain(waypointZoomError);
+    });
+
+    test('validate fails when pathWaypointMinZoom is missing from map', async () => {
+        const map = _cloneDeep(Preferences.get('map')) as Record<string, unknown>;
+        delete map['pathWaypointMinZoom'];
+        await Preferences.update({ map: map as PreferencesModel['map'] }, stubEmitter, false);
+        expect(Preferences.validate()).toBe(false);
+        expect(Preferences.errors).toContain(waypointZoomError);
+    });
+
+    test('legacy transit.paths.waypointMinZoom is used for validate when map key absent', async () => {
+        const map = _cloneDeep(Preferences.get('map')) as Record<string, unknown>;
+        delete map['pathWaypointMinZoom'];
+        const transitPaths = _cloneDeep(Preferences.get('transit.paths'));
+        Object.assign(transitPaths, { waypointMinZoom: 12 });
+        await Preferences.update(
+            { map: map as PreferencesModel['map'], 'transit.paths': transitPaths },
+            stubEmitter,
+            false
+        );
+        expect(Preferences.validate()).toBe(true);
     });
 });
 

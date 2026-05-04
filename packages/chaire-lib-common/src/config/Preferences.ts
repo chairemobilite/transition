@@ -29,6 +29,10 @@ const MAX_DEFAULT_ACCELERATION = 1.5;
 const MIN_DEFAULT_DECELERATION = 0.3;
 const MAX_DEFAULT_DECELERATION = 1.5;
 
+/** Allowed range for `map.pathWaypointMinZoom` (map zoom level, inclusive) */
+const MIN_WAYPOINT_MIN_ZOOM = 1;
+const MAX_WAYPOINT_MIN_ZOOM = 15;
+
 interface PreferencesModelWithIdAndData extends PreferencesModel {
     id: string;
     data: { [key: string]: any };
@@ -184,6 +188,17 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 this.errors.push('transit:transitPath:errors:DefaultRunningSpeedIsTooHigh');
                 this._isValid = false;
             }
+        }
+        const fromMap = _get(this.attributes, 'map.pathWaypointMinZoom');
+        const fromLegacy = _get(this.attributes, 'transit.paths.waypointMinZoom');
+        const waypointMinZoom = _isNumber(fromMap) ? fromMap : fromLegacy;
+        if (
+            !_isNumber(waypointMinZoom) ||
+            waypointMinZoom < MIN_WAYPOINT_MIN_ZOOM ||
+            waypointMinZoom > MAX_WAYPOINT_MIN_ZOOM
+        ) {
+            this._errors.push('transit:transitPath:errors:WaypointMinZoomOutOfRange');
+            this._isValid = false;
         }
         return this._isValid;
     }
