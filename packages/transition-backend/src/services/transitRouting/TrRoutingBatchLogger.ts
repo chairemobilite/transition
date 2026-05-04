@@ -17,19 +17,19 @@ export interface BatchRoutingLogProgress {
 
 /**
  * Input data shared by all BatchRoutingLogProgress implementations. Each
- * implementation uses only what it needs; the caller does not need to know
- * which fields matter for the currently-selected variant.
+ * implementation captures its own benchmark start and derives its own logging
+ * cadence from `odTripsCount`, so the caller does not need to know about
+ * those policies.
  */
 export type BatchRoutingLogProgressParams = {
     /** Total number of OD trips in the batch (not only those left to route). */
     odTripsCount: number;
     /** Index at which routing (re)starts (>0 when resuming from checkpoint). */
     startIndex: number;
-    /** Periodicity (in trips) used by line-based progress reporting. */
-    progressStep: number;
-    /** `performance.now()` at the start of the batch, used for calc/sec stats. */
-    benchmarkStart: number;
 };
+
+/** Upper bound on trips between two non-interactive log lines (avoids spam on huge batches). */
+const NON_INTERACTIVE_MAX_PROGRESS_STEP = 500;
 
 /** Single-line carriage-return progress bar for interactive TTY. */
 class InteractiveBatchRoutingLogProgress implements BatchRoutingLogProgress {
@@ -41,7 +41,7 @@ class InteractiveBatchRoutingLogProgress implements BatchRoutingLogProgress {
     constructor(params: BatchRoutingLogProgressParams) {
         this.startIndex = params.startIndex;
         this.totalToRoute = params.odTripsCount - params.startIndex;
-        this.benchmarkStart = params.benchmarkStart;
+        this.benchmarkStart = performance.now();
         this.lastProgressPct = -1;
     }
 
@@ -78,14 +78,20 @@ class NonInteractiveBatchRoutingLogProgress implements BatchRoutingLogProgress {
     private readonly startIndex: number;
     private readonly progressStep: number;
     private readonly benchmarkStart: number;
-    private lastLogTime = performance.now();
+    private lastLogTime: number;
     private lastLogCount: number;
 
     constructor(params: BatchRoutingLogProgressParams) {
         this.odTripsCount = params.odTripsCount;
         this.startIndex = params.startIndex;
-        this.progressStep = params.progressStep;
-        this.benchmarkStart = params.benchmarkStart;
+        // 1% of the batch, but no more than NON_INTERACTIVE_MAX_PROGRESS_STEP
+        // trips between two log lines (avoids spam on huge batches).
+        this.progressStep = Math.max(
+            1,
+            Math.min(NON_INTERACTIVE_MAX_PROGRESS_STEP, Math.ceil(params.odTripsCount / 100))
+        );
+        this.benchmarkStart = performance.now();
+        this.lastLogTime = this.benchmarkStart;
         this.lastLogCount = params.startIndex;
     }
 
@@ -96,7 +102,7 @@ class NonInteractiveBatchRoutingLogProgress implements BatchRoutingLogProgress {
     }
 
     afterOdTrip(odTripIndex: number, completedRoutingsCount: number): void {
-        if (this.benchmarkStart >= 0 && odTripIndex > 0 && odTripIndex % 100 === 0) {
+        if (odTripIndex > 0 && odTripIndex % 100 === 0) {
             const now = performance.now();
             const currentRate =
                 Math.round((100 * (completedRoutingsCount - this.lastLogCount)) / ((now - this.lastLogTime) / 1000)) /

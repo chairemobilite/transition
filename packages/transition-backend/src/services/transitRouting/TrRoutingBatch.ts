@@ -138,12 +138,7 @@ export class TrRoutingBatchExecutor {
             const promiseQueue = new pQueue({ concurrency: trRoutingThreadsCount });
 
             const benchmarkStart = performance.now();
-            const logProgress = createBatchRoutingLogProgress({
-                odTripsCount,
-                startIndex,
-                progressStep,
-                benchmarkStart
-            });
+            const logProgress = createBatchRoutingLogProgress({ odTripsCount, startIndex });
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
