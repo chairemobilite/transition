@@ -16,8 +16,6 @@ import {
 const buildParams = (overrides: Partial<BatchRoutingLogProgressParams> = {}): BatchRoutingLogProgressParams => ({
     odTripsCount: 100,
     startIndex: 0,
-    progressStep: 1,
-    benchmarkStart: 0,
     ...overrides
 });
 
@@ -49,10 +47,9 @@ describe('createBatchRoutingLogProgress: interactive (TTY) variant', () => {
     });
 
     test('afterOdTrip writes a progress line when percentage increases', () => {
-        const nowSpy = jest.spyOn(performance, 'now');
-        nowSpy.mockReturnValue(0);
+        // 1st call: ctor benchmarkStart=0; 2nd call: afterOdTrip elapsed=1000ms
+        jest.spyOn(performance, 'now').mockReturnValueOnce(0).mockReturnValueOnce(1000);
         const logger = makeLogger({ odTripsCount: 100 });
-        nowSpy.mockReturnValue(1000);
 
         logger.afterOdTrip(49, 50);
 
@@ -65,10 +62,10 @@ describe('createBatchRoutingLogProgress: interactive (TTY) variant', () => {
     });
 
     test('afterOdTrip does not write when floor percentage did not increase', () => {
-        const nowSpy = jest.spyOn(performance, 'now');
-        nowSpy.mockReturnValue(1000);
-        const logger = makeLogger({ odTripsCount: 200, benchmarkStart: 1000 });
-        nowSpy.mockReturnValue(2000);
+        // 1st call: ctor; 2nd call: first afterOdTrip; second afterOdTrip
+        // early-returns before calling now().
+        jest.spyOn(performance, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(2000);
+        const logger = makeLogger({ odTripsCount: 200 });
 
         logger.afterOdTrip(99, 100);
         expect(stdoutWriteSpy).toHaveBeenCalledTimes(1);
@@ -79,11 +76,9 @@ describe('createBatchRoutingLogProgress: interactive (TTY) variant', () => {
     });
 
     test('afterOdTrip respects startIndex: totalToRoute = odTripsCount - startIndex', () => {
-        const nowSpy = jest.spyOn(performance, 'now');
-        nowSpy.mockReturnValue(0);
+        jest.spyOn(performance, 'now').mockReturnValueOnce(0).mockReturnValueOnce(1000);
         // odTripsCount=100, startIndex=10 => totalToRoute=90
         const logger = makeLogger({ odTripsCount: 100, startIndex: 10 });
-        nowSpy.mockReturnValue(1000);
 
         logger.afterOdTrip(44, 55);
 
@@ -142,29 +137,56 @@ describe('createBatchRoutingLogProgress: non-interactive (pipe/CI) variant', () 
         });
     });
 
+    // The logger derives its own progressStep from odTripsCount: 1% of the
+    // batch, capped at 500 trips between two log lines.
     test.each([
-        { index: 8, progressStep: 10, shouldLog: false, description: '(index+1) not a multiple' },
-        { index: 9, progressStep: 10, shouldLog: true, expected: 'Routing odTrip 10/1000', description: '(index+1) is a multiple' },
-        { index: 19, progressStep: 10, shouldLog: true, expected: 'Routing odTrip 20/1000', description: 'next multiple' },
-        { index: 4, progressStep: 5, shouldLog: true, expected: 'Routing odTrip 5/1000', description: 'different step' }
-    ])('beforeOdTrip: $description', ({ index, progressStep, shouldLog, expected }) => {
-        const logger = makeLogger({ odTripsCount: 1000, progressStep });
+        {
+            description: '1000 trips => step=10, (8+1)%10!=0 so no log',
+            odTripsCount: 1000,
+            index: 8,
+            expectedLog: undefined
+        },
+        {
+            description: '1000 trips => step=10, (9+1)%10==0 logs at trip 10',
+            odTripsCount: 1000,
+            index: 9,
+            expectedLog: 'Routing odTrip 10/1000'
+        },
+        {
+            description: '1000 trips => step=10, next multiple at trip 20',
+            odTripsCount: 1000,
+            index: 19,
+            expectedLog: 'Routing odTrip 20/1000'
+        },
+        {
+            description: '500 trips => step=5, smaller batch yields smaller step',
+            odTripsCount: 500,
+            index: 4,
+            expectedLog: 'Routing odTrip 5/500'
+        },
+        {
+            description: '100000 trips => step capped at 500 (would be 1000 without cap)',
+            odTripsCount: 100000,
+            index: 499,
+            expectedLog: 'Routing odTrip 500/100000'
+        }
+    ])('beforeOdTrip: $description', ({ odTripsCount, index, expectedLog }) => {
+        const logger = makeLogger({ odTripsCount });
 
         logger.beforeOdTrip(index);
 
-        if (shouldLog) {
-            expect(consoleLogSpy).toHaveBeenCalledWith(expected);
+        if (expectedLog !== undefined) {
+            expect(consoleLogSpy).toHaveBeenCalledWith(expectedLog);
         } else {
             expect(consoleLogSpy).not.toHaveBeenCalled();
         }
         expect(stdoutWriteSpy).not.toHaveBeenCalled();
     });
 
-    test('afterOdTrip logs calc/sec every 100 trips when odTripIndex matches and benchmarkStart >= 0', () => {
-        const nowSpy = jest.spyOn(performance, 'now');
-        nowSpy.mockReturnValueOnce(1000);
-        const logger = makeLogger({ odTripsCount: 500, progressStep: 50 });
-        nowSpy.mockReturnValue(3000);
+    test('afterOdTrip logs calc/sec every 100 trips', () => {
+        // 1st call: ctor benchmarkStart=lastLogTime=1000; 2nd call: afterOdTrip
+        jest.spyOn(performance, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(3000);
+        const logger = makeLogger({ odTripsCount: 500 });
 
         logger.afterOdTrip(100, 101);
 
@@ -209,26 +231,25 @@ describe('createBatchRoutingLogProgress: variant selection', () => {
     });
 
     // The two variants are distinguishable by observable behavior:
-    // - interactive writes to stdout (progress bar) on end()
-    // - non-interactive writes nothing on end()
+    // - interactive writes to stdout (newline) on end()
     // - non-interactive logs "Routing odTrip" on beforeOdTrip when step matches
+    //   and writes nothing to stdout on end()
     test.each([
         { isTTY: true, variant: 'interactive' },
         { isTTY: false, variant: 'non-interactive' },
         { isTTY: undefined, variant: 'non-interactive' }
     ])('selects $variant when process.stdout.isTTY is $isTTY', ({ isTTY, variant }) => {
         setIsTTY(isTTY);
-        const logger = createBatchRoutingLogProgress(buildParams({ odTripsCount: 10, progressStep: 1 }));
+        const logger = createBatchRoutingLogProgress(buildParams({ odTripsCount: 10 }));
 
         logger.beforeOdTrip(0);
         logger.end();
 
         if (variant === 'interactive') {
-            // end() writes a newline to stdout; beforeOdTrip writes nothing
             expect(stdoutWriteSpy).toHaveBeenCalledWith('\n');
             expect(consoleLogSpy).not.toHaveBeenCalled();
         } else {
-            // beforeOdTrip logs via console.log; end() writes nothing
+            // odTripsCount=10 => step=1, so beforeOdTrip(0) logs "Routing odTrip 1/10"
             expect(consoleLogSpy).toHaveBeenCalledWith('Routing odTrip 1/10');
             expect(stdoutWriteSpy).not.toHaveBeenCalled();
         }
