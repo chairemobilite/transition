@@ -27,7 +27,12 @@ import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 // Local workspace imports
-import layersConfig, { sectionLayers, overlaySource } from '../../config/layers.config';
+import layersConfig, {
+    getWaypointMinZoom,
+    sectionLayers,
+    overlaySource,
+    TRANSIT_PATH_WAYPOINT_MAP_LAYER_NAMES
+} from '../../config/layers.config';
 import { polygonSelectionService } from '../../services/map/PolygonSelectionService';
 import transitionMapEvents from '../../services/map/events';
 import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
@@ -207,9 +212,16 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.layerManager.setMap(map);
         this.popupManager.setMap(map);
         this.layerManager.updateEnabledLayers(this.state.layers);
+        this.applyWaypointMinZoomFromPreferences();
 
         this.setState({ mapLoaded: true });
         serviceLocator.eventManager.emit('map.loaded');
+    };
+
+    /** Sync path waypoint layer min zoom with user preference (and after preference save). */
+    applyWaypointMinZoomFromPreferences = () => {
+        const minZ = getWaypointMinZoom();
+        this.layerManager.updateLayersMinZoom([...TRANSIT_PATH_WAYPOINT_MAP_LAYER_NAMES], minZ);
     };
 
     showPathsByAttribute = (attribute: string, value: any) => {
@@ -273,6 +285,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.onDeleteSelectedPolygon);
         serviceLocator.eventManager.on('collection.update.nodes', this.onNodesUpdatedHandler);
+        serviceLocator.eventManager.on('preferences.updated', this.applyWaypointMinZoomFromPreferences);
     };
 
     onDeleteSelectedPolygon = () => {
@@ -318,6 +331,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.off('map.deleteSelectedPolygon', this.onDeleteSelectedPolygon);
         serviceLocator.eventManager.off('collection.update.nodes', this.onNodesUpdatedHandler);
+        serviceLocator.eventManager.off('preferences.updated', this.applyWaypointMinZoomFromPreferences);
 
         // Remove map event listeners BEFORE react-map-gl cleans up
         // We need to do this early because react-map-gl will call map.remove() automatically
