@@ -184,6 +184,16 @@ abstract class Generation {
     }
 
     abstract sortCandidates(): void;
+
+    async cleanupCandidates(): Promise<void> {
+        const promiseQueue = new pQueue({ concurrency: 1 });
+
+        for (const candidate of this.candidates) {
+            promiseQueue.add(async () => {
+                await candidate.cleanup();
+            });
+        }
+    }
 }
 
 export default Generation;
