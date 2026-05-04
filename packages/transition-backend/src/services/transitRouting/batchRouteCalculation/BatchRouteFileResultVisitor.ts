@@ -5,30 +5,37 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { BatchRouteJobType, BatchRouteResultVisitor } from '../BatchRoutingJob';
+import { BatchRouteResultVisitor } from '../BatchRoutingJob';
 import { OdTripRouteResult } from '../types';
 import { createRoutingFileResultProcessor, generateFileOutputResults } from './TrRoutingBatchResult';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import pathDbQueries from '../../../models/db/transitPaths.db.queries';
+import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import { BatchRoutingResultProcessor } from './TrRoutingBatchResult';
+import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 
 // Example concrete visitor for file generation
 export class BatchRouteFileResultVisitor
-implements
-        BatchRouteResultVisitor<{ files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } }> {
-    private resultHandler = createRoutingFileResultProcessor(this.job);
-    private pathCollection: PathCollection | undefined | false = false;
+implements BatchRouteResultVisitor<{ files: { csv?: string; detailedCsv?: string; geojson?: string } }> {
+    private resultHandler: BatchRoutingResultProcessor;
+    // Cache for path collection, to avoid loading it multiple times if geometries are included in the results, if no geometry asked, set to `false`
+    private pathCollection: PathCollection | undefined | false = undefined;
 
-    constructor(private job: ExecutableJob<BatchRouteJobType>) {
-        // Nothing to do
+    constructor(
+        private job: ExecutableJob<JobDataType>,
+        private batchParameters: BatchCalculationParameters,
+        fileSuffix?: string
+    ) {
+        this.resultHandler = createRoutingFileResultProcessor(this.job, this.batchParameters, fileSuffix);
     }
 
     private prepareResultData = async (): Promise<void> => {
         let pathCollection: PathCollection | undefined = undefined;
-        if (this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries) {
+        if (this.batchParameters.withGeometries) {
             pathCollection = new PathCollection([], {});
-            if (this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId) {
+            if (this.batchParameters.scenarioId) {
                 const pathGeojson = await pathDbQueries.geojsonCollection({
-                    scenarioId: this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId
+                    scenarioId: this.batchParameters.scenarioId
                 });
                 pathCollection.loadFromCollection(pathGeojson.features);
             }
@@ -39,13 +46,13 @@ implements
     };
 
     visitTripResult = async (routingResult: OdTripRouteResult) => {
-        if (this.pathCollection === false) {
+        if (this.pathCollection === undefined) {
             await this.prepareResultData();
         }
         const processedResults = await generateFileOutputResults(routingResult, {
             exportCsv: true,
-            exportDetailed: this.job.attributes.data.parameters.transitRoutingAttributes.detailed === true,
-            withGeometries: this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries === true,
+            exportDetailed: this.batchParameters.detailed === true,
+            withGeometries: this.batchParameters.withGeometries === true,
             pathCollection: this.pathCollection as PathCollection | undefined
         });
         this.resultHandler.processResult(processedResults);
@@ -55,7 +62,7 @@ implements
         this.resultHandler.end();
     };
 
-    getResult(): { files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } } {
+    getResult(): { files: { csv?: string; detailedCsv?: string; geojson?: string } } {
         return { files: this.resultHandler.getFiles() };
     }
 }
