@@ -21,17 +21,11 @@ export const TRANSIT_PATH_WAYPOINT_MAP_LAYER_NAMES = [
 
 /**
  * Minimum map zoom for waypoint visibility and add/remove/drag operations.
- * Reads `map.pathWaypointMinZoom`, or legacy `transit.paths.waypointMinZoom`, then clamps.
+ * Reads `map.pathWaypointMinZoom` and clamps to the allowed range; falls back to
+ * `WAYPOINT_MIN_ZOOM_DEFAULT` if missing or non-finite.
  */
 export const getWaypointMinZoom = (): number => {
-    const fromMap = Preferences.get('map.pathWaypointMinZoom');
-    const legacy = Preferences.get('transit.paths.waypointMinZoom');
-    let raw = WAYPOINT_MIN_ZOOM_DEFAULT;
-    if (typeof fromMap === 'number' && Number.isFinite(fromMap)) {
-        raw = fromMap;
-    } else if (typeof legacy === 'number' && Number.isFinite(legacy)) {
-        raw = legacy;
-    }
+    const raw = Preferences.get('map.pathWaypointMinZoom');
     const n = typeof raw === 'number' ? raw : parseInt(String(raw), 10);
     if (!Number.isFinite(n)) {
         return WAYPOINT_MIN_ZOOM_DEFAULT;
