@@ -7,7 +7,7 @@
 import React from 'react';
 import _toString from 'lodash/toString';
 import Collapsible from 'react-collapsible';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
@@ -19,19 +19,14 @@ import {
     WAYPOINT_MIN_ZOOM_DEFAULT
 } from '../../../../config/layers.config';
 
-const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
-    props: PreferencesSectionProps & WithTranslation
-) => {
+const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSectionProps> = (props) => {
+    const { t } = useTranslation(['main', 'transit']);
     const prefs = props.preferences.attributes;
 
     return (
-        <Collapsible trigger={props.t('transit:transitPath:Paths')} open={true} transitionTime={100}>
+        <Collapsible trigger={t('transit:transitPath:Paths')} open={true} transitionTime={100}>
             <div className="tr__form-section">
-                <InputWrapper
-                    twoColumns={true}
-                    key="waypointMinZoom"
-                    label={props.t('transit:transitPath:WaypointMinZoom')}
-                >
+                <InputWrapper twoColumns={true} key="waypointMinZoom" label={t('transit:transitPath:WaypointMinZoom')}>
                     <InputStringFormatted
                         id="formFieldPreferencesTransitPathWaypointMinZoom"
                         value={prefs.map?.pathWaypointMinZoom ?? WAYPOINT_MIN_ZOOM_DEFAULT}
@@ -60,11 +55,11 @@ const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSection
                         preferences={props.preferences}
                     />
                 </InputWrapper>
-                <p className="apptr__form-help-text">{props.t('transit:transitPath:WaypointMinZoomHelp')}</p>
-                <p className="apptr__form-help-text">{props.t('transit:transitPath:WaypointMinZoomRefreshHint')}</p>
+                <p className="apptr__form-help-text">{t('transit:transitPath:WaypointMinZoomHelp')}</p>
+                <p className="apptr__form-help-text">{t('transit:transitPath:WaypointMinZoomRefreshHint')}</p>
             </div>
         </Collapsible>
     );
 };
 
-export default withTranslation(['main', 'transit'])(PreferencesSectionTransitPaths);
+export default PreferencesSectionTransitPaths;
