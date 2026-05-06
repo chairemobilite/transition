@@ -225,7 +225,10 @@ describe('map.pathWaypointMinZoom preference', () => {
         { value: 16, desc: 'above range' },
         { value: -1, desc: 'negative' },
         { value: null, desc: 'null' },
-        { value: '8', desc: 'string' }
+        { value: undefined, desc: 'undefined' },
+        { value: '8', desc: 'string' },
+        { value: Number.NaN, desc: 'NaN' },
+        { value: 10.5, desc: 'decimal' }
     ])('validate fails for invalid pathWaypointMinZoom ($desc)', ({ value }) => {
         Preferences.set('map.pathWaypointMinZoom', value);
         expect(Preferences.validate()).toBe(false);
