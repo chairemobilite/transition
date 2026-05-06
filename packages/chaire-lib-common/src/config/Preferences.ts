@@ -191,9 +191,10 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
         }
         const fromMap = _get(this.attributes, 'map.pathWaypointMinZoom');
         const fromLegacy = _get(this.attributes, 'transit.paths.waypointMinZoom');
-        const waypointMinZoom = _isNumber(fromMap) ? fromMap : fromLegacy;
+        const waypointMinZoom = Number.isFinite(fromMap) ? fromMap : fromLegacy;
+        // Must be an integer in [MIN_WAYPOINT_MIN_ZOOM, MAX_WAYPOINT_MIN_ZOOM]; rejects NaN, decimals, strings.
         if (
-            !_isNumber(waypointMinZoom) ||
+            !Number.isInteger(waypointMinZoom) ||
             waypointMinZoom < MIN_WAYPOINT_MIN_ZOOM ||
             waypointMinZoom > MAX_WAYPOINT_MIN_ZOOM
         ) {
