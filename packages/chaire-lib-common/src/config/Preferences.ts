@@ -189,9 +189,7 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
                 this._isValid = false;
             }
         }
-        const fromMap = _get(this.attributes, 'map.pathWaypointMinZoom');
-        const fromLegacy = _get(this.attributes, 'transit.paths.waypointMinZoom');
-        const waypointMinZoom = Number.isFinite(fromMap) ? fromMap : fromLegacy;
+        const waypointMinZoom = _get(this.attributes, 'map.pathWaypointMinZoom');
         // Must be an integer in [MIN_WAYPOINT_MIN_ZOOM, MAX_WAYPOINT_MIN_ZOOM]; rejects NaN, decimals, strings.
         if (
             !Number.isInteger(waypointMinZoom) ||

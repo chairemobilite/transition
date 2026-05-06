@@ -243,18 +243,6 @@ describe('map.pathWaypointMinZoom preference', () => {
         expect(Preferences.errors).toContain(waypointZoomError);
     });
 
-    test('legacy transit.paths.waypointMinZoom is used for validate when map key absent', async () => {
-        const map = _cloneDeep(Preferences.get('map')) as Record<string, unknown>;
-        delete map['pathWaypointMinZoom'];
-        const transitPaths = _cloneDeep(Preferences.get('transit.paths'));
-        Object.assign(transitPaths, { waypointMinZoom: 12 });
-        await Preferences.update(
-            { map: map as PreferencesModel['map'], 'transit.paths': transitPaths },
-            stubEmitter,
-            false
-        );
-        expect(Preferences.validate()).toBe(true);
-    });
 });
 
 test('Test get from default or project default', () => {
