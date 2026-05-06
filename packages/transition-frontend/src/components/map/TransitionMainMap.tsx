@@ -27,12 +27,11 @@ import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 // Local workspace imports
-import layersConfig, {
-    getWaypointMinZoom,
-    sectionLayers,
-    overlaySource,
-    TRANSIT_PATH_WAYPOINT_MAP_LAYER_NAMES
-} from '../../config/layers.config';
+import layersConfig, { sectionLayers, overlaySource } from '../../config/layers.config';
+import pathWaypointZoomSync, {
+    MAP_UPDATE_LAYERS_MIN_ZOOM_EVENT,
+    MapUpdateLayersMinZoomPayload
+} from '../../services/map/PathWaypointZoomSync';
 import { polygonSelectionService } from '../../services/map/PolygonSelectionService';
 import transitionMapEvents from '../../services/map/events';
 import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
@@ -212,16 +211,17 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         this.layerManager.setMap(map);
         this.popupManager.setMap(map);
         this.layerManager.updateEnabledLayers(this.state.layers);
-        this.applyWaypointMinZoomFromPreferences();
+        // Trigger an initial generic min-zoom update for any layer whose min zoom
+        // is driven by a preference (e.g. path waypoints).
+        pathWaypointZoomSync.applyNow(serviceLocator.eventManager);
 
         this.setState({ mapLoaded: true });
         serviceLocator.eventManager.emit('map.loaded');
     };
 
-    /** Sync path waypoint layer min zoom with user preference (and after preference save). */
-    applyWaypointMinZoomFromPreferences = () => {
-        const minZ = getWaypointMinZoom();
-        this.layerManager.updateLayersMinZoom([...TRANSIT_PATH_WAYPOINT_MAP_LAYER_NAMES], minZ);
+    /** Generic handler: update the minzoom of the given map layers. */
+    updateLayersMinZoom = (payload: MapUpdateLayersMinZoomPayload) => {
+        this.layerManager.updateLayersMinZoom(payload.layerNames, payload.minZoom);
     };
 
     showPathsByAttribute = (attribute: string, value: any) => {
@@ -285,7 +285,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.on('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.on('map.deleteSelectedPolygon', this.onDeleteSelectedPolygon);
         serviceLocator.eventManager.on('collection.update.nodes', this.onNodesUpdatedHandler);
-        serviceLocator.eventManager.on('preferences.updated', this.applyWaypointMinZoomFromPreferences);
+        serviceLocator.eventManager.on(MAP_UPDATE_LAYERS_MIN_ZOOM_EVENT, this.updateLayersMinZoom);
+        pathWaypointZoomSync.start(serviceLocator.eventManager);
     };
 
     onDeleteSelectedPolygon = () => {
@@ -331,7 +332,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         serviceLocator.eventManager.off('map.deleteSelectedNodes', this.deleteSelectedNodes);
         serviceLocator.eventManager.off('map.deleteSelectedPolygon', this.onDeleteSelectedPolygon);
         serviceLocator.eventManager.off('collection.update.nodes', this.onNodesUpdatedHandler);
-        serviceLocator.eventManager.off('preferences.updated', this.applyWaypointMinZoomFromPreferences);
+        serviceLocator.eventManager.off(MAP_UPDATE_LAYERS_MIN_ZOOM_EVENT, this.updateLayersMinZoom);
+        pathWaypointZoomSync.stop();
 
         // Remove map event listeners BEFORE react-map-gl cleans up
         // We need to do this early because react-map-gl will call map.remove() automatically
