@@ -7,7 +7,8 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { parseCsvFile } from '../CsvFile';
+import { parseCsvFile, MalformedCsvError } from '../CsvFile';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const filePath = `${__dirname}/testFiles/test.csv`;
 
@@ -109,36 +110,62 @@ describe('Detection of CSV-parser line-ending corruption (issue #1909)', () => {
         } catch (err) {
             thrownError = err;
         }
-        expect(thrownError).toBeInstanceOf(Error);
+        expect(thrownError).toBeInstanceOf(MalformedCsvError);
+        expect(thrownError).toBeInstanceOf(TrError);
+        expect(TrError.isTrError(thrownError)).toBe(true);
+        // Technical message goes to logs
         expect(thrownError.message).toMatch(/malformed line endings/i);
-        // Error should name the file and offer a concrete repair hint
         expect(thrownError.message).toMatch(new RegExp(path.basename(fixture)));
         expect(thrownError.message).toMatch(/dos2unix/);
+        // No localized message by default: the parser is domain-agnostic;
+        // callers opt in by supplying `malformedCsvLocalizedMessage`.
+        expect((thrownError as TrError).export().localizedMessage).toEqual('');
     });
 
-    test('Rejects when an embedded LF in the header confuses the parser', async () => {
-        // LF inside the header makes papaparse pick `\n` as the terminator,
-        // leaving stray `\r` bytes on values. Detection catches it via
-        // either the keys or the first-column values.
-        const fixture = writeFixture(
-            'broken-header.csv',
-            'stop_id,stop\nname\r\n1,Station A\r\n'
-        );
+    test('Threads a caller-supplied localized message through to the thrown error', async () => {
+        const fixture = writeFixture('bad-with-locale.csv', [HEADER, ROW1, ROW2].join('\r\r\n') + '\r\r\n');
         let thrownError: any = undefined;
         try {
-            await parseCsvFile(fixture, () => undefined, { header: true });
+            await parseCsvFile(fixture, () => undefined, {
+                header: true,
+                malformedCsvLocalizedMessage: (fileName) => ({
+                    text: 'some:domain:errors:MalformedCsvFile',
+                    params: { fileName }
+                })
+            });
         } catch (err) {
             thrownError = err;
         }
-        expect(thrownError).toBeInstanceOf(Error);
-        expect(thrownError.message).toMatch(/embedded newline/i);
+        expect(thrownError).toBeInstanceOf(MalformedCsvError);
+        expect((thrownError as TrError).export().localizedMessage).toEqual({
+            text: 'some:domain:errors:MalformedCsvFile',
+            params: { fileName: path.basename(fixture) }
+        });
     });
 
-    test('Rejects in header:false mode when the header row has a stray newline', async () => {
-        const fixture = writeFixture('crcrlf-no-header.csv', [HEADER, ROW1, ROW2].join('\r\r\n') + '\r\r\n');
+    // Both cases share the same assertion shape; only the fixture content,
+    // filename, and `header` option differ. LF inside the header (in
+    // header:true mode) and CRCRLF in header:false mode are different
+    // mechanisms that produce the same symptom: a parsed row whose value
+    // contains an embedded newline character.
+    test.each([
+        [
+            'embedded LF in header (header:true)',
+            'broken-header.csv',
+            'stop_id,stop\nname\r\n1,Station A\r\n',
+            { header: true } as const
+        ],
+        [
+            'CRCRLF with header:false',
+            'crcrlf-no-header.csv',
+            [HEADER, ROW1, ROW2].join('\r\r\n') + '\r\r\n',
+            { header: false } as const
+        ]
+    ])('Rejects with /embedded newline/ error: %s', async (_label, fileName, content, opts) => {
+        const fixture = writeFixture(fileName, content);
         let thrownError: any = undefined;
         try {
-            await parseCsvFile(fixture, () => undefined, { header: false });
+            await parseCsvFile(fixture, () => undefined, opts);
         } catch (err) {
             thrownError = err;
         }
