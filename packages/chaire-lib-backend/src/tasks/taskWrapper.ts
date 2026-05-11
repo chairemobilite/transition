@@ -4,6 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+// Import dotenv at the beginning to make sure environment is set in tasks
 import '../config/dotenv.config';
 
 // Just make sure the config is initialized in the task, so tasks that are in common workspaces can have the right config
@@ -75,4 +76,13 @@ async function taskWrapper(task: GenericTask) {
     }
 }
 
+/**
+ * This is a wrapper for tasks that can be used in scripts. It makes sure the
+ * config is loaded before any task is imported, and provides a common way to
+ * run tasks and handle errors.
+ *
+ * This function should be imported at the very beginning of a task script,
+ * before any other import, to make sure the config is loaded before the task
+ * starts to run.
+ */
 export default taskWrapper;
