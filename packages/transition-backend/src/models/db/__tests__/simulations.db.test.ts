@@ -37,7 +37,7 @@ const newObjectAttributes2= {
     name: 'Simulation2',
     description: 'descS2',
     color: '#ff0000',
-    is_frozen: true
+    is_frozen: false
 };
 
 const updatedAttributes = {
@@ -197,8 +197,9 @@ describe(`${objectName}`, () => {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
-        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+        // One has just been deleted, only one should be deleted here
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCount).toEqual(1);
 
     });
 

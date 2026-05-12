@@ -128,8 +128,8 @@ export default {
     updateMultiple: (updatedObjects: Partial<SimulationAttributes>[], returning?: string) => {
         return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
-    delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    delete: deleteRecord.bind(null, knex, tableName, true),
+    deleteMultiple: deleteMultiple.bind(null, knex, tableName, true),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection
