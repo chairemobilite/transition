@@ -247,7 +247,7 @@ export default class OdTripSimulation implements SimulationMethod {
     private fitnessFunction: FitnessFunction;
     private odTripFitnessFunction: OdTripFitnessFunction;
     private nonRoutableOdTripFitnessFunction: NonRoutableTripFitnessFunction;
-    private routingJobExecutor: TrRoutingBatchExecutor | undefined;
+    private routingJob: ExecutableJob<BatchRouteJobType> | undefined;
 
     constructor(
         private options: OdTripSimulationOptions,
@@ -375,8 +375,10 @@ export default class OdTripSimulation implements SimulationMethod {
             },
             this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
         );
-        // Keep the job until the cleanup function is called, in case we still need the results after simulations
-        this.routingJobExecutor = batchJobExecutor;
+        // Keep the job until the cleanup function is called, in case we still
+        // need the results after simulations. Do not keep the executor because
+        // it has a lot of data in memory, like the od trips
+        this.routingJob = routingJob;
 
         const execResults = await batchJobExecutor.run();
         if (execResults.completed === true) {
@@ -401,12 +403,23 @@ export default class OdTripSimulation implements SimulationMethod {
     }
 
     async saveResultsFile(fileSuffix: string): Promise<void> {
-        const routingJobExecutor = this.routingJobExecutor;
-        if (routingJobExecutor !== undefined) {
+        const routingJob = this.routingJob;
+        if (routingJob !== undefined) {
+            // FIXME It should not be mandatory to have a progress emitter
+            const childProgressEmitter = new EventEmitter();
+            const routingJobExecutor = new TrRoutingBatchExecutor(
+                routingJob,
+                {
+                    progressEmitter: childProgressEmitter,
+                    isCancelled: this.jobWrapper.privexecutorOptions.isCancelled,
+                    suppressExpectedRouteErrors: true
+                },
+                this.jobWrapper.getFakeTrRoutingBatchManager(childProgressEmitter)
+            );
             // Run the file result visitor to generate the files and save them into the main jobs storage
             const resultVisitor = new BatchRouteFileResultVisitor(
                 this.jobWrapper.job,
-                routingJobExecutor.getJob().attributes.data.parameters.transitRoutingAttributes,
+                routingJob.attributes.data.parameters.transitRoutingAttributes,
                 fileSuffix
             );
             await routingJobExecutor.handleResults(resultVisitor);
@@ -414,13 +427,10 @@ export default class OdTripSimulation implements SimulationMethod {
     }
 
     async cleanup(): Promise<void> {
-        if (this.routingJobExecutor) {
-            return this.routingJobExecutor
-                .getJob()
-                .delete()
-                .then(() => {
-                    this.routingJobExecutor = undefined;
-                });
+        if (this.routingJob !== undefined) {
+            return this.routingJob.delete().then(() => {
+                this.routingJob = undefined;
+            });
         }
     }
 }
