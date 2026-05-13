@@ -5,9 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import AgencyCollection from '../../agency/AgencyCollection';
-import LineCollection from '../../line/LineCollection';
-import ServiceCollection from '../../service/ServiceCollection';
+import { CsvFieldMappingDescriptor } from '../../csv';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * Simulation algorithm class. This will actually run the algorithm
@@ -18,16 +17,22 @@ import ServiceCollection from '../../service/ServiceCollection';
 // This interface used to have a type variable <T> that was documented as "The type of options".
 // This was completely unused so it was removed, but a comment is left here in case we ever want to implement it again.
 export interface TransitNetworkDesignAlgorithm {
-    run: (
-        socket: EventEmitter,
-        collections: { lines: LineCollection; agencies: AgencyCollection; services: ServiceCollection }
-    ) => Promise<boolean>;
+    run: (socket: EventEmitter) => Promise<boolean>;
 }
 
 export type SimulationAlgorithmOptionBase = {
     i18nName: string;
     i18nHelp?: string;
+    /** Whether this field is required. If `true`, the field must be provided.
+     * Otherwise, at validation, an error message labeled with the i18nName
+     * appended with `Required` will be shown. */
+    required?: boolean;
 };
+
+interface NestedOptionDescriptor<T extends Record<string, unknown>> {
+    type: 'nested';
+    descriptor: SimulationAlgorithmDescriptor<T>;
+}
 
 /**
  * Type of this option
@@ -37,20 +42,43 @@ export type SimulationAlgorithmOptionBase = {
  * appropriate place (see
  * https://github.com/chairemobilite/transition/issues/1580)
  *
- * @type {('integer' | 'number' | 'string' | 'boolean')} integer is an integer
- * number while number also supports float
+ * @type {('integer' | 'number' | 'seconds' | 'percentage' | 'string' |
+ * 'boolean' | 'nested' | 'select' | 'multiselect' | 'csvFile' | 'custom')}
+ * integer is an integer number while number also supports float, nested is a
+ * nested object with its own descriptor. 'percentage' is a value stored as a
+ * decimal number where 1 means 100%, but asked to the user as a percentage
+ * (between 0 and 100). 'seconds' means the data's unit is in seconds, but the
+ * `askAs` property can be used to indicate to ask the value in minutes or
+ * hours. 'select' and 'multiselect' are for options where the user must select
+ * one or multiple values from a list of choices. 'custom' is a custom type that
+ * will not be validated nor have a proper UI generated form for it.
  * @memberof SimulationAlgorithmOptionDescriptor
  */
 export type SimulationAlgorithmOptionByType =
     | {
           type: 'integer' | 'number';
           default?: number;
-          validate?: (value: number) => boolean;
+          validate?: (value: number) => boolean | TranslatableMessage;
+      }
+    | {
+          type: 'seconds';
+          default?: number;
+          validate?: (value: number) => boolean | TranslatableMessage;
+          askAs?: 'minutes' | 'hours';
+      }
+    | {
+          type: 'percentage';
+          default?: number;
+          /**
+           * Descriptor specific validation function. By default, percentage is
+           * expected to be between 0 and 1, but options can override this.
+           */
+          validate?: (value: number) => boolean | TranslatableMessage;
       }
     | {
           type: 'string';
           default?: string;
-          validate?: (value: string) => boolean;
+          validate?: (value: string) => boolean | TranslatableMessage;
       }
     | {
           type: 'boolean';
@@ -58,11 +86,37 @@ export type SimulationAlgorithmOptionByType =
       }
     | {
           type: 'select';
-          choices: () => Promise<{ value: string; label?: string }[]>;
+          /**
+           * Get the choices for this select option
+           * @param object The complete object this descriptor option is part
+           * of, with current values set
+           * @returns
+           */
+          choices: (object: Record<string, unknown>) => { value: string; label?: string }[];
           default?: string;
+      }
+    | {
+          type: 'multiselect';
+          /**
+           * Get the choices for this select option
+           * @param object The complete object this descriptor option is part
+           * of, with current values set
+           * @returns
+           */
+          choices: (object: Record<string, unknown>) => { value: string; label?: string }[];
+          default?: string[];
+      }
+    | {
+          type: 'csvFile';
+          mappingDescriptors: CsvFieldMappingDescriptor[];
+          importFileName: string;
+      }
+    | {
+          type: 'custom';
       };
 
-export type SimulationAlgorithmOptionDescriptor = SimulationAlgorithmOptionBase & SimulationAlgorithmOptionByType;
+export type SimulationAlgorithmOptionDescriptor = SimulationAlgorithmOptionBase &
+    (SimulationAlgorithmOptionByType | NestedOptionDescriptor<any>);
 
 /**
  * Simulation algorithm descriptor. This class describes the name and options
@@ -82,8 +136,117 @@ export interface SimulationAlgorithmDescriptor<T extends Record<string, unknown>
     getTranslatableName: () => string;
     /** Get the options and their types */
     getOptions: () => { [K in keyof T]: SimulationAlgorithmOptionDescriptor };
-    /** Validate an options object. This function is in addition to the
+    /**
+     * Validate an options object. This function is in addition to the
      * options's individual validator and allows to validate the whole object,
-     * not just individual values. */
-    validateOptions: (options: Partial<T>) => { valid: boolean; errors: string[] };
+     * not just individual values.
+     * */
+    validateOptions: (options: Partial<T>) => { valid: boolean; errors: TranslatableMessage[] };
+}
+
+/**
+ * Creates an options object with default values applied from the descriptor
+ *
+ * @param initialOptions Partial options object with some values already set
+ * @param descriptor The algorithm descriptor containing option definitions
+ * @returns Options object with default values applied where not already provided
+ */
+export function getDefaultOptionsFromDescriptor<T extends Record<string, unknown>>(
+    initialOptions: Partial<T>,
+    descriptor: SimulationAlgorithmDescriptor<T>
+): Partial<T> {
+    const options = { ...initialOptions };
+    const optionDefinitions = descriptor.getOptions();
+
+    for (const [key, optionDef] of Object.entries(optionDefinitions)) {
+        if (optionDef.type === 'nested') {
+            // Handle nested options recursively
+            const nestedDescriptor = optionDef.descriptor;
+            const existingNestedValue = options[key as keyof T] as Record<string, unknown> | undefined;
+            const nestedDefaults = getDefaultOptionsFromDescriptor(existingNestedValue || {}, nestedDescriptor);
+            (options as any)[key] = nestedDefaults;
+        } else if (options[key as keyof T] === undefined && 'default' in optionDef && optionDef.default !== undefined) {
+            (options as any)[key] = optionDef.default;
+        }
+    }
+
+    return options;
+}
+
+/**
+ * Validate an options object against a descriptor. This will make sure that all
+ * required options are present and that individual option validators are
+ * called. It will also call the overall options validator if all individual
+ * values are valid.
+ *
+ * @param options The options to validate
+ * @param descriptor The descriptor to validate against
+ * @returns Validation result with validity and error messages
+ */
+export function validateOptionsWithDescriptor<T extends Record<string, unknown>>(
+    options: Partial<T>,
+    descriptor: SimulationAlgorithmDescriptor<T>
+): { valid: boolean; errors: TranslatableMessage[] } {
+    let valid = true;
+    const errors: TranslatableMessage[] = [];
+    const optionDefinitions = descriptor.getOptions();
+
+    for (const [key, optionDef] of Object.entries(optionDefinitions)) {
+        const value = options[key as keyof T];
+        if (optionDef.required && (value === undefined || value === null || value === '')) {
+            valid = false;
+            errors.push(optionDef.i18nName + 'Required');
+            continue;
+        }
+        if (optionDef.type === 'nested') {
+            // Handle nested options recursively
+            const nestedDescriptor = optionDef.descriptor;
+            const nestedValidation = validateOptionsWithDescriptor(
+                (value as Record<string, unknown>) || {},
+                nestedDescriptor
+            );
+            if (!nestedValidation.valid) {
+                valid = false;
+                errors.push(...nestedValidation.errors);
+            }
+        } else {
+            if (value !== undefined) {
+                if ('validate' in optionDef && optionDef.validate) {
+                    let isValid: TranslatableMessage | boolean = true;
+                    if (
+                        optionDef.type === 'integer' ||
+                        optionDef.type === 'number' ||
+                        optionDef.type === 'seconds' ||
+                        optionDef.type === 'percentage'
+                    ) {
+                        isValid = optionDef.validate(value as number);
+                    } else if (optionDef.type === 'string') {
+                        isValid = optionDef.validate(value as string);
+                    }
+                    if (isValid !== true) {
+                        valid = false;
+                        // If the return value is a string, it is a custom error message
+                        errors.push(typeof isValid === 'boolean' ? optionDef.i18nName + 'Invalid' : isValid);
+                    }
+                } else if (optionDef.type === 'percentage') {
+                    // By default, if there is no validate function, percentage type must be between 0 and 1
+                    const numberValue = value as number;
+                    if (numberValue < 0 || numberValue > 1) {
+                        valid = false;
+                        errors.push(optionDef.i18nName + 'Invalid');
+                    }
+                }
+            }
+        }
+    }
+    if (valid) {
+        // All individual options are valid, validate overall options
+        const overallValidation = descriptor.validateOptions(options);
+        if (!overallValidation.valid) {
+            valid = false;
+            errors.push(...overallValidation.errors);
+        }
+    }
+
+    return { valid, errors };
 }

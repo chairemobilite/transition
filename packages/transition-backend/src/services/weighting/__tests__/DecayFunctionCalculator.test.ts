@@ -18,7 +18,7 @@ import {
     MIN_TRAVEL_TIME_SECONDS,
     DecayInputValueType,
     DecayInputValue
-} from '../types';
+} from 'transition-common/lib/services/weighting/types';
 
 describe('DecayFunctionCalculator', () => {
     /**
