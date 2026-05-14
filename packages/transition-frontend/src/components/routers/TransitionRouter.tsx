@@ -32,7 +32,7 @@ const TransitionRouter: React.FunctionComponent<TransitionRouterProps> = (props:
             <Route path="/register" element={<PublicRoute component={RegisterPage} />} />
             <Route path="/forgot" element={<PublicRoute component={ForgotPage} />} />
             <Route path="/unconfirmed" element={<PublicRoute component={UnconfirmedPage} />} />
-            <Route path="/verify/:token" element={<PublicRoute component={VerifyPage} />} />
+            <Route path="/verify/:token" element={<PrivateRoute component={VerifyPage} />} />
             <Route path="/reset/:token" element={<PublicRoute component={ResetPasswordPage} />} />
             <Route path="/unauthorized" element={<PublicRoute component={UnauthorizedPage} />} />
             <Route path="/login" element={<PublicRoute component={LoginPage} />} />
