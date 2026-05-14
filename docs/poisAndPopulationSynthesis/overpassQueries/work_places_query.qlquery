@@ -1,0 +1,62 @@
+
+[out:json][timeout:25][bbox:{{bbox}}];
+(
+
+node[~"^(craft|office|shop|tourism|healthcare|industrial)$"~"."];
+way[~"^(craft|office|shop|tourism|healthcare)$"~"."];
+relation[~"^(craft|office|shop|tourism|healthcare)$"~"."];
+
+(node["amenity"]; - node["amenity"~"^(parking|bicycle_parking|bicycle_repair_station|charging_station|grit_bin|motorcycle_parking|parking_entrance|parking_space|bench|clock|firepit|grave_yard|hunting_stand|post_box|sanitary_dump_station|telephone|shower|toilets|vending_machine|waste_disposal|waste_basket|watering_place|water_point|drinking_water|fountain|bbq)$"];);
+(way["amenity"]; - way["amenity"~"^(parking|bicycle_parking|bicycle_repair_station|charging_station|grit_bin|motorcycle_parking|parking_entrance|parking_space|bench|clock|firepit|grave_yard|hunting_stand|post_box|sanitary_dump_station|telephone|shower|toilets|vending_machine|waste_disposal|waste_basket|watering_place|water_point|drinking_water|fountain|bbq)$"];);
+(relation["amenity"]; - relation["amenity"~"^(parking|bicycle_parking|bicycle_repair_station|charging_station|grit_bin|motorcycle_parking|parking_entrance|parking_space|bench|clock|firepit|grave_yard|hunting_stand|post_box|sanitary_dump_station|telephone|shower|toilets|vending_machine|waste_disposal|waste_basket|watering_place|water_point|drinking_water|fountain|bbq)$"];);
+
+(node["building"]; - node["building"~"^(yes|residential|house|apartments|bungalow|cabin|detached|dormitory|ger|houseboat|semidetached_house|terrace|farm|static_caravan|toilets|hut|shed|carport|garage|parking|service|transformer_tower|water_tower|bridge|roof|ruins)$"];);
+(way["building"]; - way["building"~"^(yes|residential|house|apartments|bungalow|cabin|detached|dormitory|ger|houseboat|semidetached_house|terrace|farm|static_caravan|toilets|hut|shed|carport|garage|parking|service|transformer_tower|water_tower|bridge|roof|ruins)$"];);
+(relation["building"]; - relation["building"~"^(yes|residential|house|apartments|bungalow|cabin|detached|dormitory|ger|houseboat|semidetached_house|terrace|farm|static_caravan|toilets|hut|shed|carport|garage|parking|service|transformer_tower|water_tower|bridge|roof|ruins)$"];);
+
+node["emergency"~"^(ambulance_station)$"];
+way["emergency"~"^(ambulance_station)$"];
+relation["emergency"~"^(ambulance_station)$"];
+
+node["camping"~"^(reception)$"];
+way["camping"~"^(reception)$"];
+relation["camping"~"^(reception)$"];
+
+node["historic"~"^(archaeological_site|building|castle|church|farm|fort|manor|monastery|monument|tower)$"];
+way["historic"~"^(archaeological_site|building|castle|church|farm|fort|manor|monastery|monument|tower)$"];
+relation["historic"~"^(archaeological_site|building|castle|church|farm|fort|manor|monastery|monument|tower)$"];
+
+((node["leisure"]; - node["leisure"~"^(bird_hide|common|firepit|nature_reserve|picnic_table)$"];); - node["access"="private"];);
+((way["leisure"]; - way["leisure"~"^(bird_hide|common|firepit|nature_reserve|picnic_table)$"];); - way["access"="private"];);
+((relation["leisure"]; - relation["leisure"~"^(bird_hide|common|firepit|nature_reserve|picnic_table)$"];); - relation["access"="private"];);
+
+node["man_made"~"^(lighthouse|observatory|pumping_station|telescope|watermill|wastewater_plant|water_works|windmill|works)$"];
+way["man_made"~"^(lighthouse|observatory|pumping_station|telescope|watermill|wastewater_plant|water_works|windmill|works)$"];
+relation["man_made"~"^(lighthouse|observatory|pumping_station|telescope|watermill|wastewater_plant|water_works|windmill|works)$"];
+
+node["military"~"^(barracks|office)$"];
+way["military"~"^(barracks|office)$"];
+relation["military"~"^(barracks|office)$"];
+
+node["power"~"^(plant|substation)$"];
+way["power"~"^(plant|substation)$"];
+relation["power"~"^(plant|substation)$"];
+
+node["public_transport"~"^(station)$"];
+way["public_transport"~"^(station)$"];
+relation["public_transport"~"^(station)$"];
+
+node["railway"~"^(station|roundhouse|wash|subway_entrance|vehicle_depot)$"];
+way["railway"~"^(station|roundhouse|wash|subway_entrance|vehicle_depot)$"];
+relation["railway"~"^(station|roundhouse|wash|subway_entrance|vehicle_depot)$"];
+
+node["telecom"~"^(data_center)$"];
+way["telecom"~"^(data_center)$"];
+relation["telecom"~"^(data_center)$"];
+
+node["waterway"~"^(dock|boatyard|fuel)$"];
+way["waterway"~"^(plant|substation|)$"];
+relation["waterway"~"^(plant|substation|)$"];
+
+);
+out center body;
