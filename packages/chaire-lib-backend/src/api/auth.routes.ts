@@ -20,6 +20,7 @@ import { UserAttributes } from '../services/users/user';
 import { IAuthModel, IUserModel } from '../services/auth/authModel';
 import { PassportStatic } from 'passport';
 import setupCaptchRoutes from './captcha.routes';
+import isAuthorized, { UserSubject } from '../services/auth/authorization';
 
 const defaultSuccessCallback = (req: Request, res: Response) => {
     // Handle success
@@ -133,19 +134,60 @@ export default <U extends IUserModel>(router: express.Router, authModel: IAuthMo
         );
     }
 
-    router.post('/verify', async (req, res) => {
+    // Returns the user information corresponding to this token, or not found if
+    // the token is not valid. This is used to verify the token before
+    // confirming the account.
+    router.get('/verify', isAuthorized({ [UserSubject]: ['read', 'update'] }), async (req, res) => {
         try {
+            const token = typeof req.query.token === 'string' ? req.query.token : undefined;
+            if (!token) {
+                return res.status(400).json({
+                    status: 'MissingToken'
+                });
+            }
+
+            const user = await authModel.find({ confirmation_token: token });
+            if (!user) {
+                return res.status(404).json({
+                    status: 'NotFound'
+                });
+            }
+
+            return res.status(200).json({
+                status: 'Found',
+                email: user.email
+            });
+        } catch (error) {
+            console.error('Error getting user for confirmation token: ', error);
+            return res.status(500).json({
+                status: 'Error'
+            });
+        }
+    });
+
+    // Actually confirms the account corresponding to the token, and send a
+    // confirmation email to the user if the strategy is confirmByAdmin
+    router.post('/verify', isAuthorized({ [UserSubject]: ['read', 'update'] }), async (req, res) => {
+        try {
+            const token = typeof req.body.token === 'string' ? req.body.token : undefined;
+            if (!token) {
+                return res.status(400).json({
+                    status: 'MissingToken'
+                });
+            }
+
             let callback: ((user: U) => void) | undefined = undefined;
             if (getConfirmEmailStrategy() === 'confirmByAdmin') {
                 callback = sendConfirmedByAdminEmail;
             }
 
-            const response = await authModel.confirmAccount(req.body.token, callback);
+            const response = await authModel.confirmAccount(token, callback);
             return res.status(200).json({
                 status: response
             });
-        } catch {
-            return res.status(200).json({
+        } catch (error) {
+            console.error('Error confirming account: ', error);
+            return res.status(500).json({
                 status: 'Error'
             });
         }

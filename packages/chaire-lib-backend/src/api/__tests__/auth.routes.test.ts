@@ -85,6 +85,23 @@ jest.mock('../../models/db/users.db.queries', () => ({
 const mockFind = usersDbQueries.find as jest.MockedFunction<typeof usersDbQueries.find>;
 const mockUpdate = usersDbQueries.update as jest.MockedFunction<typeof usersDbQueries.update>;
 
+// Mock function tests can use the say if the user is authorized for the next query.
+const userIsAuthorizedMock = jest.fn().mockReturnValue(true);
+// Mock the authorization function, for the verification calls
+jest.mock('../../services/auth/authorization', () => ({
+    __esModule: true,
+    default: jest.fn().mockReturnValue(jest.fn().mockImplementation((req, res, next) => {
+        // If user is set not authorized, return a response
+        if (userIsAuthorizedMock() === false) {
+            return res.status(401).json({ status: 'Unauthorized' });
+        }
+        // Set an arbitrary user of the request to a mock user, not currently needed in tests
+        req.user = { id: 1 };
+        // Call the next function
+        return next();
+    }))
+}));
+
 const app = express();
 // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
 app.use(express.json({ limit: '500mb' }) as RequestHandler);
@@ -459,4 +476,155 @@ describe('Passwordless and anonymous auth routes, supported', () => {
         expect(res.body.user).toEqual({ username: validUsername });
         expect(authMockFunctions['direct-token']).toHaveBeenCalledTimes(1);
     });
+});
+
+describe('Verify confirmation token, lookup user email GET', () => {
+    test('Valid token', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        mockFind.mockResolvedValueOnce(validUser);
+        const res = await request(app)
+            .get('/verify')
+            .query({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        expect(res.body.status).toEqual('Found');
+        expect(res.body.email).toEqual(validEmail);
+        expect(mockFind).toHaveBeenCalledWith({ confirmation_token: 'confirmation-token' }, false);
+    });
+
+    test('User not found', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        mockFind.mockResolvedValueOnce(undefined);
+        const res = await request(app)
+            .get('/verify')
+            .query({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(404);
+
+        expect(res.body.status).toEqual('NotFound');
+        expect(mockFind).toHaveBeenCalledWith({ confirmation_token: 'confirmation-token' }, false);
+    });
+
+    test('No token specified', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        const res = await request(app)
+            .get('/verify')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(400);
+
+        expect(res.body).toEqual({ status: 'MissingToken' });
+        expect(mockFind).not.toHaveBeenCalled();
+    });
+
+    test('Error thrown', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        mockFind.mockRejectedValueOnce(new Error('Database error'));
+        const res = await request(app)
+            .get('/verify')
+            .query({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(500);
+
+        expect(res.body).toEqual({ status: 'Error' });
+        expect(mockFind).toHaveBeenCalled();
+    });
+
+    test('Make sure authorization is required', async () => {
+        userIsAuthorizedMock.mockReturnValue(false);
+        await request(app)
+            .get('/verify')
+            .query({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(401);
+
+        expect(mockFind).not.toHaveBeenCalled();
+    });
+
+});
+
+describe('Verify confirmation token, actual confirmation POST', () => {
+
+    const confirmAccountSpy = jest.spyOn(userAuthModel, 'confirmAccount');
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterAll(() => {
+        confirmAccountSpy.mockRestore();
+    })
+
+    test('Valid token', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        confirmAccountSpy.mockResolvedValueOnce('Confirmed');
+        const res = await request(app)
+            .post('/verify')
+            .send({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        expect(res.body.status).toEqual('Confirmed');
+        expect(confirmAccountSpy).toHaveBeenCalledWith('confirmation-token', undefined);
+    });
+
+    test('User not found', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        confirmAccountSpy.mockResolvedValueOnce('NotFound');
+        const res = await request(app)
+            .post('/verify')
+            .send({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+
+        expect(res.body.status).toEqual('NotFound');
+        expect(confirmAccountSpy).toHaveBeenCalledWith('confirmation-token', undefined);
+    });
+
+    test('No token specified', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        const res = await request(app)
+            .post('/verify')
+            .send({})
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(400);
+
+        expect(res.body.status).toEqual('MissingToken');
+        expect(confirmAccountSpy).not.toHaveBeenCalled();
+    });
+
+    test('Error thrown', async () => {
+        userIsAuthorizedMock.mockReturnValue(true);
+        confirmAccountSpy.mockRejectedValueOnce(new Error('Database error'));
+        const res = await request(app)
+            .post('/verify')
+            .send({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(500);
+
+        expect(res.body).toEqual({ status: 'Error' });
+        expect(confirmAccountSpy).toHaveBeenCalled();
+    });
+
+    test('Make sure authorization is required', async () => {
+        userIsAuthorizedMock.mockReturnValue(false);
+        confirmAccountSpy.mockResolvedValueOnce('NotFound');
+        await request(app)
+            .post('/verify')
+            .send({ token: 'confirmation-token' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(401);
+
+        expect(confirmAccountSpy).not.toHaveBeenCalled();
+    });
+
 });
