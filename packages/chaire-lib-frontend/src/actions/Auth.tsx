@@ -158,8 +158,39 @@ export const startRegisterWithPassword = (
 
 export type ConfirmData = { token: string };
 export type ConfirmCallbackType = (body?: { status?: string } | null) => void;
+export type ConfirmInfoCallbackType = (body?: { status?: string; email?: string } | null) => void;
+
+export const startGetConfirmUserInfo = (data: ConfirmData, callback?: ConfirmInfoCallbackType) => {
+    // Dispatch is not requried as this action does not update the state of the current user
+    return async (_dispatch: Dispatch) => {
+        try {
+            const response = await fetch(`/verify?token=${encodeURIComponent(data.token)}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            if (response.status === 200) {
+                const body = await response.json();
+                if (typeof callback === 'function') {
+                    callback(body);
+                }
+            } else {
+                const body = await response.json();
+                if (typeof callback === 'function') {
+                    callback(body);
+                }
+            }
+        } catch (err) {
+            console.log('Error during confirmation token lookup.', err);
+            if (typeof callback === 'function') {
+                callback(null);
+            }
+        }
+    };
+};
+
 export const startConfirmUser = (data: ConfirmData, callback?: ConfirmCallbackType) => {
-    return async (dispatch: Dispatch) => {
+    // Dispatch is not requried as this action does not update the state of the current user
+    return async (_dispatch: Dispatch) => {
         try {
             const response = await fetch('/verify', {
                 method: 'POST',
@@ -172,15 +203,15 @@ export const startConfirmUser = (data: ConfirmData, callback?: ConfirmCallbackTy
             if (response.status === 200) {
                 const body = await response.json();
                 if (typeof callback === 'function') {
-                    dispatch((callback as any)(body));
+                    callback(body);
                 }
             } else {
                 if (typeof callback === 'function') {
-                    dispatch((callback as any)(null));
+                    callback(null);
                 }
             }
         } catch (err) {
-            console.log('Error during forgot request.', err);
+            console.log('Error during confirmation request.', err);
         }
     };
 };
