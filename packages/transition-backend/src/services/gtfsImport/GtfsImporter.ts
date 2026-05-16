@@ -82,7 +82,7 @@ const importGtfsData = async (
         frequenciesByTripId: {},
         pathIdsByTripId: {},
         periodsGroupShortname: parameters.periodsGroupShortname || 'default',
-        periodsGroup: parameters.periodsGroup,
+        periodsGroup: parameters.periodsGroup ?? { name: {}, periods: [] },
         doNotUpdateAgencies: []
     };
 
