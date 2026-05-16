@@ -38,13 +38,13 @@ export const mergeScheduleTrips = (schedule: Schedule, toMerge: Schedule): void 
         const basePeriod = basePeriods[i];
         const mergePeriod = mergePeriods[i];
 
-        const baseTrips = basePeriod.trips;
+        const baseTrips = basePeriod.trips ?? [];
         if (baseTrips.length === 0) {
             // Just add the mergeTrip
-            basePeriod.trips = mergePeriod.trips;
+            basePeriod.trips = mergePeriod.trips ?? [];
             continue;
         }
-        const tripsToMerge = mergePeriod.trips;
+        const tripsToMerge = mergePeriod.trips ?? [];
         for (let j = 0; j < tripsToMerge.length; j++) {
             mergeTrips(baseTrips, tripsToMerge[j]);
         }

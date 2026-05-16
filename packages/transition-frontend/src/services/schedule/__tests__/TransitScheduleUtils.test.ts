@@ -84,21 +84,21 @@ test('Merge trips', () => {
     ScheduleUtils.mergeScheduleTrips(clonedSchedule, scheduleSamePeriod);
     // Period 1, should be the trips from the first schedule
     const firstPeriod = clonedSchedule.attributes.periods[0];
-    const firstTrips = firstPeriod.trips;
+    const firstTrips = firstPeriod.trips!;
     expect(firstTrips.length).toBe(3);
     expect(firstTrips).toEqual(scheduleBase.attributes.periods[0].trips);
 
     // Period 2 should be the trips from the second schedule only
     const secondPeriod = clonedSchedule.attributes.periods[1];
-    const secondTrips = secondPeriod.trips;
+    const secondTrips = secondPeriod.trips!;
     expect(secondTrips.length).toBe(3);
     expect(secondTrips).toEqual(scheduleSamePeriod.attributes.periods[1].trips);
 
     // Period 3 should merge the trips
     const thirdPeriod = clonedSchedule.attributes.periods[2];
-    const thirdTrips = thirdPeriod.trips;
+    const thirdTrips = thirdPeriod.trips!;
     expect(thirdTrips.length).toBe(6);
-    const baseTrips = scheduleBase.attributes.periods[2].trips;
-    const otherTrips = scheduleSamePeriod.attributes.periods[2].trips;
+    const baseTrips = scheduleBase.attributes.periods[2].trips!;
+    const otherTrips = scheduleSamePeriod.attributes.periods[2].trips!;
     expect(thirdTrips).toEqual([otherTrips[0], baseTrips[0], baseTrips[1], otherTrips[1], baseTrips[2], otherTrips[2]]);
 });

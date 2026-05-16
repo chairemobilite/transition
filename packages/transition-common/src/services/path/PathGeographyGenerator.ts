@@ -139,15 +139,26 @@ const calculateSegmentDuration = (
     const routingEngine = path.getData('routingEngine') as string;
     const defaultRunningSpeedKmH = path.getData('defaultRunningSpeedKmH') as number;
 
-    const runningSpeedMps =
-        routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH)
-            ? segmentDistanceMeters / routedDurationSeconds
-            : kphToMps(defaultRunningSpeedKmH);
+    // When the routing engine is 'engine' (OSRM), segment duration comes from the router.
+    // Otherwise ('engineCustom'/'manual'), duration is derived from defaultRunningSpeedKmH.
+    const usesRoutedDuration = routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH);
 
-    const noDwellTimeDurationSeconds =
-        routingEngine === 'engine' || _isBlank(defaultRunningSpeedKmH)
-            ? routedDurationSeconds
-            : segmentDistanceMeters / runningSpeedMps;
+    // Catch zero/negative OSRM durations early to avoid dividing by zero below
+    if (usesRoutedDuration && routedDurationSeconds <= 0) {
+        throw new TrError(
+            'Error trying to generate a path geography. OSRM returned zero or negative duration for segment.',
+            'PUPDGEO0002',
+            'TransitPathCannotUpdateGeographyBecauseErrorCalculatingSegmentDuration'
+        );
+    }
+
+    const runningSpeedMps = usesRoutedDuration
+        ? segmentDistanceMeters / routedDurationSeconds
+        : kphToMps(defaultRunningSpeedKmH);
+
+    const noDwellTimeDurationSeconds = usesRoutedDuration
+        ? routedDurationSeconds
+        : segmentDistanceMeters / runningSpeedMps;
 
     const calculatedSegmentDurationSeconds = durationFromAccelerationDecelerationDistanceAndRunningSpeed(
         acceleration,
@@ -156,7 +167,7 @@ const calculateSegmentDuration = (
         runningSpeedMps
     );
 
-    if (calculatedSegmentDurationSeconds <= 0) {
+    if (calculatedSegmentDurationSeconds <= 0 || isNaN(calculatedSegmentDurationSeconds)) {
         throw new TrError(
             'Error trying to generate a path geography. There was an error while calculating segment duration.',
             'PUPDGEO0001',

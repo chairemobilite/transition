@@ -70,7 +70,7 @@ export interface SchedulePeriod extends GenericAttributes {
     // FIXME: Use seconds since midnight format instead of string, which can be anything
     custom_start_at_str?: string;
     custom_end_at_str?: string;
-    trips: SchedulePeriodTrip[];
+    trips?: SchedulePeriodTrip[];
 }
 
 export interface ScheduleAttributes extends GenericAttributes {
@@ -1065,7 +1065,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         const periods = this.attributes.periods;
         for (let i = 0, countI = periods.length; i < countI; i++) {
             const period = periods[i];
-            period.trips.forEach((trip) => (associatedPathIds[trip.path_id] = true));
+            if (period.trips !== undefined) {
+                period.trips.forEach((trip) => (associatedPathIds[trip.path_id] = true));
+            }
         }
 
         return Object.keys(associatedPathIds);
@@ -1134,9 +1136,7 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         let tripsCount = 0;
         const periods = this.attributes.periods;
         for (let i = 0, countI = periods.length; i < countI; i++) {
-            if (periods[i].trips) {
-                tripsCount += periods[i].trips.length;
-            }
+            tripsCount += periods[i].trips?.length ?? 0;
         }
         return tripsCount;
     }

@@ -197,14 +197,12 @@ const exportParser = function (object: Line, cacheObject: CacheObjectClass) {
             periodCache.setNumberOfUnits(period.number_of_units || -1);
             periodCache.setIsFrozen(boolToInt8(period.is_frozen));
 
-            if (_isBlank(period.trips)) {
-                period.trips = [];
-            }
+            const trips = period.trips ?? [];
 
-            const tripsCache = periodCache.initTrips(period.trips.length);
+            const tripsCache = periodCache.initTrips(trips.length);
 
-            for (let k = 0, countK = period.trips.length; k < countK; k++) {
-                const trip = period.trips[k];
+            for (let k = 0, countK = trips.length; k < countK; k++) {
+                const trip = trips[k];
                 const tripCache = tripsCache.get(k);
                 tripCache.setUuid(trip.id);
                 tripCache.setPathUuid(trip.path_id);

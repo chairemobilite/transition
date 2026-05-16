@@ -124,8 +124,8 @@ describe('getAssociatedPathIds', () => {
         const testAttributes = _cloneDeep(scheduleAttributes);
         // Change the first trip of each period to the other path id
         testAttributes.periods.forEach(period => {
-            if (period.trips.length > 0) {
-                period.trips[0].path_id = otherPathId;
+            if (period.trips!.length > 0) {
+                period.trips![0].path_id = otherPathId;
             }
         })
         const schedule = new Schedule(testAttributes, true);
@@ -175,9 +175,9 @@ describe('updateForAllPeriods', () => {
             const periodEnd = period.custom_end_at_str ? timeStrToSecondsSinceMidnight(period.custom_end_at_str) as number : period.end_at_hour * 60 * 60;
             
             if (period.interval_seconds) {
-                expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart) / period.interval_seconds));
+                expect(period.trips!.length).toEqual(Math.ceil((periodEnd - periodStart) / period.interval_seconds));
             } else if (period.number_of_units) {
-                expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart) / (path?.attributes.data?.operatingTimeWithLayoverTimeSeconds as number)) * period.number_of_units);
+                expect(period.trips!.length).toEqual(Math.ceil((periodEnd - periodStart) / (path?.attributes.data?.operatingTimeWithLayoverTimeSeconds as number)) * period.number_of_units);
             }
 
         }
@@ -219,7 +219,7 @@ describe('updateForAllPeriods', () => {
             const interval = 10 * 60 * (i + 1);
             const periodStart = period.custom_start_at_str ? timeStrToSecondsSinceMidnight(period.custom_start_at_str) as number : period.start_at_hour * 60 * 60;
             const periodEnd = period.custom_end_at_str ? timeStrToSecondsSinceMidnight(period.custom_end_at_str) as number : period.end_at_hour * 60 * 60;
-            expect(period.trips.length).toEqual(Math.ceil((periodEnd - periodStart)/ interval));
+            expect(period.trips!.length).toEqual(Math.ceil((periodEnd - periodStart)/ interval));
         }
     });
 });
@@ -278,7 +278,7 @@ describe('generateForPeriod', () => {
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value, and 0.6 vehicle
-        const scheduledTrips = schedule.attributes.periods[0].trips;
+        const scheduledTrips = schedule.attributes.periods[0].trips!;
         expect(scheduledTrips).toEqual(trips);
         expect(schedule.attributes.periods[0].calculated_number_of_units).toEqual(0.6);
 
@@ -312,7 +312,7 @@ describe('generateForPeriod', () => {
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value and 1.2 vehicles
-        const scheduledTrips = schedule.attributes.periods[0].trips;
+        const scheduledTrips = schedule.attributes.periods[0].trips!;
         expect(scheduledTrips).toEqual(trips);
         expect(schedule.attributes.periods[0].calculated_number_of_units).toEqual(1.2);
 
@@ -377,7 +377,7 @@ describe('generateForPeriod', () => {
         const expectedTripCntPerDirection = Math.ceil(2 * 3600 / expectedFrequency);
 
         // Validate return value
-        const scheduledTrips = schedule.attributes.periods[0].trips;
+        const scheduledTrips = schedule.attributes.periods[0].trips!;
         expect(scheduledTrips).toEqual(trips);
         expect(schedule.attributes.periods[0].calculated_interval_seconds).toEqual(expectedFrequency);
 
@@ -430,7 +430,7 @@ describe('generateForPeriod', () => {
         const expectedPathDuration = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value and 1.2 vehicles
-        const scheduledTrips = schedule.attributes.periods[0].trips;
+        const scheduledTrips = schedule.attributes.periods[0].trips!;
         expect(scheduledTrips).toEqual(trips);
         expect(schedule.attributes.periods[0].calculated_number_of_units).toEqual(((path.attributes.data.operatingTimeWithLayoverTimeSeconds as number) + (returnPath.attributes.data.operatingTimeWithLayoverTimeSeconds as number)) / (testFrequencyMinutesPeriod1 * 60));
 
@@ -470,7 +470,7 @@ describe('generateForPeriod', () => {
         const expectedPathDuration2 = (path.attributes.data.segments as any[]).reduce((total, current) => total + current.travelTimeSeconds, 0) + dwellTimes.reduce((total, current) => total + current, 0) - dwellTimes[dwellTimes.length - 1];
 
         // Validate return value and 1.2 vehicles
-        const scheduledTripsPeriod2 = schedule.attributes.periods[1].trips;
+        const scheduledTripsPeriod2 = schedule.attributes.periods[1].trips!;
         expect(scheduledTripsPeriod2).toEqual(tripsPeriod2);
         expect(schedule.attributes.periods[1].calculated_number_of_units).toEqual(((path.attributes.data.operatingTimeWithLayoverTimeSeconds as number) + (returnPath.attributes.data.operatingTimeWithLayoverTimeSeconds as number)) / (testFrequencyMinutesPeriod2 * 60));
 
