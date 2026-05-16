@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation, withTranslation, WithTranslation } from 'react-i18next';
 import Collapsible from 'react-collapsible';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
@@ -46,6 +46,37 @@ for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
     lineModesConfigByMode[lineMode.value] = lineMode;
 }
 
+type ScheduleGenerationFailuresModalProps = {
+    serviceIds: string[];
+    onClose: () => void;
+};
+
+const ScheduleGenerationFailuresModal: React.FunctionComponent<ScheduleGenerationFailuresModalProps> = ({
+    serviceIds,
+    onClose
+}) => {
+    const { t } = useTranslation('transit');
+    const servicesCollection = serviceLocator.collectionManager?.get('services');
+    return (
+        <ConfirmModal
+            isOpen={true}
+            title={t('transit:transitPath:ScheduleGenerationFailuresTitle')}
+            showCancelButton={false}
+            confirmButtonColor="blue"
+            confirmAction={onClose}
+            closeModal={onClose}
+        >
+            <p style={{ textAlign: 'center' }}>{t('transit:transitPath:ScheduleGenerationFailuresIntro')}</p>
+            <ul style={{ marginLeft: '1.5rem', marginTop: '4rem' }}>
+                {serviceIds.map((serviceId) => {
+                    const service = servicesCollection?.getById?.(serviceId);
+                    return <li key={serviceId}>{service?.toString?.(false) || serviceId}</li>;
+                })}
+            </ul>
+        </ConfirmModal>
+    );
+};
+
 interface PathFormProps extends WithTranslation {
     path: Path;
     line: Line;
@@ -58,6 +89,7 @@ interface PathFormState extends SaveableObjectState<Path> {
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
     forceRecalculate: boolean;
+    serviceIdsWithFailedScheduleGeneration: string[];
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
@@ -76,7 +108,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             collectionName: 'paths',
             pathErrors: [],
             confirmModalSchedulesAffectedlIsOpen: false,
-            forceRecalculate: false
+            forceRecalculate: false,
+            serviceIdsWithFailedScheduleGeneration: []
         };
     }
 
@@ -209,13 +242,22 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         line.attributes.data._pathsChangeTimestamp = Date.now();
         serviceLocator.eventManager.emit('progress', { name: 'SavingPath', progress: 0.0 });
         await path.save(serviceLocator.socketEventManager);
-        serviceLocator.selectedObjectsManager.deselect('path');
         serviceLocator.eventManager.emit('progress', { name: 'SavingPath', progress: 1.0 });
         serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 0.0 });
-        await line.updateSchedulesForPathId(path.getId(), true);
+        const failedServiceIds = await line.updateSchedulesForPathId(path.getId(), true);
         line.refreshPaths();
         serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
         this.closeSchedulesAffectedConfirmModal(e);
+        if (failedServiceIds.length > 0) {
+            this.setState({ serviceIdsWithFailedScheduleGeneration: failedServiceIds });
+        } else {
+            serviceLocator.selectedObjectsManager.deselect('path');
+        }
+    };
+
+    closeScheduleGenerationFailuresModal = () => {
+        this.setState({ serviceIdsWithFailedScheduleGeneration: [] });
+        serviceLocator.selectedObjectsManager.deselect('path');
     };
 
     onDeselect = () => {
@@ -838,6 +880,12 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                 confirmButtonColor="red"
                                 confirmButtonLabel={this.props.t('transit:transitPath:Delete')}
                                 closeModal={this.closeDeleteConfirmModal}
+                            />
+                        )}
+                        {this.state.serviceIdsWithFailedScheduleGeneration.length > 0 && (
+                            <ScheduleGenerationFailuresModal
+                                serviceIds={this.state.serviceIdsWithFailedScheduleGeneration}
+                                onClose={this.closeScheduleGenerationFailuresModal}
                             />
                         )}
                         {this.state.confirmModalSchedulesAffectedlIsOpen && (

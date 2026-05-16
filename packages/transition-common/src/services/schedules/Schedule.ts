@@ -1065,7 +1065,19 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
         const periods = this.attributes.periods;
         for (let i = 0, countI = periods.length; i < countI; i++) {
             const period = periods[i];
-            period.trips.forEach((trip) => (associatedPathIds[trip.path_id] = true));
+            // Include the paths the period is configured to use, even if no trips
+            // have been generated yet. Otherwise a service that has not produced
+            // any trips would be considered unrelated to its configured paths and
+            // would silently be skipped by callers like updateSchedulesForPathId.
+            if (period.outbound_path_id) {
+                associatedPathIds[period.outbound_path_id] = true;
+            }
+            if (period.inbound_path_id) {
+                associatedPathIds[period.inbound_path_id] = true;
+            }
+            // period.trips can be undefined when the period has never been generated
+            // (no interval/units configured).
+            period.trips?.forEach((trip) => (associatedPathIds[trip.path_id] = true));
         }
 
         return Object.keys(associatedPathIds);
@@ -1237,13 +1249,72 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
         return Status.createOk(result.trips);
     }
-    updateForAllPeriods() {
-        // re-generate (after modifying path by instance)
+
+    /**
+     * Checks whether a period has been configured by the user to generate trips.
+     * A period is considered configured when at least one of its interval or unit
+     * count fields has a value. A fully blank period is treated as intentionally
+     * empty (the line is not meant to run during this period).
+     *
+     * @param period - The schedule period to inspect
+     * @returns True if the period has interval(s) or number of units set, false otherwise
+     */
+    private isPeriodConfigured(period: SchedulePeriod): boolean {
+        return !(
+            _isBlank(period.interval_seconds) &&
+            _isBlank(period.inbound_interval_seconds) &&
+            _isBlank(period.number_of_units)
+        );
+    }
+
+    /**
+     * Generates trips for every period of the schedule. Periods that are
+     * intentionally empty (no configuration and no existing trips) are skipped
+     * silently and do not affect the result.
+     *
+     * @returns True when the schedule generated successfully (no flag for the user).
+     *          False when the schedule should be flagged for these reasons:
+     *          - the schedule has no period at all, or no period is configured
+     *            (nothing will ever be generated)
+     *          - at least one period that was meant to produce trips (configured,
+     *            or already had trips before generation) failed to generate
+     *          - the schedule ended up with zero trips across all periods
+     */
+    updateForAllPeriods(): boolean {
         const periods = this.attributes.periods;
-        for (let i = 0, countI = periods.length; i < countI; i++) {
-            // TODO period_shortname can be undefined, fix typing to avoid this or add check
-            this.generateForPeriodFunction(periods[i].period_shortname as string);
+        if (periods.length === 0 || periods.every((period) => !this.isPeriodConfigured(period))) {
+            return false;
         }
+        let success = true;
+        let totalTripsCount = 0;
+        for (let i = 0, countI = periods.length; i < countI; i++) {
+            const period = periods[i];
+            const periodHadTrips = (period.trips?.length ?? 0) > 0;
+            if (!this.isPeriodConfigured(period) && !periodHadTrips) {
+                continue;
+            }
+            // TODO period_shortname can be undefined, fix typing to avoid this or add check
+            try {
+                const result = this.generateForPeriodFunction(period.period_shortname as string);
+                if (Status.isStatusError(result)) {
+                    success = false;
+                }
+            } catch (error) {
+                console.error('Error generating trips for schedule period', {
+                    scheduleId: this.attributes.id,
+                    serviceId: this.attributes.service_id,
+                    periodShortname: period.period_shortname,
+                    error
+                });
+                success = false;
+            }
+            totalTripsCount += period.trips?.length ?? 0;
+        }
+        // A schedule that succeeded on every call but still produced zero trips must also be flagged.
+        if (totalTripsCount === 0) {
+            success = false;
+        }
+        return success;
     }
 
     //TODO update test . (probably it's better to test generateForPeriodfunction instead. if the other test works, this one probably works too)

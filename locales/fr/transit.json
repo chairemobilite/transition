@@ -453,6 +453,8 @@
         "IncreaseRoutingRadiiToIncludeExistingPathShape": "Adapter le rayon des noeuds au tracé actuel",
         "IncreaseRoutingRadiiToIncludeExistingPathShapeHelp": "Augmenter le rayon utilisé autour des noeuds pour le calcul de chemin si le tracé actuel est trop loin de certains noeuds (max 200m). Les rayons attribués aux noeuds seront ignorés.",
         "ForceRecalculateFromRouting": "Recalculer tous les temps de parcours des segments",
+        "ScheduleGenerationFailuresTitle": "### Certains horaires n'ont pas pu être régénérés",
+        "ScheduleGenerationFailuresIntro": "Les services suivants ont des périodes qui n'ont pas pu être régénérées parce que le nombre de véhicules ou l'intervalle n'est pas défini. Rendez-vous dans la section des horaires de cette ligne pour les configurer afin que les trajets puissent être générés.",
         "MinDwellTimeSeconds": "Temps d'arrêt minimum aux noeuds [sec.]",
         "MinMatchingTimestamp": "Intervalle minimum d'horodatage pour le calcul de chemin (en secondes), 500 par défaut",
         "MinMatchingTimestampHelp": "Intervalle d'horodatage utilisé entre les points de repères lors de la cartospondance (map matching) utilisée lors du calcul de chemin. Une plus petite valeur (moins de 500) réduira les détours imprévus, mais pourrait faire en sorte que le calcul de chemin ne réussisse pas si le parcours comporte de longs segments entre certaines paires de noeuds d'arrêts (l'ajout de points de repères pourrait alors être nécessaire). Une valeur plus élevée (plus de 500) permettra d'obtenir un parcours complet dans la majorité des cas, mais pourrait ajouter des détours imprévus.",
