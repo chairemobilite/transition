@@ -547,7 +547,16 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             usersHourlyCost: undefined,
             normalizedUserCost: undefined,
             differentialUsersHourlyCost: undefined,
-            candidateSource: undefined
+            candidateSource: undefined,
+            transfersCount: undefined,
+            noTransferCount: undefined,
+            avgNumberOfTransfers: undefined,
+            avgTravelTimeMinutes: undefined,
+            avgWaitingTimeMinutes: undefined,
+            avgWalkingTimeMinutes: undefined,
+            totalTravelTimeMinutes: undefined,
+            totalWaitingTimeMinutes: undefined,
+            totalWalkingTimeMinutes: undefined
         };
 
         // Register the output files and create streams
@@ -611,7 +620,25 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
                     typeof row.data?.differentialUsersHourlyCost === 'number'
                         ? row.data.differentialUsersHourlyCost
                         : undefined,
-                candidateSource: row.candidate_data?.source ? JSON.stringify(row.candidate_data.source) : undefined
+                candidateSource: row.candidate_data?.source ? JSON.stringify(row.candidate_data.source) : undefined,
+                transfersCount: typeof row.data?.transfersCount === 'number' ? row.data.transfersCount : undefined,
+                noTransferCount: typeof row.data?.noTransferCount === 'number' ? row.data.noTransferCount : undefined,
+                avgNumberOfTransfers:
+                    typeof row.data?.avgNumberOfTransfers === 'number' ? row.data.avgNumberOfTransfers : undefined,
+                avgTravelTimeMinutes:
+                    typeof row.data?.avgTravelTimeMinutes === 'number' ? row.data.avgTravelTimeMinutes : undefined,
+                avgWaitingTimeMinutes:
+                    typeof row.data?.avgWaitingTimeMinutes === 'number' ? row.data.avgWaitingTimeMinutes : undefined,
+                avgWalkingTimeMinutes:
+                    typeof row.data?.avgWalkingTimeMinutes === 'number' ? row.data.avgWalkingTimeMinutes : undefined,
+                totalTravelTimeMinutes:
+                    typeof row.data?.totalTravelTimeMinutes === 'number' ? row.data.totalTravelTimeMinutes : undefined,
+                totalWaitingTimeMinutes:
+                    typeof row.data?.totalWaitingTimeMinutes === 'number'
+                        ? row.data.totalWaitingTimeMinutes
+                        : undefined,
+                totalWalkingTimeMinutes:
+                    typeof row.data?.totalWalkingTimeMinutes === 'number' ? row.data.totalWalkingTimeMinutes : undefined
             };
             simulationsCsvStream.write(unparse([csvAttributes], { header: false }) + '\n');
         }
