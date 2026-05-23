@@ -5,6 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import {
+    findNthOccurrence,
+    computeOccurrence,
     resolveCheckpoint,
     resolveCheckpoints,
     getCheckpointKey,
@@ -38,7 +40,7 @@ const nodeIds = ['nodeA', 'nodeB', 'nodeC', 'nodeD', 'nodeE'];
 
 describe('resolveCheckpoint', () => {
     test('resolves valid checkpoint to indices', () => {
-        const checkpoint: Checkpoint = { fromNodeId: 'nodeB', toNodeId: 'nodeD' };
+        const checkpoint ={ fromNodeId: 'nodeB', toNodeId: 'nodeD' };
         const resolved = resolveCheckpoint(checkpoint, nodeIds);
         expect(resolved).toEqual({
             fromNodeId: 'nodeB',
@@ -49,29 +51,29 @@ describe('resolveCheckpoint', () => {
     });
 
     test('returns undefined when fromNodeId not found', () => {
-        const checkpoint: Checkpoint = { fromNodeId: 'unknown', toNodeId: 'nodeD' };
+        const checkpoint ={ fromNodeId: 'unknown', toNodeId: 'nodeD' };
         expect(resolveCheckpoint(checkpoint, nodeIds)).toBeUndefined();
     });
 
     test('returns undefined when toNodeId not found', () => {
-        const checkpoint: Checkpoint = { fromNodeId: 'nodeA', toNodeId: 'unknown' };
+        const checkpoint ={ fromNodeId: 'nodeA', toNodeId: 'unknown' };
         expect(resolveCheckpoint(checkpoint, nodeIds)).toBeUndefined();
     });
 
     test('returns undefined when fromNodeId equals toNodeId', () => {
-        const checkpoint: Checkpoint = { fromNodeId: 'nodeC', toNodeId: 'nodeC' };
+        const checkpoint ={ fromNodeId: 'nodeC', toNodeId: 'nodeC' };
         expect(resolveCheckpoint(checkpoint, nodeIds)).toBeUndefined();
     });
 
     test('returns undefined when fromNodeId is after toNodeId', () => {
-        const checkpoint: Checkpoint = { fromNodeId: 'nodeD', toNodeId: 'nodeB' };
+        const checkpoint ={ fromNodeId: 'nodeD', toNodeId: 'nodeB' };
         expect(resolveCheckpoint(checkpoint, nodeIds)).toBeUndefined();
     });
 });
 
 describe('resolveCheckpoints', () => {
     test('resolves all valid checkpoints and filters out invalid ones', () => {
-        const checkpoints: Checkpoint[] = [
+        const checkpoints =[
             { fromNodeId: 'nodeA', toNodeId: 'nodeC' },
             { fromNodeId: 'unknown', toNodeId: 'nodeD' },
             { fromNodeId: 'nodeC', toNodeId: 'nodeE' }
@@ -85,14 +87,14 @@ describe('resolveCheckpoints', () => {
     });
 
     test('returns empty array when all checkpoints are invalid', () => {
-        const checkpoints: Checkpoint[] = [
+        const checkpoints =[
             { fromNodeId: 'x', toNodeId: 'y' }
         ];
         expect(resolveCheckpoints(checkpoints, nodeIds)).toEqual([]);
     });
 
     test('filters out same-node and reversed checkpoints', () => {
-        const checkpoints: Checkpoint[] = [
+        const checkpoints =[
             { fromNodeId: 'nodeA', toNodeId: 'nodeC' },
             { fromNodeId: 'nodeC', toNodeId: 'nodeC' }, // same node
             { fromNodeId: 'nodeD', toNodeId: 'nodeB' }, // reversed
@@ -108,13 +110,18 @@ describe('resolveCheckpoints', () => {
 });
 
 describe('getCheckpointKey', () => {
-    test('returns fromNodeId-toNodeId', () => {
-        expect(getCheckpointKey({ fromNodeId: 'nodeA', toNodeId: 'nodeC' })).toBe('nodeA-nodeC');
+    test('returns key with default occurrence 0', () => {
+        expect(getCheckpointKey({ fromNodeId: 'nodeA', toNodeId: 'nodeC' })).toBe('nodeA:0-nodeC:0');
+    });
+
+    test('includes occurrence numbers in key', () => {
+        expect(getCheckpointKey({ fromNodeId: 'nodeA', toNodeId: 'nodeC', fromNodeOccurrence: 1, toNodeOccurrence: 0 }))
+            .toBe('nodeA:1-nodeC:0');
     });
 });
 
 describe('checkpointsOverlap', () => {
-    const makeResolved = (from: number, to: number): ResolvedCheckpoint => ({
+    const makeResolved = (from, to) => ({
         fromNodeId: nodeIds[from],
         toNodeId: nodeIds[to],
         fromNodeIndex: from,
@@ -455,5 +462,62 @@ describe('buildSegmentsByServiceAndPeriod', () => {
         });
         expect(result['service-1'].am.segments[0].distanceMeters).toBeNull();
         expect(result['service-1'].am.segments[1].distanceMeters).toBe(500);
+    });
+});
+
+describe('findNthOccurrence', () => {
+    test('finds first occurrence by default', () => {
+        expect(findNthOccurrence(['A', 'B', 'C', 'A', 'D'], 'A', 0)).toBe(0);
+    });
+
+    test('finds second occurrence', () => {
+        expect(findNthOccurrence(['A', 'B', 'C', 'A', 'D'], 'A', 1)).toBe(3);
+    });
+
+    test('returns -1 when occurrence does not exist', () => {
+        expect(findNthOccurrence(['A', 'B', 'C', 'A', 'D'], 'A', 2)).toBe(-1);
+    });
+
+    test('returns -1 when node not found', () => {
+        expect(findNthOccurrence(['A', 'B', 'C'], 'X', 0)).toBe(-1);
+    });
+});
+
+describe('computeOccurrence', () => {
+    test('returns 0 for first occurrence', () => {
+        expect(computeOccurrence(['A', 'B', 'C', 'A', 'D'], 0)).toBe(0);
+    });
+
+    test('returns 1 for second occurrence', () => {
+        expect(computeOccurrence(['A', 'B', 'C', 'A', 'D'], 3)).toBe(1);
+    });
+
+    test('returns 0 for unique node', () => {
+        expect(computeOccurrence(['A', 'B', 'C'], 1)).toBe(0);
+    });
+});
+
+describe('resolveCheckpoint on loop paths', () => {
+    const loopNodeIds = ['A', 'B', 'C', 'A', 'D'];
+
+    test('resolves to first occurrence without occurrence fields', () => {
+        const cp ={ fromNodeId: 'A', toNodeId: 'C' };
+        const resolved = resolveCheckpoint(cp, loopNodeIds);
+        expect(resolved).toBeDefined();
+        expect(resolved!.fromNodeIndex).toBe(0);
+        expect(resolved!.toNodeIndex).toBe(2);
+    });
+
+    test('resolves to second occurrence with fromNodeOccurrence=1', () => {
+        const cp ={ fromNodeId: 'A', toNodeId: 'D', fromNodeOccurrence: 1 };
+        const resolved = resolveCheckpoint(cp, loopNodeIds);
+        expect(resolved).toBeDefined();
+        expect(resolved!.fromNodeIndex).toBe(3);
+        expect(resolved!.toNodeIndex).toBe(4);
+    });
+
+    test('returns undefined when occurrence does not exist', () => {
+        const cp ={ fromNodeId: 'A', toNodeId: 'D', fromNodeOccurrence: 5 };
+        expect(resolveCheckpoint(cp, loopNodeIds)).toBeUndefined();
     });
 });

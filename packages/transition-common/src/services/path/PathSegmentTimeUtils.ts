@@ -17,6 +17,8 @@ const getBaseSegmentsFromPath = (path: Path): TimeAndDistance[] => path.attribut
 export type Checkpoint = {
     fromNodeId: string;
     toNodeId: string;
+    fromNodeOccurrence?: number;
+    toNodeOccurrence?: number;
 };
 
 /** Checkpoint with resolved node indices — for use in calculations and rendering */
@@ -52,11 +54,34 @@ export type ServiceSegmentTimes = {
 
 // === Pure helpers ===
 
+/** Find the index of the Nth occurrence (0-based) of targetId in nodeIds, or -1 if not found. */
+export const findNthOccurrence = (nodeIds: string[], targetId: string, occurrence: number): number => {
+    let count = 0;
+    for (let i = 0; i < nodeIds.length; i++) {
+        if (nodeIds[i] === targetId) {
+            if (count === occurrence) return i;
+            count++;
+        }
+    }
+    return -1;
+};
+
+/** Compute the 0-based occurrence number of the node at the given index. */
+export const computeOccurrence = (nodeIds: string[], nodeIndex: number): number => {
+    const targetId = nodeIds[nodeIndex];
+    let count = 0;
+    for (let i = 0; i < nodeIndex; i++) {
+        if (nodeIds[i] === targetId) count++;
+    }
+    return count;
+};
+
 /** Resolve a checkpoint's node IDs to their current indices in the nodes array.
+ *  Uses occurrence numbers for disambiguation on loop paths.
  *  Returns undefined if either node ID is not found. */
 export const resolveCheckpoint = (checkpoint: Checkpoint, nodeIds: string[]): ResolvedCheckpoint | undefined => {
-    const fromIndex = nodeIds.indexOf(checkpoint.fromNodeId);
-    const toIndex = nodeIds.indexOf(checkpoint.toNodeId);
+    const fromIndex = findNthOccurrence(nodeIds, checkpoint.fromNodeId, checkpoint.fromNodeOccurrence ?? 0);
+    const toIndex = findNthOccurrence(nodeIds, checkpoint.toNodeId, checkpoint.toNodeOccurrence ?? 0);
     if (fromIndex === -1 || toIndex === -1 || fromIndex >= toIndex) return undefined;
     return { ...checkpoint, fromNodeIndex: fromIndex, toNodeIndex: toIndex };
 };
@@ -66,7 +91,8 @@ export const resolveCheckpoints = (checkpoints: Checkpoint[], nodeIds: string[])
     checkpoints.map((cp) => resolveCheckpoint(cp, nodeIds)).filter((cp): cp is ResolvedCheckpoint => cp !== undefined);
 
 /** Build a unique key for a checkpoint (used for indexing target times) */
-export const getCheckpointKey = (checkpoint: Checkpoint): string => `${checkpoint.fromNodeId}-${checkpoint.toNodeId}`;
+export const getCheckpointKey = (checkpoint: Checkpoint): string =>
+    `${checkpoint.fromNodeId}:${checkpoint.fromNodeOccurrence ?? 0}-${checkpoint.toNodeId}:${checkpoint.toNodeOccurrence ?? 0}`;
 
 /** Check whether two checkpoints overlap (requires resolved indices) */
 export const checkpointsOverlap = (a: ResolvedCheckpoint, b: ResolvedCheckpoint): boolean =>

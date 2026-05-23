@@ -20,6 +20,8 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
 import type { SegmentChangeInfo } from './PathTypes';
+import type { Checkpoint } from './PathSegmentTimeUtils';
+import { resolveCheckpoint, computeOccurrence } from './PathSegmentTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -90,7 +92,7 @@ export interface PathAttributesData {
     waypoints: [number, number][][];
     waypointTypes: string[][];
     segments?: TimeAndDistance[];
-    segmentTimesCheckpoints?: { fromNodeId: string; toNodeId: string }[];
+    segmentTimesCheckpoints?: Checkpoint[];
     dwellTimeSeconds?: number[];
     gtfs?: {
         shape_id: string;
@@ -416,18 +418,28 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const nodeTypes = this.attributes.data.nodeTypes;
         let recomputePath = false;
         if (nodeIds.length > 0 && removeIndex < nodeIds.length) {
-            // Remove any checkpoint that spans the deleted node
+            // Remove any checkpoint that spans the deleted node, and adjust
+            // occurrence numbers for surviving checkpoints when needed.
             const checkpoints = this.attributes.data.segmentTimesCheckpoints;
             if (checkpoints && checkpoints.length > 0) {
-                this.attributes.data.segmentTimesCheckpoints = checkpoints.filter((cp) => {
-                    const fromIdx = nodeIds.indexOf(cp.fromNodeId);
-                    const toIdx = nodeIds.indexOf(cp.toNodeId);
-                    if (fromIdx === -1 || toIdx === -1) return false;
-                    return !(fromIdx <= removeIndex && removeIndex <= toIdx);
-                });
-                if (this.attributes.data.segmentTimesCheckpoints.length === 0) {
-                    this.attributes.data.segmentTimesCheckpoints = undefined;
+                const removedNodeId = nodeIds[removeIndex];
+                const removedOccurrence = computeOccurrence(nodeIds, removeIndex);
+                const surviving: Checkpoint[] = [];
+                for (const cp of checkpoints) {
+                    const resolved = resolveCheckpoint(cp, nodeIds);
+                    if (!resolved) continue;
+                    if (resolved.fromNodeIndex <= removeIndex && removeIndex <= resolved.toNodeIndex) continue;
+                    // Adjust occurrence numbers if an earlier occurrence of the same node was removed
+                    const adjusted = { ...cp };
+                    if (cp.fromNodeId === removedNodeId && (cp.fromNodeOccurrence ?? 0) > removedOccurrence) {
+                        adjusted.fromNodeOccurrence = (cp.fromNodeOccurrence ?? 0) - 1;
+                    }
+                    if (cp.toNodeId === removedNodeId && (cp.toNodeOccurrence ?? 0) > removedOccurrence) {
+                        adjusted.toNodeOccurrence = (cp.toNodeOccurrence ?? 0) - 1;
+                    }
+                    surviving.push(adjusted);
                 }
+                this.attributes.data.segmentTimesCheckpoints = surviving.length > 0 ? surviving : undefined;
             }
             nodeIds.splice(removeIndex, 1);
             nodeTypes.splice(removeIndex, 1);
