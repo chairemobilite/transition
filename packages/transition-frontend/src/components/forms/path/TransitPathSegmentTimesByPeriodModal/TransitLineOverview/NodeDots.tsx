@@ -6,9 +6,12 @@
  */
 import React from 'react';
 
+import type { EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
+
 type NodeDotsProps = {
     nodeLabels: string[];
     activeSegmentIndex: number;
+    editMode: EditMode;
     onSegmentClick: (index: number) => void;
     nodeToCol: (nodeIndex: number) => number;
     dotRow: number;
@@ -23,6 +26,7 @@ type NodeDotsProps = {
 const NodeDots: React.FunctionComponent<NodeDotsProps> = ({
     nodeLabels,
     activeSegmentIndex,
+    editMode,
     onSegmentClick,
     nodeToCol,
     dotRow,
@@ -30,7 +34,8 @@ const NodeDots: React.FunctionComponent<NodeDotsProps> = ({
 }) => {
     const nodeCount = nodeLabels.length;
 
-    const isNodeActiveSegment = (idx: number) => idx === activeSegmentIndex || idx === activeSegmentIndex + 1;
+    const isNodeActiveSegment = (idx: number) =>
+        editMode === 'segment' && (idx === activeSegmentIndex || idx === activeSegmentIndex + 1);
 
     const isFirstOrLast = (idx: number) => idx === 0 || idx === nodeCount - 1;
 

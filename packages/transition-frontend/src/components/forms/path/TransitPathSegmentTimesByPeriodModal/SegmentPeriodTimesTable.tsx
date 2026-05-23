@@ -18,6 +18,8 @@ type Period = {
 type SegmentPeriodTimesTableProps = {
     isFirstSegment: boolean;
     periods: Period[];
+    locked: boolean;
+    lockedMessage?: string;
     getTimeForPeriod: (periodShortname: string) => number;
     getStopTime: () => number;
     onStopTimeChange: (newSeconds: number) => void;
@@ -30,6 +32,8 @@ type SegmentPeriodTimesTableProps = {
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
     isFirstSegment,
     periods,
+    locked,
+    lockedMessage,
     getTimeForPeriod,
     getStopTime,
     onStopTimeChange,
@@ -51,6 +55,11 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
 
     return (
         <div className="period-table-wrapper">
+            {locked && lockedMessage && (
+                <p className="locked-msg" data-testid="segment-locked-msg">
+                    {lockedMessage}
+                </p>
+            )}
             {!isFirstSegment && (
                 <div className="stop-time-row">
                     <strong>{t('transit:transitPath:DwellTime')}:</strong>
@@ -84,7 +93,7 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                 </thead>
                 <tbody>
                     {periods.map((period) => (
-                        <tr key={period.shortname} className="period-table-row">
+                        <tr key={period.shortname} className="period-table-row" style={{ opacity: locked ? 0.5 : 1 }}>
                             <td className="period-table-td">{period.name[i18n.language] || period.shortname}</td>
                             {!isFirstSegment && (
                                 <td className="period-table-td center">
@@ -101,6 +110,7 @@ const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTablePr
                                 <TimeInput
                                     seconds={getTimeForPeriod(period.shortname)}
                                     onChange={(newSec) => onTimeChange(period.shortname, newSec)}
+                                    readOnly={locked}
                                 />
                             </td>
                             <td className="period-table-td center">

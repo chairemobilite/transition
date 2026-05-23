@@ -18,6 +18,7 @@ import TransitLineOverview from './TransitLineOverview/TransitLineOverview';
 import SegmentTimesToolbar from './SegmentTimesToolbar';
 import SegmentCarousel from './SegmentCarousel';
 import SegmentPeriodTimesTable from './SegmentPeriodTimesTable';
+import CheckpointPeriodTimesTable from './CheckpointPeriodTimesTable';
 
 type TransitPathSegmentTimesByPeriodModalProps = {
     isOpen: boolean;
@@ -30,22 +31,44 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
 ) => {
     const { t } = useTranslation('transit');
 
-    const { pathDisplay, serviceSelection, navigation, segmentEdit, save } = useSegmentTimesByPeriod({
+    const { pathDisplay, serviceSelection, navigation, segmentEdit, checkpointEdit, save } = useSegmentTimesByPeriod({
         path: props.path,
         onClose: props.onClose
     });
 
-    const { segmentCount, periods, nodeLabels } = pathDisplay;
+    const { segmentCount, periods, nodeLabels, nodeChoices } = pathDisplay;
     const { serviceChoices, selectedServiceIndex, setSelectedServiceIndex } = serviceSelection;
-    const { activeSegmentIndex, goToPrevSegment, goToNextSegment, handleSegmentClick } = navigation;
+    const {
+        activeSegmentIndex,
+        activeCheckpointIndex,
+        activeCheckpoint,
+        editMode,
+        goToPrevSegment,
+        goToNextSegment,
+        goToPrevCheckpoint,
+        goToNextCheckpoint,
+        handleSegmentClick,
+        handleCheckpointClick
+    } = navigation;
     const {
         getTimeForCell,
         handleCellChange,
+        isSegmentInAnyCheckpoint,
         getDwellTimeForSegment,
         setDwellTimeForSegment,
         getDepartureTimeAtSegment,
         getArrivalTimeAfterSegment
     } = segmentEdit;
+    const {
+        checkpoints,
+        addCheckpoint,
+        removeCheckpoint,
+        getCheckpointCurrentTotal,
+        getCheckpointTotalDwellTime,
+        getCheckpointTarget,
+        setCheckpointTarget,
+        handleDistribute
+    } = checkpointEdit;
     const { handleSave, hasLengthMismatch, saveError } = save;
 
     if (segmentCount === 0) {
@@ -87,6 +110,10 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
 
             <div className="scrollable-body">
                 <SegmentTimesToolbar
+                    nodeChoices={nodeChoices}
+                    resolvedCheckpoints={checkpoints}
+                    segmentCount={segmentCount}
+                    onAddCheckpoint={addCheckpoint}
                     selectedServiceId={selectedServiceIndex}
                     serviceChoices={serviceChoices}
                     onServiceChange={setSelectedServiceIndex}
@@ -108,49 +135,125 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                     nodeLabels={nodeLabels}
                     activeSegmentIndex={activeSegmentIndex}
                     onSegmentClick={handleSegmentClick}
+                    checkpoints={checkpoints}
+                    activeCheckpointIndex={activeCheckpointIndex}
+                    editMode={editMode}
+                    onCheckpointClick={handleCheckpointClick}
                 />
 
                 <div className="content-column">
-                    <SegmentCarousel
-                        onPrevious={goToPrevSegment}
-                        onNext={goToNextSegment}
-                        hidePrevious={activeSegmentIndex === 0}
-                        hideNext={activeSegmentIndex === segmentCount - 1}
-                        startLabel={nodeLabels[activeSegmentIndex]}
-                        endLabel={nodeLabels[activeSegmentIndex + 1]}
-                    >
-                        <div className="segment-viz">
-                            <div className="segment-viz-endpoint segment" />
-                            <div className="segment-viz-line segment">
-                                <span className="segment-viz-info">
-                                    {t('transit:transitPath:Segment')} {activeSegmentIndex + 1}/{segmentCount}
-                                </span>
-                            </div>
-                            <div className="segment-viz-endpoint segment" />
-                        </div>
-                    </SegmentCarousel>
+                    {editMode === 'segment' && (
+                        <>
+                            <SegmentCarousel
+                                onPrevious={goToPrevSegment}
+                                onNext={goToNextSegment}
+                                hidePrevious={activeSegmentIndex === 0}
+                                hideNext={activeSegmentIndex === segmentCount - 1}
+                                startLabel={nodeLabels[activeSegmentIndex]}
+                                endLabel={nodeLabels[activeSegmentIndex + 1]}
+                            >
+                                <div className="segment-viz">
+                                    <div className="segment-viz-endpoint segment" />
+                                    <div className="segment-viz-line segment">
+                                        <span className="segment-viz-info">
+                                            {t('transit:transitPath:Segment')} {activeSegmentIndex + 1}/{segmentCount}
+                                        </span>
+                                    </div>
+                                    <div className="segment-viz-endpoint segment" />
+                                </div>
+                            </SegmentCarousel>
 
-                    <SegmentPeriodTimesTable
-                        isFirstSegment={activeSegmentIndex === 0}
-                        periods={periods}
-                        getTimeForPeriod={(periodShortname) => getTimeForCell(activeSegmentIndex, periodShortname)}
-                        getStopTime={() => getDwellTimeForSegment(activeSegmentIndex)}
-                        onStopTimeChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
-                        getArrivalTimePrevSegment={(periodShortname) =>
-                            activeSegmentIndex > 0
-                                ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname)
-                                : 0
-                        }
-                        getDepartureTime={(periodShortname) =>
-                            getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)
-                        }
-                        getArrivalTime={(periodShortname) =>
-                            getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)
-                        }
-                        onTimeChange={(periodShortname, newSec) =>
-                            handleCellChange(activeSegmentIndex, periodShortname, newSec)
-                        }
-                    />
+                            <SegmentPeriodTimesTable
+                                isFirstSegment={activeSegmentIndex === 0}
+                                periods={periods}
+                                locked={isSegmentInAnyCheckpoint(activeSegmentIndex)}
+                                lockedMessage={t('transit:transitPath:SegmentLockedByCheckpoint')}
+                                getTimeForPeriod={(periodShortname) =>
+                                    getTimeForCell(activeSegmentIndex, periodShortname)
+                                }
+                                getStopTime={() => getDwellTimeForSegment(activeSegmentIndex)}
+                                onStopTimeChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
+                                getArrivalTimePrevSegment={(periodShortname) =>
+                                    activeSegmentIndex > 0
+                                        ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname)
+                                        : 0
+                                }
+                                getDepartureTime={(periodShortname) =>
+                                    getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)
+                                }
+                                getArrivalTime={(periodShortname) =>
+                                    getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)
+                                }
+                                onTimeChange={(periodShortname, newSec) =>
+                                    handleCellChange(activeSegmentIndex, periodShortname, newSec)
+                                }
+                            />
+                        </>
+                    )}
+
+                    {editMode === 'checkpoint' && activeCheckpoint && (
+                        <>
+                            <SegmentCarousel
+                                onPrevious={goToPrevCheckpoint}
+                                onNext={goToNextCheckpoint}
+                                hidePrevious={activeCheckpointIndex === 0}
+                                hideNext={activeCheckpointIndex === checkpoints.length - 1}
+                                startLabel={nodeLabels[activeCheckpoint.fromNodeIndex]}
+                                endLabel={nodeLabels[activeCheckpoint.toNodeIndex]}
+                            >
+                                <span className="segment-viz-info">
+                                    {t('transit:transitPath:Checkpoint')} {activeCheckpointIndex + 1}/
+                                    {checkpoints.length} (
+                                    {activeCheckpoint.toNodeIndex - activeCheckpoint.fromNodeIndex}{' '}
+                                    {t('transit:transitPath:Segments').toLowerCase()})
+                                </span>
+                                <div className="segment-viz">
+                                    <div className="segment-viz-endpoint checkpoint" />
+                                    {Array.from(
+                                        {
+                                            length: Math.min(
+                                                activeCheckpoint.toNodeIndex - activeCheckpoint.fromNodeIndex - 1,
+                                                30
+                                            )
+                                        },
+                                        (_, i) => (
+                                            <React.Fragment key={i}>
+                                                <div className="segment-viz-line checkpoint" />
+                                                <div className="checkpoint-viz-midpoint" />
+                                            </React.Fragment>
+                                        )
+                                    )}
+                                    <div className="segment-viz-line checkpoint" />
+                                    <div className="segment-viz-endpoint checkpoint" />
+                                </div>
+                            </SegmentCarousel>
+
+                            <div className="checkpoint-actions">
+                                <Button
+                                    color="blue"
+                                    label={t('transit:transitPath:DistributeToSegments')}
+                                    onClick={() => handleDistribute(activeCheckpoint)}
+                                />
+                                <Button
+                                    color="grey"
+                                    label={t('transit:transitPath:RemoveCheckpoint')}
+                                    onClick={() => removeCheckpoint(activeCheckpointIndex)}
+                                />
+                            </div>
+
+                            <CheckpointPeriodTimesTable
+                                totalDwellTimeSeconds={getCheckpointTotalDwellTime(activeCheckpoint)}
+                                periods={periods}
+                                getCurrentTotal={(periodShortname) =>
+                                    getCheckpointCurrentTotal(activeCheckpoint, periodShortname)
+                                }
+                                getTarget={(periodShortname) => getCheckpointTarget(activeCheckpoint, periodShortname)}
+                                onTargetChange={(periodShortname, newSec) =>
+                                    setCheckpointTarget(activeCheckpoint, periodShortname, newSec)
+                                }
+                            />
+                        </>
+                    )}
                 </div>
             </div>
 

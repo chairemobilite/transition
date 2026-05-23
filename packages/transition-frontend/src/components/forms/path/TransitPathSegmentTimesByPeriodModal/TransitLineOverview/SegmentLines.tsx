@@ -6,9 +6,12 @@
  */
 import React from 'react';
 
+import type { EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
+
 type SegmentLinesProps = {
     segmentCount: number;
     activeSegmentIndex: number;
+    editMode: EditMode;
     onSegmentClick: (index: number) => void;
     hoveredSegmentIndex: number | null;
     onHoverChange: (index: number | null) => void;
@@ -24,6 +27,7 @@ type SegmentLinesProps = {
 const SegmentLines: React.FunctionComponent<SegmentLinesProps> = ({
     segmentCount,
     activeSegmentIndex,
+    editMode,
     onSegmentClick,
     hoveredSegmentIndex,
     onHoverChange,
@@ -31,14 +35,14 @@ const SegmentLines: React.FunctionComponent<SegmentLinesProps> = ({
     dotRow
 }) => {
     const getSegColor = (idx: number): string => {
-        if (idx === activeSegmentIndex) return '#4fc3f7';
+        if (editMode === 'segment' && idx === activeSegmentIndex) return '#4fc3f7';
         return 'rgba(255,255,255,0.3)';
     };
 
     return (
         <>
             {Array.from({ length: segmentCount }, (_, idx) => {
-                const isActive = idx === activeSegmentIndex;
+                const isActive = editMode === 'segment' && idx === activeSegmentIndex;
                 return (
                     <div
                         key={`seg-${idx}`}

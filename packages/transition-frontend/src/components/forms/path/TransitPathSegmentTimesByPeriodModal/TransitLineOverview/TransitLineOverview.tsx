@@ -9,6 +9,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons/faChevronLeft';
 import { faChevronRight } from '@fortawesome/free-solid-svg-icons/faChevronRight';
 
+import type { ResolvedCheckpoint, EditMode } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
+import CheckpointLines from './CheckpointLines';
 import SegmentLines from './SegmentLines';
 import NodeDots from './NodeDots';
 
@@ -19,6 +21,10 @@ type TransitLineOverviewProps = {
     nodeLabels: string[];
     activeSegmentIndex: number;
     onSegmentClick: (index: number) => void;
+    checkpoints: ResolvedCheckpoint[];
+    activeCheckpointIndex: number;
+    editMode: EditMode;
+    onCheckpointClick: (index: number) => void;
 };
 
 /**
@@ -30,7 +36,11 @@ type TransitLineOverviewProps = {
 const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = ({
     nodeLabels,
     activeSegmentIndex,
-    onSegmentClick
+    onSegmentClick,
+    checkpoints,
+    activeCheckpointIndex,
+    editMode,
+    onCheckpointClick
 }) => {
     const nodeCount = nodeLabels.length;
     const segmentCount = nodeCount - 1;
@@ -66,6 +76,7 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
     const [atStart, setAtStart] = React.useState(true);
     const [atEnd, setAtEnd] = React.useState(false);
     const [hoveredSegmentIndex, setHoveredSegmentIndex] = React.useState<number | null>(null);
+    const [hoveredCheckpointIndex, setHoveredCheckpointIndex] = React.useState<number | null>(null);
 
     const updateScrollEdges = React.useCallback(() => {
         if (!scrollRef.current) return;
@@ -94,11 +105,22 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
         const viewLeft = el.scrollLeft;
         const viewRight = viewLeft + el.clientWidth;
 
-        const segLeft = activeSegmentIndex * slotWidth;
-        const segRight = (activeSegmentIndex + 2) * slotWidth;
-        if (segLeft < viewLeft) scrollToNode(activeSegmentIndex);
-        else if (segRight > viewRight) scrollToNode(Math.max(0, activeSegmentIndex + 2 - viewportNodes));
-    }, [activeSegmentIndex, needsCarousel, viewportNodes]);
+        if (editMode === 'segment') {
+            const segLeft = activeSegmentIndex * slotWidth;
+            const segRight = (activeSegmentIndex + 2) * slotWidth;
+            if (segLeft < viewLeft) scrollToNode(activeSegmentIndex);
+            else if (segRight > viewRight) scrollToNode(Math.max(0, activeSegmentIndex + 2 - viewportNodes));
+        } else if (editMode === 'checkpoint' && checkpoints[activeCheckpointIndex]) {
+            const checkpoint = checkpoints[activeCheckpointIndex];
+            const checkpointRight = (checkpoint.toNodeIndex + 1) * slotWidth;
+            if (checkpointRight > viewRight) {
+                scrollToNode(Math.max(0, checkpoint.toNodeIndex + 1 - viewportNodes));
+            } else {
+                const checkpointLeft = checkpoint.fromNodeIndex * slotWidth;
+                if (checkpointLeft < viewLeft) scrollToNode(Math.max(0, checkpoint.toNodeIndex + 1 - viewportNodes));
+            }
+        }
+    }, [activeSegmentIndex, activeCheckpointIndex, editMode, needsCarousel, viewportNodes]);
 
     const handleScrollLeft = () => {
         if (!scrollRef.current) return;
@@ -116,8 +138,10 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
         i % 2 === 0 ? `${nodeSlotWidth}px` : `${segmentSlotWidth}px`
     ).join(' ');
 
-    const dotRow = 1;
-    const labelRow = 2;
+    const hasCheckpoints = checkpoints.length > 0;
+    const cpRow = hasCheckpoints ? 1 : 0;
+    const dotRow = cpRow + 1;
+    const labelRow = cpRow + 2;
 
     const nodeToCol = (absIdx: number) => 2 * absIdx + 1;
 
@@ -142,9 +166,22 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
 
             <div ref={scrollRef} className="overview-scroll-area">
                 <div className="overview-grid" style={{ gridTemplateColumns, width: gridWidth + 'px' }}>
+                    {hasCheckpoints && (
+                        <CheckpointLines
+                            checkpoints={checkpoints}
+                            activeCheckpointIndex={activeCheckpointIndex}
+                            editMode={editMode}
+                            onCheckpointClick={onCheckpointClick}
+                            hoveredCheckpointIndex={hoveredCheckpointIndex}
+                            onHoverChange={setHoveredCheckpointIndex}
+                            nodeToCol={nodeToCol}
+                        />
+                    )}
+
                     <NodeDots
                         nodeLabels={nodeLabels}
                         activeSegmentIndex={activeSegmentIndex}
+                        editMode={editMode}
                         onSegmentClick={onSegmentClick}
                         nodeToCol={nodeToCol}
                         dotRow={dotRow}
@@ -154,6 +191,7 @@ const TransitLineOverview: React.FunctionComponent<TransitLineOverviewProps> = (
                     <SegmentLines
                         segmentCount={segmentCount}
                         activeSegmentIndex={activeSegmentIndex}
+                        editMode={editMode}
                         onSegmentClick={onSegmentClick}
                         hoveredSegmentIndex={hoveredSegmentIndex}
                         onHoverChange={setHoveredSegmentIndex}
