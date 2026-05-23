@@ -7,10 +7,25 @@
 
 import type Path from './Path';
 import type { PeriodSegmentData } from './Path';
+import type { TimeAndDistance } from './PathTypes';
+import { pathGeographyUtils } from './PathGeographyUtils';
 
-const getBaseSegmentsFromPath = (path: Path) => path.attributes.data.segments || [];
+const getBaseSegmentsFromPath = (path: Path): TimeAndDistance[] => path.attributes.data.segments || [];
 
 // === Types ===
+
+export type Checkpoint = {
+    fromNodeId: string;
+    toNodeId: string;
+};
+
+/** Checkpoint with resolved node indices — for use in calculations and rendering */
+export type ResolvedCheckpoint = Checkpoint & {
+    fromNodeIndex: number;
+    toNodeIndex: number;
+};
+
+export type EditMode = 'segment' | 'checkpoint';
 
 /** Flat editing structure used by the segment times modal: serviceId → period → times per segment. */
 export type LocalSegmentTimes = Record<string, Record<string, number[]>>;
@@ -30,6 +45,26 @@ export type ServiceSegmentTimes = {
 };
 
 // === Pure helpers ===
+
+/** Resolve a checkpoint's node IDs to their current indices in the nodes array.
+ *  Returns undefined if either node ID is not found. */
+export const resolveCheckpoint = (checkpoint: Checkpoint, nodeIds: string[]): ResolvedCheckpoint | undefined => {
+    const fromIndex = nodeIds.indexOf(checkpoint.fromNodeId);
+    const toIndex = nodeIds.indexOf(checkpoint.toNodeId);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex >= toIndex) return undefined;
+    return { ...checkpoint, fromNodeIndex: fromIndex, toNodeIndex: toIndex };
+};
+
+/** Resolve all checkpoints, filtering out any whose nodes no longer exist in the path */
+export const resolveCheckpoints = (checkpoints: Checkpoint[], nodeIds: string[]): ResolvedCheckpoint[] =>
+    checkpoints.map((cp) => resolveCheckpoint(cp, nodeIds)).filter((cp): cp is ResolvedCheckpoint => cp !== undefined);
+
+/** Build a unique key for a checkpoint (used for indexing target times) */
+export const getCheckpointKey = (checkpoint: Checkpoint): string => `${checkpoint.fromNodeId}-${checkpoint.toNodeId}`;
+
+/** Check whether two checkpoints overlap (requires resolved indices) */
+export const checkpointsOverlap = (a: ResolvedCheckpoint, b: ResolvedCheckpoint): boolean =>
+    a.fromNodeIndex < b.toNodeIndex && b.fromNodeIndex < a.toNodeIndex;
 
 /** Build a PeriodSegmentData object from segments, dwell times, and total distance.
  *  Computes travel/operating totals and speed metrics. */
@@ -63,9 +98,7 @@ export const buildSegmentsByServiceAndPeriod = (params: {
     path: Path;
     dwellTimes: number[];
 }): SegmentsByServiceAndPeriod => {
-    const expandedData = params.expandedData;
-    const path = params.path;
-    const dwellTimes = params.dwellTimes;
+    const { expandedData, path, dwellTimes } = params;
     const baseSegments = getBaseSegmentsFromPath(path);
     const totalDistanceMeters = baseSegments.reduce((sum, s) => sum + (s.distanceMeters ?? 0), 0);
     const result: SegmentsByServiceAndPeriod = {};

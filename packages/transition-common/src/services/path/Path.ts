@@ -90,6 +90,7 @@ export interface PathAttributesData {
     waypoints: [number, number][][];
     waypointTypes: string[][];
     segments?: TimeAndDistance[];
+    segmentTimesCheckpoints?: { fromNodeId: string; toNodeId: string }[];
     dwellTimeSeconds?: number[];
     gtfs?: {
         shape_id: string;
@@ -415,6 +416,19 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const nodeTypes = this.attributes.data.nodeTypes;
         let recomputePath = false;
         if (nodeIds.length > 0 && removeIndex < nodeIds.length) {
+            // Remove any checkpoint that spans the deleted node
+            const checkpoints = this.attributes.data.segmentTimesCheckpoints;
+            if (checkpoints && checkpoints.length > 0) {
+                this.attributes.data.segmentTimesCheckpoints = checkpoints.filter((cp) => {
+                    const fromIdx = nodeIds.indexOf(cp.fromNodeId);
+                    const toIdx = nodeIds.indexOf(cp.toNodeId);
+                    if (fromIdx === -1 || toIdx === -1) return false;
+                    return !(fromIdx <= removeIndex && removeIndex <= toIdx);
+                });
+                if (this.attributes.data.segmentTimesCheckpoints.length === 0) {
+                    this.attributes.data.segmentTimesCheckpoints = undefined;
+                }
+            }
             nodeIds.splice(removeIndex, 1);
             nodeTypes.splice(removeIndex, 1);
             this.attributes.nodes = nodeIds;
@@ -850,6 +864,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
+            segmentTimesCheckpoints: undefined,
             dwellTimeSeconds: null, // the last travel time is the travel time to go back to first stop
             layoverTimeSeconds: null,
             travelTimeWithoutDwellTimesSeconds: null,
