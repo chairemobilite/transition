@@ -9,8 +9,11 @@ import _cloneDeep from 'lodash/cloneDeep';
 import { useTranslation } from 'react-i18next';
 
 import Path from 'transition-common/lib/services/path/Path';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
+import { PeriodsGroup } from 'transition-common/lib/services/schedules/Period';
 
 import {
     LocalSegmentTimes,
@@ -105,8 +108,8 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
     });
     const [activeSegmentIndex, setActiveSegmentIndex] = React.useState<number>(0);
 
-    const collectPeriodsWithTripsForService = (service: ServiceSegmentTimes | undefined): any[] => {
-        const periodsByShortname = new Map<string, any>();
+    const collectPeriodsWithTripsForService = (service: ServiceSegmentTimes | undefined): SchedulePeriod[] => {
+        const periodsByShortname = new Map<string, SchedulePeriod>();
         if (!service) return [];
         const schedule = line ? line.getSchedule(service.serviceId) : undefined;
         const schedulePeriods = schedule?.attributes?.periods || [];
@@ -119,16 +122,32 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         return Array.from(periodsByShortname.values());
     };
 
-    const buildPeriodChoice = (period: any) => ({
-        shortname: period.period_shortname || '',
-        name: {
-            [language]: `${period.period_shortname || '?'} (${period.start_at_hour}h-${period.end_at_hour}h)`
+    const periodNamesByShortname: Record<string, string> = React.useMemo(() => {
+        const map: Record<string, string> = {};
+        const periodsGroups = Preferences.get('transit.periods') || {};
+        for (const group of Object.values(periodsGroups) as PeriodsGroup[]) {
+            for (const p of group.periods || []) {
+                if (p.shortname && p.name?.[language]) {
+                    map[p.shortname] = p.name[language];
+                }
+            }
         }
-    });
+        return map;
+    }, [language]);
 
     const periods = collectPeriodsWithTripsForService(selectedService)
         .sort((a, b) => a.start_at_hour - b.start_at_hour)
-        .map(buildPeriodChoice);
+        .map((period: SchedulePeriod) => {
+            const shortname = period.period_shortname || '';
+            return {
+                shortname,
+                name: {
+                    [language]:
+                        periodNamesByShortname[shortname] ||
+                        `${shortname} (${period.start_at_hour}h-${period.end_at_hour}h)`
+                }
+            };
+        });
 
     // Get node names for segment labels
     let nodeGeojsons: GeoJSON.Feature<GeoJSON.Point>[] = [];
