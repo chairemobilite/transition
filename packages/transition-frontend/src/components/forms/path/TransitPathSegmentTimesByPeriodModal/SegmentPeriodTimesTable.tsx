@@ -7,6 +7,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { formatSeconds } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import TimeInput from './TimeInput';
 
 type Period = {
@@ -15,36 +16,88 @@ type Period = {
 };
 
 type SegmentPeriodTimesTableProps = {
+    isFirstSegment: boolean;
     periods: Period[];
     getTimeForPeriod: (periodShortname: string) => number;
+    getStopTime: () => number;
+    onStopTimeChange: (newSeconds: number) => void;
+    getArrivalTimePrevSegment: (periodShortname: string) => number;
+    getDepartureTime: (periodShortname: string) => number;
+    getArrivalTime: (periodShortname: string) => number;
     onTimeChange: (periodShortname: string, newSeconds: number) => void;
 };
 
 const SegmentPeriodTimesTable: React.FunctionComponent<SegmentPeriodTimesTableProps> = ({
+    isFirstSegment,
     periods,
     getTimeForPeriod,
+    getStopTime,
+    onStopTimeChange,
+    getArrivalTimePrevSegment,
+    getDepartureTime,
+    getArrivalTime,
     onTimeChange
 }) => {
     const { t, i18n } = useTranslation('transit');
+    const stopTimeSeconds = getStopTime();
+    const columnWidth = isFirstSegment ? '30%' : '18%';
 
     return (
         <div className="period-table-wrapper">
+            {!isFirstSegment && (
+                <div className="stop-time-row">
+                    <strong>{t('transit:transitPath:DwellTime')}:</strong>
+                    <TimeInput seconds={stopTimeSeconds} onChange={onStopTimeChange} />
+                </div>
+            )}
             <table className="period-table">
                 <thead>
                     <tr>
                         <th className="period-table-th">{t('transit:transitPath:Period')}</th>
-                        <th className="period-table-th center">{t('transit:transitPath:SegmentTime')}</th>
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:ArrivalTime')}
+                            </th>
+                        )}
+                        {!isFirstSegment && (
+                            <th className="period-table-th center" style={{ width: columnWidth }}>
+                                {t('transit:transitPath:DwellTime')}
+                            </th>
+                        )}
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:DepartureTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:SegmentTime')}
+                        </th>
+                        <th className="period-table-th center" style={{ width: columnWidth }}>
+                            {t('transit:transitPath:ArrivalTime')}
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     {periods.map((period) => (
                         <tr key={period.shortname} className="period-table-row">
                             <td className="period-table-td">{period.name[i18n.language] || period.shortname}</td>
+                            {!isFirstSegment && (
+                                <td className="period-table-td center">
+                                    {formatSeconds(getArrivalTimePrevSegment(period.shortname))}
+                                </td>
+                            )}
+                            {!isFirstSegment && (
+                                <td className="period-table-td center">{formatSeconds(stopTimeSeconds)}</td>
+                            )}
+                            <td className="period-table-td center">
+                                {formatSeconds(getDepartureTime(period.shortname))}
+                            </td>
                             <td className="period-table-td center">
                                 <TimeInput
                                     seconds={getTimeForPeriod(period.shortname)}
                                     onChange={(newSec) => onTimeChange(period.shortname, newSec)}
                                 />
+                            </td>
+                            <td className="period-table-td center">
+                                <strong>{formatSeconds(getArrivalTime(period.shortname))}</strong>
                             </td>
                         </tr>
                     ))}

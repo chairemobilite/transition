@@ -6,6 +6,8 @@
  */
 import React from 'react';
 
+import ScrollableDropdown from './ScrollableDropdown';
+
 const SECONDS_CHOICES = Array.from({ length: 60 }, (_, i) => ({
     value: i,
     label: i < 10 ? '0' + i : String(i)
@@ -53,11 +55,6 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
         }
     };
 
-    const handleSecondsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const val = parseInt(e.target.value, 10);
-        onChange(mins * 60 + val);
-    };
-
     if (readOnly) {
         return (
             <span className="time-input readonly">
@@ -87,13 +84,7 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
                 className="time-input-minutes"
             />
             <span className="time-input-unit">min</span>
-            <select value={String(secs)} onChange={handleSecondsChange}>
-                {SECONDS_CHOICES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                        {c.label}
-                    </option>
-                ))}
-            </select>
+            <ScrollableDropdown value={secs} choices={SECONDS_CHOICES} onSelect={(val) => onChange(mins * 60 + val)} />
             <span className="time-input-unit">sec</span>
         </span>
     );
