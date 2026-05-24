@@ -13,7 +13,7 @@ import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMes
 import Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsInternalData, StopTime } from './GtfsImportTypes';
+import { GtfsInternalData, StopTime, TripStopTimesWithService } from './GtfsImportTypes';
 import {
     generateGeographyAndSegmentsFromGtfs,
     generateGeographyAndSegmentsFromStopTimes
@@ -190,6 +190,12 @@ const generatePathsForLine = (
         }
 
         const allStopTimes = trips.map((t) => t.stopTimes);
+        const tripsWithService: TripStopTimesWithService[] = trips
+            .map((t) => ({
+                stopTimes: t.stopTimes,
+                serviceId: importData.serviceIdsByGtfsId[t.trip.service_id]
+            }))
+            .filter((t): t is TripStopTimesWithService => t.serviceId !== undefined);
 
         if (shapeId) {
             const { newPath, warnings } = generatePathFromShape(
@@ -198,7 +204,8 @@ const generatePathsForLine = (
                 allStopTimes,
                 shapeId,
                 nodeIds,
-                importData
+                importData,
+                tripsWithService
             );
             newPaths.push(newPath);
             const pathsForShape = pathByShapeId[shapeId] || [];
@@ -213,7 +220,14 @@ const generatePathsForLine = (
                 text: GtfsMessages.TripWithNoShape,
                 params: { tripId: firstTrip.trip_id, lineShortName: line.attributes.shortname || firstTrip.route_id }
             });
-            const { newPath, warnings } = generatePathWithoutShape(line, firstTrip, allStopTimes, nodeIds, importData);
+            const { newPath, warnings } = generatePathWithoutShape(
+                line,
+                firstTrip,
+                allStopTimes,
+                nodeIds,
+                importData,
+                tripsWithService
+            );
             newPaths.push(newPath);
             pathsWithoutShape.push(newPath);
             for (const tripData of trips) {
@@ -232,7 +246,8 @@ const generatePathFromShape = (
     allTripsStopTimes: StopTime[][],
     shapeGtfsId: string,
     nodeIds: string[],
-    importData: GtfsInternalData
+    importData: GtfsInternalData,
+    tripsWithService: TripStopTimesWithService[] = []
 ): { newPath: Path; warnings: TranslatableMessage[] } => {
     const gtfsDirectionId = trip.direction_id || 0;
     const pathName = trip.trip_headsign;
@@ -242,14 +257,17 @@ const generatePathFromShape = (
 
     const coordinatesWithDistances = importData.shapeById[shapeGtfsId];
     // TODO Those 2 parameters were added to the call:  this.get('defaultLayoverRatioOverTotalTravelTime', null), this.get('defaultMinLayoverTimeSeconds', null));
-    const warnings = generateGeographyAndSegmentsFromGtfs({
+    const generationParams = {
         path: newPath,
         shapeCoordinatesWithDistances: coordinatesWithDistances,
         nodeIds,
         allTripsStopTimes,
         shapeGtfsId,
-        stopCoordinatesByStopId: importData.stopCoordinatesByStopId
-    });
+        stopCoordinatesByStopId: importData.stopCoordinatesByStopId,
+        periods: importData.periodsGroup.periods,
+        tripsWithService
+    };
+    const warnings = generateGeographyAndSegmentsFromGtfs(generationParams);
     newPath.convertAllCoordinatesToWaypoints(newPath.attributes.data.routingEngine !== 'engine'); // set all coordinates to waypoints if routingEngine is not engine
 
     return { newPath, warnings };
@@ -260,7 +278,8 @@ const generatePathWithoutShape = (
     trip: GtfsTypes.Trip,
     allTripsStopTimes: StopTime[][],
     nodeIds: string[],
-    importData: GtfsInternalData
+    importData: GtfsInternalData,
+    tripsWithService: TripStopTimesWithService[] = []
 ): { newPath: Path; warnings: TranslatableMessage[] } => {
     const gtfsDirectionId = trip.direction_id || 0;
     const pathName = trip.trip_headsign;
@@ -269,12 +288,15 @@ const generatePathWithoutShape = (
     const newPath = line.newPath({ direction, name: pathName });
 
     // TODO Those 2 parameters were added to the call: this.get('defaultLayoverRatioOverTotalTravelTime', null), this.get('defaultMinLayoverTimeSeconds', null)). See if we can/need to configure them
-    const warnings = generateGeographyAndSegmentsFromStopTimes({
+    const generationParams = {
         path: newPath,
         nodeIds,
         allTripsStopTimes,
-        stopCoordinatesByStopId: importData.stopCoordinatesByStopId
-    });
+        stopCoordinatesByStopId: importData.stopCoordinatesByStopId,
+        periods: importData.periodsGroup.periods,
+        tripsWithService
+    };
+    const warnings = generateGeographyAndSegmentsFromStopTimes(generationParams);
 
     return { newPath, warnings };
 };

@@ -36,7 +36,7 @@ describe('GTFS data import', () => {
         lines: [],
         services: [],
         periodsGroupShortname: 'default',
-        periodsGroup: { name: {}, periods: [] },
+        periodsGroup: { name: { en: 'default' }, periods: [] },
     }
 
     beforeEach(() => {
