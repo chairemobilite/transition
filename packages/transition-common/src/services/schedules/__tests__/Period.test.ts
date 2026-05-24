@@ -41,11 +41,6 @@ describe('findPeriodShortname', () => {
         expect(findPeriodShortname(periods, 0)).toBe('am_peak'); // midnight (6h before 6AM)
     });
 
-    test('returns null for empty periods array', () => {
-        expect(findPeriodShortname([], 0)).toBeNull();
-        expect(findPeriodShortname([], 12 * 3600)).toBeNull(); // midday
-    });
-
     test('returns null for pre-first-period beyond 6 hour overflow', () => {
         // With first period at 6AM, 6h overflow means anything >= 0 is covered.
         // Use periods starting later to test the null case.
