@@ -106,11 +106,11 @@ export interface PathAttributesData {
     directRouteBetweenTerminalsDistanceMeters?: number;
     travelTimeWithoutDwellTimesSeconds?: number;
     directRouteBetweenTerminalsTravelTimeSeconds?: number;
-    operatingSpeedMetersPerSecond?: number;
+    operatingSpeedMetersPerSecond?: number | null;
     operatingTimeWithLayoverTimeSeconds?: number;
     maxRunningSpeedKmH?: number;
     totalTravelTimeWithReturnBackSeconds?: number;
-    averageSpeedWithoutDwellTimesMetersPerSecond?: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond?: number | null;
     customLayoverMinutes?: number;
     totalDistanceMeters?: number;
     temporaryManualRouting?: boolean;
