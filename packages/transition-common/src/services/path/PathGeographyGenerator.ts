@@ -14,11 +14,13 @@ import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
 } from 'chaire-lib-common/lib/utils/PhysicsUtils';
-import Path from './Path';
+import Path, { type PeriodSegmentData, type PathAttributesData } from './Path';
+import { buildPeriodSegmentData } from './PathSegmentTimeUtils';
 import type { TimeAndDistance, TypeNodeChange, SegmentChangeInfo } from './PathTypes';
 
 const MIN_TRAVEL_TIME_FOR_DWELL_SECONDS = 15;
 
+/** Running totals accumulated while iterating over segments to build final path data. */
 type PathTimeTotals = {
     totalDistance: number;
     totalDwellTimeSeconds: number;
@@ -27,15 +29,33 @@ type PathTimeTotals = {
     totalTravelTimeWithReturnBackSeconds: number;
 };
 
+/** Previous segment times and dwell durations, carried forward from the path's prior state. */
 type SegmentData = {
     segmentsData: TimeAndDistance[];
     dwellTimeDurationsSeconds: number[];
 };
 
+/** Extends SegmentData with per-segment durations computed without dwell time. */
 type ComputedSegmentData = SegmentData & {
     noDwellTimeDurationsSeconds: number[];
-    ratioDifferenceTime: number;
 };
+
+/** A current segment whose previous (initial) state is preserved across the edit. */
+type PreservedSegmentInfo = {
+    isNew: false;
+    /** The corresponding previous segment index */
+    initialIndex: number;
+    /** The previous travel time for this segment in seconds */
+    initialTravelTimeSeconds: number;
+};
+
+/** A current segment with no preserved previous equivalent (needs recalculation). */
+type NewSegmentInfo = {
+    isNew: true;
+};
+
+/** Each current segment's previous (initial) state before the edit, discriminated by `isNew`. */
+type InitialSegmentInfo = PreservedSegmentInfo | NewSegmentInfo;
 
 type SegmentDuration = {
     /** Travel time including acceleration and deceleration phases at each stop */
@@ -44,6 +64,7 @@ type SegmentDuration = {
     noDwellTimeDurationSeconds: number;
 };
 
+/** Snapped node points and legs returned by the routing engine for a path. */
 type RoutingResult = {
     points: Geojson.Feature<Geojson.Point>[];
     legs: (MapLeg | null)[];
@@ -60,15 +81,11 @@ type ComputeSegmentDataParams = {
     changesInfo: SegmentChangeInfo;
 };
 
-/** Output of computing a single segment's data: durations, dwell time, and ratio to previous data. */
+/** Output of computing a single segment's data: durations and dwell time. */
 type ComputeSegmentDataResult = {
     duration: SegmentDuration;
     /** Dwell time at the departure node of this segment (0 for the first segment) */
     dwellTimeSeconds: number;
-    /** Ratio of previous travel time to calculated duration, used to scale new segments. 0 if not applicable. */
-    initialToCalculatedTimeRatio: number;
-    /** Whether this segment contributed a ratio (unchanged segment with previous data) */
-    hasRatio: boolean;
 };
 
 /**
@@ -129,7 +146,7 @@ const appendLegCoordinates = (leg: MapLeg, globalCoordinates: Geojson.Position[]
  * @returns `calculatedSegmentDurationSeconds` (with accel/decel) and `noDwellTimeDurationSeconds` (without)
  * @throws TrError if the calculated duration is zero or negative
  */
-const calculateSegmentDuration = (
+export const calculateSegmentDuration = (
     path: Path,
     segmentDistanceMeters: number,
     routedDurationSeconds: number
@@ -260,6 +277,54 @@ const getInitialSegmentIndex = (currentSegmentIndex: number, lastNodeChange?: Ty
 };
 
 /**
+ * Maps a current node index to its corresponding index in the previous node array, accounting
+ * for a node insert or remove. Returns -1 for a freshly inserted node (no previous equivalent).
+ *
+ * Used to look up stored per-node dwell times across a path edit: a node that existed before
+ * the change keeps its customized dwell time even if its adjacent segment is "new" (split by
+ * an insertion).
+ *
+ * @param currentNodeIndex - The node's index in the current (post-change) node array
+ * @param lastNodeChange - The node change that occurred (insert/remove with index), if any
+ * @returns The corresponding previous node index, or -1 if the node is new
+ */
+const getInitialNodeIndex = (currentNodeIndex: number, lastNodeChange?: TypeNodeChange): number => {
+    if (!lastNodeChange) return currentNodeIndex;
+    if (lastNodeChange.type === 'insert') {
+        if (currentNodeIndex < lastNodeChange.index) return currentNodeIndex;
+        if (currentNodeIndex === lastNodeChange.index) return -1;
+        return currentNodeIndex - 1;
+    }
+    if (lastNodeChange.type === 'remove') {
+        if (currentNodeIndex < lastNodeChange.index) return currentNodeIndex;
+        return currentNodeIndex + 1;
+    }
+    return currentNodeIndex;
+};
+
+/**
+ * Returns the stored dwell time for a preserved node (> 0), or undefined if the node is new,
+ * the stored value is 0/missing, or a full recalculation is forced. Lets customized dwell times
+ * on the path survive regenerations triggered by node inserts/removes.
+ *
+ * @param currentNodeIndex - The node's index in the current (post-change) node array
+ * @param initialDwellTimes - The previous per-node dwell time array (from `path.data.dwellTimeSeconds`)
+ * @param changesInfo - Info about the node/waypoint change that triggered this regeneration
+ * @returns The stored dwell time in seconds, or undefined if none applies
+ */
+const getPreservedNodeDwellTime = (
+    currentNodeIndex: number,
+    initialDwellTimes: number[],
+    changesInfo: SegmentChangeInfo
+): number | undefined => {
+    if (changesInfo.forceRecalculate) return undefined;
+    const initialNodeIndex = getInitialNodeIndex(currentNodeIndex, changesInfo.lastNodeChange);
+    if (initialNodeIndex < 0) return undefined;
+    const stored = initialDwellTimes[initialNodeIndex];
+    return stored !== undefined && stored > 0 ? stored : undefined;
+};
+
+/**
  * Returns the dwell time adjustment to subtract from a preserved segment's travel time.
  *
  * When previous data had no separate dwell time (GTFS baked-in), the dwell was included in the
@@ -323,6 +388,44 @@ const getDwellTimeSecondsForNode = (path: Path, nodeId: unknown): number => {
 };
 
 /**
+ * Returns the effective dwell time for a preserved segment, handling baked-in dwell detection.
+ *
+ * When previous data had dwell baked into travel time (dwell = 0 for a non-first node),
+ * we want to unbake it — but only if the travel time is long enough to absorb the subtraction.
+ * If unbaking would drop travel time below MIN_TRAVEL_TIME_FOR_DWELL_SECONDS, returns 0 to
+ * keep the dwell baked in.
+ *
+ * @param nodeDwellTime - The current node's dwell time in seconds
+ * @param initialIndex - The corresponding previous segment index
+ * @param initialDwellTimes - The previous dwell time array
+ * @param initialTravelTime - The previous segment's travel time in seconds
+ * @returns The effective dwell time (0 if dwell should stay baked in)
+ */
+// TODO Refactor baked-in dwell detection. The check uses a fixed 15-second
+// floor (MIN_TRAVEL_TIME_FOR_DWELL_SECONDS) on initialTravelTime - nodeDwellTime
+// to decide whether dwell is baked into travel time. That threshold is
+// arbitrary and gives the wrong answer for short segments with a real dwell.
+// One direction worth exploring: leverage the travel-time-without-dwell value
+// that already exists elsewhere in the codebase, instead of relying on a
+// magic threshold.
+const getEffectiveDwellTime = (
+    nodeDwellTime: number,
+    initialIndex: number,
+    initialDwellTimes: number[],
+    initialTravelTime: number
+): number => {
+    // We want to get the initial dwell time from the beginning of the segment.
+    const initialDwellTime = initialIndex > 0 ? initialDwellTimes[initialIndex] || 0 : 0;
+    // If initial segment had dwell baked into travel time (GTFS with 0 dwell time), only separate it out
+    // when the segment is long enough to absorb the dwell without going below MIN_TRAVEL_TIME_FOR_DWELL_SECONDS.
+    const hasBakedInDwell = initialDwellTime === 0 && initialIndex > 0;
+    if (hasBakedInDwell && initialTravelTime - nodeDwellTime < MIN_TRAVEL_TIME_FOR_DWELL_SECONDS) {
+        return 0;
+    }
+    return nodeDwellTime;
+};
+
+/**
  * Calculates the layover time at the terminus in seconds.
  *
  * If the path has a custom layover set (`customLayoverMinutes`), uses that value directly.
@@ -376,18 +479,21 @@ const buildPathData = (
         operatingTimeWithoutLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds,
         operatingTimeWithLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
         totalTravelTimeWithReturnBackSeconds: totals.totalTravelTimeWithReturnBackSeconds + layoverTimeSeconds,
-        averageSpeedWithoutDwellTimesMetersPerSecond: roundToDecimals(
-            totals.totalDistance / totals.totalTravelTimeWithoutDwellTimesSeconds,
-            2
-        ),
-        operatingSpeedMetersPerSecond: roundToDecimals(
-            totals.totalDistance / totals.totalTravelTimeWithDwellTimesSeconds,
-            2
-        ),
-        operatingSpeedWithLayoverMetersPerSecond: roundToDecimals(
-            totals.totalDistance / (totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds),
-            2
-        ),
+        averageSpeedWithoutDwellTimesMetersPerSecond:
+            totals.totalTravelTimeWithoutDwellTimesSeconds > 0
+                ? roundToDecimals(totals.totalDistance / totals.totalTravelTimeWithoutDwellTimesSeconds, 2)
+                : 0,
+        operatingSpeedMetersPerSecond:
+            totals.totalTravelTimeWithDwellTimesSeconds > 0
+                ? roundToDecimals(totals.totalDistance / totals.totalTravelTimeWithDwellTimesSeconds, 2)
+                : 0,
+        operatingSpeedWithLayoverMetersPerSecond:
+            totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds > 0
+                ? roundToDecimals(
+                    totals.totalDistance / (totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds),
+                    2
+                )
+                : 0,
         from_gtfs: false
     };
 };
@@ -416,13 +522,130 @@ const isNewSegment = (
 };
 
 /**
- * Computes the duration, dwell time, and `initialToCalculatedTimeRatio` for a single
- * completed segment. The first segment always has dwell time 0 (layover is separate).
- * For unchanged segments with previous data, computes the ratio of previous travel time to
- * new calculated duration, used to scale new/modified segments.
+ * Resolves each current segment's previous (initial) state: previous index, previous travel time, and
+ * whether it is new. Shared by the base path regeneration and the per-period remap — both need the same
+ * previous state before applying their own dwell adjustment.
+ *
+ * @param initial - Previous segment data to resolve against
+ * @param changesInfo - Info about the node/waypoint change that shifts segment indices
+ * @param segmentCount - Number of current segments to resolve
+ * @returns One {@link InitialSegmentInfo} per current segment
+ */
+const resolveInitialSegmentInfo = (
+    initial: SegmentData,
+    changesInfo: SegmentChangeInfo,
+    segmentCount: number
+): InitialSegmentInfo[] => {
+    const initialSegmentInfos: InitialSegmentInfo[] = [];
+    for (let i = 0; i < segmentCount; i++) {
+        const initialIndex = getInitialSegmentIndex(i, changesInfo.lastNodeChange);
+        const initialTravelTimeSeconds =
+            initialIndex >= 0 ? initial.segmentsData[initialIndex]?.travelTimeSeconds : undefined;
+        if (initialTravelTimeSeconds === undefined || isNewSegment(initialTravelTimeSeconds, i, changesInfo)) {
+            initialSegmentInfos.push({ isNew: true });
+            continue;
+        }
+        initialSegmentInfos.push({
+            isNew: false,
+            initialIndex,
+            initialTravelTimeSeconds
+        });
+    }
+    return initialSegmentInfos;
+};
+
+/**
+ * Computes the remapped travel time of each current segment. Shared by the base path regeneration and
+ * the per-period remap: the caller resolves its own per-segment dwell adjustment (the only part that
+ * differs, since the baked-in unbake check depends on each side's own travel times) and passes it in
+ * as `dwellAdjustmentsSeconds`.
+ *
+ * For each current segment:
+ * - **Preserved** (not new): the previous travel time minus its dwell adjustment.
+ * - **New**: the physics duration scaled by the ratio.
+ *
+ * The ratio (applied to new segments only) is the average of `(previousTime - adjustment) / physicsDuration`
+ * over the preserved segments (defaults to 1 when there are none).
+ *
+ * @param initialSegmentInfos - Per-segment previous state (from {@link resolveInitialSegmentInfo})
+ * @param durationsFromRouting - Per-segment routing durations before ratio scaling
+ * @param dwellAdjustmentsSeconds - Per-segment dwell adjustment to subtract from preserved travel times (0 for new segments)
+ * @returns The remapped travel time for each segment
+ */
+const computeSegmentTravelTimes = (
+    initialSegmentInfos: InitialSegmentInfo[],
+    durationsFromRouting: number[],
+    dwellAdjustmentsSeconds: number[]
+): number[] => {
+    let ratioCumulated = 0;
+    let ratioCount = 0;
+    initialSegmentInfos.forEach((segment, i) => {
+        if (segment.isNew) {
+            return;
+        }
+        ratioCumulated += (segment.initialTravelTimeSeconds - dwellAdjustmentsSeconds[i]) / durationsFromRouting[i];
+        ratioCount++;
+    });
+    const ratio = ratioCount > 0 ? ratioCumulated / ratioCount : 1;
+
+    return initialSegmentInfos.map((segment, i) =>
+        segment.isNew ? durationsFromRouting[i] * ratio : segment.initialTravelTimeSeconds - dwellAdjustmentsSeconds[i]
+    );
+};
+
+/**
+ * Resolves the dwell time for a segment, in priority order:
+ *   1. A customized dwell stored on the path for a preserved node (> 0) — survives
+ *      regenerations even when the adjacent segment is "new" (split by an insert/remove).
+ *   2. The node's default dwell time when the segment itself is new.
+ *   3. The baked-in unbake logic for preserved segments (see {@link getEffectiveDwellTime}).
+ *
+ * @param params.segmentIndex - The current segment index (0 means path start)
+ * @param params.nodeDwellTimeSeconds - The node's default dwell time (fallback)
+ * @param params.initialIndex - The corresponding previous segment index (-1 if new)
+ * @param params.isNew - Whether this segment has no previous equivalent
+ * @param params.initial - Previous segment data (travel times and per-node dwell times)
+ * @param params.changesInfo - Info about the node/waypoint change that triggered this regeneration
+ * @returns The dwell time in seconds to apply at the segment's starting node
+ */
+const resolveSegmentDwellTime = (params: {
+    segmentIndex: number;
+    nodeDwellTimeSeconds: number;
+    initialIndex: number;
+    isNew: boolean;
+    initial: SegmentData;
+    changesInfo: SegmentChangeInfo;
+}): number => {
+    const preservedNodeDwell =
+        params.segmentIndex > 0
+            ? getPreservedNodeDwellTime(
+                params.segmentIndex,
+                params.initial.dwellTimeDurationsSeconds,
+                params.changesInfo
+            )
+            : undefined;
+    if (preservedNodeDwell !== undefined) {
+        return preservedNodeDwell;
+    }
+    if (params.isNew) {
+        return params.nodeDwellTimeSeconds;
+    }
+    const initialTime = params.initial.segmentsData[params.initialIndex]?.travelTimeSeconds;
+    return getEffectiveDwellTime(
+        params.nodeDwellTimeSeconds,
+        params.initialIndex,
+        params.initial.dwellTimeDurationsSeconds,
+        initialTime!
+    );
+};
+
+/**
+ * Computes the duration and dwell time for a single completed segment. The first segment always has
+ * dwell time 0 (layover is separate). Travel-time preservation/scaling against the previous data is
+ * handled later by {@link computeSegmentTravelTimes}.
  *
  * @param params - The segment parameters (path, index, distance, duration, nodeId, previous data, changes info)
- * @returns The segment duration, dwell time, and optional time ratio for unchanged segments
+ * @returns The segment duration and dwell time
  */
 const computeSegmentData = (params: ComputeSegmentDataParams): ComputeSegmentDataResult => {
     const { path, segmentIndex, segmentTimeAndDistance, nodeId, initial, changesInfo } = params;
@@ -439,55 +662,37 @@ const computeSegmentData = (params: ComputeSegmentDataParams): ComputeSegmentDat
     const initialTime = initialIndex >= 0 ? initial.segmentsData[initialIndex]?.travelTimeSeconds : undefined;
     const isNew = isNewSegment(initialTime, segmentIndex, changesInfo);
 
-    let dwellTimeSeconds = nodeDwellTimeSeconds;
-    if (!isNew) {
-        // We want to get the initial dwell time from the beginning of the segment.
-        const initialDwellTime = initialIndex > 0 ? initial.dwellTimeDurationsSeconds[initialIndex] || 0 : 0;
-        // If initial segment had dwell baked into travel time (GTFS with 0 dwell time), only separate it out
-        // when the segment is long enough to absorb the dwell without going below `MIN_TRAVEL_TIME_FOR_DWELL_SECONDS`.
-        const hasBakedInDwell = initialDwellTime === 0 && initialIndex > 0;
-        if (hasBakedInDwell && initialTime! - nodeDwellTimeSeconds < MIN_TRAVEL_TIME_FOR_DWELL_SECONDS) {
-            dwellTimeSeconds = 0;
-        }
-    }
+    const dwellTimeSeconds = resolveSegmentDwellTime({
+        segmentIndex,
+        nodeDwellTimeSeconds,
+        initialIndex,
+        isNew,
+        initial,
+        changesInfo
+    });
 
-    let initialToCalculatedTimeRatio = 0;
-    const hasRatio = !isNew;
-    if (hasRatio) {
-        const adjustmentDwellTime = getDwellTimeAdjustment(
-            segmentIndex,
-            initialIndex,
-            dwellTimeSeconds,
-            initial,
-            changesInfo
-        );
-        initialToCalculatedTimeRatio = (initialTime! - adjustmentDwellTime) / duration.calculatedSegmentDurationSeconds;
-    }
-
-    return { duration, dwellTimeSeconds, initialToCalculatedTimeRatio, hasRatio };
+    return { duration, dwellTimeSeconds };
 };
 
 /**
- * Builds the path's coordinate geometry and per-segment data from routing legs, and computes the
- * `ratioDifferenceTime` scaling factor used to adjust new/modified segment travel times.
+ * Builds the path's coordinate geometry and per-segment data from routing legs.
  *
  * Iterates over routing legs (one per waypoint-to-waypoint sub-route) and aggregates them into
  * node-to-node segments. For each completed segment:
  * - Calculates duration and distance from the routing engine results.
  * - Determines dwell time at the arrival node (set to 0 if the segment is too short to justify it).
- * - For unchanged segments with previous data, accumulates the ratio of previous travel time to new
- *   calculated duration into `ratioCumulated`, which is averaged at the end to produce
- *   `ratioDifferenceTime`. This ratio captures how the user's scheduled times relate to raw
- *   routing times, so it can be applied to new/modified segments.
+ *
+ * The travel times produced here are the raw routing durations; preserving/scaling them against the
+ * previous data is done afterwards by {@link computeSegmentTravelTimes} (see {@link adjustTimesAndComputeTotals}).
  *
  * A trailing segment that ends at a waypoint (not a node) is included in the geometry but excluded
- * from duration totals and ratio calculation.
+ * from duration totals.
  *
  * @param path - The path object (provides node IDs, speed config, dwell time settings)
  * @param routing - Routing results (points and legs between them)
- * @param previous - Previous segment data for preserving travel time ratios
+ * @param initial - Previous segment data, carried forward for later time preservation
  * @param changesInfo - Info about recent node/waypoint changes that affect segment mapping
- * @returns Segment geometry, per-segment time/distance data, dwell times, and the computed ratioDifferenceTime
+ * @returns Segment geometry, per-segment time/distance data, and dwell times
  */
 const buildSegmentsAndGeometry = (
     path: Path,
@@ -504,8 +709,6 @@ const buildSegmentsAndGeometry = (
     const dwellTimeDurationsSeconds: number[] = [];
     let nextNodeIndex = 1;
     let segmentTimeAndDistance: TimeAndDistance = { travelTimeSeconds: 0, distanceMeters: 0 };
-    let ratioCumulated = 0;
-    let numberOfSegmentsCumulated = 0;
 
     for (let i = 0; i < routing.legs.length; i++) {
         const leg = routing.legs[i];
@@ -547,11 +750,6 @@ const buildSegmentsAndGeometry = (
         };
         const result = computeSegmentData(segmentParams);
 
-        if (result.hasRatio) {
-            numberOfSegmentsCumulated++;
-            ratioCumulated += result.initialToCalculatedTimeRatio;
-        }
-
         segments.push(segmentCoordinatesStartIndex);
         segmentsData.push({
             travelTimeSeconds: result.duration.calculatedSegmentDurationSeconds,
@@ -564,61 +762,20 @@ const buildSegmentsAndGeometry = (
         nextNodeIndex++;
     }
 
-    // Add dwell time for the last (arrival) node
-    const lastNodeId = nodeIds[nextNodeIndex - 1];
-    dwellTimeDurationsSeconds.push(getDwellTimeSecondsForNode(path, lastNodeId));
-
-    const ratioDifferenceTime = numberOfSegmentsCumulated > 0 ? ratioCumulated / numberOfSegmentsCumulated : 1;
+    // Add dwell time for the last (arrival) node — prefer the path's stored dwell for this
+    // node if it was preserved, otherwise fall back to the node default.
+    const lastNodeIndex = nextNodeIndex - 1;
+    const lastNodeId = nodeIds[lastNodeIndex];
+    const preservedLastDwell = getPreservedNodeDwellTime(lastNodeIndex, initial.dwellTimeDurationsSeconds, changesInfo);
+    dwellTimeDurationsSeconds.push(preservedLastDwell ?? getDwellTimeSecondsForNode(path, lastNodeId));
 
     return {
         globalCoordinates,
         segments,
         segmentsData,
         noDwellTimeDurationsSeconds,
-        dwellTimeDurationsSeconds,
-        ratioDifferenceTime
+        dwellTimeDurationsSeconds
     };
-};
-
-/**
- * Adjusts a single segment's travel time, either preserving the previous value or recalculating it.
- *
- * - **Preserved**: If the segment existed before and was not modified, the previous travel time is reused.
- *   When the previous data had no separate dwell time (GTFS baked-in) and the segment was not the first one,
- *   the departure node's dwell time is subtracted to isolate the travel portion. Exception: when a node
- *   was inserted at the beginning, the previous first segment's departure node gained a dwell time it didn't
- *   have before (was path start), so no subtraction is applied.
- * - **Recalculated**: If the segment is new, modified, or has no previous data, its travel time is
- *   scaled by `ratioDifferenceTime`.
- *
- * @param segmentIndex - The current segment index
- * @param current - Current routing results (segments, durations, dwell times, scaling ratio)
- * @param previous - Previous segment data used to preserve unchanged travel times
- * @param changesInfo - Info about recent node/waypoint changes that affect segment mapping
- */
-const adjustSegmentTime = (
-    segmentIndex: number,
-    current: ComputedSegmentData,
-    initial: SegmentData,
-    changesInfo: SegmentChangeInfo
-) => {
-    const initialIndex = getInitialSegmentIndex(segmentIndex, changesInfo.lastNodeChange);
-    const initialTime = initialIndex >= 0 ? initial.segmentsData[initialIndex]?.travelTimeSeconds : undefined;
-    if (!isNewSegment(initialTime, segmentIndex, changesInfo)) {
-        // Unchanged segment: preserve the previous travel time, subtracting any baked-in dwell time
-        const adjustment = getDwellTimeAdjustment(
-            segmentIndex,
-            initialIndex,
-            current.dwellTimeDurationsSeconds[segmentIndex],
-            initial,
-            changesInfo
-        );
-        current.segmentsData[segmentIndex].travelTimeSeconds = initialTime! - adjustment;
-    } else {
-        // New or modified segment: scale the routing-calculated time by the ratio from existing data
-        current.segmentsData[segmentIndex].travelTimeSeconds =
-            current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime;
-    }
 };
 
 /**
@@ -639,12 +796,12 @@ const accumulateSegmentTotals = (segmentIndex: number, current: ComputedSegmentD
 };
 
 /**
- * Adjusts segment travel times via {@link adjustSegmentTime} and computes path-level totals
+ * Remaps segment travel times via {@link computeSegmentTravelTimes} and computes path-level totals
  * (distance, travel time, dwell time, layover). Returns the full path data object.
  *
  * @param path - The path object (used for layover calculation)
- * @param current - Current routing results (segments, durations, dwell times, scaling ratio)
- * @param previous - Previous segment data used to preserve unchanged travel times
+ * @param current - Current routing results (segments, durations, dwell times)
+ * @param initial - Previous segment data used to preserve unchanged travel times
  * @param changesInfo - Info about recent node/waypoint changes that affect segment mapping
  * @returns The assembled path data with segments, totals, and speeds
  */
@@ -663,14 +820,137 @@ const adjustTimesAndComputeTotals = (
     };
 
     const segmentCount = current.noDwellTimeDurationsSeconds.length;
+    // Raw routing durations captured before they are overwritten with the remapped values below.
+    const durationsFromRouting = current.segmentsData
+        .slice(0, segmentCount)
+        .map((segment) => segment.travelTimeSeconds);
+
+    const initialSegmentInfos = resolveInitialSegmentInfo(initial, changesInfo, segmentCount);
+    // Base dwell adjustment: uses the dwell already resolved for the path, against the path's own times.
+    const dwellAdjustmentsSeconds = initialSegmentInfos.map((segment, i) =>
+        segment.isNew
+            ? 0
+            : getDwellTimeAdjustment(
+                i,
+                segment.initialIndex,
+                current.dwellTimeDurationsSeconds[i],
+                initial,
+                changesInfo
+            )
+    );
+    const travelTimes = computeSegmentTravelTimes(initialSegmentInfos, durationsFromRouting, dwellAdjustmentsSeconds);
+
     for (let currentSegmentIndex = 0; currentSegmentIndex < segmentCount; currentSegmentIndex++) {
-        adjustSegmentTime(currentSegmentIndex, current, initial, changesInfo);
+        current.segmentsData[currentSegmentIndex].travelTimeSeconds = travelTimes[currentSegmentIndex];
         accumulateSegmentTotals(currentSegmentIndex, current, totals);
     }
 
     const layoverTimeSeconds = calculateLayoverSeconds(path, totals.totalTravelTimeWithDwellTimesSeconds);
 
     return buildPathData(current.segmentsData, current.dwellTimeDurationsSeconds, layoverTimeSeconds, totals);
+};
+
+/**
+ * Remaps a single period/service segment data entry after a path edit.
+ *
+ * Shares the ratio/travel-time logic with the base regeneration via {@link resolveInitialSegmentInfo} and
+ * {@link computeSegmentTravelTimes}. The only per-period part is the dwell adjustment: the baked-in
+ * unbake check ({@link getEffectiveDwellTime}) depends on this period's own travel times, so it is
+ * computed here against `periodInitial` and passed to the shared kernel as `dwellAdjustmentsSeconds`.
+ *
+ * The ratio is the period-specific congestion factor (e.g. AM peak 1.4x vs off-peak 1.0x); preserved
+ * segments keep their stored time (minus any baked-in dwell), new segments scale the physics duration.
+ * Aggregates are recomputed from the remapped segments; `tripCount` is preserved unchanged.
+ *
+ * @param path - The path object (provides node IDs, dwell time config, node collection)
+ * @param initialPeriod - The period/service data from before the edit
+ * @param durationsFromRouting - Per-segment travel times from the physics model, before ratio scaling
+ * @param newSegmentsData - Per-segment distance/time from the new routing result
+ * @param changesInfo - Info about the node/waypoint change that triggered the remap
+ * @returns The remapped period data with updated segments, dwell times, and recomputed aggregates
+ */
+const remapPeriodSegmentData = (
+    path: Path,
+    initialPeriod: PeriodSegmentData,
+    durationsFromRouting: number[],
+    newSegmentsData: TimeAndDistance[],
+    changesInfo: SegmentChangeInfo
+): PeriodSegmentData => {
+    const segmentCount = durationsFromRouting.length;
+    const nodeIds = path.attributes.nodes;
+
+    const periodInitial: SegmentData = {
+        segmentsData: initialPeriod.segments,
+        dwellTimeDurationsSeconds: initialPeriod.dwellTimeSeconds
+    };
+
+    // Effective dwell for a preserved segment, checked against THIS period's travel time.
+    const preservedDwellTime = (currentIndex: number, segment: PreservedSegmentInfo): number => {
+        const nodeDwell = currentIndex === 0 ? 0 : getDwellTimeSecondsForNode(path, nodeIds[currentIndex]);
+        return getEffectiveDwellTime(
+            nodeDwell,
+            segment.initialIndex,
+            periodInitial.dwellTimeDurationsSeconds,
+            segment.initialTravelTimeSeconds
+        );
+    };
+
+    const initialSegmentInfos = resolveInitialSegmentInfo(periodInitial, changesInfo, segmentCount);
+    const dwellAdjustmentsSeconds = initialSegmentInfos.map((segment, i) =>
+        segment.isNew
+            ? 0
+            : getDwellTimeAdjustment(
+                i,
+                segment.initialIndex,
+                preservedDwellTime(i, segment),
+                periodInitial,
+                changesInfo
+            )
+    );
+    const travelTimes = computeSegmentTravelTimes(initialSegmentInfos, durationsFromRouting, dwellAdjustmentsSeconds);
+
+    const remappedSegments: TimeAndDistance[] = travelTimes.map((travelTimeSeconds, i) => ({
+        travelTimeSeconds,
+        distanceMeters: newSegmentsData[i].distanceMeters
+    }));
+
+    const remappedDwellTimes = initialSegmentInfos.map((segment, i) =>
+        segment.isNew ? (i === 0 ? 0 : getDwellTimeSecondsForNode(path, nodeIds[i])) : preservedDwellTime(i, segment)
+    );
+    remappedDwellTimes.push(getDwellTimeSecondsForNode(path, nodeIds[nodeIds.length - 1]));
+
+    const totalDistanceMeters = remappedSegments.reduce((sum, seg) => sum + (seg.distanceMeters || 0), 0);
+
+    return buildPeriodSegmentData(remappedSegments, remappedDwellTimes, totalDistanceMeters);
+};
+
+/**
+ * Remaps all service/period segment data entries after a path edit.
+ * Each service/period is remapped independently with its own ratio.
+ */
+const remapAllServicePeriodSegmentData = (
+    path: Path,
+    initialData: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } },
+    durationsFromRouting: number[],
+    newSegmentsData: TimeAndDistance[],
+    changesInfo: SegmentChangeInfo
+): { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } => {
+    const result: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } = {};
+
+    for (const serviceId of Object.keys(initialData)) {
+        result[serviceId] = {};
+        for (const periodShortname of Object.keys(initialData[serviceId])) {
+            result[serviceId][periodShortname] = remapPeriodSegmentData(
+                path,
+                initialData[serviceId][periodShortname],
+                durationsFromRouting,
+                newSegmentsData,
+                changesInfo
+            );
+        }
+    }
+
+    return result;
 };
 
 /**
@@ -689,16 +969,34 @@ const handleLegs = (path: Path, routing: RoutingResult, changesInfo: SegmentChan
         segmentsData: path.attributes.data.segments || [],
         dwellTimeDurationsSeconds: path.attributes.data.dwellTimeSeconds || []
     };
+    const initialPeriodData = path.attributes.data.segmentsByServiceAndPeriod;
 
     const geometryResult = buildSegmentsAndGeometry(path, routing, initial, changesInfo);
+
+    const realSegmentCount = geometryResult.noDwellTimeDurationsSeconds.length;
+
+    // Per-segment travel times from physics model (acc./dec./speed), before ratio scaling
+    const durationsFromRouting = geometryResult.segmentsData.slice(0, realSegmentCount).map((s) => s.travelTimeSeconds);
 
     const current: ComputedSegmentData = {
         segmentsData: geometryResult.segmentsData,
         noDwellTimeDurationsSeconds: geometryResult.noDwellTimeDurationsSeconds,
-        dwellTimeDurationsSeconds: geometryResult.dwellTimeDurationsSeconds,
-        ratioDifferenceTime: geometryResult.ratioDifferenceTime
+        dwellTimeDurationsSeconds: geometryResult.dwellTimeDurationsSeconds
     };
-    const newData = adjustTimesAndComputeTotals(path, current, initial, changesInfo);
+    const newData: Partial<PathAttributesData> = adjustTimesAndComputeTotals(path, current, initial, changesInfo);
+
+    // Remap period segment data or clear it on forceRecalculate
+    if (initialPeriodData && !changesInfo.forceRecalculate) {
+        newData.segmentsByServiceAndPeriod = remapAllServicePeriodSegmentData(
+            path,
+            initialPeriodData,
+            durationsFromRouting,
+            geometryResult.segmentsData.slice(0, realSegmentCount),
+            changesInfo
+        );
+    } else if (initialPeriodData) {
+        newData.segmentsByServiceAndPeriod = undefined;
+    }
 
     path.set('geography', { type: 'LineString', coordinates: geometryResult.globalCoordinates });
     path.attributes.segments = geometryResult.segments;
