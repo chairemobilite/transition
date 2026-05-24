@@ -5,6 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+
+import ScrollableDropdown from './ScrollableDropdown';
 
 const SECONDS_CHOICES = Array.from({ length: 60 }, (_, i) => ({
     value: i,
@@ -18,6 +21,7 @@ type TimeInputProps = {
 };
 
 const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange, readOnly = false }) => {
+    const { t } = useTranslation('main');
     const rounded = Math.round(seconds);
     const mins = Math.floor(rounded / 60);
     const secs = rounded % 60;
@@ -53,18 +57,13 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
         }
     };
 
-    const handleSecondsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const val = parseInt(e.target.value, 10);
-        onChange(mins * 60 + val);
-    };
-
     if (readOnly) {
         return (
             <span className="time-input readonly">
                 <strong>{mins}</strong>
-                <span className="time-input-unit">min</span>
+                <span className="time-input-unit">{t('minuteAbbr')}</span>
                 <strong>{secs < 10 ? '0' + secs : secs}</strong>
-                <span className="time-input-unit">sec</span>
+                <span className="time-input-unit">{t('secondAbbr')}</span>
             </span>
         );
     }
@@ -86,15 +85,17 @@ const TimeInput: React.FunctionComponent<TimeInputProps> = ({ seconds, onChange,
                 }}
                 className="time-input-minutes"
             />
-            <span className="time-input-unit">min</span>
-            <select value={String(secs)} onChange={handleSecondsChange}>
-                {SECONDS_CHOICES.map((c) => (
-                    <option key={c.value} value={c.value}>
-                        {c.label}
-                    </option>
-                ))}
-            </select>
-            <span className="time-input-unit">sec</span>
+            <span className="time-input-unit">{t('minuteAbbr')}</span>
+            <ScrollableDropdown
+                value={secs}
+                choices={SECONDS_CHOICES}
+                onSelect={(val) => {
+                    const parsedMins = parseInt(minsText, 10);
+                    const effectiveMins = !Number.isNaN(parsedMins) && parsedMins >= 0 ? parsedMins : mins;
+                    onChange(effectiveMins * 60 + val);
+                }}
+            />
+            <span className="time-input-unit">{t('secondAbbr')}</span>
         </span>
     );
 };
