@@ -619,3 +619,19 @@ test('Test GTFS compliance - handles >24h times for midnight-crossing schedules'
     expect(firstHour).toBeGreaterThanOrEqual(24);
     expect(secondHour).toBeGreaterThanOrEqual(24);
 });
+
+test('Test path exports all timepoints as 1', async () => {
+    mockReadForLines.mockResolvedValueOnce([scheduleAttributes1]);
+    const response = await exportSchedule([lineId], { directoryPath: 'test', quotesFct: quoteFct, serviceToGtfsId });
+    expect(response.status).toEqual('success');
+
+    const stopTimesOutput = mockWriteStopTimeStream.write.mock.calls[0][0] as string;
+    const stopTimesLines = stopTimesOutput.split('\n').filter(line => line.trim() && !line.startsWith('"trip_id"'));
+
+    // All timepoints should be 1
+    stopTimesLines.forEach(line => {
+        const fields = line.split(',');
+        const timepoint = parseInt(fields[fields.length - 1]);
+        expect(timepoint).toBe(1);
+    });
+});

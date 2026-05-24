@@ -873,6 +873,97 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return features;
     }
 
+    /**
+     * Get the stored segment data for a specific service and period, or undefined when none is
+     * stored for that (serviceId, periodShortname).
+     */
+    getSegmentsForPeriodAndService(periodShortname: string, serviceId: string): PeriodSegmentData | undefined {
+        return this.attributes.data.segmentsByServiceAndPeriod?.[serviceId]?.[periodShortname];
+    }
+
+    /** Compute an equal-weight average across multiple services' PeriodSegmentData for the same period. */
+    private _averagePeriodSegmentData(dataArray: PeriodSegmentData[]): PeriodSegmentData {
+        const numSegments = Math.min(...dataArray.map((d) => d.segments.length));
+        const numStops = Math.min(...dataArray.map((d) => d.dwellTimeSeconds.length));
+        const count = dataArray.length;
+
+        const avgSegments: TimeAndDistance[] = [];
+        const avgDwell: number[] = [];
+
+        for (let i = 0; i < numSegments; i++) {
+            let travelSum = 0;
+            let distSum = 0;
+            let hasDistance = false;
+            for (const d of dataArray) {
+                travelSum += d.segments[i].travelTimeSeconds;
+                if (d.segments[i].distanceMeters !== null) {
+                    distSum += d.segments[i].distanceMeters!;
+                    hasDistance = true;
+                }
+            }
+            avgSegments.push({
+                travelTimeSeconds: Math.round(travelSum / count),
+                distanceMeters: hasDistance ? Math.round(distSum / count) : null
+            });
+        }
+
+        for (let i = 0; i < numStops; i++) {
+            let dwellSum = 0;
+            for (const d of dataArray) {
+                dwellSum += d.dwellTimeSeconds[i];
+            }
+            avgDwell.push(Math.round(dwellSum / count));
+        }
+
+        const travelTimeWithoutDwellTimesSeconds = avgSegments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
+        const totalDwellTime = avgDwell.reduce((sum, d) => sum + d, 0);
+        const operatingTimeWithoutLayoverTimeSeconds = travelTimeWithoutDwellTimesSeconds + totalDwellTime;
+        const totalDistanceMeters = this.attributes.data.totalDistanceMeters ?? 0;
+
+        return {
+            segments: avgSegments,
+            dwellTimeSeconds: avgDwell,
+            travelTimeWithoutDwellTimesSeconds,
+            operatingTimeWithoutLayoverTimeSeconds,
+            averageSpeedWithoutDwellTimesMetersPerSecond:
+                travelTimeWithoutDwellTimesSeconds > 0
+                    ? Math.round((totalDistanceMeters / travelTimeWithoutDwellTimesSeconds) * 100) / 100
+                    : 0,
+            operatingSpeedMetersPerSecond:
+                operatingTimeWithoutLayoverTimeSeconds > 0
+                    ? Math.round((totalDistanceMeters / operatingTimeWithoutLayoverTimeSeconds) * 100) / 100
+                    : 0
+        };
+    }
+
+    /** Recompute base segment data (data.segments, data.dwellTimeSeconds, and derived stats)
+     *  as a weighted average across all entries in segmentsByServiceAndPeriod.
+     *  Also refreshes derived statistics. Creates a single history entry. */
+    updateBaseFromServicePeriodData() {
+        const byServiceAndPeriod = this.attributes.data.segmentsByServiceAndPeriod;
+        if (!byServiceAndPeriod) return;
+
+        const allPeriodData: PeriodSegmentData[] = [];
+        for (const serviceEntries of Object.values(byServiceAndPeriod)) {
+            for (const periodData of Object.values(serviceEntries)) {
+                allPeriodData.push(periodData);
+            }
+        }
+        if (allPeriodData.length === 0) return;
+
+        const avg = allPeriodData.length === 1 ? allPeriodData[0] : this._averagePeriodSegmentData(allPeriodData);
+
+        this.attributes.data.segments = avg.segments;
+        this.attributes.data.dwellTimeSeconds = avg.dwellTimeSeconds;
+        this.attributes.data.travelTimeWithoutDwellTimesSeconds = avg.travelTimeWithoutDwellTimesSeconds;
+        this.attributes.data.operatingTimeWithoutLayoverTimeSeconds = avg.operatingTimeWithoutLayoverTimeSeconds;
+        this.attributes.data.averageSpeedWithoutDwellTimesMetersPerSecond =
+            avg.averageSpeedWithoutDwellTimesMetersPerSecond;
+        this.attributes.data.operatingSpeedMetersPerSecond = avg.operatingSpeedMetersPerSecond;
+        this.refreshStats();
+        this._updateHistory();
+    }
+
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
