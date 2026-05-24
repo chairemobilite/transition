@@ -38,7 +38,14 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
     const { segmentCount, periods, nodeLabels } = pathDisplay;
     const { serviceChoices, selectedServiceIndex, setSelectedServiceIndex } = serviceSelection;
     const { activeSegmentIndex, goToPrevSegment, goToNextSegment, handleSegmentClick } = navigation;
-    const { getTimeForCell, handleCellChange } = segmentEdit;
+    const {
+        getTimeForCell,
+        handleCellChange,
+        getDwellTimeForSegment,
+        setDwellTimeForSegment,
+        getDepartureTimeAtSegment,
+        getArrivalTimeAfterSegment
+    } = segmentEdit;
     const { handleSave, hasLengthMismatch, saveError } = save;
 
     if (segmentCount === 0) {
@@ -124,8 +131,22 @@ const TransitPathSegmentTimesByPeriodModal: React.FunctionComponent<TransitPathS
                     </SegmentCarousel>
 
                     <SegmentPeriodTimesTable
+                        isFirstSegment={activeSegmentIndex === 0}
                         periods={periods}
                         getTimeForPeriod={(periodShortname) => getTimeForCell(activeSegmentIndex, periodShortname)}
+                        getStopTime={() => getDwellTimeForSegment(activeSegmentIndex)}
+                        onStopTimeChange={(newSec) => setDwellTimeForSegment(activeSegmentIndex, newSec)}
+                        getArrivalTimePrevSegment={(periodShortname) =>
+                            activeSegmentIndex > 0
+                                ? getArrivalTimeAfterSegment(activeSegmentIndex - 1, periodShortname)
+                                : 0
+                        }
+                        getDepartureTime={(periodShortname) =>
+                            getDepartureTimeAtSegment(activeSegmentIndex, periodShortname)
+                        }
+                        getArrivalTime={(periodShortname) =>
+                            getArrivalTimeAfterSegment(activeSegmentIndex, periodShortname)
+                        }
                         onTimeChange={(periodShortname, newSec) =>
                             handleCellChange(activeSegmentIndex, periodShortname, newSec)
                         }

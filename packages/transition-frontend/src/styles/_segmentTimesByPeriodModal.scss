@@ -242,6 +242,13 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
+    .stop-time-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
     // =============================================
     // TimeInput
     // =============================================
@@ -269,6 +276,51 @@
         color: inherit;
         border: 1px solid rgba(255, 255, 255, 0.3);
         border-radius: 4px;
+    }
+
+    // =============================================
+    // ScrollableDropdown
+    // =============================================
+    .scrollable-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .scrollable-dropdown-trigger {
+        text-align: center;
+        font-size: 0.85em;
+        padding: 0.2rem;
+        background: rgba(255, 255, 255, 0.1);
+        color: inherit;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .scrollable-dropdown-menu {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        z-index: 200;
+        overflow-y: auto;
+        background: rgba(30, 30, 30, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+    }
+
+    .scrollable-dropdown-item {
+        padding: 0.2rem 0.4rem;
+        cursor: pointer;
+        text-align: center;
+        font-size: 0.85em;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        &.selected {
+            background: rgba(255, 255, 255, 0.2);
+        }
     }
 
     // =============================================

@@ -44,11 +44,11 @@ type UseSegmentTimesByPeriodArgs = {
  * Hook managing all state and logic for the segment times editing modal.
  *
  * Kept as a single hook because `handleSave` needs to see everything (localData,
- * services) to build the payload written back to the path, and localData is shared
- * between cell-by-cell editing and the save flow. Splitting would force this state
- * into a Context or lifted to the parent, which hides the coupling without removing it.
- * Returns are grouped by feature (pathDisplay, serviceSelection, navigation,
- * segmentEdit, save).
+ * localDwellTimes, services) to build the payload written back to the path, and
+ * localData is shared between cell-by-cell editing and the save flow. Splitting
+ * would force this state into a Context or lifted to the parent, which hides the
+ * coupling without removing it. Returns are grouped by feature (pathDisplay,
+ * serviceSelection, navigation, segmentEdit, save).
  */
 const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs) => {
     const { t, i18n } = useTranslation('transit');
@@ -190,13 +190,16 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
             const segmentsByServiceAndPeriod = buildSegmentsByServiceAndPeriod({
                 expandedData: updatedLocalData,
                 path,
-                dwellTimes: path.attributes.data.dwellTimeSeconds || []
+                dwellTimes: localDwellTimes
             });
 
             path.set(
                 'data.segmentsByServiceAndPeriod',
                 Object.keys(segmentsByServiceAndPeriod).length > 0 ? segmentsByServiceAndPeriod : undefined
             );
+            path.set('data.dwellTimeSeconds', localDwellTimes);
+
+            // FIXME: implement modification of global time when we modify a time by period by service
 
             onClose();
         } catch (error) {
@@ -209,6 +212,57 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         const groupData = localData[selectedServiceId];
         if (!groupData) return false;
         return Object.values(groupData).some((times: number[]) => times.length !== segmentCount);
+    };
+
+    // Dwell and arrival time helpers.
+    // Initialize from path's stored dwellTimeSeconds; for any missing entry,
+    // fall back to the node's default_dwell_time_seconds.
+    const [localDwellTimes, setLocalDwellTimes] = React.useState<number[]>(() => {
+        const storedDwellTimes = path.attributes.data.dwellTimeSeconds || [];
+        const pathNodeIds = (path.attributes.nodes || []) as string[];
+        const nodesCollection = path.collectionManager?.get('nodes');
+        return pathNodeIds.map((nodeId, index) => {
+            if (storedDwellTimes[index] !== undefined) return storedDwellTimes[index];
+            if (index === 0) return 0;
+            const node = nodesCollection?.getById(nodeId);
+            return node?.properties?.default_dwell_time_seconds ?? 0;
+        });
+    });
+
+    /** Get the dwell (stop) time at the departure node of a segment */
+    const getDwellTimeForSegment = (segmentIndex: number): number => {
+        return localDwellTimes[segmentIndex] || 0;
+    };
+
+    /** Update the dwell (stop) time at the departure node of a segment.
+     *  First segment (index 0) is always 0 (layover is separate). */
+    const setDwellTimeForSegment = (segmentIndex: number, newSeconds: number) => {
+        if (segmentIndex === 0) return;
+        setLocalDwellTimes((prev) => {
+            const next = [...prev];
+            next[segmentIndex] = newSeconds;
+            return next;
+        });
+    };
+
+    /** Get the cumulative arrival time at a node for a given period.
+     *  Sums all dwell times + segment times from the start up to (but not including) the given segment. */
+    const getArrivalTimeAtSegment = (segmentIndex: number, periodShortname: string): number => {
+        let cumulativeTime = 0;
+        for (let i = 0; i < segmentIndex; i++) {
+            cumulativeTime += getDwellTimeForSegment(i) + getTimeForCell(i, periodShortname);
+        }
+        return cumulativeTime;
+    };
+
+    /** Departure time = arrival at this node + dwell time at this node */
+    const getDepartureTimeAtSegment = (segmentIndex: number, periodShortname: string): number => {
+        return getArrivalTimeAtSegment(segmentIndex, periodShortname) + getDwellTimeForSegment(segmentIndex);
+    };
+
+    /** Arrival time at the end of a segment = departure + segment travel time */
+    const getArrivalTimeAfterSegment = (segmentIndex: number, periodShortname: string): number => {
+        return getDepartureTimeAtSegment(segmentIndex, periodShortname) + getTimeForCell(segmentIndex, periodShortname);
     };
 
     // Navigation — wrapped in startTransition so the UI stays responsive during re-renders
@@ -251,11 +305,15 @@ const useSegmentTimesByPeriod = ({ path, onClose }: UseSegmentTimesByPeriodArgs)
         // localData and must stay here because localData is shared with handleSave.
         segmentEdit: {
             getTimeForCell,
-            handleCellChange
+            handleCellChange,
+            getDwellTimeForSegment,
+            setDwellTimeForSegment,
+            getDepartureTimeAtSegment,
+            getArrivalTimeAfterSegment
         },
         // Save flow and related error/validity state. handleSave is the reason this hook
-        // is a single big hook: it must see localData and services all at once to build
-        // the payload written to the path.
+        // is a single big hook: it must see localData, localDwellTimes, and services all
+        // at once to build the payload written to the path.
         save: {
             handleSave,
             hasLengthMismatch,
