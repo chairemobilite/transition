@@ -13,6 +13,7 @@ import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
+import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -31,6 +32,7 @@ import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors'
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import PathStatistics from './TransitPathStatistics';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
+import TransitPathSegmentTimesByPeriodModal from './TransitPathSegmentTimesByPeriodModal/TransitPathSegmentTimesByPeriodModal';
 import lineModesConfig from 'transition-common/lib/config/lineModes';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
@@ -86,6 +88,7 @@ interface PathFormProps extends WithTranslation {
 interface PathFormState extends SaveableObjectState<Path> {
     pathErrors: string[];
     confirmModalSchedulesAffectedlIsOpen: boolean;
+    segmentTimesByPeriodModalIsOpen: boolean;
     waypointDraggingAfterNodeIndex?: number;
     waypointDraggingIndex?: number;
     forceRecalculate: boolean;
@@ -109,7 +112,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             pathErrors: [],
             confirmModalSchedulesAffectedlIsOpen: false,
             forceRecalculate: false,
-            serviceIdsWithFailedScheduleGeneration: []
+            serviceIdsWithFailedScheduleGeneration: [],
+            segmentTimesByPeriodModalIsOpen: false
         };
     }
 
@@ -258,6 +262,16 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
     closeScheduleGenerationFailuresModal = () => {
         this.setState({ serviceIdsWithFailedScheduleGeneration: [] });
         serviceLocator.selectedObjectsManager.deselect('path');
+    };
+
+    openSegmentTimesByPeriodModal = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        this.setState({ segmentTimesByPeriodModalIsOpen: true });
+    };
+
+    closeSegmentTimesByPeriodModal = () => {
+        this.setState({ segmentTimesByPeriodModalIsOpen: false, object: this.props.path });
+        serviceLocator.selectedObjectsManager.setSelection('path', [this.props.path]);
     };
 
     onDeselect = () => {
@@ -662,6 +676,17 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     </InputWrapper>
                                 </div>
                             )}
+                            {pathData.segments && pathData.segments.length > 0 && (
+                                <div className="apptr__form-input-container">
+                                    <Button
+                                        color="blue"
+                                        icon={faClock}
+                                        iconClass="_icon"
+                                        label={this.props.t('transit:transitPath:EditSegmentTimesByPeriod')}
+                                        onClick={this.openSegmentTimesByPeriodModal}
+                                    />
+                                </div>
+                            )}
                             {(pathData.from_gtfs as boolean) && (
                                 <FormErrors errors={['transit:transitPath:warningFromGtfs']} errorType="Warning" />
                             )}
@@ -793,32 +818,34 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                             />
                         </span>
                         {isFrozen !== true && (
-                            <Button
-                                color="blue"
-                                icon={faRoute}
-                                iconClass="_icon-alone"
-                                label=""
-                                disabled={!path.canRoute().canRoute}
-                                onClick={() => {
-                                    // recalculate routing with same nodes
-                                    serviceLocator.eventManager.emit('progress', {
-                                        name: 'UpdatingPathRoute',
-                                        progress: 0.0
-                                    });
-                                    path.updateGeography({ forceRecalculate: true })
-                                        .then((_response) => {
-                                            serviceLocator.selectedObjectsManager.setSelection('path', [path]);
-                                            this.updateLayers();
-                                            serviceLocator.eventManager.emit('progress', {
-                                                name: 'UpdatingPathRoute',
-                                                progress: 1.0
-                                            });
-                                        })
-                                        .catch((error) => {
-                                            console.error('cannot update path geography', error);
+                            <span title={this.props.t('transit:transitPath:RecalculateRoute')}>
+                                <Button
+                                    color="blue"
+                                    icon={faRoute}
+                                    iconClass="_icon-alone"
+                                    label=""
+                                    disabled={!path.canRoute().canRoute}
+                                    onClick={() => {
+                                        // recalculate routing with same nodes
+                                        serviceLocator.eventManager.emit('progress', {
+                                            name: 'UpdatingPathRoute',
+                                            progress: 0.0
                                         });
-                                }}
-                            />
+                                        path.updateGeography({ forceRecalculate: true })
+                                            .then((_response) => {
+                                                serviceLocator.selectedObjectsManager.setSelection('path', [path]);
+                                                this.updateLayers();
+                                                serviceLocator.eventManager.emit('progress', {
+                                                    name: 'UpdatingPathRoute',
+                                                    progress: 1.0
+                                                });
+                                            })
+                                            .catch((error) => {
+                                                console.error('cannot update path geography', error);
+                                            });
+                                    }}
+                                />
+                            </span>
                         )}
                         <span title={this.props.t('main:Save')}>
                             <Button
@@ -871,6 +898,13 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     onClick={path.isNew() ? this.onDelete : this.openDeleteConfirmModal}
                                 />
                             </span>
+                        )}
+                        {this.state.segmentTimesByPeriodModalIsOpen && (
+                            <TransitPathSegmentTimesByPeriodModal
+                                isOpen={true}
+                                path={path}
+                                onClose={this.closeSegmentTimesByPeriodModal}
+                            />
                         )}
                         {this.state.confirmModalDeleteIsOpen && (
                             <ConfirmModal
