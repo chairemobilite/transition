@@ -495,7 +495,8 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                             number_of_units: numberOfVehicles,
                             interval_seconds: null,
                             outbound_path_id: outboundPath.getId(),
-                            inbound_path_id: inboundPath ? inboundPath.getId() : null
+                            inbound_path_id: inboundPath ? inboundPath.getId() : null,
+                            trips: []
                         }
                     ]
                 },

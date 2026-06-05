@@ -210,7 +210,8 @@ class TransitScheduleBatchEdit extends SaveableObjectForm<
                     const periodData = existingPeriod || {
                         period_shortname: periodShortname,
                         start_at_hour: period.startAtHour,
-                        end_at_hour: period.endAtHour
+                        end_at_hour: period.endAtHour,
+                        trips: []
                     };
                     // Save the period for this schedule
                     schedule.attributes.periods[i] = periodData;
