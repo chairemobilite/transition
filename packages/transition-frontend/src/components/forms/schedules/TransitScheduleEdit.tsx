@@ -217,7 +217,8 @@ class TransitScheduleEdit extends SaveableObjectForm<Schedule, ScheduleFormProps
                 const schedulePeriod = schedule.attributes.periods[i] || {
                     period_shortname: periodShortname,
                     start_at_hour: period.startAtHour,
-                    end_at_hour: period.endAtHour
+                    end_at_hour: period.endAtHour,
+                    trips: []
                 };
                 schedule.attributes.periods[i] = schedulePeriod;
 
