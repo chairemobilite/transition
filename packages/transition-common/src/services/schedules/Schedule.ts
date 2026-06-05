@@ -45,11 +45,15 @@ export interface SchedulePeriodTrip extends GenericAttributes {
     path_id: string;
     unit_id?: string;
     block_id?: string;
+    /** Trip departure time, in seconds since midnight. Expected to be an integer. */
     departure_time_seconds: number;
+    /** Trip arrival time, in seconds since midnight. Expected to be an integer. */
     arrival_time_seconds: number;
     seated_capacity?: number;
     total_capacity?: number;
+    /** Arrival times at each stop, in seconds since midnight. Values are expected to be integers. */
     node_arrival_times_seconds: number[];
+    /** Departure times at each stop, in seconds since midnight. Values are expected to be integers. */
     node_departure_times_seconds: number[];
     nodes_can_board: boolean[];
     nodes_can_unboard: boolean[];
@@ -223,7 +227,7 @@ export abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy
                 const segment = segments[i];
                 const dwellTimeSeconds = dwellTimes[i] || 0;
                 if (i > 0) {
-                    tripArrivalTimesSeconds.push(tripTimeSoFar);
+                    tripArrivalTimesSeconds.push(Math.round(tripTimeSoFar));
                     canUnboards.push(true);
                     if (i === nodesCount - 1) {
                         tripDepartureTimesSeconds.push(null);
@@ -232,7 +236,7 @@ export abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy
                 }
                 if (i < nodesCount - 1) {
                     tripTimeSoFar += dwellTimeSeconds;
-                    tripDepartureTimesSeconds.push(tripTimeSoFar);
+                    tripDepartureTimesSeconds.push(Math.round(tripTimeSoFar));
                     tripTimeSoFar += segment.travelTimeSeconds;
                     canBoards.push(true);
                     if (i === 0) {
@@ -246,7 +250,7 @@ export abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy
                 id: uuidV4(),
                 path_id: path.get('id'),
                 departure_time_seconds: tripStartAtSeconds,
-                arrival_time_seconds: tripTimeSoFar,
+                arrival_time_seconds: Math.round(tripTimeSoFar),
                 node_arrival_times_seconds: tripArrivalTimesSeconds,
                 node_departure_times_seconds: tripDepartureTimesSeconds,
                 nodes_can_board: canBoards,
