@@ -13,8 +13,6 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 export interface ODCoordinatesComponentProps extends WithTranslation {
     originGeojson?: GeoJSON.Feature<GeoJSON.Point>;
@@ -100,28 +98,6 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
         this.updateDestination(coordinates[0], coordinates[1], true);
     };
 
-    originDestinationToGeojson = (): GeoJSON.FeatureCollection<GeoJSON.Point> => {
-        const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
-        if (this.hasOrigin(this.state)) {
-            features.push({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [this.state.originLon, this.state.originLat] },
-                properties: {}
-            });
-        }
-        if (this.hasDestination(this.state)) {
-            features.push({
-                type: 'Feature',
-                geometry: { type: 'Point', coordinates: [this.state.destinationLon, this.state.destinationLat] },
-                properties: {}
-            });
-        }
-        return {
-            type: 'FeatureCollection',
-            features
-        };
-    };
-
     hasOrigin = (
         state: ODCoordinatesComponentState
     ): state is { originLat: number; originLon: number; externalUpdate: number } => {
@@ -155,6 +131,10 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
     };
 
     onClickedOnMap = (coordinates: GeoJSON.Position, isOrigin: boolean) => {
+        // updateOrigin/updateDestination delegate to onUpdateOD, which is the single
+        // source that refreshes the routingPoints layer using the model's colored
+        // features. Emitting a second layer update here would overwrite those colors
+        // (the points would turn black until the routing result comes back).
         if ((!this.hasOrigin(this.state) && isOrigin !== false) || isOrigin) {
             this.setState({
                 originLat: coordinates[1],
@@ -162,10 +142,6 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                 externalUpdate: this.state.externalUpdate + 1
             });
             this.updateOrigin(coordinates[0], coordinates[1]);
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'routingPoints',
-                data: this.originDestinationToGeojson()
-            });
         } else {
             this.setState({
                 destinationLat: coordinates[1],
@@ -173,10 +149,6 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                 externalUpdate: this.state.externalUpdate + 1
             });
             this.updateDestination(coordinates[0], coordinates[1]);
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'routingPoints',
-                data: this.originDestinationToGeojson()
-            });
         }
     };
 
