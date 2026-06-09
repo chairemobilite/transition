@@ -25,6 +25,7 @@ type HasTitleTest = (params: { title: Title } & CommonTestParameters) => void;
 type IsLanguageTest = (params: { expectedLanguage: AvailableLanguages } & CommonTestParameters) => void;
 type SwitchLanguageTest = (params: { languageToSwitch: AvailableLanguages } & CommonTestParameters) => void;
 type HasUrlTest = (params: { expectedUrl: Url } & CommonTestParameters) => void;
+type GoToUrlTest = (params: { url: Url } & CommonTestParameters) => void;
 type LoginTest = (params: { loginMethod: LoginMethods } & CommonTestParameters) => void;
 type LogoutTest = (params: CommonTestParameters) => void;
 type LeftMenuTest = (params: { section: LeftMenuSections; expectedRightPanelTitle: string } & CommonTestParameters) => void;
@@ -96,6 +97,17 @@ export const hasTitleTest: HasTitleTest = ({ context, title }) => {
 export const hasUrlTest: HasUrlTest = ({ context, expectedUrl }) => {
     test(`Current page has the url ${expectedUrl} - ${getTestCounter(context, `${expectedUrl}`)}`, async () => {
         await expect(context.page).toHaveURL(expectedUrl);
+    });
+};
+
+/**
+ * Navigate the current page to a specific URL (path relative to the base URL).
+ * @param {Object} options - The options for the test.
+ * @param {string} options.url - The URL (path) to navigate to.
+ */
+export const goToUrlTest: GoToUrlTest = ({ context, url }) => {
+    test(`Navigate to ${url} - ${getTestCounter(context, `goto-${url}`)}`, async () => {
+        await context.page.goto(url);
     });
 };
 
