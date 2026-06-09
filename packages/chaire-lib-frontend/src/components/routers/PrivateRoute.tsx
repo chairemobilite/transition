@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { Navigate, RouteProps } from 'react-router';
+import { Navigate, RouteProps, useLocation } from 'react-router';
 
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import { Header } from '../pageParts';
@@ -21,6 +21,12 @@ export type PrivateRouteProps = RouteProps & {
 const PrivateRoute = ({ permissions, component: Component, ...rest }: PrivateRouteProps) => {
     const user = useSelector((state: { auth: AuthState }) => state.auth.user);
     const isAuthenticated = useSelector((state: { auth: AuthState }) => !!state.auth.isAuthenticated);
+    const location = useLocation();
+
+    // Remember the requested URL so redirectAfterLogin (which reads
+    // location.state.referrer) can send the user back here after they log in,
+    // instead of always falling back to the home page (see issue #1946).
+    const referrer = `${location.pathname}${location.search}${location.hash}`;
 
     return isAuthenticated && user ? (
         permissions ? (
@@ -39,7 +45,7 @@ const PrivateRoute = ({ permissions, component: Component, ...rest }: PrivateRou
             </React.Fragment>
         )
     ) : (
-        <Navigate to="/login" />
+        <Navigate to="/login" state={{ referrer }} replace />
     );
 };
 
