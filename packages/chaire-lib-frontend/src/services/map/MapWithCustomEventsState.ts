@@ -29,6 +29,11 @@ export type MapWithCustomEventsState = MapLibreMap & {
     _draggingEventsOrder?: string[];
     /** Identifies the type of feature currently being dragged. */
     _currentDraggingFeature?: DraggingFeatureType;
+    /**
+     * Set right after a routing point drag-release so the synthetic map `click`
+     * that fires next is ignored instead of moving the other point.
+     */
+    _routingPointDragJustEnded?: boolean;
     /** The MapLibre internal integer ID of the currently hovered path. */
     _hoverPathIntegerId?: string | number | null;
     /** The application ID (UUID) of the currently hovered path. */
