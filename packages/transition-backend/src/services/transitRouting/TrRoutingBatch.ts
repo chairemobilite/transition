@@ -21,6 +21,7 @@ import { ExecutableJob } from '../executableJob/ExecutableJob';
 import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
+import { OdTripRouteResult } from './types';
 
 const CHECKPOINT_INTERVAL = 250;
 
@@ -58,6 +59,7 @@ class TrRoutingBatch {
     private odTrips: BaseOdTrip[] = [];
     private errors: TranslatableMessage[] = [];
     private batchManager: TrRoutingBatchManager;
+    private resultBuffer: Array<{ jobId: number; tripIndex: number; data: OdTripRouteResult }> = [];
 
     constructor(
         private job: ExecutableJob<BatchRouteJobType>,
@@ -139,7 +141,14 @@ class TrRoutingBatch {
             const checkpointTracker = new CheckpointTracker(
                 CHECKPOINT_INTERVAL,
                 this.options.progressEmitter,
-                this.job.attributes.internal_data.checkpoint
+                this.job.attributes.internal_data.checkpoint,
+                async (_checkpoint: number) => {
+                    // Use splice to empty the array and return the current content
+                    const toFlush = this.resultBuffer.splice(0);
+                    if (toFlush.length > 0) {
+                        await resultsDbQueries.createMany(toFlush);
+                    }
+                }
             );
             for (let odTripIndex = startIndex; odTripIndex < odTripsCount; odTripIndex++) {
                 promiseQueue.add(async () => {
@@ -173,6 +182,11 @@ class TrRoutingBatch {
             }
 
             await promiseQueue.onIdle();
+            // Drain any remaining buffered results not yet flushed by a checkpoint
+            const remaining = this.resultBuffer.splice(0);
+            if (remaining.length > 0) {
+                await resultsDbQueries.createMany(remaining);
+            }
             console.log('Batch odTrip routing completed for job %d', this.job.id);
             checkpointTracker.completed();
 
@@ -309,8 +323,9 @@ class TrRoutingBatch {
                     }
                 });
             }
-            // FIXME Do not synchronously wait for the save (~10% time overhead). When we have checkpoint support, we can do .then/catch to handle completion instead
-            await resultsDbQueries.create({
+
+            // No await — push to buffer, let the checkpoint listener flush in bulk
+            this.resultBuffer.push({
                 jobId: this.job.id,
                 tripIndex: odTripIndex,
                 data: routingResult
