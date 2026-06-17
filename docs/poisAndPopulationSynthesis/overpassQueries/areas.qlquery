@@ -1,0 +1,20 @@
+[out:json][timeout:100];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+way["landuse"](poly:{{polyboundary}});
+way["natural"](poly:{{polyboundary}});
+way["man_made"~"^(clearcut)$"](poly:{{polyboundary}});
+way["leisure"](poly:{{polyboundary}});
+way["amenity"~"^(school|college|university|kindergarten|hospital|park)$"](poly:{{polyboundary}});
+
+
+relation["landuse"](poly:{{polyboundary}});
+relation["natural"](poly:{{polyboundary}});
+relation["man_made"~"^(clearcut)$"](poly:{{polyboundary}});
+relation["leisure"](poly:{{polyboundary}});
+relation["amenity"~"^(school|college|university|kindergarten|hospital|park)$"](poly:{{polyboundary}});
+
+);
+out geom;
