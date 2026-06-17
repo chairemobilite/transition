@@ -14,6 +14,7 @@ import ObjectClass, { ServiceAttributes } from 'transition-common/lib/services/s
 import schedulesDbQueries from '../transitSchedules.db.queries';
 import linesDbQueries from '../transitLines.db.queries';
 import agenciesDbQueries from '../transitAgencies.db.queries';
+import { cleanScenarioData, insertDataForScenarios } from './transitDataByScenario.db.data';
 
 const objectName = 'service';
 const simulationId = uuidV4();
@@ -479,4 +480,46 @@ describe('Services, with transactions', () => {
     });
 
 });
+
+describe('Services, filtered by scenarios', () => {
+
+    let scenarioDbData: any;
+    beforeAll(async () => {
+        scenarioDbData = await insertDataForScenarios();
+    });
+
+    afterAll(async () => {
+        await cleanScenarioData();
+    });
+
+    test('Get services for a specific scenario, all services expected', async() => {
+        const expectedIds = [scenarioDbData.serviceIds[0], scenarioDbData.serviceIds[1]];
+        const services = await dbQueries.collectionForScenario(scenarioDbData.scenarios.scenarioIdWithBothServices);
+
+        expect(services.length).toEqual(expectedIds.length);
+        for (const service of services) {
+            expect(expectedIds).toContain(service.id);
+        }
+    });
+
+    test('Get services for a specific scenario, filtered services expected', async () => {
+        const expectedIds = [scenarioDbData.serviceIds[1]];
+        const services = await dbQueries.collectionForScenario(scenarioDbData.scenarios.scenarioIdWithService2);
+
+        expect(services.length).toEqual(expectedIds.length);
+        for (const service of services) {
+            expect(expectedIds).toContain(service.id);
+        }
+    });
+
+    test('Get services for a specific scenario, scenario with empty service', async() => {
+        // Unused service, but it is still part of the scenario (mandatory)
+        const expectedIds = [scenarioDbData.serviceIds[2]];
+        const services = await dbQueries.collectionForScenario(scenarioDbData.scenarios.scenarioIdWithEmptyServices);
+
+        expect(services.length).toEqual(expectedIds.length);
+    });
+
+});
+
 

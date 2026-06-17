@@ -31,6 +31,7 @@ const schedulesTableName = 'tr_transit_schedules';
 const periodsTableName = 'tr_transit_schedule_periods';
 const tripsTableName = 'tr_transit_schedule_trips';
 const scenariosServicesTableName = 'tr_transit_scenario_services';
+const scenariosTableName = 'tr_transit_scenarios';
 const st = knexPostgis(knex);
 
 // TODO Type the return values
@@ -154,21 +155,53 @@ const geojsonCollectionFromQuery = async (query: Knex.QueryBuilder) => {
     }
 };
 
-// TODO The noNullGeo should be the default, as null geography should not be acceptable, but the application's PathCollection expects all paths to be there. We'll need to update quite a few things before having noNullGeo by default and always. See #1740
+/**
+ * Fetches a GeoJSON FeatureCollection of transit paths.
+ *
+ * @param params - The parameters for fetching the GeoJSON collection.
+ * @param params.scenarioId - **Deprecated**: The scenario ID for filtering
+ * transit paths.  This parameter is deprecated and should be replaced by
+ * `geojsonCollectionForScenario`.
+ * @param params.noNullGeo - Whether to exclude paths with null geography.
+ * Defaults to `false`.
+ *
+ * TODO The noNullGeo should be the default, as null geography should not be
+ * acceptable, but the application's PathCollection expects all paths to be
+ * there. We'll need to update quite a few things before having noNullGeo by
+ * default and always. See #1740
+ *
+ * @returns A promise that resolves to a GeoJSON FeatureCollection of transit
+ * paths.
+ */
 const geojsonCollection = async (
     params: { scenarioId?: string; noNullGeo?: boolean } = {}
 ): Promise<GeoJSON.FeatureCollection<GeoJSON.LineString>> => {
-    const baseQuery = getGeojsonBaseQuery(params.noNullGeo);
-    // TODO Replace those params by eventual calls to more specific methods like getPathsForScenario
     if (params.scenarioId) {
-        baseQuery
-            .innerJoin(`${tripsTableName} as trips`, 'trips.path_id', 'p.id')
-            .innerJoin(`${periodsTableName} as periods`, 'periods.id', 'trips.schedule_period_id')
-            .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'periods.schedule_id')
-            .innerJoin(`${scenariosServicesTableName} as sc`, 'sched.service_id', 'sc.service_id')
-            .andWhere('sc.scenario_id', params.scenarioId)
-            .groupBy('p.id', 'l.color', 'l.mode');
+        console.log(
+            'Warning: geojsonCollection called with scenarioId, this is deprecated and should be replaced by geojsonCollectionForScenario'
+        );
+        return geojsonCollectionForScenario(params.scenarioId);
     }
+    const baseQuery = getGeojsonBaseQuery(params.noNullGeo);
+    return await geojsonCollectionFromQuery(baseQuery);
+};
+
+const geojsonCollectionForScenario = async (
+    scenarioId: string
+): Promise<GeoJSON.FeatureCollection<GeoJSON.LineString>> => {
+    const baseQuery = getGeojsonBaseQuery(true);
+    baseQuery
+        .innerJoin(`${tripsTableName} as trips`, 'trips.path_id', 'p.id')
+        .innerJoin(`${periodsTableName} as periods`, 'periods.id', 'trips.schedule_period_id')
+        .innerJoin(`${schedulesTableName} as sched`, 'sched.id', 'periods.schedule_id')
+        .innerJoin(`${scenariosServicesTableName} as scServ`, 'sched.service_id', 'scServ.service_id')
+        .innerJoin(`${scenariosTableName} as sc`, 'scServ.scenario_id', 'sc.id')
+        .andWhere('sc.id', scenarioId)
+        .whereRaw('(sc.only_lines is null or sc.only_lines = \'{}\' or l.id = ANY(sc.only_lines))')
+        .whereRaw('(sc.except_lines is null or sc.except_lines = \'{}\' or l.id != ALL(sc.except_lines))')
+        .whereRaw('(sc.only_agencies is null or sc.only_agencies = \'{}\' or l.agency_id = ANY(sc.only_agencies))')
+        .whereRaw('(sc.except_agencies is null or sc.except_agencies = \'{}\' or l.agency_id != ALL(sc.except_agencies))')
+        .groupBy('p.id', 'l.color', 'l.mode');
     return await geojsonCollectionFromQuery(baseQuery);
 };
 
@@ -250,5 +283,6 @@ export default {
     destroy: destroy.bind(null, knex),
     collection,
     geojsonCollection,
-    geojsonCollectionForServices
+    geojsonCollectionForServices,
+    geojsonCollectionForScenario
 };
