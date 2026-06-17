@@ -22,6 +22,7 @@ import NodesImportForm from './TransitNodeImportForm';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import Node from 'transition-common/lib/services/nodes/Node';
 import { deleteUnusedNodes } from '../../../services/transitNodes/transitNodesUtils';
+import NodeAccessibilityWeightingSection from './NodeAccessibilityWeightingSection';
 
 // Using a state object instead of 2 useState hooks because we want this object
 // to be modified and cause a re-render if the selection or collection was
@@ -274,6 +275,10 @@ const NodePanel: React.FunctionComponent<WithTranslation> = (props: WithTranslat
 
             {state.selectedNodes.length === 0 && !state.selectedNode && !importerSelected && (
                 <CollectionDownloadButtons collection={state.nodeCollection} />
+            )}
+
+            {!state.selectedNode && state.selectedNodes.length === 0 && !state.selectedStation && !importerSelected && (
+                <NodeAccessibilityWeightingSection />
             )}
 
             {confirmDeleteModalIsOpened && (

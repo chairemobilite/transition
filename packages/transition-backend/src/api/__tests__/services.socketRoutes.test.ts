@@ -30,12 +30,14 @@ jest.mock('chaire-lib-backend/lib/utils/osrm/OSRMService', () => {
         route: jest.fn(),
         tableFrom: jest.fn(),
         tableTo: jest.fn(),
+        tableManyToMany: jest.fn(),
         match: jest.fn()
     }
 });
 const mockedRoute = osrmService.route as jest.MockedFunction<typeof osrmService.route>;
 const mockedTableFrom = osrmService.tableFrom as jest.MockedFunction<typeof osrmService.tableFrom>;
 const mockedTableTo = osrmService.tableTo as jest.MockedFunction<typeof osrmService.tableTo>;
+const mockedTableManyToMany = osrmService.tableManyToMany as jest.MockedFunction<typeof osrmService.tableManyToMany>;
 const mockedMatch = osrmService.match as jest.MockedFunction<typeof osrmService.match>;
 
 // mocks for trRouting process manager
@@ -102,6 +104,38 @@ describe('osrm service routes', () => {
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
+            done();
+        });
+    });
+
+    test('TableManyToMany correctly', (done) => {
+        const tableParams = {
+            mode: 'walking',
+            origins: [TestUtils.makePoint([-73, 45])],
+            destinations: [TestUtils.makePoint([-73.1, 45.1])]
+        };
+        const tableResult = { query: '', durations: [[120]], distances: [[150]] };
+        mockedTableManyToMany.mockResolvedValueOnce(Status.createOk(tableResult));
+        socketStub.emit('service.osrmRouting.tableManyToMany', tableParams, (status) => {
+            expect(mockedTableManyToMany).toHaveBeenCalledWith(tableParams);
+            expect(Status.isStatusOk(status)).toBe(true);
+            expect(Status.unwrap(status)).toEqual(tableResult);
+            done();
+        });
+    });
+
+    test('TableManyToMany with error', (done) => {
+        const tableParams = {
+            mode: 'walking',
+            origins: [TestUtils.makePoint([-73, 45])],
+            destinations: [TestUtils.makePoint([-73.1, 45.1])]
+        };
+        const error = new TrError('Error many to many', 'CODE', 'transit:Message');
+        mockedTableManyToMany.mockRejectedValueOnce(error);
+        socketStub.emit('service.osrmRouting.tableManyToMany', tableParams, (status) => {
+            expect(mockedTableManyToMany).toHaveBeenCalledWith(tableParams);
+            expect(Status.isStatusError(status)).toBe(true);
+            expect((status as any).error).toEqual('Error many to many');
             done();
         });
     });

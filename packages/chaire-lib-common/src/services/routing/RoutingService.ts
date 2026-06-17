@@ -103,6 +103,24 @@ export interface TableResults {
     distances: number[];
 }
 
+export interface TableManyToManyParameters {
+    mode: RoutingMode;
+    origins: GeoJSON.Feature<GeoJSON.Point>[];
+    destinations: GeoJSON.Feature<GeoJSON.Point>[];
+}
+
+/**
+ * Result of a many-to-many table query.
+ * durations[i][j] = travel time in seconds from origins[i] to destinations[j].
+ * distances[i][j] = distance in meters from origins[i] to destinations[j].
+ * Values may be null when no route exists between a pair.
+ */
+export interface TableManyToManyResults {
+    query: string;
+    durations: (number | null)[][];
+    distances: (number | null)[][];
+}
+
 export interface RoutingService {
     /**
      * Get the route passing by all points in parameters, after putting those
@@ -170,6 +188,16 @@ export interface RoutingService {
      * @returns table results
      */
     tableTo(params: TableToParameters): Promise<TableResults>;
+
+    /**
+     * Compute the durations and distances of the fastest routes between
+     * every (origin, destination) pair -- a full M x N matrix.
+     *
+     * @param params origins and destinations point features
+     * @returns 2D arrays where results[i][j] corresponds to
+     *          origins[i] -> destinations[j]. Null when no route exists.
+     */
+    tableManyToMany(params: TableManyToManyParameters): Promise<TableManyToManyResults>;
 }
 
 /**
@@ -195,4 +223,6 @@ export default abstract class RoutingServiceBase implements RoutingService {
     public abstract tableFrom(params: TableFromParameters): Promise<TableResults>;
 
     public abstract tableTo(params: TableToParameters): Promise<TableResults>;
+
+    public abstract tableManyToMany(params: TableManyToManyParameters): Promise<TableManyToManyResults>;
 }

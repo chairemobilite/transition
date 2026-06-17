@@ -18,6 +18,33 @@ import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-commo
 import fetchRetry from 'fetch-retry';
 const fetch = fetchRetry(global.fetch);
 
+const MAX_LOGGED_BODY_LENGTH = 2000;
+
+/**
+ * Parse response as JSON. On failure (e.g. empty or malformed body), log status, URL and raw body
+ * then rethrow so callers see the original error and logs show what OSRM actually returned.
+ */
+async function parseResponseJsonOrLog(response: Response, label: string): Promise<unknown> {
+    const url = response.url;
+    const status = response.status;
+    const rawBody = await response.text();
+    try {
+        if (rawBody.trim() === '') {
+            throw new SyntaxError('Unexpected end of JSON input');
+        }
+        return JSON.parse(rawBody) as Record<string, unknown>;
+    } catch (parseError) {
+        const excerpt =
+            rawBody.length > MAX_LOGGED_BODY_LENGTH
+                ? rawBody.slice(0, MAX_LOGGED_BODY_LENGTH) + `\n... (truncated, total ${rawBody.length} chars)`
+                : rawBody;
+        console.error(
+            `OSRM ${label}: failed to parse JSON. status=${status} url=${url} bodyLength=${rawBody.length}. Raw body:\n${excerpt}`
+        );
+        throw parseError;
+    }
+}
+
 type OSRMServiceTypes = 'route' | 'nearest' | 'table' | 'match' | 'trip' | 'tile';
 
 type OSRMOptions = osrm.MatchOptions | osrm.RouteOptions | osrm.TableOptions;
@@ -95,7 +122,9 @@ class OSRMMode {
 
         const response = await fetch(routeQuery, COMMON_FETCH_OPTIONS);
 
-        const routingResultJson = await response.json();
+        const routingResultJson = (await parseResponseJsonOrLog(response, 'route')) as osrm.RouteResults & {
+            query?: string;
+        };
 
         //TODO Validate that this is used somewhere. Not part of the object definition
         routingResultJson.query = routeQuery;
@@ -136,7 +165,9 @@ class OSRMMode {
 
         const response = await fetch(matchQuery, COMMON_FETCH_OPTIONS);
 
-        const routingResultJson = await response.json();
+        const routingResultJson = (await parseResponseJsonOrLog(response, 'match')) as osrm.MatchResults & {
+            query?: string;
+        };
 
         //TODO Validate that this is used somewhere. Not part of the object definition
         routingResultJson.query = matchQuery;
@@ -174,12 +205,15 @@ class OSRMMode {
 
         const response = await fetch(tableFromQuery, COMMON_FETCH_OPTIONS);
 
-        const routingResultJson = await response.json();
+        const routingResultJson = (await parseResponseJsonOrLog(response, 'tableFrom')) as {
+            durations?: number[][];
+            distances?: number[][];
+        };
 
         // Process result if OSRM returned a valid response
         if (response.ok) {
-            let durations = [];
-            let distances = [];
+            let durations: number[] = [];
+            let distances: number[] = [];
 
             // Durations and distances results are in this form: [[0,0,0,235.1,438.6]]
             // Check that we have at least one result in the inner array, otherwise return empty arrays
@@ -231,7 +265,10 @@ class OSRMMode {
 
         const response = await fetch(tableToQuery, COMMON_FETCH_OPTIONS);
 
-        const routingResultJson = await response.json();
+        const routingResultJson = (await parseResponseJsonOrLog(response, 'tableTo')) as {
+            durations?: number[][];
+            distances?: number[][];
+        };
 
         // Process result if OSRM returned a valid response
         if (response.ok) {
@@ -256,6 +293,44 @@ class OSRMMode {
                 distances: distances
             };
 
+            return Status.createOk(result);
+        } else {
+            return Status.createError(routingResultJson);
+        }
+    }
+
+    public async tableManyToMany(
+        params: RoutingService.TableManyToManyParameters
+    ): Promise<Status.Status<RoutingService.TableManyToManyResults>> {
+        this.validateParamMode(params.mode);
+
+        const allFeatures = [...params.origins, ...params.destinations];
+        const sourceIndices = params.origins.map((_, i) => i);
+        const destIndices = params.destinations.map((_, i) => i + params.origins.length);
+
+        const optionKeys = ['sources', 'destinations', 'annotations'];
+        const options = {
+            sources: sourceIndices,
+            destinations: destIndices,
+            annotations: ['duration', 'distance'] as ('duration' | 'distance')[]
+        };
+
+        const tableQuery = this.buildOsrmQuery('table', allFeatures, optionKeys, options);
+
+        const response = await fetch(tableQuery, COMMON_FETCH_OPTIONS);
+
+        const routingResultJson = (await parseResponseJsonOrLog(response, 'tableManyToMany')) as {
+            code?: string;
+            durations?: (number | null)[][];
+            distances?: (number | null)[][];
+        };
+
+        if (response.ok && routingResultJson.code === 'Ok') {
+            const result: RoutingService.TableManyToManyResults = {
+                query: tableQuery,
+                durations: routingResultJson.durations ?? [],
+                distances: routingResultJson.distances ?? []
+            };
             return Status.createOk(result);
         } else {
             return Status.createError(routingResultJson);

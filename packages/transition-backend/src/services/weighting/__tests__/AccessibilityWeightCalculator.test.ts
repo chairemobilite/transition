@@ -42,7 +42,7 @@ import {
     PowerDecayParameters,
     WeightingRoutingMode,
     WeightDecayInputType
-} from '../types';
+} from 'transition-common/lib/services/weighting/types';
 import {
     getPOIsWithinBirdDistanceFromPoint,
     getPOIsWithinBirdDistanceFromNodes,
