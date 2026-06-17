@@ -144,10 +144,128 @@ const getToNode = async (nodeId: string): Promise<string[]> => {
     }
 };
 
+type TransferableNodePair = {
+    from: { pathId: string; nodeId: string };
+    to: { pathId: string; nodeId: string };
+    walkingTravelTimeSeconds: number;
+    walkingTravelDistanceMeters: number;
+};
+const getTransferableNodePairs = async ({
+    pathsFrom,
+    pathsTo
+}: {
+    pathsFrom: string[];
+    pathsTo: string[];
+}): Promise<TransferableNodePair[]> => {
+    if (pathsFrom.length === 0 || pathsTo.length === 0) {
+        throw new TrError(
+            'Cannot get transferable node pairs, pathsFrom and pathsTo must not be empty',
+            'DBTNSN0003',
+            'CannotGetTransferableNodePairsBecauseEmptyPaths'
+        );
+    }
+    if (pathsFrom.some((pathId) => !uuidValidate(pathId)) || pathsTo.some((pathId) => !uuidValidate(pathId))) {
+        throw new TrError(
+            'Cannot get transferable node pairs, pathsFrom and pathsTo must contain valid UUIDs',
+            'DBTNSN0004',
+            'CannotGetTransferableNodePairsBecauseInvalidPathIds'
+        );
+    }
+    try {
+        // Query to run:
+        // WITH path_node AS (
+        //     SELECT id, unnest(nodes) AS nid
+        //     FROM demo_transition.tr_transit_paths
+        //     WHERE id IN ('4d3bdbc3-645f-4dc1-87ff-0e75738327fe', '59abf1c4-29f1-477d-a6bc-f41571d044c6',
+        //                  '0f3abf1f-06da-41a9-84e6-8ed9289abb4d', '18bc98f0-f291-40af-b1de-532f2592fd4f')
+        // ),
+        // ranked_transfers AS (
+        //     SELECT
+        //         pno.id AS origin_path_id,
+        //         pnd.id AS destination_path_id,
+        //         tn.*,
+        //         ROW_NUMBER() OVER (
+        //             PARTITION BY pno.id, pnd.id, tn.origin_node_id
+        //             ORDER BY tn.walking_travel_time_seconds
+        //         ) AS rn
+        //     FROM demo_transition.tr_transit_node_transferable tn
+        //     INNER JOIN path_node pno ON pno.nid = tn.origin_node_id
+        //     INNER JOIN path_node pnd ON pnd.nid = tn.destination_node_id
+        //     WHERE pno.id IN ('4d3bdbc3-645f-4dc1-87ff-0e75738327fe', '59abf1c4-29f1-477d-a6bc-f41571d044c6')
+        //     AND pnd.id IN ('0f3abf1f-06da-41a9-84e6-8ed9289abb4d', '18bc98f0-f291-40af-b1de-532f2592fd4f')
+        // )
+        // SELECT
+        //     origin_path_id,
+        //     destination_path_id,
+        //     origin_node_id,
+        //     destination_node_id,
+        //     walking_travel_time_seconds,
+        //     walking_travel_time_seconds
+        // FROM ranked_transfers
+        // WHERE rn = 1;
+        const withPathName = 'path_node';
+        const withRankedNodesName = 'ranked_nodes';
+        const transferableNodePairs = await knex
+            .with(withPathName, (qb) => {
+                qb.select('id', knex.raw('unnest(nodes) as nid'))
+                    .from('tr_transit_paths')
+                    .whereIn('id', [...pathsFrom, ...pathsTo]);
+            })
+            .with(withRankedNodesName, (qb) => {
+                qb.select(
+                    'pno.id as origin_path_id',
+                    'pnd.id as destination_path_id',
+                    'tn.*',
+                    knex.raw(
+                        'ROW_NUMBER() OVER (PARTITION BY pno.id, pnd.id, tn.origin_node_id ORDER BY tn.walking_travel_time_seconds) as rn'
+                    )
+                )
+                    .from(`${tableName} as tn`)
+                    .innerJoin(`${withPathName} as pno`, 'pno.nid', 'tn.origin_node_id')
+                    .innerJoin(`${withPathName} as pnd`, 'pnd.nid', 'tn.destination_node_id')
+                    .whereIn('pno.id', pathsFrom)
+                    .whereIn('pnd.id', pathsTo);
+            })
+            .select(
+                'origin_path_id',
+                'destination_path_id',
+                'origin_node_id',
+                'destination_node_id',
+                'walking_travel_time_seconds',
+                'walking_travel_distance_meters'
+            )
+            .from(withRankedNodesName)
+            .where('rn', 1);
+        return transferableNodePairs.map((pair) => {
+            const {
+                origin_path_id,
+                destination_path_id,
+                origin_node_id,
+                destination_node_id,
+                walking_travel_time_seconds,
+                walking_travel_distance_meters
+            } = pair;
+            return {
+                from: { pathId: origin_path_id, nodeId: origin_node_id },
+                to: { pathId: destination_path_id, nodeId: destination_node_id },
+                walkingTravelTimeSeconds: walking_travel_time_seconds,
+                walkingTravelDistanceMeters: walking_travel_distance_meters
+            };
+        });
+    } catch (error) {
+        throw new TrError(
+            `Cannot get transferable node pairs (knex error: ${error})`,
+            'DBTNSN0002',
+            'CannotGetTransferableNodePairsBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     saveForNode,
     getFromNode,
     getToNode,
     truncate: truncate.bind(null, knex, tableName),
-    destroy: destroy.bind(null, knex)
+    destroy: destroy.bind(null, knex),
+    getTransferableNodePairs
 };

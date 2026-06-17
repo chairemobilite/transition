@@ -21,6 +21,7 @@ const agencyId = uuidV4();
 const lineId = uuidV4();
 const lineId2 = uuidV4();
 const serviceId = uuidV4();
+const serviceId2 = uuidV4();
 const pathId = uuidV4();
 const pathId2 = uuidV4();
 
@@ -53,6 +54,9 @@ beforeAll(async () => {
     } as any);
     await servicesDbQueries.create({
         id: serviceId
+    } as any);
+    await servicesDbQueries.create({
+        id: serviceId2
     } as any);
 });
 
@@ -1080,6 +1084,112 @@ describe('Schedules duplication', () => {
 
         // Duplicate the schedule without mapping, should throw an error
         await expect(dbQueries.duplicateSchedule({ serviceIdMapping: { notAUuid: 'other' } })).rejects.toThrow(TrError);
+    });
+
+});
+
+describe('getTripsInTimeRange', () => {
+
+    beforeEach(async () => {
+        // Empty the tables
+        await dbQueries.truncateSchedules();
+        await dbQueries.truncateSchedulePeriods();
+        await dbQueries.truncateScheduleTrips();
+
+        // Add a few schedules
+        const service1Line1 = _cloneDeep(scheduleForServiceId) as any;
+        service1Line1.line_id = lineId;
+        service1Line1.service_id = serviceId;
+        await dbQueries.save(service1Line1);
+
+        // duplicate schedule for the same line, different service
+        await dbQueries.duplicateSchedule({serviceIdMapping: { [serviceId]: serviceId2 } });
+        // duplicate the service1 service for another line
+        await dbQueries.duplicateSchedule({serviceIdMapping: { [serviceId]: serviceId }, lineIdMapping: { [lineId]: lineId2 } });
+    });
+
+    test('No trips in range', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 0,
+            rangeEnd: 10000,
+            lineIds: [lineId, lineId2],
+            serviceIds: [serviceId, serviceId2]
+        });
+        expect(trips.length).toEqual(0);
+    });
+
+    test('Get trips in range for multiple service and line', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 25000,
+            rangeEnd: 35000,
+            lineIds: [lineId, lineId2],
+            serviceIds: [serviceId, serviceId2]
+        });
+        // There should be 3 trips by line/service pairs
+        expect(trips.length).toEqual(3 * 3);
+        expect(trips.filter(trip => trip.line_id === lineId && trip.service_id === serviceId).length).toEqual(3);
+        expect(trips.filter(trip => trip.line_id === lineId2 && trip.service_id === serviceId).length).toEqual(3);
+        expect(trips.filter(trip => trip.line_id === lineId && trip.service_id === serviceId2).length).toEqual(3);
+    });
+
+    test('Get trips in range only for line', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 25000,
+            rangeEnd: 35000,
+            lineIds: [lineId],
+            serviceIds: [serviceId, serviceId2]
+        });
+        // There should be 3 trips by line/service pairs
+        expect(trips.length).toEqual(2 * 3);
+        expect(trips.some(trip => trip.line_id === lineId2)).toBe(false);
+    });
+
+    test('Get trips in range only for service', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 25000,
+            rangeEnd: 35000,
+            lineIds: [lineId, lineId2],
+            serviceIds: [serviceId]
+        });
+        // There should be 3 trips by line/service pairs
+        expect(trips.length).toEqual(2 * 3);
+        expect(trips.some(trip => trip.service_id === serviceId2)).toBe(false);
+    });
+
+    test('Trips ending at range start', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 27015,
+            rangeEnd: 29000,
+            lineIds: [lineId],
+            serviceIds: [serviceId]
+        });
+        // There should be 1 trip, the one ending at 27015
+        expect(trips.length).toEqual(1);
+        expect(trips[0].arrival_time_seconds).toEqual(27015);
+    });
+
+    test('Trips starting at range end', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 10000,
+            rangeEnd: 25200,
+            lineIds: [lineId],
+            serviceIds: [serviceId]
+        });
+        // There should be 1 trip, the one starting at 25200
+        expect(trips.length).toEqual(1);
+        console.log("trips", trips[0]);
+        expect(trips[0].departure_time_seconds).toEqual(25200);
+    });
+
+    test('Unexisting line for service', async() => {
+        const trips = await dbQueries.getTripsInTimeRange({
+            rangeStart: 25000,
+            rangeEnd: 35000,
+            lineIds: [lineId2],
+            serviceIds: [serviceId2]
+        });
+        // There should be no trip
+        expect(trips.length).toEqual(0);
     });
 
 });
