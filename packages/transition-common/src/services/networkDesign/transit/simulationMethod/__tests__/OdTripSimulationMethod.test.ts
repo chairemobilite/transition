@@ -20,9 +20,9 @@ describe('OdTripSimulationDescriptor', () => {
         });
     });
 
-    describe('getOptions', () => {
+    describe('getFields', () => {
         test('should return all required options', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             
             expect(options).toHaveProperty('dataSourceId');
             expect(options).toHaveProperty('sampleRatio');
@@ -31,7 +31,7 @@ describe('OdTripSimulationDescriptor', () => {
         });
 
         test('should configure dataSourceId option correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const dataSourceOption = options.dataSourceId;
             
             expect(dataSourceOption.i18nName).toBe('transit:simulation:simulationMethods:OdTripsDataSource');
@@ -40,7 +40,7 @@ describe('OdTripSimulationDescriptor', () => {
         });
 
         test('should configure sampleRatio option correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const sampleRatioOption = options.sampleRatio;
             
             expect(sampleRatioOption.i18nName).toBe('transit:simulation:simulationMethods:OdTripsSampleRatio');
@@ -50,7 +50,7 @@ describe('OdTripSimulationDescriptor', () => {
         });
 
         test('should validate sampleRatio correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const validate = options.sampleRatio.validate!;
             
             expect(validate(0.5)).toBe(true);
@@ -61,7 +61,7 @@ describe('OdTripSimulationDescriptor', () => {
         });
 
         test('should configure odTripFitnessFunction option correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const odTripFitnessOption = options.odTripFitnessFunction;
             
             expect(odTripFitnessOption.i18nName).toBe('transit:simulation:fitness:odTripFitnessFunction');
@@ -70,7 +70,7 @@ describe('OdTripSimulationDescriptor', () => {
         });
 
         test('should configure fitnessFunction option correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const fitnessOption = options.fitnessFunction;
             
             expect(fitnessOption.i18nName).toBe('transit:simulation:fitness:fitnessFunction');
@@ -79,18 +79,18 @@ describe('OdTripSimulationDescriptor', () => {
         });
     });
 
-    describe('async choices functions', () => {
-        test('should return empty array for dataSourceId choices', async () => {
-            const options = descriptor.getOptions();
-            const choices = await options.dataSourceId.choices();
+    describe('choices functions', () => {
+        test('should return empty array for dataSourceId choices', () => {
+            const options = descriptor.getFields();
+            const choices = options.dataSourceId.choices({});
             
             expect(Array.isArray(choices)).toBe(true);
             expect(choices).toHaveLength(0);
         });
 
-        test('should return correct odTripFitnessFunction choices', async () => {
-            const options = descriptor.getOptions();
-            const choices = await options.odTripFitnessFunction.choices();
+        test('should return correct odTripFitnessFunction choices', () => {
+            const options = descriptor.getFields();
+            const choices = options.odTripFitnessFunction.choices();
             
             expect(choices).toHaveLength(2);
             expect(choices).toContainEqual({
@@ -103,9 +103,9 @@ describe('OdTripSimulationDescriptor', () => {
             });
         });
 
-        test('should return correct fitnessFunction choices', async () => {
-            const options = descriptor.getOptions();
-            const choices = await options.fitnessFunction.choices();
+        test('should return correct fitnessFunction choices', () => {
+            const options = descriptor.getFields();
+            const choices = options.fitnessFunction.choices();
             
             expect(choices).toHaveLength(3);
             expect(choices).toContainEqual({
@@ -123,7 +123,7 @@ describe('OdTripSimulationDescriptor', () => {
         });
     });
 
-    describe('validateOptions', () => {
+    describe('validateFields', () => {
         test('should return valid for any options (current implementation)', () => {
             const validOptions: Partial<OdTripSimulationOptions> = {
                 dataSourceId: 'test-id',
@@ -132,14 +132,14 @@ describe('OdTripSimulationDescriptor', () => {
                 fitnessFunction: 'hourlyUserCosts'
             };
             
-            const result = descriptor.validateOptions(validOptions);
+            const result = descriptor.validateFields(validOptions);
             
             expect(result.valid).toBe(true);
             expect(result.errors).toHaveLength(0);
         });
 
         test('should return valid for empty options', () => {
-            const result = descriptor.validateOptions({});
+            const result = descriptor.validateFields({});
             
             expect(result.valid).toBe(true);
             expect(result.errors).toHaveLength(0);
@@ -150,7 +150,7 @@ describe('OdTripSimulationDescriptor', () => {
                 sampleRatio: 0.8
             };
             
-            const result = descriptor.validateOptions(partialOptions);
+            const result = descriptor.validateFields(partialOptions);
             
             expect(result.valid).toBe(true);
             expect(result.errors).toHaveLength(0);

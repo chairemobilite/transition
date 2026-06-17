@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { UserDefinedConfigSchema } from '../../../../utils/userDefinedConfig';
 import { EvolutionaryAlgorithmDescriptor, EvolutionaryAlgorithmOptions } from './EvolutionaryAlgorithm';
 
 /**
@@ -39,7 +39,7 @@ export type AlgorithmConfiguration = {
 
 // Algorithm descriptors, to describe the various options for each algorithm
 const ALGORITHM_DESCRIPTORS: {
-    [K in AlgorithmType]: SimulationAlgorithmDescriptor<AlgorithmRegistry[K]>;
+    [K in AlgorithmType]: UserDefinedConfigSchema<AlgorithmRegistry[K]>;
 } = {
     evolutionaryAlgorithm: new EvolutionaryAlgorithmDescriptor()
 };
@@ -52,7 +52,7 @@ const ALGORITHM_DESCRIPTORS: {
  */
 export const getAlgorithmDescriptor = <T extends AlgorithmType>(
     algorithmType: T
-): SimulationAlgorithmDescriptor<AlgorithmRegistry[T]> => {
+): UserDefinedConfigSchema<AlgorithmRegistry[T]> => {
     return ALGORITHM_DESCRIPTORS[algorithmType];
 };
 
