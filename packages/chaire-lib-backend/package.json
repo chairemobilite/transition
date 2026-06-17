@@ -73,7 +73,7 @@
         "@types/jest": "^30.0.0",
         "@types/lodash": "^4.17.21",
         "@types/node": "^24.10.4",
-        "@types/nodemailer": "^7.0.4",
+        "@types/nodemailer": "^8.0.1",
         "@types/passport": "^1.0.17",
         "@types/passport-http-bearer": "^1.0.42",
         "@types/passport-local": "^1.0.38",
