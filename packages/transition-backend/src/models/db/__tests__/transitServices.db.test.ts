@@ -307,8 +307,9 @@ describe(`${objectName}`, function() {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
-        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+        // One is already deleted, only one should be deleted here
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCount).toEqual(1);
 
     });
 
@@ -365,6 +366,38 @@ describe(`${objectName}`, function() {
         const prefix = 'Service ';
         const result = await dbQueries.getServiceNamesStartingWith(prefix);
         expect(result).toEqual(['Service test', 'Service test 2']);
+    });
+
+    test('should not delete frozen objects from database', async() => {
+        // Create 2 new frozen objects
+        const frozenObjectAttributes = {
+            ...newObjectAttributes,
+            id: uuidV4(),
+            internal_id: 'Frozen service 1',
+            is_frozen: true
+        };
+        const frozenObjectAttributes2 = {
+            ...newObjectAttributes2,
+            id: uuidV4(),
+            internal_id: 'Frozen service 2',
+            is_frozen: true
+        };
+        const frozenObject1 = new ObjectClass(frozenObjectAttributes, true);
+        const frozenObject2 = new ObjectClass(frozenObjectAttributes2, true);
+        await dbQueries.create(frozenObject1.attributes);
+        await dbQueries.create(frozenObject2.attributes);
+
+        const collectionBefore = await dbQueries.collection();
+
+        const id = await dbQueries.delete(frozenObjectAttributes.id);
+        expect(id).toBeUndefined();
+
+        const deletedCount = await dbQueries.deleteMultiple([frozenObjectAttributes.id, frozenObjectAttributes2.id]);
+        expect(deletedCount).toEqual(0);
+
+        // Make sure lines are still in database
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(collectionBefore.length);
     });
 
 });

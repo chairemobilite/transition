@@ -132,8 +132,8 @@ export default {
     updateMultiple: (updatedObjects: Partial<DataSourceAttributes>[], returning?: string) => {
         return updateMultiple(knex, tableName, undefined, updatedObjects, { returning });
     },
-    delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    delete: deleteRecord.bind(null, knex, tableName, false),
+    deleteMultiple: deleteMultiple.bind(null, knex, tableName, false),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,

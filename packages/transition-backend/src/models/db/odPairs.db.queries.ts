@@ -162,8 +162,8 @@ export default {
     updateMultiple: (updatedObjects: Partial<BaseOdTripAttributes>[], returning?: string) => {
         return updateMultiple(knex, tableName, attributesCleaner, updatedObjects, { returning });
     },
-    delete: deleteRecord.bind(null, knex, tableName),
-    deleteMultiple: deleteMultiple.bind(null, knex, tableName),
+    delete: deleteRecord.bind(null, knex, tableName, false),
+    deleteMultiple: deleteMultiple.bind(null, knex, tableName, false),
     deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName),
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),

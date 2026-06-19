@@ -252,8 +252,9 @@ describe(`${objectName}`, () => {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
-        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+        // One has just been deleted, only one should be deleted here
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCount).toEqual(1);
 
     });
 
@@ -417,8 +418,8 @@ describe(`${objectName}`, () => {
         await dbQueries.saveSimulationRunScenarios(newObjectAttributes2.id, [scenarioAttributes1.id]);
 
         // Delete multiple record, with cascade
-        const deletedIds = await dbQueries.deleteMultiple([newObjectAttributes2.id, newObjectAttributes.id], true)
-        expect(deletedIds).toEqual([newObjectAttributes2.id, newObjectAttributes.id]);
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes2.id, newObjectAttributes.id], true)
+        expect(deletedCount).toEqual(2);
 
         const scenarioForRun1 = await dbQueries.getScenarioIdsForRun(newObjectAttributes.id);
         expect(scenarioForRun1).toEqual([]);
@@ -447,8 +448,8 @@ describe(`${objectName}`, () => {
         await dbQueries.saveSimulationRunScenarios(newObjectAttributes2.id, [scenarioAttributes1.id]);
 
         // Delete multiple record, without cascade
-        const deletedIds = await dbQueries.deleteMultiple([newObjectAttributes2.id, newObjectAttributes.id], false)
-        expect(deletedIds).toEqual([newObjectAttributes2.id, newObjectAttributes.id]);
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes2.id, newObjectAttributes.id], false)
+        expect(deletedCount).toEqual(2);
 
         const scenarioForRun1 = await dbQueries.getScenarioIdsForRun(newObjectAttributes.id);
         expect(scenarioForRun1).toEqual([]);

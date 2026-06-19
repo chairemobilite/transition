@@ -55,16 +55,16 @@ class ScenarioCollection extends GenericObjectCollection<Scenario> implements Pr
         });
     }
 
-    async deleteByIds(ids: string[], socket): Promise<string[]> {
+    async deleteByIds(ids: string[], socket): Promise<number> {
         // FIXME This should only be called by the frontend as it calls the
         // socket route. Our collections currently all use methods that call the
         // backend through socket routes (saves and loads), so it makes sense to
         // keep it here for now, but eventually, they should all be moved
         // elsewhere, in frontend.
         return new Promise((resolve, reject) => {
-            socket.emit('transitScenarios.deleteMultiple', ids, (response: Status.Status<{ deletedIds: string[] }>) => {
+            socket.emit('transitScenarios.deleteMultiple', ids, (response: Status.Status<{ deletedCount: number }>) => {
                 if (Status.isStatusOk(response)) {
-                    resolve(Status.unwrap(response).deletedIds);
+                    resolve(Status.unwrap(response).deletedCount);
                 } else {
                     reject(response.error);
                 }

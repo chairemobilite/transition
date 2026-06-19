@@ -212,8 +212,9 @@ describe(`${objectName}`, () => {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
-        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+        // One has just been deleted, only one should be deleted here
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCount).toEqual(1);
 
     });
 
@@ -246,6 +247,40 @@ describe(`${objectName}`, () => {
         const _collection = await dbQueries.collection();
         expect(_collection.length).toEqual(2);
 
+    });
+
+    test('should not delete frozen objects from database', async() => {
+        // Create 2 new frozen objects
+        const frozenObjectAttributes = {
+            ...newObjectAttributes,
+            id: uuidV4(),
+            acronym: 'FROZEN1',
+            internal_id: 'Frozen agency 1',
+            is_frozen: true
+        };
+        const frozenObjectAttributes2 = {
+            ...newObjectAttributes2,
+            id: uuidV4(),
+            acronym: 'FROZEN2',
+            internal_id: 'Frozen agency 2',
+            is_frozen: true
+        };
+        const frozenObject1 = new ObjectClass(frozenObjectAttributes, true);
+        const frozenObject2 = new ObjectClass(frozenObjectAttributes2, true);
+        await dbQueries.create(frozenObject1.attributes);
+        await dbQueries.create(frozenObject2.attributes);
+
+        const collectionBefore = await dbQueries.collection();
+
+        const id = await dbQueries.delete(frozenObjectAttributes.id)
+        expect(id).toBeUndefined();
+
+        const deletedCount = await dbQueries.deleteMultiple([frozenObjectAttributes.id, frozenObjectAttributes2.id]);
+        expect(deletedCount).toEqual(0);
+
+        // Make sure agencies are still in database
+        const collection = await dbQueries.collection();
+        expect(collection.length).toEqual(collectionBefore.length);
     });
 
 });

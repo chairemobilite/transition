@@ -500,15 +500,15 @@ const readForLine = async function (lineId: string) {
 
 // Private function to delete periods by ids, within a transaction
 const _deleteSchedulePeriods = async function (ids: number[], options: { transaction: Knex.Transaction }) {
-    return await deleteMultiple(knex, periodTable, ids, options);
+    return await deleteMultiple(knex, periodTable, false, ids, options);
 };
 
 // Private function to delete trips by id, within a transaction
 const _deleteSchedulePeriodTrips = async function (ids: number[], options: { transaction: Knex.Transaction }) {
-    return await deleteMultiple(knex, tripTable, ids, options);
+    return await deleteMultiple(knex, tripTable, false, ids, options);
 };
 
-const deleteScheduleData = async function (id: number | string, options: Parameters<typeof deleteRecord>[3] = {}) {
+const deleteScheduleData = async function (id: number | string, options: Parameters<typeof deleteRecord>[4] = {}) {
     // FIXME The main workflow still receives the uuid of the schedule to delete instead of the numeric id, so have to handle both
     if (typeof id === 'string') {
         const query = knex(scheduleTable).where('uuid', id).del();
@@ -517,7 +517,7 @@ const deleteScheduleData = async function (id: number | string, options: Paramet
         }
         return await query;
     }
-    return await deleteRecord(knex, scheduleTable, id, options);
+    return await deleteRecord(knex, scheduleTable, false, id, options);
 };
 
 const getCollectionSubquery = (lineIds: string[] = []) => {
