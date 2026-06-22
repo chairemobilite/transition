@@ -1528,12 +1528,12 @@
     "@types/geojson" "^7946.0.7"
     type-fest "^1.2.1"
 
-"@playwright/test@^1.56.1":
-  version "1.56.1"
-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.56.1.tgz#6e3bf3d0c90c5cf94bf64bdb56fd15a805c8bd3f"
-  integrity sha512-vSMYtL/zOcFpvJCW71Q/OEGQb7KYBPAdKh35WNSkaZA75JlAO8ED8UN6GUNTm3drWomcbcqRPFqQbLae8yBTdg==
+"@playwright/test@^1.61.0":
+  version "1.61.0"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.61.0.tgz#dcc3d43e581aab2985d70413309d89350e980ad8"
+  integrity sha512-cKA5B6lpFEMyMGjxF54QihfYpB4FkEGH+qZhtArDEG+wezQAJY8Pq6C7T1SjWz+FFzt3TbyoXBQYk/0292TdJA==
   dependencies:
-    playwright "1.56.1"
+    playwright "1.61.0"
 
 "@prettier/eslint@npm:prettier-eslint@^16.1.0":
   version "16.3.0"
@@ -10049,17 +10049,17 @@ pkg-dir@^4.2.0:
   dependencies:
     find-up "^4.0.0"
 
-playwright-core@1.56.1:
-  version "1.56.1"
-  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.56.1.tgz#24a66481e5cd33a045632230aa2c4f0cb6b1db3d"
-  integrity sha512-hutraynyn31F+Bifme+Ps9Vq59hKuUCz7H1kDOcBs+2oGguKkWTU50bBWrtz34OUWmIwpBTWDxaRPXrIXkgvmQ==
+playwright-core@1.61.0:
+  version "1.61.0"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.61.0.tgz#caf8078b2a39cd7738dc75ec11cb3b47f385c3f0"
+  integrity sha512-caX7TrY3Ml6egyDX0WUcTHDxodl/b51y5wJOdCEA36QviK/s2g081hvmGs8eaE3DWb6NYZQ6BjO/QkNRPenoPA==
 
-playwright@1.56.1:
-  version "1.56.1"
-  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.56.1.tgz#62e3b99ddebed0d475e5936a152c88e68be55fbf"
-  integrity sha512-aFi5B0WovBHTEvpM3DzXTUaeN6eN0qWnTkKx4NQaH4Wvcmc153PdaY2UBdSYKaGYw+UyWXSVyxDUg5DoPEttjw==
+playwright@1.61.0:
+  version "1.61.0"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.61.0.tgz#7082df3df08ffa82b11420ea5fae84a40bd16e3f"
+  integrity sha512-Z+7BeeqQPRRzklHsVFP4KTGIyMxKUmfeRA4WisM6G3/XW6nwGeX6fX9qYaDa+CiUqpOkb2f6X3nar05R3kSuJQ==
   dependencies:
-    playwright-core "1.56.1"
+    playwright-core "1.61.0"
   optionalDependencies:
     fsevents "2.3.2"
 
