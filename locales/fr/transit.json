@@ -853,7 +853,8 @@
             "ErrorImportingAgencies": "Une erreur s'est produite lors de l'import des agences à partir du GTFS. Les agences n'ont peut-être pas toutes été importées.",
             "ErrorImportingLines": "Une erreur s'est produite lors de l'import des lignes à partir du GTFS. Les lignes n'ont peut-être pas toutes été importées.",
             "ErrorImportingServices": "Une erreur s'est produite lors de l'import des services à partir du GTFS. Les services n'ont peut-être pas tous été importés.",
-            "ErrorExportingGtfs": "Une erreur s'est produite lors de la génération de l'archive GTFS."
+            "ErrorExportingGtfs": "Une erreur s'est produite lors de la génération de l'archive GTFS.",
+            "MalformedCsvFile": "Le fichier « {{fileName}} » a des fins de ligne mal formées qui empêchent le GTFS d'être lu. Essayez de normaliser les fins de ligne, par exemple avec la commande `dos2unix {{fileName}}`."
         }
     },
     "simulation": {

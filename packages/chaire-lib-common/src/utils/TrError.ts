@@ -14,6 +14,27 @@ export default class TrError extends Error {
         return error.code && typeof error.getCode === 'function' && typeof error.export === 'function';
     }
 
+    /**
+     * If `error` is a `TrError` carrying a non-empty `localizedMessage`,
+     * return that message. Otherwise return `undefined`. Useful when surfacing
+     * a caught error to the user: callers can use `??` to fall back to a
+     * domain-specific generic message when the thrown error doesn't carry its
+     * own localized text.
+     */
+    static getLocalizedMessage(error: unknown): TranslatableMessage | undefined {
+        if (error === null || typeof error !== 'object') {
+            return undefined;
+        }
+        if (!TrError.isTrError(error)) {
+            return undefined;
+        }
+        const localized = error.export().localizedMessage;
+        if (localized === '' || localized === undefined || localized === null) {
+            return undefined;
+        }
+        return localized;
+    }
+
     constructor(message: string, code: string, localizedError: TranslatableMessage = '') {
         super(message);
 

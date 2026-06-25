@@ -10,6 +10,7 @@ import type * as GtfsTypes from 'gtfs-types';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { gtfsCsvOptions } from './gtfsCsvOptions';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import { Node, NodeAttributes, StopAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
@@ -73,7 +74,7 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
 
                 stops.push({ stop });
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         return stops;
     }

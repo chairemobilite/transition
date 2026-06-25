@@ -853,7 +853,8 @@
             "ErrorImportingAgencies": "An error occurred while importing agencies from GTFS. Agencies may not have been imported properly.",
             "ErrorImportingLines": "An error occurred while importing lines from GTFS. Lines may not have been imported properly.",
             "ErrorImportingServices": "An error occurred while importing services from GTFS. Services may not have been imported properly.",
-            "ErrorExportingGtfs": "An error occurred while generating the GTFS file."
+            "ErrorExportingGtfs": "An error occurred while generating the GTFS file.",
+            "MalformedCsvFile": "The file \"{{fileName}}\" has malformed line endings that prevent the GTFS from being read. Try normalizing the line endings, e.g. with `dos2unix {{fileName}}`."
         }
     },
     "simulation": {
