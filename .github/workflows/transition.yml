@@ -18,7 +18,7 @@ jobs:
     env:
       PROJECT_CONFIG: ${{ github.workspace }}/examples/config.js
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: copy env file
       run: cp .env.example .env
     - name: Use Node.js ${{ matrix.node-version }}
@@ -37,7 +37,7 @@ jobs:
   code-lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Use latest Node.js
       uses: actions/setup-node@v6
       with:
@@ -52,7 +52,7 @@ jobs:
   check-format:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: Use latest Node.js
       uses: actions/setup-node@v6
       with:
@@ -75,7 +75,7 @@ jobs:
     name: Json2capnp
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - run: cargo build
       working-directory: ./services/json2capnp
     - run: cargo test
@@ -104,7 +104,7 @@ jobs:
       PG_CONNECTION_STRING_PREFIX: postgres://testuser:testpassword@localhost:5432/
       PG_DATABASE_TEST: testdb
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
       with:
         submodules: true
     - name: copy env file

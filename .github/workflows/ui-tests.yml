@@ -36,7 +36,7 @@ jobs:
       PLAYWRIGHT_TEST_EMAIL: user@test.ts
       PLAYWRIGHT_TEST_PASSWORD: testPassword
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     - name: copy env file
       run: cp .env.example .env
     - name: Use Node.js ${{ matrix.node-version }}

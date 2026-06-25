@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6  # Check out the repository content
+      uses: actions/checkout@v7  # Check out the repository content
 
     - name: Setup Lua
       run: |
