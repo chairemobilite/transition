@@ -396,6 +396,9 @@
         "CustomLayover": "Custom layover time (minutes)",
         "ShowPaths": "Show paths",
         "HidePaths": "Hide paths",
+        "WaypointMinZoom": "Minimum map zoom for path waypoints",
+        "WaypointMinZoomHelp": "Waypoints are drawn and can be added or removed from this zoom level upward (allowed range: 1–15, where 1 is the whole-world view and 15 is street-level). Lower values allow editing at a wider map view.",
+        "WaypointMinZoomRefreshHint": "You need to refresh the page for this change to apply on the map.",
         "true": "Yes",
         "false": "No",
         "Generate": "Generate path",
@@ -519,7 +522,8 @@
             "DefaultDecelerationIsRequired": "Deceleration is required.",
             "DefaultDecelerationIsInvalid": "Deceleration is invalid.",
             "DefaultDecelerationIsTooLow": "Deceleration is too low.",
-            "DefaultDecelerationIsTooHigh": "Deceleration is too high (uncomfortable)."
+            "DefaultDecelerationIsTooHigh": "Deceleration is too high (uncomfortable).",
+            "WaypointMinZoomOutOfRange": "Waypoint minimum zoom must be an integer from 1 to 15."
         }
     },
     "transitRouting": {

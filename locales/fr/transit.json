@@ -397,6 +397,9 @@
         "CustomLayover": "Battement personnalisé (minutes)",
         "ShowPaths": "Montrer les lignes et parcours",
         "HidePaths": "Cacher les lignes et parcours",
+        "WaypointMinZoom": "Zoom minimal de la carte pour les points de repère de parcours",
+        "WaypointMinZoomHelp": "Les points de repère s'affichent et peuvent être ajoutés ou retirés à partir de ce niveau de zoom (plage permise : 1 à 15, où 1 correspond à la vue mondiale et 15 à la rue). Une valeur plus basse permet d'éditer à une vue plus large.",
+        "WaypointMinZoomRefreshHint": "Il faut actualiser la page pour que ce réglage s'applique sur la carte.",
         "true": "Oui",
         "false": "Non",
         "Generate": "Générer le parcours",
@@ -519,7 +522,8 @@
             "DefaultDecelerationIsRequired": "La décélération st requise.",
             "DefaultDecelerationIsInvalid": "La décélération est invalide.",
             "DefaultDecelerationIsTooLow": "La décélération est trop faible.",
-            "DefaultDecelerationIsTooHigh": "La décélération est trop élevée (inconfortable)."
+            "DefaultDecelerationIsTooHigh": "La décélération est trop élevée (inconfortable).",
+            "WaypointMinZoomOutOfRange": "Le zoom minimal pour les points de repère doit être un entier entre 1 et 15."
         }
     },
     "transitRouting": {
