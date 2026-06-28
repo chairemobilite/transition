@@ -112,6 +112,17 @@ const hoursToSeconds = function (hours) {
     return _isFinite(hours) ? hours * 3600 : null;
 };
 
+// Join time components without spaces, zero-padding every component except the leading one (e.g. "1h05m09s").
+const toCompactTimeString = (timeComponents: { value: number; unit: string }[], t: TFunction): string => {
+    const zeroPad = (value: number): string => `${value < 10 ? '0' : ''}${value}`;
+    return timeComponents
+        .map((timeComponent, componentIndex) => {
+            const formattedValue = componentIndex === 0 ? `${timeComponent.value}` : zeroPad(timeComponent.value);
+            return `${formattedValue}${t(timeComponent.unit, { count: timeComponent.value })}`;
+        })
+        .join('');
+};
+
 /**
  * Convert a duration in seconds to a formatted time string.
  * The function takes a duration in seconds and returns a string
@@ -126,6 +137,8 @@ const hoursToSeconds = function (hours) {
  * @param {string} options.secondsUnit - The unit for seconds, in a localizable form. The value of the second will be added as the 'count' option for translation.
  * @param {boolean} [options.withSeconds=true] - Whether to include seconds in the output.
  * @param {string} [options.zeroText] - Text to return when the returned output would be zero.
+ * @param {boolean} [options.compactFormat=false] - When true, output a fixed space-free string where every component is kept and zero-padded to two digits except
+ *  the leading one ("0m05s", "2m00s"). zeroText is ignored.
  * @returns {string} - The formatted time string or empty string if the input is invalid.
  */
 const toXXhrYYminZZsec = (
@@ -136,29 +149,41 @@ const toXXhrYYminZZsec = (
         minuteUnit,
         secondsUnit,
         withSeconds = true,
-        zeroText
-    }: { hourUnit: string; minuteUnit: string; secondsUnit: string; withSeconds?: boolean; zeroText?: string }
+        zeroText,
+        compactFormat = false
+    }: {
+        hourUnit: string;
+        minuteUnit: string;
+        secondsUnit: string;
+        withSeconds?: boolean;
+        zeroText?: string;
+        compactFormat?: boolean;
+    }
 ): string => {
     if (typeof seconds !== 'number' || !Number.isFinite(seconds)) {
         return '';
     }
     const getZeroTextValue = () =>
         zeroText ? t(zeroText) : `0 ${withSeconds ? t(secondsUnit, { count: 0 }) : t(minuteUnit, { count: 0 })}`;
-    if (seconds === 0) {
+    if (seconds === 0 && !compactFormat) {
         return getZeroTextValue();
     }
     const negative = seconds < 0;
+    // When no hour unit is provided, fold the hours into the minutes (3661s -> "61 min 1 s").
+    const showHours = hourUnit !== '';
     const hours = Math.floor(Math.abs(seconds / 3600));
-    const minutes = Math.floor(Math.abs((seconds % 3600) / 60));
+    const minutes = Math.floor(Math.abs((showHours ? seconds % 3600 : seconds) / 60));
     const secs = Math.floor(Math.abs(seconds % 60));
 
     // Add time components to the array, then remove leading and trailing zero components (ex: 0 hr, 0 min) before formatting the string.
-    const timeComponents = [
-        { value: hours, unit: hourUnit },
-        { value: minutes, unit: minuteUnit }
-    ];
+    const timeComponents = showHours ? [{ value: hours, unit: hourUnit }] : [];
+    timeComponents.push({ value: minutes, unit: minuteUnit });
     if (withSeconds) {
         timeComponents.push({ value: secs, unit: secondsUnit });
+    }
+
+    if (compactFormat) {
+        return `${negative ? '-' : ''}${toCompactTimeString(timeComponents, t)}`;
     }
 
     // Remove leading zero components, but only if they are not the only component

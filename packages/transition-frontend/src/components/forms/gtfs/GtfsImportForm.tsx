@@ -77,7 +77,8 @@ const GtfsImportForm: React.FC = () => {
     const updateSelectedValue = (path: keyof GtfsImportData, value: string | boolean | number | undefined) => {
         const importData = { ...availableImportData };
         if (!importData) return;
-        importData[path] = value;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (importData as any)[path] = value;
         setAvailableImportData(importData);
     };
 
