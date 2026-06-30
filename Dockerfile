@@ -24,6 +24,7 @@ COPY ./packages/chaire-lib-common/package.json ./packages/chaire-lib-common/pack
 COPY packages/chaire-lib-frontend packages/chaire-lib-frontend
 COPY packages/transition-common packages/transition-common
 COPY packages/transition-backend packages/transition-backend
+COPY packages/transition-rust-backend packages/transition-rust-backend
 COPY packages/transition-frontend packages/transition-frontend
 # Add a 300 seconds timeout to avoid build failures in docker hub, which seems to be an acceptable workaround (see for example https://github.com/yarnpkg/yarn/issues/5540)
 RUN yarn config set network-timeout 300000
@@ -46,6 +47,9 @@ RUN apt-get update && apt-get -y --no-install-recommends install capnproto libbo
 RUN apt-get -y --no-install-recommends install libboost-chrono1.83.0 liblua5.4-0 libtbb12
 COPY --from=chairemobilite/trrouting:latest /usr/local/bin/trRouting /usr/local/bin/
 COPY --from=greenscientist/osrm-backend:trixie /usr/local/bin/osrm-* /usr/local/bin/
+
+# For Rust binding
+RUN apt-get -y --no-install-recommends install cargo
 
 #From OSRM dockerfile, make sure tools work
 RUN /usr/local/bin/osrm-extract --help && \
