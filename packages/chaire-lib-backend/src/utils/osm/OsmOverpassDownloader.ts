@@ -61,7 +61,9 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
             method: 'POST',
             body: overpassXmlQueryString,
             headers: {
-                'Content-Type': 'application/xml'
+                'Content-Type': 'application/xml',
+                // Add a user-agent to comply with official overpass server requirements
+                'User-Agent': 'Transition/1.0 (+https://github.com/chairemobilite/transition)'
             }
         });
 

@@ -164,7 +164,8 @@ test('download json data from overpass', async () => {
     expect(mockedFetch).toHaveBeenCalledWith('http://overpass-api.de/api/interpreter', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/xml'
+            'Content-Type': 'application/xml',
+            "User-Agent": "Transition/1.0 (+https://github.com/chairemobilite/transition)"
         },
         body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'json')
     });
@@ -189,7 +190,8 @@ test('download geojson data from overpass', async () => {
     expect(mockedFetch).toHaveBeenCalledWith('http://overpass-api.de/api/interpreter', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/xml'
+            'Content-Type': 'application/xml',
+            "User-Agent": "Transition/1.0 (+https://github.com/chairemobilite/transition)"
         },
         body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'json')
     });
@@ -222,7 +224,8 @@ test('download xml data from overpass', async () => {
     expect(mockedFetch).toHaveBeenCalledWith('http://overpass-api.de/api/interpreter', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/xml'
+            'Content-Type': 'application/xml',
+            "User-Agent": "Transition/1.0 (+https://github.com/chairemobilite/transition)"
         },
         body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'xml')
     });
