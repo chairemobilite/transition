@@ -39,7 +39,9 @@ const RightPanel: React.FunctionComponent<RightPanelProps> = ({ contributions, .
         [props.activeSection, props.availableRoutingModes]
     );
     // Reset ref scroll position when changing section
-    React.useEffect(() => rightPanelRef.current?.scrollTo({ left: 0, top: 0 }), [props.activeSection]);
+    React.useEffect(() => {
+        rightPanelRef.current?.scrollTo({ left: 0, top: 0 });
+    }, [props.activeSection]);
 
     return (
         <section ref={rightPanelRef} id="tr__right-panel">
