@@ -16,19 +16,73 @@ const fetch = async (url: string, opts) => {
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
+// To get default path
+import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
+import config from 'chaire-lib-backend/lib/config/server.config';
+
+import { capnp_serialization } from 'transition-rust-backend';
+
 class Json2CapnpService {
     // TODO Support the cache path directory or remove from method
-    async writeCache(cacheName: string, jsonData: any, _cachePathDirectory?: string) {
+    async writeCache(cacheName: string, jsonData: any, cachePathDirectoryArg?: string) {
         try {
-            const request = `${this.getUrlPrefix()}${cacheName}`;
-            const response = await fetch(request, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-            });
-            return await response.json();
+            // Default path copied path from TrRoutingProcessManager
+            // TODO Put this into a fonction of directory manager or config
+            const cachePathDirectory =
+                cachePathDirectoryArg ?? `${directoryManager.projectDirectory}/cache/${config.projectShortname}`;
+
+            if (cacheName === 'agencies') {
+                return await capnp_serialization.writeAgencyCollection(
+                    cachePathDirectory + '/agencies.capnpbin',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'lines') {
+                return await capnp_serialization.writeLineCollection(
+                    cachePathDirectory + '/lines.capnpbin',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'paths') {
+                return await capnp_serialization.writePathCollection(
+                    cachePathDirectory + '/paths.capnpbin',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'nodes') {
+                return await capnp_serialization.writeNodeCollection(
+                    cachePathDirectory + '/nodes.capnpbin',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'scenarios') {
+                return await capnp_serialization.writeScenarioCollection(
+                    cachePathDirectory + '/scenarios.capnpbin',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'services') {
+                return await capnp_serialization.writeServiceCollection(
+                    cachePathDirectory + '/services.capnpbin',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'line') {
+                return await capnp_serialization.writeLineObject(
+                    cachePathDirectory + '/lines',
+                    JSON.stringify(jsonData)
+                );
+            } else if (cacheName === 'node') {
+                return await capnp_serialization.writeNodeObject(
+                    cachePathDirectory + '/nodes',
+                    JSON.stringify(jsonData)
+                );
+            } else {
+                console.warn(`Using legacy capnp write for ${cacheName}`);
+                const request = `${this.getUrlPrefix()}${cacheName}`;
+                const response = await fetch(request, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(jsonData)
+                });
+                return await response.json();
+            }
         } catch (error) {
             console.error(error);
             throw error;
@@ -37,16 +91,63 @@ class Json2CapnpService {
 
     async readCache(cacheName: string, params = {}) {
         try {
-            const query = new url.URLSearchParams();
-            for (const param in params) {
-                query.append(param, params[param]);
-            }
-            const request = `${this.getUrlPrefix()}${cacheName}?${query.toString()}`;
+            // TODO Use the path coming from the parameters instead of always the default one.
+            // TODO (It has no impact now, as the function is not used, but need to be done if
+            // TODO somebody want to start using it.)
+            // Copied path from TrRoutingProcessManager
+            const cachePathDirectory = `${directoryManager.projectDirectory}/cache/${config.projectShortname}`;
+            let rustResult = {};
+            if (cacheName === 'agencies') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readAgencyCollection(cachePathDirectory + '/agencies.capnpbin')
+                );
+            } else if (cacheName === 'lines') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readLineCollection(cachePathDirectory + '/lines.capnpbin')
+                );
+            } else if (cacheName === 'paths') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readPathCollection(cachePathDirectory + '/paths.capnpbin')
+                );
+            } else if (cacheName === 'nodes') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readNodeCollection(cachePathDirectory + '/nodes.capnpbin')
+                );
+            } else if (cacheName === 'scenarios') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readScenarioCollection(cachePathDirectory + '/scenarios.capnpbin')
+                );
+            } else if (cacheName === 'services') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readServiceCollection(cachePathDirectory + '/services.capnpbin')
+                );
+            } else if (cacheName === 'line') {
+                // TODO We need to properly type the params object to insure that the uuid is always available
+                rustResult = JSON.parse(
+                    await capnp_serialization.readLineObject(params['uuid'], cachePathDirectory + '/lines')
+                );
+            } else if (cacheName === 'node') {
+                rustResult = JSON.parse(
+                    await capnp_serialization.readNodeObject(params['uuid'], cachePathDirectory + '/nodes')
+                );
+            } else {
+                console.warn(`Using legacy capnp read for ${cacheName}`);
 
-            const response = await fetch(request, {
-                method: 'GET'
-            });
-            return await response.json();
+                const query = new url.URLSearchParams();
+                for (const param in params) {
+                    query.append(param, params[param]);
+                }
+                const request = `${this.getUrlPrefix()}${cacheName}?${query.toString()}`;
+
+                const response = await fetch(request, {
+                    method: 'GET'
+                });
+
+                return await response.json();
+            }
+
+            // Package result from rust direct call into same structure than legacy Json2Capnp
+            return { cacheName: cacheName, status: 'success', data: rustResult };
         } catch (error) {
             console.error(error);
             throw error;

@@ -6,6 +6,7 @@
         "packages/chaire-lib-backend",
         "packages/chaire-lib-frontend",
         "packages/transition-common",
+        "packages/transition-rust-backend",
         "packages/transition-backend",
         "packages/transition-frontend"
     ],

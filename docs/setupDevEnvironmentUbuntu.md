@@ -20,7 +20,7 @@ libstxxl-dev libxml2-dev libsparsehash-dev libbz2-dev zlib1g-dev libzip-dev libg
 pkg-config libgdal-dev libtbb-dev psmisc build-essential postgresql postgis \
 clang libboost-all-dev libexpat1-dev libjsoncpp-dev libncurses5-dev lua5.3 liblua5.3-dev \
 powerline fonts-powerline zsh capnproto libcapnp-dev postgresql-postgis \
-postgresql-postgis-scripts rustc cargo
+postgresql-postgis-scripts rustc cargo rustfmt rust-clippy
 ```
 
 ## Create sources directory
