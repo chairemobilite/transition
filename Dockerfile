@@ -24,6 +24,7 @@ COPY ./packages/chaire-lib-common/package.json ./packages/chaire-lib-common/pack
 COPY packages/chaire-lib-frontend packages/chaire-lib-frontend
 COPY packages/transition-common packages/transition-common
 COPY packages/transition-backend packages/transition-backend
+COPY packages/transition-rust-backend packages/transition-rust-backend
 COPY packages/transition-frontend packages/transition-frontend
 # Add a 300 seconds timeout to avoid build failures in docker hub, which seems to be an acceptable workaround (see for example https://github.com/yarnpkg/yarn/issues/5540)
 RUN yarn config set network-timeout 300000
@@ -47,6 +48,10 @@ RUN apt-get -y --no-install-recommends install libboost-chrono1.83.0 liblua5.4-0
 COPY --from=chairemobilite/trrouting:latest /usr/local/bin/trRouting /usr/local/bin/
 COPY --from=greenscientist/osrm-backend:trixie /usr/local/bin/osrm-* /usr/local/bin/
 
+# For Rust binding
+# rustfmt and clippy are needed for development (formatting and linting)
+RUN apt-get -y --no-install-recommends install cargo rustfmt rust-clippy
+
 #From OSRM dockerfile, make sure tools work
 RUN /usr/local/bin/osrm-extract --help && \
     /usr/local/bin/osrm-routed --help && \
@@ -59,6 +64,8 @@ RUN /usr/local/bin/trRouting --help
 # Add memcached
 RUN apt-get install -y memcached
 
+# Contains Rust libraries
+COPY services services
 # Copy the necessary files for compilation   
 COPY ./configs /app/configs
 COPY ./packages /app/packages

@@ -20,7 +20,7 @@ For users only interested in running Transition, without manually installing all
 * [OSRM](https://github.com/Project-OSRM/osrm-backend/): It is the routing engine used by Transition, to calculate the routes for various modes: for example walking, cycling, driving, bus in urban setting, suburban bus, etc.
 * [trRouting](https://github.com/chairemobilite/trRouting/): An open source routing engine to calculate the route between an origin and a destination, or to calculate accessibility from/to a point, using public transit network. It is the main engine used for public transit simulations.
 * yarn: [debian/ubuntu](https://classic.yarnpkg.com/en/docs/install/#debian-stable) or [macOS](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
-* [Rust](https://www.rust-lang.org/): It is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data.
+* [Rust](https://www.rust-lang.org/): It is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data. With it we need rustfmt and clippy for formatting and linting.
 
 ## Installation
 
@@ -29,7 +29,7 @@ For users only interested in running Transition, without manually installing all
 For Ubuntu 20.04 or 22.04 users, use:
 ```
 sudo apt-get install postgresql postgis lua5.3 liblua5.3-dev \
-capnproto libcapnp-dev postgresql-postgis postgresql-postgis-scripts rustc cargo
+capnproto libcapnp-dev postgresql-postgis postgresql-postgis-scripts rustc cargo rustfmt rust-clippy
 ```
 * Create a `.env` file in the project root directory (you can copy the `.env.example` file) and setup the project
 * `yarn install` or just `yarn`: Will download the packages required by the application

@@ -1,0 +1,50 @@
+{
+  "name": "transition-rust-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "name": "transition-rust-backend",
+    "triples": {
+      "additional": [
+        "aarch64-apple-darwin",
+        "aarch64-linux-android",
+        "aarch64-unknown-linux-gnu",
+        "aarch64-unknown-linux-musl",
+        "aarch64-pc-windows-msvc",
+        "armv7-unknown-linux-gnueabihf",
+        "armv7-unknown-linux-musleabihf",
+        "x86_64-unknown-linux-musl",
+        "x86_64-unknown-freebsd",
+        "i686-pc-windows-msvc",
+        "armv7-linux-androideabi",
+        "universal-apple-darwin",
+        "riscv64gc-unknown-linux-gnu"
+      ]
+    }
+  },
+  "license": "MIT",
+  "devDependencies": {
+      "@napi-rs/cli": "^2.18.4",
+      "rimraf": "^6.1.2",
+      "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">= 24"
+  },
+  "scripts": {
+      "artifacts": "napi artifacts",
+      "compile": "napi build --platform --release",
+      "compile:dev": "napi build --platform",
+      "prepublishOnly": "napi prepublish -t npm",
+      "universal": "napi universal",
+      "version": "napi version",
+      "clean": "cargo clean && rimraf index.js index.d.ts *.node",
+      "test": "cargo test && vitest run",
+      "test:unit": "cargo test",
+      "test:sequential": "echo 'no tests to run for this workspace'",
+      "test:ui": "echo 'no tests to run for this workspace'",
+      "lint": "cargo clippy -- -D warnings",
+      "format": "cargo fmt --message-format short"
+  }
+}
