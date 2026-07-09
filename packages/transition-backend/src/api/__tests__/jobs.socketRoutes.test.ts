@@ -122,12 +122,12 @@ describe('Job files', () => {
                 testFile: { 
                     url: `/job/${jobAttributes.id}/file.csv`, 
                     downloadName: `file_20220808_132134.csv`,
-                    title: { text: `transit:jobs:test:files:testFile`, fileName: `file.csv` }
+                    title: { text: `transit:jobs:test:files`, params: { filename: `file.csv`, context: 'testFile' } }
                 }, 
                 testFile2: { 
                     url: `/job/${jobAttributes.id}/noExtension`, 
                     downloadName: `noExtension_20220808_132134`,
-                    title: { text: `transit:jobs:test:files:testFile2`, fileName: `noExtension` }
+                    title: { text: `transit:jobs:test:files`, params: { filename: `noExtension`, context: 'testFile2' } }
                 } 
             });
             expect(mockedRead).toHaveBeenCalledTimes(1);

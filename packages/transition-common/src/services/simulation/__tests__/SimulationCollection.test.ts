@@ -31,7 +31,13 @@ const simulationAttributes1 = {
         },
         transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
-            nbOfVehicles: 9
+            minTimeBetweenPassages: 5,
+            nbOfVehicles: 9,
+            numberOfLinesMin: 1,
+            numberOfLinesMax: 10,
+            simulatedAgencies: [],
+            nonSimulatedServices: [],
+            linesToKeep: []
         }
     },
     isEnabled: true
@@ -58,7 +64,13 @@ const simulationAttributes3 = {
         },
         transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
-            nbOfVehicles: 9
+            minTimeBetweenPassages: 5,
+            nbOfVehicles: 9,
+            numberOfLinesMin: 1,
+            numberOfLinesMax: 10,
+            simulatedAgencies: [],
+            nonSimulatedServices: [],
+            linesToKeep: []
         }
     },
     isEnabled: true
@@ -69,7 +81,7 @@ beforeEach(() => {
     EventManagerMock.mockClear();
 });
 
-test('should construct service collection with or without features', function() {
+test('should construct service collection with or without features', () => {
 
     const service1 = new Simulation(simulationAttributes1, true);
     const service2 = new Simulation(simulationAttributes2, false);
@@ -105,13 +117,13 @@ test('should construct service collection with or without features', function() 
         color: simulationAttributes3.color,
         description: simulationAttributes3.description,
         shortname: simulationAttributes3.shortname,
-        is_enabled: "true"
+        is_enabled: 'true'
     });
 
 });
 
 test('Load from server', async () => {
-    EventManagerMock.emitResponseReturnOnce({collection: [simulationAttributes1, simulationAttributes2]});
+    EventManagerMock.emitResponseReturnOnce({ collection: [simulationAttributes1, simulationAttributes2] });
 
     // Test loading a simple collection
     const collection = new SimulationCollection([], {}, eventManager);

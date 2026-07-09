@@ -156,6 +156,62 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
     }
 
     /**
+     * Try to find a CSV column matching one of the candidate names
+     * (case-insensitive). Returns the original CSV column name or undefined.
+     */
+    private _findMatchingColumn(csvFields: string[], candidates: string[]): string | undefined {
+        const lowerCandidates = candidates.map((c) => c.toLowerCase());
+        return csvFields.find((col) => lowerCandidates.includes(col.toLowerCase()));
+    }
+
+    /**
+     * After CSV fields are loaded, attempt to pre-fill unmapped descriptors
+     * using the `autoMatch` / `autoMatchLat` / `autoMatchLon` hints.
+     * When any latLon field is auto-matched, projection defaults to WGS84.
+     */
+    private _tryAutoMatch(csvFields: string[]): void {
+        let latLonAutoMatched = false;
+
+        for (const descriptor of this.mappingDescriptors) {
+            switch (descriptor.type) {
+            case 'latLon': {
+                const latKey = descriptor.key + 'Lat';
+                const lonKey = descriptor.key + 'Lon';
+                if (!this._fieldMappings[latKey] && descriptor.autoMatchLat) {
+                    const match = this._findMatchingColumn(csvFields, descriptor.autoMatchLat);
+                    if (match) {
+                        (this._fieldMappings as Record<string, string>)[latKey] = match;
+                        latLonAutoMatched = true;
+                    }
+                }
+                if (!this._fieldMappings[lonKey] && descriptor.autoMatchLon) {
+                    const match = this._findMatchingColumn(csvFields, descriptor.autoMatchLon);
+                    if (match) {
+                        (this._fieldMappings as Record<string, string>)[lonKey] = match;
+                        latLonAutoMatched = true;
+                    }
+                }
+                break;
+            }
+            case 'single':
+            case 'routingTime': {
+                if (!this._fieldMappings[descriptor.key] && descriptor.autoMatch) {
+                    const match = this._findMatchingColumn(csvFields, descriptor.autoMatch);
+                    if (match) {
+                        (this._fieldMappings as Record<string, string>)[descriptor.key] = match;
+                    }
+                }
+                break;
+            }
+            }
+        }
+
+        if (latLonAutoMatched && !this._fieldMappings['projection']) {
+            (this._fieldMappings as Record<string, string>)['projection'] = '4326';
+        }
+    }
+
+    /**
      * Set the CSV fields available for mapping
      * @param csvFields The list of CSV fields
      */
@@ -170,6 +226,7 @@ export class CsvFieldMapper<T extends Record<string, string> = Record<string, st
             }
         });
         this._fieldMappings = validMappings;
+        this._tryAutoMatch(csvFields);
         this._resetValidation();
     }
 

@@ -34,8 +34,13 @@ const simulationAttributes1: SimulationAttributes = {
         },
         transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
+            minTimeBetweenPassages: 5,
             nbOfVehicles: 9,
-            simulatedAgencies: ['arbitrary']
+            numberOfLinesMin: 1,
+            numberOfLinesMax: 10,
+            simulatedAgencies: ['arbitrary'],
+            nonSimulatedServices: [],
+            linesToKeep: []
         }
     },
     isEnabled: true
@@ -60,7 +65,7 @@ const simulationAttributes3= {
 
 const stubAlgorithm = new SimulationAlgorithmDescriptorStub();
 
-test('should construct new simulations', function() {
+test('should construct new simulations', () => {
 
     const simulation1 = new Simulation(simulationAttributes1, true);
     expect(simulation1.attributes).toEqual({
@@ -77,9 +82,9 @@ test('should construct new simulations', function() {
     expect(simulation2.attributes.data.transitNetworkDesignParameters).toBeDefined();
 });
 
-test('should validate', function() {
+test('should validate', () => {
     const simulation1 = new Simulation(simulationAttributes1, true);
-    expect(simulation1.validate()).toBe(true); // missing services, should validate
+    expect(simulation1.validate()).toBe(true); // missing services
     const simulation2 = new Simulation(simulationAttributes2, true);
     // No agencies to simulate, the parameters should be initialized, so we can set it and it validates
     expect(simulation2.validate()).toBe(false);
@@ -93,7 +98,7 @@ test('should validate', function() {
     expect(simulation2.validate()).toBe(false);
 });
 
-test('should convert to string', function() {
+test('should convert to string', () => {
     const simulation1 = new Simulation(simulationAttributes1, true);
     const simulation2 = new Simulation(simulationAttributes2, true);
     const simulation3 = new Simulation(simulationAttributes3, false);
@@ -114,7 +119,7 @@ test('should convert to string', function() {
     expect(simulation3.toStringSlugify(false)).toEqual('eeEAeEeEuUCcaAaAorrteroiu45687_sdflsdkj_5637549_lessgreaterandpercentdollar');
 });
 
-test('should save and delete in memory', function() {
+test('should save and delete in memory', () => {
     const simulation = new Simulation(simulationAttributes1, true);
     expect(simulation.isNew()).toBe(true);
     expect(simulation.isDeleted()).toBe(false);
@@ -124,7 +129,7 @@ test('should save and delete in memory', function() {
     expect(simulation.isDeleted()).toBe(true);
 });
 
-test('static methods should work', function() {
+test('static methods should work', () => {
     expect(Simulation.getPluralName()).toBe('simulations');
     expect(Simulation.getCapitalizedPluralName()).toBe('Simulations');
     expect(Simulation.getDisplayName()).toBe('Simulation');
@@ -134,7 +139,7 @@ test('static methods should work', function() {
     expect(simulation.getDisplayName()).toBe('Simulation');
 });
 
-test('Validate algorithm parameters', function() {
+test('Validate algorithm parameters', () => {
     const simulation = new Simulation(simulationAttributes1, true);
 
     // Set an undefined algorithm
@@ -145,7 +150,7 @@ test('Validate algorithm parameters', function() {
     // Set a valid mock algorithm
     algorithmConfiguration.type = 'mockAlgorithm' as any;
     expect(simulation.validate()).toEqual(true);
-   
+
     // Negative value for numeric option, option's own validate should fail
     (algorithmConfiguration.config as AlgorithmStubOptions).numericOption = -3;
     expect(simulation.validate()).toEqual(false);
@@ -159,15 +164,15 @@ test('Validate algorithm parameters', function() {
 
 });
 
-test('should construct new simulations and set default algorithm values', function() {
+test('should construct new simulations and set default algorithm values', () => {
 
     const attributes = _cloneDeep(simulationAttributes1);
     attributes.data.algorithmConfiguration = {
         // Using 'mockAlgorithm' as mock algorithm type, cast to any for test to compile
         type: 'mockAlgorithm' as any,
         config: {} as any
-    }
+    };
     const simulation1 = new Simulation(attributes, true);
     expect(Object.keys(simulation1.attributes.data.algorithmConfiguration?.config || {}).length).toEqual(Object.keys(stubAlgorithm.getOptions()).length);
-    
+
 });

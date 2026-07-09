@@ -25,7 +25,7 @@ exports[`Boolean Checkboxes All props 1`] = `
           for="SelectWidgetId_true"
         >
           <span>
-            testLabel
+            something:testLabel
           </span>
         </label>
       </div>
@@ -58,7 +58,7 @@ exports[`Boolean Checkboxes Default props 1`] = `
           for="SelectWidgetId_true"
         >
           <span>
-            Yes
+            main:Yes
           </span>
         </label>
       </div>
@@ -92,7 +92,7 @@ exports[`Boolean Checkboxes Disabled 1`] = `
           for="SelectWidgetId_true"
         >
           <span>
-            Yes
+            main:Yes
           </span>
         </label>
       </div>

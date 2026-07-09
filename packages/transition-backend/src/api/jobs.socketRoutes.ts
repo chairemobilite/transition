@@ -12,6 +12,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * Add routes specific to the executable jobs
@@ -74,22 +75,25 @@ export default function (socket: EventEmitter, userId: number) {
                     [fileName: string]: {
                         url: string;
                         downloadName: string;
-                        title: string | { text: string; fileName: string };
+                        title: TranslatableMessage;
                     };
                 } = {};
                 Object.keys(jobResourceFiles).forEach((file) => {
                     if (jobResourceFiles[file] && files?.includes(jobResourceFiles[file] as string)) {
-                        const fileName = jobResourceFiles[file] as string;
-                        const match = fileName.match(/([^/]+)\.([^/]+)$/);
+                        const filename = jobResourceFiles[file] as string;
+                        const match = filename.match(/([^/]+)\.([^/]+)$/);
                         const formattedTime = moment(job.attributes.created_at || '').format('YYYYMMDD_HHmmss');
                         const downloadName =
                             match === null
-                                ? `${fileName}_${formattedTime}`
+                                ? `${filename}_${formattedTime}`
                                 : `${match[1]}_${formattedTime}.${match[2]}`;
                         jobFiles[file] = {
-                            url: `/job/${id}/${fileName}`,
+                            url: `/job/${id}/${filename}`,
                             downloadName: downloadName,
-                            title: { text: `transit:jobs:${job.attributes.name}:files:${file}`, fileName }
+                            title: {
+                                text: `transit:jobs:${job.attributes.name}:files`,
+                                params: { filename, context: file }
+                            }
                         };
                     }
                 });

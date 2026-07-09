@@ -38,7 +38,7 @@ const jobAttributes = {
 jest.mock('../../../models/db/jobs.db.queries', () => {
     return {
         read: jest.fn()
-    }
+    };
 });
 const mockedJobRead = jobsDbQueries.read as jest.MockedFunction<typeof jobsDbQueries.read>;
 
@@ -64,7 +64,7 @@ describe('ExecutableJobUtils', () => {
             const fileLocation = {
                 location: 'upload' as const,
                 filename: 'renamed.csv',
-                uploadFilename: importFileName 
+                uploadFilename: importFileName
             };
 
             const result = await ExecutableJobUtils.prepareJobFiles(fileLocation, userId);
@@ -92,7 +92,7 @@ describe('ExecutableJobUtils', () => {
                 resources: { files: { output: 'result.csv' } }
             };
             mockedJobRead.mockResolvedValueOnce(sourceJobAttributes);
-            
+
             // Mock getFilesAbsolute to return a file path
             mockedGetDirFilesAbsolute.mockReturnValueOnce(['result.csv'] as any);
             jest.spyOn(fs, 'existsSync').mockReturnValue(true);
@@ -144,13 +144,13 @@ describe('ExecutableJobUtils', () => {
                 resources: { files: { output: 'result.csv' } }
             };
             mockedJobRead.mockResolvedValueOnce(sourceJobAttributes);
-            
+
             // Mock file not existing
             mockedGetDirFilesAbsolute.mockReturnValueOnce(['notTheRightFile.csv'] as any);
 
             await expect(
                 ExecutableJobUtils.prepareJobFiles(fileLocation, userId)
-            ).rejects.toEqual('File not available');
+            ).rejects.toThrow('File not available: output');
         });
     });
 });
