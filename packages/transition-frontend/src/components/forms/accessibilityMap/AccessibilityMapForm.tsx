@@ -185,17 +185,16 @@ class AccessibilityMapForm extends ChangeEventsForm<AccessibilityMapFormProps, A
     }
 
     polygonCalculated(currentResult: TransitAccessibilityMapWithPolygonResult) {
-        const { polygons, strokes, resultByNode } = currentResult;
-
-        console.log('polygons calculated');
+        const { polygons, resultByNode } = currentResult;
 
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygons',
             data: polygons
         });
+
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygonStrokes',
-            data: strokes
+            data: polygons
         });
 
         this.setState({

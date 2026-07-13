@@ -6,22 +6,11 @@
  */
 import {
     featureCollection as turfFeatureCollection,
-    lineString as turfLineString,
-    multiLineString as turfMultiLineString,
     area as turfArea,
-    polygonToLine as turfPolygonToLine,
     intersect as turfIntersect,
     difference as turfDifference
 } from '@turf/turf';
-import {
-    Feature,
-    FeatureCollection,
-    Point,
-    MultiPolygon,
-    MultiLineString,
-    LineString,
-    GeoJsonProperties
-} from 'geojson';
+import { Feature, FeatureCollection, Point, MultiPolygon } from 'geojson';
 
 import _cloneDeep from 'lodash/cloneDeep';
 import _sum from 'lodash/sum';
@@ -247,8 +236,7 @@ export class TransitAccessibilityMapCalculator {
         const difference = turfDifference(polygons) as Feature<MultiPolygon> | null;
         if (difference === null) {
             return {
-                polygons: turfFeatureCollection([]),
-                strokes: turfFeatureCollection([])
+                polygons: turfFeatureCollection([])
             };
         }
 
@@ -258,11 +246,8 @@ export class TransitAccessibilityMapCalculator {
 
         difference.properties.color = color;
 
-        const multiLineStroke = this.getPolygonStrokes(difference);
-
         return {
-            polygons: turfFeatureCollection([difference]),
-            strokes: turfFeatureCollection([multiLineStroke])
+            polygons: turfFeatureCollection([difference])
         };
     }
 
@@ -277,8 +262,7 @@ export class TransitAccessibilityMapCalculator {
 
         if (intersection === null) {
             return {
-                polygons: turfFeatureCollection([]),
-                strokes: turfFeatureCollection([])
+                polygons: turfFeatureCollection([])
             };
         }
 
@@ -291,11 +275,8 @@ export class TransitAccessibilityMapCalculator {
         intersection.properties.areaSqKm = area / 1000000;
         intersection.properties.areaSqMiles = area / 1000000 / 2.58999;
 
-        const multiLineStroke = this.getPolygonStrokes(intersection);
-
         return {
-            polygons: turfFeatureCollection([intersection]),
-            strokes: turfFeatureCollection([multiLineStroke])
+            polygons: turfFeatureCollection([intersection])
         };
     }
 
@@ -326,8 +307,7 @@ export class TransitAccessibilityMapCalculator {
             console.timeEnd(consoleTimerId);
 
             return {
-                polygons: turfFeatureCollection(polygons.polygons),
-                strokes: turfFeatureCollection(polygons.strokes),
+                polygons: turfFeatureCollection(polygons),
                 resultByNode: routingResult
             };
         } catch (error) {
@@ -377,11 +357,6 @@ export class TransitAccessibilityMapCalculator {
                     intersection: intersection.polygons.features,
                     scenario1Minus2: scenario1Minus2.polygons.features,
                     scenario2Minus1: scenario2Minus1.polygons.features
-                },
-                strokes: {
-                    intersection: intersection.strokes.features,
-                    scenario1Minus2: scenario1Minus2.strokes.features,
-                    scenario2Minus1: scenario2Minus1.strokes.features
                 }
             });
         }
@@ -409,13 +384,12 @@ export class TransitAccessibilityMapCalculator {
         durations: number[],
         deltaCount = 1,
         options: TransitMapCalculationOptions = {}
-    ) {
+    ): Promise<Feature<MultiPolygon>[]> {
         const isCancelled = options.isCancelled || (() => false);
 
         durations.sort((a, b) => b - a); // durations must be in descending order so it appears correctly in qgis
 
         const polygons: Feature<MultiPolygon>[] = [];
-        const polygonStrokes: Feature<MultiLineString>[] = [];
 
         const walkingSpeedMps = attributes.walkingSpeedMps;
         const maxDistanceMeters = Math.floor(attributes.maxAccessEgressTravelTimeSeconds * walkingSpeedMps);
@@ -544,7 +518,6 @@ export class TransitAccessibilityMapCalculator {
             }
 
             polygons.push(polygon);
-            polygonStrokes.push(this.getPolygonStrokes(polygon));
 
             // Emit progress after processing
             if (serviceLocator.eventManager) {
@@ -556,36 +529,6 @@ export class TransitAccessibilityMapCalculator {
             throw 'Cancelled';
         }
 
-        return { polygons: polygons, strokes: polygonStrokes };
-    }
-
-    // From a polygon, generate the strokes that surround it.
-    private static getPolygonStrokes(
-        polygon: Feature<MultiPolygon, GeoJsonProperties>
-    ): Feature<MultiLineString, GeoJsonProperties> {
-        let polygonStroke = turfPolygonToLine(polygon);
-        if (polygonStroke.type === 'Feature') {
-            polygonStroke = turfFeatureCollection([polygonStroke]);
-        }
-        const polygonStrokesWithHoles: FeatureCollection<LineString> = turfFeatureCollection([]);
-
-        for (let i = 0, countI = polygonStroke.features.length; i < countI; i++) {
-            const feature = polygonStroke.features[i];
-            if (feature.geometry.type === 'MultiLineString') {
-                // this is a polygon with hole, we need to separate into two LineStrings.
-                for (let j = 1, countJ = feature.geometry.coordinates.length; j < countJ; j++) {
-                    polygonStrokesWithHoles.features.push(turfLineString(feature.geometry.coordinates[j]));
-                }
-                polygonStrokesWithHoles.features.push(turfLineString(feature.geometry.coordinates[0])); // keep the first one as is, but convert to LineString
-            } else {
-                polygonStrokesWithHoles.features.push(feature as Feature<LineString>);
-            }
-        }
-
-        return turfMultiLineString(
-            polygonStrokesWithHoles.features.map((lineString) => {
-                return lineString.geometry.coordinates;
-            })
-        );
+        return polygons;
     }
 }
