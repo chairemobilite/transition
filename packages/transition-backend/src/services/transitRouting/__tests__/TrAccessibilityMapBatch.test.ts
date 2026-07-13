@@ -65,14 +65,13 @@ const mockResultProcessor = {
     processResult: jest.fn(),
     end: jest.fn(),
     getFiles: jest.fn().mockReturnValue({ csv: 'result.csv' })
-}
+};
 const mockedCreateResult = createAccessMapFileResultProcessor as jest.MockedFunction<typeof createAccessMapFileResultProcessor>;
 mockedCreateResult.mockReturnValue(mockResultProcessor);
 
 const mockedCalculateWithPolygon = TransitAccessibilityMapCalculator.calculateWithPolygons = jest.fn() as jest.MockedFunction<typeof TransitAccessibilityMapCalculator.calculateWithPolygons>;
 mockedCalculateWithPolygon.mockResolvedValue({
-    polygons: { type: 'FeatureCollection', features: []},
-    strokes: { type: 'FeatureCollection', features: []},
+    polygons: { type: 'FeatureCollection', features: [] },
     resultByNode: undefined
 });
 
@@ -170,7 +169,7 @@ beforeEach(async () => {
 
 });
 
-test('3 locations, all successful', async() => {
+test('3 locations, all successful', async () => {
     mockedParseLocations.mockResolvedValue({ locations, errors: [] });
     const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
     expect(result).toEqual({
@@ -198,10 +197,10 @@ test('3 locations, all successful', async() => {
         })
     );
     expect(mockedStopBatch).toHaveBeenCalledTimes(2);
-    
+
 });
 
-test('3 locations, error on first', async() => {
+test('3 locations, error on first', async () => {
     mockedParseLocations.mockResolvedValue({ locations, errors: [] });
     mockedCalculateWithPolygon.mockRejectedValueOnce('Some error occurred');
     const result = await batchAccessibilityMap(mockedJob, progressEmitter, isCancelledMock);
@@ -210,7 +209,7 @@ test('3 locations, error on first', async() => {
         completed: true,
         errors: []
     }));
-    expect(result.warnings.length).toEqual(1); 
+    expect(result.warnings.length).toEqual(1);
 
     // Make sure all functions have been called
     expect(mockedParseLocations).toHaveBeenCalledTimes(1);

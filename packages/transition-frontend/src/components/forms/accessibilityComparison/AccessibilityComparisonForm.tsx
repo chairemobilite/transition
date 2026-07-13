@@ -269,17 +269,12 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
                     ...singleMap.polygons.scenario1Minus2,
                     ...singleMap.polygons.scenario2Minus1
                 ]);
-                const strokes = turfFeatureCollection([
-                    ...singleMap.strokes.intersection,
-                    ...singleMap.strokes.scenario1Minus2,
-                    ...singleMap.strokes.scenario2Minus1
-                ]);
                 const travelTime =
                     numberOfPolygons === 1
                         ? routing.attributes.maxTotalTravelTimeSeconds
                         : Number(this.state.possibleMaxTimes[i].value);
 
-                finalMap.push({ polygons, strokes, travelTime });
+                finalMap.push({ polygons, travelTime });
             }
 
             this.setState({ finalMap });
@@ -343,9 +338,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
 
     displayMap(index: number) {
         const currentResult = this.state.finalMap[index];
-        const { polygons, strokes } = currentResult;
-
-        console.log('polygons calculated');
+        const { polygons } = currentResult;
 
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygons',
@@ -353,7 +346,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
         });
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygonStrokes',
-            data: strokes
+            data: polygons
         });
 
         this.setState({
