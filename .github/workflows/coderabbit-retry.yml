@@ -1,0 +1,135 @@
+# =============================================================================
+# Retry rate-limited CodeRabbit reviews
+# =============================================================================
+#
+# WHAT THIS DOES
+# --------------
+# CodeRabbit's free/OSS tier enforces a per-author PR review limit. When an
+# author hits it, CodeRabbit posts a "Review limit reached" comment that says
+# "Next review available in: N minutes" instead of doing the review.
+#
+# This workflow runs on a schedule (overnight, when nobody's pushing) and:
+#   1. Lists all open, non-draft PRs, oldest first.
+#   2. For each PR, finds the latest CodeRabbit comment that still shows the
+#      "Review limit reached" notice.
+#   3. Parses the "Next review available in: N minutes" value and only acts
+#      once that window has actually passed (plus a small buffer).
+#   4. Posts a single "@coderabbitai review" comment to re-trigger the review.
+#
+# Because the CodeRabbit limit is PER AUTHOR, this handles AT MOST ONE PR PER
+# AUTHOR PER RUN (the oldest ready one). An author with several blocked PRs
+# gets one cleared per hour, which keeps the number of posted comments minimal.
+# A comment is only ever posted when the window has cleared, so retries should
+# succeed rather than bounce off the limit again.
+#
+# HOW TO TWEAK IT
+# ---------------
+# * Schedule / quiet hours:
+#     Edit the `cron` line. It's in UTC. Current value '0 1-11 * * *' fires
+#     hourly from 01:00-11:00 UTC (~evening-to-morning in Montreal). Widen or
+#     shift the hour range to match your low-activity window.
+#
+# * Clear a backlog faster (more comments):
+#     To retry EVERY ready PR per author instead of just the oldest, remove the
+#     `handled_authors.txt` check (the `grep -qxF "$author" ...` block) and the
+#     two lines that write to / report that file.
+#
+# * Retry regardless of the stated reset time (simpler, slightly noisier):
+#     Delete the `mins` parsing and the `if [ "$now" -lt "$ready" ]` gate, so
+#     it re-requests whenever "Review limit reached" is present. Worst case is
+#     one wasted no-op comment per hour until the window clears.
+#
+# * Timing buffer:
+#     The `+ 120` on the `ready=` line adds a 2-minute cushion past CodeRabbit's
+#     stated reset. Increase if retries still land too early.
+#
+# * Include drafts:
+#     Remove `--draft=false` from the `gh pr list` call.
+#
+# * Bot login / auth:
+#     Filter assumes the bot's API login is `coderabbitai[bot]`. If nothing ever
+#     triggers, dump a comment's `.user.login` to confirm. If CodeRabbit ignores
+#     comments posted by GITHUB_TOKEN (github-actions[bot]), swap in a PAT or a
+#     GitHub App token instead.
+# =============================================================================
+
+name: Retry rate-limited CodeRabbit reviews
+
+on:
+  schedule:
+    # Hourly overnight (UTC). Adjust to your low-activity window.
+    - cron: '0 3-11/3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: coderabbit-retry
+  cancel-in-progress: false
+
+jobs:
+  retry:
+    name: Process rate-limited reviews
+    permissions:
+      pull-requests: write # Required to post retry comments on PRs
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retry oldest ready rate-limited PR per author
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          now=$(date -u +%s)
+
+          # Open, non-draft PRs with their author. Oldest-first by PR number.
+          gh pr list --repo "$REPO" --state open --draft=false --limit 200 \
+            --json number,author \
+            --jq 'sort_by(.number) | .[] | "\(.number)\t\(.author.login)"' \
+            > prs.tsv
+
+          # Track which authors we've already queued a retry for this run.
+          : > handled_authors.txt
+
+          while IFS=$'\t' read -r number author; do
+            [ -z "$number" ] && continue
+
+            # One retry per author per run: skip if already handled.
+            if grep -qxF "$author" handled_authors.txt; then
+              continue
+            fi
+
+            # Latest CodeRabbit comment still showing a rate-limit notice.
+            comment=$(gh api "repos/$REPO/issues/$number/comments?per_page=100" \
+              --jq '[.[]
+                     | select(.user.login == "coderabbitai[bot]")
+                     | select(.body | test("Review limit reached"))]
+                     | last')
+
+            [ -z "$comment" ] || [ "$comment" = "null" ] && continue
+
+            body=$(echo "$comment" | jq -r '.body')
+            updated=$(echo "$comment" | jq -r '.updated_at')
+
+            # Parse "Next review available in: N minutes" (fallback 60).
+            mins=$(echo "$body" \
+              | grep -oiE 'available in:?[* ]*[0-9]+ *minute' \
+              | grep -oE '[0-9]+' | head -1 || true)
+            mins=${mins:-60}
+
+            updated_epoch=$(date -u -d "$updated" +%s)
+            # Small 2-min buffer past the stated reset.
+            ready=$(( updated_epoch + mins * 60 + 120 ))
+
+            if [ "$now" -lt "$ready" ]; then
+              wait_min=$(( (ready - now) / 60 ))
+              echo "PR #$number ($author): not ready yet (~${wait_min}min left), skipping"
+              continue
+            fi
+
+            echo "PR #$number ($author): window cleared, re-requesting review"
+            gh pr comment "$number" --repo "$REPO" --body "@coderabbitai review"
+            echo "$author" >> handled_authors.txt
+            sleep 5
+          done < prs.tsv
+
+          echo "Done. Authors retried: $(tr '\n' ' ' < handled_authors.txt)"
