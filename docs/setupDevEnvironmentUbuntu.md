@@ -173,5 +173,4 @@ For the transport mode, choose walk, driving, bus-urban.
 
 * In a new shell: `yarn compile:dev` or `yarn compile`
 * In a new shell: `yarn build:dev` or `yarn build:prod`
-* In a new shell: `yarn start:json2capnp -- 2000 /absolute/path/to/cache/demo_transition`
 * In a new shell: `yarn start`

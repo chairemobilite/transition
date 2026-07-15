@@ -79,7 +79,7 @@ If functional review is required, here are the steps to follow:
 
 ![Get the code](images/PRs/getTheCode.png)
 
-- [ ] **Compile and run**: Make sure it all compiles correctly in your environment: In one window: `yarn && yarn compile && yarn build:dev`. In another window: `yarn start:json2capnp`. In yet another window: `yarn start`.
+- [ ] **Compile and run**: Make sure it all compiles correctly in your environment: In one window: `yarn && yarn compile && yarn build:dev`. In another window: `yarn start`.
 - [ ] **Test the new code**: **Thoroughly** try the feature impacted by the PR: don't just do the basic stuff, try corner cases, all fields, try with different data (as much as you can). We want to be sure the behavior is as expected! Look at the console messages for any errors. Report anything out of ordinary, comment its behavior, etc.
 - [ ] **Test for regressions**: Until we have good unit test coverage to do it instead of us, briefly also make sure it did not impact anything else, especially if modules in chaire-lib were modified. Report anything out of ordinary.
 

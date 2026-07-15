@@ -20,7 +20,7 @@ For users only interested in running Transition, without manually installing all
 * [OSRM](https://github.com/Project-OSRM/osrm-backend/): It is the routing engine used by Transition, to calculate the routes for various modes: for example walking, cycling, driving, bus in urban setting, suburban bus, etc.
 * [trRouting](https://github.com/chairemobilite/trRouting/): An open source routing engine to calculate the route between an origin and a destination, or to calculate accessibility from/to a point, using public transit network. It is the main engine used for public transit simulations.
 * yarn: [debian/ubuntu](https://classic.yarnpkg.com/en/docs/install/#debian-stable) or [macOS](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
-* [Rust](https://www.rust-lang.org/): It is used to run the json2capnp cache service which makes the application much faster if there's a lot of transit data. With it we need rustfmt and clippy for formatting and linting.
+* [Rust](https://www.rust-lang.org/): Some of the backend is written in Rust, bound to TypeScript with napi-rs. This makes heavy part of the application much faster, in particular if there's a lot of transit data. With it we need rustfmt and clippy for formatting and linting.
 
 ## Installation
 
@@ -208,14 +208,6 @@ The `prod` version is minified, while the `dev` version has greater size but all
 
 *Note: If running with node version 18, webpack may return an error. In that case, run `export NODE_OPTIONS=--openssl-legacy-provider` before.*
 
-### Start the json2capnp cache server
-
-*Optional*
-
-Run `yarn start:json2capnp -- 2000 /absolute/path/to/cache/directory/` to start the rust server to run the json2capnp cache service. 
-
-This is required if the `defaultPreferences:json2capnp:enabled` preference is set to `true` in the `config.js` file (`true` is the default, to not use the rust server, set the value to `false` under the default preferences).
-
 ### Start the Node.js server
 
 Use one of these alternative start command:
@@ -238,8 +230,6 @@ For developing using Docker, a separate tutorial is available [here (devWithDock
 `docker build -t testtransition .`
 (You can replace testtransition with your prefered image name. Don't forget to update any other command and compose file if you do so)
 To run the application directly, you'll need to add a `.env` as previously described, either by editing the `.env.docker` file before building the image, or by adding a `.env` file and pointing to it when running.
-
-**Warning**: The project directory is assumed to be in `/app/examples/runtime` with a project name of `demo_transition`. The cache server starts with a cache at this location. If it is not the case, update line 68 of the `Dockerfile` to fine-tune the cache directory as second argument to `json2capnp`.
 
 ### Running using docker-compose
 An example docker-compose.yml file is available in the repository. If used, it will spin up a container for the transition 

@@ -10,47 +10,24 @@ import {
     collectionToCache as defaultCollectionToCache,
     collectionFromCache as defaultCollectionFromCache
 } from './default.cache.queries';
-import { AgencyCollection as CacheCollection, Agency as CacheObject } from '../capnpDataModel/agencyCollection.capnp';
-import { _emptyStringToNull } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { boolToInt8, int8ToBool } from './CapnpConversionUtils';
 
-const collectionToCache = function (collection: AgencyCollection, cachePathDirectory?: string) {
+import { capnp_serialization } from 'transition-rust-backend';
+
+const collectionToCache = function (collection: AgencyCollection, cachePathDirectoryOverride?: string) {
     return defaultCollectionToCache({
         collection,
         cacheName: 'agencies',
-        cachePathDirectory,
-        pluralizedCollectionName: 'Agencies',
-        maxNumberOfObjectsPerFile: 1000,
-        CacheCollection,
+        cachePathDirectoryOverride,
         CollectionClass: AgencyCollection,
-        capnpParser: function (object: Agency, cacheObject: CacheObject) {
-            const attributes = object.attributes;
-            if (!attributes.data) {
-                attributes.data = {};
-            }
-
-            cacheObject.setUuid(attributes.id);
-            cacheObject.setAcronym(attributes.acronym || '');
-            cacheObject.setName(attributes.name || '');
-            cacheObject.setInternalId(attributes.internal_id || '');
-            cacheObject.setIsFrozen(boolToInt8(attributes.is_frozen));
-            cacheObject.setColor(attributes.color || '');
-            cacheObject.setIsEnabled(boolToInt8(attributes.is_enabled));
-            cacheObject.setDescription(attributes.description || '');
-            cacheObject.setSimulationUuid(attributes.simulation_id || '');
-            cacheObject.setData(JSON.stringify(attributes.data || {}));
-        }
+        cacheWriteFunction: capnp_serialization.writeAgencyCollection
     });
 };
 
-const collectionFromCache = function (cachePathDirectory?: string) {
+const collectionFromCache = function (cachePathDirectoryOverride?: string) {
     return defaultCollectionFromCache({
-        collection: new AgencyCollection([], {}),
         CollectionClass: AgencyCollection,
         cacheName: 'agencies',
-        cachePathDirectory,
-        pluralizedCollectionName: 'Agencies',
-        CacheCollection,
+        cachePathDirectoryOverride,
         parser: function (object) {
             if (object.attributes) {
                 return new Agency(object.attributes, false);
@@ -58,23 +35,7 @@ const collectionFromCache = function (cachePathDirectory?: string) {
                 return new Agency(object, false);
             }
         },
-        capnpParser: function (cacheObject: CacheObject) {
-            return new Agency(
-                {
-                    id: cacheObject.getUuid(),
-                    acronym: _emptyStringToNull(cacheObject.getAcronym()),
-                    name: _emptyStringToNull(cacheObject.getName()),
-                    color: _emptyStringToNull(cacheObject.getColor()),
-                    description: _emptyStringToNull(cacheObject.getDescription()),
-                    is_enabled: int8ToBool(cacheObject.getIsEnabled()),
-                    internal_id: _emptyStringToNull(cacheObject.getInternalId()),
-                    simulation_id: _emptyStringToNull(cacheObject.getSimulationUuid()),
-                    is_frozen: int8ToBool(cacheObject.getIsFrozen()),
-                    data: JSON.parse(cacheObject.getData())
-                },
-                false
-            );
-        }
+        cacheReadFunction: capnp_serialization.readAgencyCollection
     });
 };
 
