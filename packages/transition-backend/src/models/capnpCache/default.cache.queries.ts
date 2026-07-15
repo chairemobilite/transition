@@ -4,72 +4,60 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fs from 'fs';
 import pQueue from 'p-queue';
-import * as capnp from 'capnp-ts';
 
-import config from 'chaire-lib-backend/lib/config/server.config';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { writePackedMessageToStream, readToEndOfStream } from '../../services/json2capnp/capnpMessagesManager';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import json2CapnpRust from '../../services/json2capnp/Json2CapnpRust';
+
 import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
 import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 
-const prefix = process.env.NODE_ENV === 'test' ? 'test_' : '';
-
-fileManager.directoryManager.createDirectoryIfNotExists(`${prefix}cache`);
-fileManager.directoryManager.createDirectoryIfNotExists(`${prefix}cache/${config.projectShortname}`);
-
-const emptyCacheDirectory = async (pathDirectory: string) => {
-    const cacheDirectoryPath = `${prefix}cache/${config.projectShortname}/${pathDirectory}`;
-    fileManager.directoryManager.emptyDirectory(cacheDirectoryPath);
-    return pathDirectory;
+/** Decides if we use a passed cache path directory or use the default one */
+const getCacheDirectory = (cachePathDirectoryOverride?: string): string => {
+    if (cachePathDirectoryOverride) {
+        return cachePathDirectoryOverride;
+    } else {
+        return fileManager.directoryManager.transitCacheDirectory;
+    }
 };
 
-const deleteCacheDirectory = async (pathDirectory: string) => {
-    const cacheDirectoryPath = `${prefix}cache/${config.projectShortname}/${pathDirectory}`;
-    fileManager.directoryManager.deleteDirectory(cacheDirectoryPath);
-    return pathDirectory;
+// TODO Function is not used any where
+const emptyCacheDirectory = async (cachePathDirectoryOverride?: string): Promise<void> => {
+    fileManager.directoryManager.emptyDirectoryAbsolute(getCacheDirectory(cachePathDirectoryOverride));
+};
+
+// TODO Function is not used any where
+const deleteCacheDirectory = async (cachePathDirectoryOverride?: string): Promise<void> => {
+    fileManager.directoryManager.deleteDirectoryAbsolute(getCacheDirectory(cachePathDirectoryOverride));
 };
 
 // TODO: Remove unnecessary parameters when javascript writer is extracted
 export interface CollectionCacheParams {
     cacheName: string;
+    /** Full path to a cache directory. Override the default one */
+    cachePathDirectoryOverride?: string;
+    CollectionClass: any; //TODO Add type and move to read side maybe?
+}
+
+export interface CollectionToCacheParams extends CollectionCacheParams {
     collection: GenericCollection<any>;
-    cachePathDirectory?: string;
+    /** Rust function to write a collection to cache */
+    cacheWriteFunction: (cacheFilePath: string, jsonStr: string) => Promise<void>;
+}
+
+export interface CollectionFromCacheParams extends CollectionCacheParams {
+    // TODO Find type for the parser (or get rid of it)
     parser?: any;
-    pluralizedCollectionName: string;
-    CacheCollection: any;
-    CollectionClass: any;
-    capnpParser: any;
-    maxNumberOfObjectsPerFile?: number;
+    /** Rust function to read  a collection from cache */
+    cacheReadFunction: (cacheFilePath: string) => Promise<string>;
 }
 
 // TODO: Type the promise
-const collectionToCache = async (params: CollectionCacheParams): Promise<any> => {
+const collectionToCache = async (params: CollectionToCacheParams): Promise<any> => {
     let collection: GenericCollection<any> | undefined = params.collection;
     const collectionName = params.cacheName;
-    const cachePathDirectory = params.cachePathDirectory;
-    const pluralizedCollectionName = params.pluralizedCollectionName;
-    const CacheCollection = params.CacheCollection;
     const CollectionClass = params.CollectionClass;
-    const parser = params.parser; // TODO or CHANGE BEHAVIOUR: not used with json2capnp
-    const capnpParser = params.capnpParser;
-    const maxNumberOfObjectsPerFile = params.maxNumberOfObjectsPerFile || 50000; // TODO or CHANGE BEHAVIOUR: not yet implement with json2capnp
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
-        cachePathDirectory ? cachePathDirectory + '/' : ''
-    }${collectionName}.capnpbin`;
-    const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
     const bodyData: { [key: string]: any } = {};
-
-    if (cachePathDirectory) {
-        fileManager.directoryManager.createDirectoryIfNotExists(
-            `${prefix}cache/${config.projectShortname}/${cachePathDirectory}`
-        );
-        bodyData.cache_directory_path = cachePathDirectory;
-    }
 
     // TODO: Callers should send the right type, the first 'if' can totally change the collection type! But make sure all callers are fixed first
     if (!(collection instanceof CollectionClass)) {
@@ -89,256 +77,112 @@ const collectionToCache = async (params: CollectionCacheParams): Promise<any> =>
         throw new TrError(`Cannot save ${collectionName} collection`, 'CAQCTC0002', 'CannotSaveCacheBecauseError');
     }
 
-    if (Preferences.get('json2Capnp.enabled', false)) {
-        return await json2CapnpRust.collectionToCache({
-            collection,
-            cacheName: collectionName,
-            bodyData,
-            parser,
-            cachePathDirectory
-        });
+    // TODO Consolidate around a single function defined in the collections which would make the right choice there
+    if (typeof (collection as any).toGeojson === 'function') {
+        bodyData[collectionName] = (collection as any).toGeojson();
+    } else if (typeof (collection as any).forJson === 'function') {
+        bodyData[collectionName] = (collection as any).forJson();
     } else {
-        const features =
-            typeof collection.getFeatures === 'function'
-                ? collection.getFeatures()
-                : collection.features
-                    ? collection.features
-                    : collection;
-        const featuresCount = features.length;
-
-        const countFiles = Math.ceil(featuresCount / maxNumberOfObjectsPerFile);
-
-        if (countFiles > 1) {
-            fileManager.writeFile(`${cachePath}.count`, `${countFiles}`);
-        }
-
-        const promiseProducer = async (fileIndex: number): Promise<number> =>
-            new Promise((resolveWriteStream) => {
-                const startFeatureIndex = fileIndex * maxNumberOfObjectsPerFile;
-                const endFeatureIndex =
-                    (fileIndex + 1) * maxNumberOfObjectsPerFile >= featuresCount
-                        ? featuresCount - 1
-                        : (fileIndex + 1) * maxNumberOfObjectsPerFile - 1;
-                const fileFeaturesCount = endFeatureIndex + 1 - startFeatureIndex;
-                const writeStream =
-                    countFiles === 1
-                        ? fs.createWriteStream(`${absoluteCacheFilePath}`)
-                        : fs.createWriteStream(`${absoluteCacheFilePath}.${fileIndex}`);
-                const message = new capnp.Message();
-                const cacheCollectionMessage = message.initRoot(CacheCollection);
-                const cacheCollection = cacheCollectionMessage[`init${pluralizedCollectionName}`](fileFeaturesCount);
-
-                const objects: any[] = [];
-                const indexes: number[] = [];
-                for (let i = startFeatureIndex; i <= endFeatureIndex; i++) {
-                    objects.push(features[i]);
-                    indexes.push(i - startFeatureIndex);
-                }
-                writeStream.on('finish', () => {
-                    resolveWriteStream(fileIndex);
-                });
-
-                const objectSetPromises = objects.map(async (object, objectI) => {
-                    const cacheObject = cacheCollection.get(indexes[objectI]);
-                    capnpParser(object, cacheObject);
-                });
-                try {
-                    Promise.all(objectSetPromises).then(() => {
-                        writePackedMessageToStream(writeStream, message);
-                        writeStream.end();
-                    });
-                } catch (error) {
-                    console.error('Error saving to cache', error);
-                }
-            });
-
-        const promiseQueue = new pQueue({ concurrency: 10 });
-        const fileWriterPromises: Promise<number>[] = [];
-        for (let fileI = 0; fileI < countFiles; fileI++) {
-            fileWriterPromises.push(promiseQueue.add(async () => promiseProducer(fileI)));
-        }
-
-        try {
-            await Promise.all(fileWriterPromises);
-            return cachePath;
-        } catch (error) {
-            console.error('error saving collection cache', error);
-            throw new TrError(
-                `Cannot save collection ${collectionName} to cache file ${cachePath} (capnp error: ${error})`,
-                'CAQCTC0004',
-                'CollectionCannotSaveCacheBecauseError'
-            );
-        }
+        console.error(`error saving ${collectionName} collection cache (cannot convert to geojson or json)`);
+        throw new TrError(
+            `Cannot save ${collectionName} collection (cannot convert to geojson or json)`,
+            'CAQCTC0003',
+            'CannotSaveCacheBecauseError'
+        );
     }
+
+    // Make sure the cache directory exist
+    // TODO Should this be done in the rust side of things?
+    fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(
+        getCacheDirectory(params.cachePathDirectoryOverride)
+    );
+
+    return await params.cacheWriteFunction(
+        getCacheDirectory(params.cachePathDirectoryOverride) + '/' + collectionName + '.capnpbin',
+        JSON.stringify(bodyData)
+    );
 };
 
-const collectionFromCache = async (params: CollectionCacheParams): Promise<any> => {
+const collectionFromCache = async (params: CollectionFromCacheParams): Promise<GenericCollection<any>> => {
     const CollectionClass = params.CollectionClass;
     const collection = CollectionClass ? new CollectionClass([]) : undefined;
     const collectionName = params.cacheName;
-    const cachePathDirectory = params.cachePathDirectory;
-    const pluralizedCollectionName = params.pluralizedCollectionName;
-    const CacheCollection = params.CacheCollection;
-    const capnpParser = params.capnpParser;
-    const parser = params.parser;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
-        cachePathDirectory ? cachePathDirectory + '/' : ''
-    }${collectionName}.capnpbin`;
-    const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
-    const bodyData: { [key: string]: any } = {};
 
-    if (cachePathDirectory) {
-        bodyData.cache_directory_path = cachePathDirectory;
+    if (!collection) {
+        console.error(`This code path supposes the collection exists, it doesn't for ${collectionName}`);
+        throw new TrError(
+            `Cannot load collection ${collectionName} because there is no collection)`,
+            'CAQCFC0002',
+            'CollectionCannotLoadCacheBecauseError'
+        );
     }
 
-    if (Preferences.get('json2Capnp.enabled', false)) {
-        if (!collection) {
-            console.error(`This code path supposes the collection exists, it doesn't for ${collectionName}`);
-            throw new TrError(
-                `Cannot load collection ${collectionName} from json2capnp rust server because there is no collection)`,
-                'CAQCFC0002',
-                'CollectionCannotLoadCacheBecauseError'
-            );
-        }
+    const data = JSON.parse(
+        await params.cacheReadFunction(
+            getCacheDirectory(params.cachePathDirectoryOverride) + '/' + collectionName + '.capnpbin'
+        )
+    );
 
-        return await json2CapnpRust.collectionFromCache({
-            collection,
-            cacheName: collectionName,
-            bodyData,
-            parser,
-            cachePathDirectory
-        });
+    if (data[collectionName].type === 'FeatureCollection') {
+        // geojson collection
+        collection.setFeatures(data[collectionName].features);
     } else {
-        const countFiles = fileManager.fileExists(`${cachePath}.count`)
-            ? parseInt(fileManager.readFile(`${cachePath}.count`) || '1')
-            : 1;
-
-        if (countFiles === 1 && !fileManager.fileExists(cachePath)) {
-            const collection = CollectionClass ? new CollectionClass([]) : [];
-            return collection;
-        }
-
-        const featuresByFileIndex: any[][] = [];
-        const promiseProducer = async (fileIndex: number): Promise<number> =>
-            new Promise((resolveReadStream) => {
-                featuresByFileIndex[fileIndex] = [];
-                const readStream =
-                    countFiles === 1
-                        ? fs.createReadStream(`${absoluteCacheFilePath}`)
-                        : fs.createReadStream(`${absoluteCacheFilePath}.${fileIndex}`);
-
-                readToEndOfStream(readStream).then((data: any) => {
-                    const features: any[] = [];
-                    const message = new capnp.Message(data);
-                    const cacheCollectionMessage = message.getRoot(CacheCollection);
-                    const cacheCollection = cacheCollectionMessage[`get${pluralizedCollectionName}`]();
-                    cacheCollection.forEach((cacheObject) => {
-                        features.push(capnpParser(cacheObject));
-                    });
-                    featuresByFileIndex[fileIndex] = features;
-                    resolveReadStream(fileIndex);
-                });
-            });
-
-        const promiseQueue = new pQueue({ concurrency: 10 });
-        const fileReaderPromises: Promise<number>[] = [];
-        for (let fileI = 0; fileI < countFiles; fileI++) {
-            fileReaderPromises.push(promiseQueue.add(async () => promiseProducer(fileI)));
-        }
-
-        try {
-            await Promise.all(fileReaderPromises);
-            const allFeatures: any = [];
-
-            featuresByFileIndex.forEach((features) => {
-                for (let i = 0, count = features.length; i < count; i++) {
-                    allFeatures.push(features[i]);
-                }
-            });
-
-            if (collection) {
-                collection.setFeatures(allFeatures);
-            }
-            return collection ? collection : allFeatures;
-        } catch (error) {
-            console.error('error loading collection cache', error);
-            throw new TrError(
-                `Cannot load collection ${collectionName} from cache file ${cachePath} (capnp error: ${error})`,
-                'CAQCFC0002',
-                'CollectionCannotLoadCacheBecauseError'
-            );
+        if (typeof params.parser === 'function') {
+            const features = data[collectionName].map((attributes) => params.parser(attributes));
+            collection.setFeatures(features);
+        } else {
+            collection.setFeatures(data[collectionName]);
         }
     }
+    return collection;
 };
 
 // TODO: Remove unnecessary parameters when javascript writer is extracted
 export interface ObjectCacheParams {
     cacheName: string;
-    cachePathDirectory: string;
-    parser?: any;
-    CacheObjectClass: any;
-    ObjectClass: any;
-    capnpParser: any;
+    cachePathDirectoryOverride?: string | undefined;
 }
 
 export interface ObjectToCacheParams extends ObjectCacheParams {
     object: GenericObject<any>;
+    /** Rust function to write an object to cache */
+    cacheWriteFunction: (cacheDirectoryPath: string, jsonStr: string) => Promise<void>;
 }
 
 const objectToCache = async (params: ObjectToCacheParams) => {
-    const objectName = params.cacheName;
-    const cachePathDirectory = params.cachePathDirectory;
-    const CacheObjectClass = params.CacheObjectClass;
-    const object = params.object;
-    const capnpParser = params.capnpParser;
-    const parser = params.parser;
-    const objectId = object.attributes ? object.attributes.id : object.id;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
-        cachePathDirectory ? cachePathDirectory + '/' : ''
-    }${objectName}_${objectId}.capnpbin`;
-    const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
     const bodyData: { [key: string]: any } = {};
 
-    if (cachePathDirectory) {
-        fileManager.directoryManager.createDirectoryIfNotExists(
-            `${prefix}cache/${config.projectShortname}/${cachePathDirectory}`
-        );
-        bodyData.cache_directory_path = cachePathDirectory;
+    let attributes = params.object;
+    // TODO This feels weird, we need a stronger typing on the input object maybe??
+    if (attributes.attributes) {
+        attributes = attributes.attributes;
     }
 
-    if (Preferences.get('json2Capnp.enabled', false)) {
-        return await json2CapnpRust.objectToCache({
-            object,
-            cacheName: objectName,
-            bodyData,
-            parser
-        });
-    } else {
-        return new Promise((resolve) => {
-            const writeStream = fs.createWriteStream(absoluteCacheFilePath);
-            const message = new capnp.Message();
-            const cacheObject = message.initRoot(CacheObjectClass);
+    // TODO Refactor functions chain so that we can just send the attributes object
+    bodyData[params.cacheName] = attributes;
 
-            capnpParser(object, cacheObject);
-
-            writePackedMessageToStream(writeStream, message);
-            writeStream.end();
-            writeStream.on('finish', () => {
-                resolve(cachePath);
-            });
-        });
-    }
+    // We write the object file in a sub directory of the main cache path.
+    // The directory name is the base object type name with an added 's'
+    const cacheFileSubDirectory = getCacheDirectory(params.cachePathDirectoryOverride) + '/' + params.cacheName + 's';
+    // TODO Figure out a better way to handle creating the subdirectories instead of doing it for each files
+    fileManager.directoryManager.createDirectoryIfNotExistsAbsolute(cacheFileSubDirectory);
+    return await params.cacheWriteFunction(cacheFileSubDirectory, JSON.stringify(bodyData));
 };
 
-const objectsToCache = async (customObjectToCache, params: { objects: any[]; cachePathDirectory?: string }) => {
+const objectsToCache = async <T extends GenericObject<any>>(
+    customObjectToCache: (object: T, cachePathDirectoryOverride?: string) => Promise<void>,
+    params: { objects: T[]; cachePathDirectoryOverride?: string }
+) => {
     const objects = params.objects;
     const countObjects = objects.length;
 
     const promiseQueue = new pQueue({ concurrency: 10 });
-    const fileReaderPromises: Promise<number>[] = [];
+    const fileReaderPromises: Promise<void>[] = [];
     for (let objectIndex = 0; objectIndex < countObjects; objectIndex++) {
         const object = objects[objectIndex];
-        fileReaderPromises.push(promiseQueue.add(async () => customObjectToCache(object, params.cachePathDirectory)));
+        fileReaderPromises.push(
+            promiseQueue.add(async () => customObjectToCache(object, params.cachePathDirectoryOverride))
+        );
     }
 
     try {
@@ -355,99 +199,62 @@ const objectsToCache = async (customObjectToCache, params: { objects: any[]; cac
 };
 
 interface ObjectFromCacheParams extends ObjectCacheParams {
+    /** UUID of the object to fetch */
     objectId: string;
+    ObjectClass: any; // TODO GenericObject I guess ??
+    /** Rust function to write an object to cache */
+    cacheReadFunction: (objectId: string, cacheFileDirectory: string) => Promise<string>;
 }
 
 const objectFromCache = async (params: ObjectFromCacheParams) => {
-    const objectName = params.cacheName;
-    const cachePathDirectory = params.cachePathDirectory;
-    const CacheObjectClass = params.CacheObjectClass;
-    const ObjectClass = params.ObjectClass;
-    const parser = params.parser;
-    const objectId = params.objectId;
-    const capnpParser = params.capnpParser;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
-        cachePathDirectory ? cachePathDirectory + '/' : ''
-    }${objectName}_${objectId}.capnpbin`;
-    const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
-    const bodyData: { [key: string]: any } = {};
+    const rustResult = JSON.parse(
+        await params.cacheReadFunction(
+            params.objectId,
+            getCacheDirectory(params.cachePathDirectoryOverride) + '/' + params.cacheName + 's'
+        )
+    );
 
-    if (cachePathDirectory) {
-        bodyData.cache_directory_path = cachePathDirectory;
-    }
-
-    if (Preferences.get('json2Capnp.enabled', false)) {
-        return await json2CapnpRust.objectFromCache({
-            cacheName: objectName,
-            bodyData,
-            parser,
-            objectUuid: objectId,
-            newObject: (attribs) => new ObjectClass(attribs, false)
-        });
-    } else {
-        if (!fileManager.fileExists(cachePath)) {
-            console.error(`cache file for ${objectName} id ${objectId} does not exist at path ${cachePath}`);
-            return undefined;
-        }
-
-        const readStream = fs.createReadStream(absoluteCacheFilePath);
-
-        return new Promise((resolve, reject) => {
-            readToEndOfStream(readStream)
-                .then((data: any) => {
-                    const message = new capnp.Message(data);
-                    const cacheObject = message.getRoot(CacheObjectClass);
-                    const object = capnpParser(cacheObject);
-                    resolve(object);
-                })
-                .catch((error) => {
-                    console.error('error loading collection cache', error);
-                    reject(
-                        new TrError(
-                            `Cannot load ${objectName} from cache file ${cachePath} (capnp error: ${error})`,
-                            'CAQCFC0004',
-                            'CannotLoadCacheBecauseError'
-                        )
-                    );
-                });
-        });
-    }
+    // TODO Refactor functions chain so that we get directly the data instead of having it in a params.cacheName key
+    const object = new params.ObjectClass(rustResult[params.cacheName], false);
+    return object;
 };
 
-const deleteObjectCache = async (params: { cacheName: string; cachePathDirectory: string; objectId: string }) => {
-    const objectName = params.cacheName;
-    const cachePathDirectory = params.cachePathDirectory;
+const deleteObjectCache = async (params: {
+    cacheName: string;
+    cachePathDirectoryOverride?: string;
+    objectId: string;
+}): Promise<void> => {
     const objectId = params.objectId;
-    const cachePath = `${prefix}cache/${config.projectShortname}/${
-        cachePathDirectory ? cachePathDirectory + '/' : ''
-    }${objectName}_${objectId}.capnpbin`;
-    const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
 
-    if (fileManager.fileExistsAbsolute(absoluteCacheFilePath)) {
-        fileManager.deleteFileAbsolute(absoluteCacheFilePath);
-    }
-    return cachePath;
+    const filename =
+        getCacheDirectory(params.cachePathDirectoryOverride) +
+        '/' +
+        params.cacheName +
+        's/' +
+        params.cacheName +
+        '_' +
+        objectId +
+        '.capnpbin';
+
+    fileManager.deleteFileAbsolute(filename);
 };
 
-const deleteObjectsCache = async (params: { cacheName: string; cachePathDirectory: string; objectIds: string[] }) => {
-    const objectName = params.cacheName;
-    const cachePathDirectory = params.cachePathDirectory;
+const deleteObjectsCache = async (params: {
+    cacheName: string;
+    cachePathDirectoryOverride?: string;
+    objectIds: string[];
+}): Promise<void> => {
     const objectIds = params.objectIds;
-    const cachePaths = objectIds.map((objectId) => {
-        return `${prefix}cache/${config.projectShortname}/${
-            cachePathDirectory ? cachePathDirectory + '/' : ''
-        }${objectName}_${objectId}.capnpbin`;
-    });
 
+    // TODO Switch to a promise queue, as for objectsToCache, maybe use a map
     for (let i = 0, countI = objectIds.length; i < countI; i++) {
-        const cachePath = cachePaths[i];
-        const absoluteCacheFilePath = fileManager.getAbsolutePath(cachePath);
-
-        if (fileManager.fileExistsAbsolute(absoluteCacheFilePath)) {
-            fileManager.deleteFileAbsolute(absoluteCacheFilePath);
-        }
+        const objectId = objectIds[i];
+        await deleteObjectCache({
+            cacheName: params.cacheName,
+            cachePathDirectoryOverride: params.cachePathDirectoryOverride,
+            objectId
+        });
     }
-    return cachePaths;
 };
 
 export {

@@ -1,5 +1,6 @@
 # Transition Docker file
 
+# TODO Remove json2capnp related build. We keep it around for the moment to not break script that runs it directly
 # Build json2capnp
 # the capnp crate does not build on buster or older so we need to use a separate image
 # since node does not provide a buster image.
@@ -74,7 +75,6 @@ RUN yarn compile
 # Copy the rest. (node_modules are excluded in .dockerignore)
 COPY . /app
 
-# Start json2capnp -> Relies on manually creating cache directory before
 # Start Node app
-CMD sh -c "cd services/json2capnp && pwd && ./json2capnp 2000 /app/examples/runtime/cache/demo_transition > /app/json2capnp.log &" && yarn build:prod && yarn start
+CMD ["sh", "-c", "yarn build:prod && exec yarn start"]
 EXPOSE 8080

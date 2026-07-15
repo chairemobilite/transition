@@ -5354,16 +5354,6 @@ caniuse-lite@^1.0.30001759:
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001759.tgz#d569e7b010372c6b0ca3946e30dada0a2e9d5006"
   integrity sha512-Pzfx9fOKoKvevQf8oCXoyNRQ5QyxJj+3O0Rqx2V5oxT61KGx8+n6hV/IUyJeifUci2clnmmKVpvtiqRzgiWjSw==
 
-capnp-ts@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/capnp-ts/-/capnp-ts-0.4.0.tgz#7e627f5324cfa477c7d083be31ee3f00cc1e5fb2"
-  integrity sha512-yfNaoTHdqy7l3Yl1H+VyJTgzdTFAC3jPXqc9wVirg6W7gCGkWKCMI2mgTBh5QtCL91SrGWSsN26JQ8Ok7nrHpQ==
-  dependencies:
-    debug "^2.6.3"
-    format "^0.2.2"
-    tslib "^1.7.1"
-    utf8-encoding "^0.1.2"
-
 ccount@^2.0.0:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/ccount/-/ccount-2.0.1.tgz#17a3bf82302e0870d6da43a01311a8bc02a3ecf5"
@@ -6007,7 +5997,7 @@ date-fns@^4.1.0:
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-4.1.0.tgz#64b3d83fff5aa80438f5b1a633c2e83b8a1c2d14"
   integrity sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==
 
-debug@2.6.9, debug@^2.6.3, debug@~2.6.0:
+debug@2.6.9, debug@~2.6.0:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"
   integrity sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==
@@ -7151,11 +7141,6 @@ form-data@^4.0.4:
     es-set-tostringtag "^2.1.0"
     hasown "^2.0.4"
     mime-types "^2.1.35"
-
-format@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/format/-/format-0.2.2.tgz#d6170107e9efdc4ed30c9dc39016df942b5cb58b"
-  integrity sha1-1hcBB+nv3E7TDJ3DkBbflCtctYs=
 
 formidable@^3.5.4:
   version "3.5.4"
@@ -9992,11 +9977,6 @@ object.values@^1.2.0:
     define-properties "^1.2.1"
     es-object-atoms "^1.0.0"
 
-obtain-unicode@~0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/obtain-unicode/-/obtain-unicode-0.0.5.tgz#655f337a8f135280495d77a60efc601f9af5d5dc"
-  integrity sha1-ZV8zeo8TUoBJXXemDvxgH5r11dw=
-
 on-finished@^2.4.1:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/on-finished/-/on-finished-2.4.1.tgz#58c8c44116e54845ad57f14ab10b03533184ac3f"
@@ -12575,7 +12555,7 @@ ts-shader-loader@^2.0.2:
   dependencies:
     loader-utils "^3.2.0"
 
-tslib@^1.7.1, tslib@^1.9.0:
+tslib@^1.9.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
@@ -12881,13 +12861,6 @@ use-sync-external-store@^1.4.0, use-sync-external-store@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.6.0.tgz#b174bfa65cb2b526732d9f2ac0a408027876f32d"
   integrity sha512-Pp6GSwGP/NrPIrxVFAIkOQeyw8lFenOHijQWkUTrDvrF4ALqylP2C/KCkeS9dpUM3KvYRQhna5vt7IL95+ZQ9w==
-
-utf8-encoding@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/utf8-encoding/-/utf8-encoding-0.1.2.tgz#8717015cb8b923bc0303bf4af520af96f06ae9a2"
-  integrity sha1-hxcBXLi5I7wDA79K9SCvlvBq6aI=
-  dependencies:
-    obtain-unicode "~0.0.5"
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"

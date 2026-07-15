@@ -83,11 +83,6 @@ const defaultPreferences: PreferencesModel = {
     btm: {
         host: 'https://taximtl.ville.montreal.qc.ca'
     },
-    json2Capnp: {
-        enabled: true, // if not enabled, will use javascript to read/write capnp cache files (slower)
-        host: 'http://localhost',
-        port: 2000
-    },
     osrmRouting: {
         // directoryPrefix: used as a prefix, can be overridden in .env (OSRM_DIRECTORY_PREFIX).
         // Keep empty for none (will only use the mode name):

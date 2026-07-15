@@ -32,7 +32,8 @@ pub fn write_collection(
                 let feature        = &feature_collection.features[i];
                 let mut capnp_data = capnp.reborrow().get(i as u32);
                 let properties = feature.properties.as_ref().unwrap();
-                println!("path_id {}", properties.get("id").unwrap().as_str().unwrap());
+                //TODO Next line is commented out until we can pass a log debug flag to rust bindings
+                //println!("path_id {}", properties.get("id").unwrap().as_str().unwrap());
                 capnp_data.set_uuid(properties.get("id").unwrap().as_str().unwrap()); // required
                 capnp_data.set_id(properties.get("integer_id").unwrap().as_i64().unwrap() as i32); // required
                 capnp_data.set_line_uuid(properties.get("line_id").unwrap().as_str().unwrap()); // required

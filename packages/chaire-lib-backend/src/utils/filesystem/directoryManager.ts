@@ -73,6 +73,7 @@ export class DirectoryManager {
         return this._osrmDirectory;
     }
 
+    // TODO SHOULD WE KEEP THIS ONE ?
     /**
      * Absolute path to capnp cache directory
      *

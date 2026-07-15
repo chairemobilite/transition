@@ -72,7 +72,7 @@ const startTrRoutingProcess = async (
     if (cacheDirectoryPath) {
         commandArgs.push(`--cachePath=${cacheDirectoryPath}`);
     } else {
-        commandArgs.push(`--cachePath=${directoryManager.projectDirectory}/cache/${config.projectShortname}`);
+        commandArgs.push(`--cachePath=${directoryManager.transitCacheDirectory}`);
     }
 
     // Set the threads argument if we have a threadCount param and it's higher than one
