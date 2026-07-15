@@ -178,4 +178,4 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
     );
 };
 
-export default TransitServiceButton;
+export default React.memo(TransitServiceButton);
