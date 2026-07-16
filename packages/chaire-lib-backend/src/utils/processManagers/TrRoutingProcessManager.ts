@@ -199,7 +199,7 @@ const status = async (parameters: { port?: number }) => {
     }
 };
 
-const MAX_THREADS_PER_PROCESS = 16; // TrRouting saturate at 24 threads, so let's not get there
+const MAX_THREADS_PER_PROCESS = 128; // TrRouting saturate at 24 threads, so let's not get there
 
 const startBatch = async function (
     numberOfCpus?: number,
