@@ -42,7 +42,7 @@ COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp ser
 
 # Copy in trRouting and osrm binaries
 # For trRouting
-RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.83.0 libboost-filesystem1.83.0 libboost-iostreams1.83.0 libboost-thread1.83.0 libboost-date-time1.83.0 libboost-serialization1.83.0 libboost-program-options1.83.0 libspdlog1.15 libmemcached11 libmemcachedutil2
+RUN apt-get update && apt-get -y --no-install-recommends install capnproto libboost-regex1.83.0 libboost-filesystem1.83.0 libboost-iostreams1.83.0 libboost-thread1.83.0 libboost-date-time1.83.0 libboost-serialization1.83.0 libboost-program-options1.83.0 libspdlog1.15 libmemcached11 libmemcachedutil2 libjemalloc2
 
 # For OSRM
 RUN apt-get -y --no-install-recommends install libboost-chrono1.83.0 liblua5.4-0 libtbb12
