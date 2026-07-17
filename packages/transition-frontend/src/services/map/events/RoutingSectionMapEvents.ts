@@ -19,6 +19,15 @@ const isRoutingActiveSection = (activeSection: string) => {
 };
 
 const onRoutingSectionMapClick = (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
+    // After releasing a dragged point, MapLibre still fires a synthetic `click`
+    // (no pan happened since dragPan was disabled). Ignoring it prevents that
+    // click from moving the other point to the drop location (see issue #1956).
+    if (map.featureDragJustEnded) {
+        map.featureDragJustEnded = false;
+        e.originalEvent.stopPropagation();
+        return;
+    }
     serviceLocator.eventManager.emit('routing.transit.clickedOnMap', e.lngLat.toArray());
     e.originalEvent.stopPropagation();
 };
@@ -52,6 +61,8 @@ const onRoutingPointMouseUp = (e: MapMouseEvent) => {
             e.lngLat.toArray()
         );
         map._currentDraggingFeature = null;
+        // Ignore the synthetic click MapLibre fires right after this drag-release
+        map.featureDragJustEnded = true;
         removeDraggingClass();
         removeHoverClass(); // Clean up hover state since mouseleave doesn't fire during drag
         serviceLocator.eventManager.emit('map.enableDragPan');
