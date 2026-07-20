@@ -119,7 +119,7 @@ describe('Route', () => {
         
         const routeResult = await routingService.route({ mode: 'walking', points: { type: 'FeatureCollection', features: stubPlaces}, withAlternatives: true });
         expect(mockRoute).toHaveBeenCalledTimes(1);
-        expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", withAlternatives: true }, expect.any(Function))
+        expect(mockRoute).toHaveBeenCalledWith({mode: 'walking', points: stubPlaces, annotations: false, steps: false, continue_straight: undefined, overview: "full", withAlternatives: true }, expect.any(Function))
         expect(routeResult).toEqual(expectedResponse);
     });
     
@@ -137,7 +137,7 @@ describe('Route', () => {
             haveThrown = true;
         }
         expect(mockRoute).toHaveBeenCalledTimes(1);
-        expect(mockRoute).toHaveBeenCalledWith({ mode: 'walking', points: stubPlaces, annotations: true, steps: false, continue_straight: undefined, overview: "full", withAlternatives: false }, expect.any(Function))
+        expect(mockRoute).toHaveBeenCalledWith({ mode: 'walking', points: stubPlaces, annotations: false, steps: false, continue_straight: undefined, overview: "full", withAlternatives: false }, expect.any(Function))
         expect(routeResult).toBeUndefined();
         expect(haveThrown).toBe(true);
     });
