@@ -192,7 +192,7 @@ export default class OSRMRoutingService extends RoutingService.default {
             points: params.points.features,
             steps: params.showSteps || false,
             overview: params.overview === 'simplified' ? 'simplified' : params.overview === 'false' ? 'false' : 'full',
-            annotations: _isBlank(params.annotations) ? true : params.annotations,
+            annotations: _isBlank(params.annotations) ? false : params.annotations,
             // gaps      : 'ignore',
             continue_straight:
                 // TODO: Migrate this value from preferences to config like the osrm modes. See issue #1140
