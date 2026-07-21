@@ -60,6 +60,7 @@ on:
     # Hourly overnight (UTC). Adjust to your low-activity window.
     - cron: '0 3-11/3 * * *'
   workflow_dispatch:
+  workflow_call: # To be able to run it from other repo
 
 concurrency:
   group: coderabbit-retry
