@@ -121,11 +121,12 @@ const hoursToSeconds = function (hours) {
  * @param {number} seconds - The duration in seconds to be converted.
  * @param {TFunction} t - The translation function to localize unit strings.
  * @param {Object} options - Formatting options.
- * @param {string} options.hourUnit - The unit for hours, in a localizable form. The value of the hour will be added as the 'count' option for translation.
+ * @param {string} options.hourUnit - The unit for hours, in a localizable form. The value of the hour will be added as the 'count' option for translation. Pass an empty string to fold the hours into the minutes (e.g. 3661s -> "61 min 1 s").
  * @param {string} options.minuteUnit - The unit for minutes, in a localizable form. The value of the minute will be added as the 'count' option for translation.
  * @param {string} options.secondsUnit - The unit for seconds, in a localizable form. The value of the second will be added as the 'count' option for translation.
  * @param {boolean} [options.withSeconds=true] - Whether to include seconds in the output.
  * @param {string} [options.zeroText] - Text to return when the returned output would be zero.
+ * @param {string} [options.spacer=' '] - String inserted between each value and its unit, and between components. Pass '' for a compact form (e.g. "2m3s").
  * @returns {string} - The formatted time string or empty string if the input is invalid.
  */
 const toXXhrYYminZZsec = (
@@ -136,27 +137,37 @@ const toXXhrYYminZZsec = (
         minuteUnit,
         secondsUnit,
         withSeconds = true,
-        zeroText
-    }: { hourUnit: string; minuteUnit: string; secondsUnit: string; withSeconds?: boolean; zeroText?: string }
+        zeroText,
+        spacer = ' '
+    }: {
+        hourUnit: string;
+        minuteUnit: string;
+        secondsUnit: string;
+        withSeconds?: boolean;
+        zeroText?: string;
+        spacer?: string;
+    }
 ): string => {
     if (typeof seconds !== 'number' || !Number.isFinite(seconds)) {
         return '';
     }
     const getZeroTextValue = () =>
-        zeroText ? t(zeroText) : `0 ${withSeconds ? t(secondsUnit, { count: 0 }) : t(minuteUnit, { count: 0 })}`;
+        zeroText
+            ? t(zeroText)
+            : `0${spacer}${withSeconds ? t(secondsUnit, { count: 0 }) : t(minuteUnit, { count: 0 })}`;
     if (seconds === 0) {
         return getZeroTextValue();
     }
     const negative = seconds < 0;
+    // When no hour unit is provided, fold the hours into the minutes (3661s -> "61 min 1 s").
+    const showHours = hourUnit !== '';
     const hours = Math.floor(Math.abs(seconds / 3600));
-    const minutes = Math.floor(Math.abs((seconds % 3600) / 60));
+    const minutes = Math.floor(Math.abs((showHours ? seconds % 3600 : seconds) / 60));
     const secs = Math.floor(Math.abs(seconds % 60));
 
     // Add time components to the array, then remove leading and trailing zero components (ex: 0 hr, 0 min) before formatting the string.
-    const timeComponents = [
-        { value: hours, unit: hourUnit },
-        { value: minutes, unit: minuteUnit }
-    ];
+    const timeComponents = showHours ? [{ value: hours, unit: hourUnit }] : [];
+    timeComponents.push({ value: minutes, unit: minuteUnit });
     if (withSeconds) {
         timeComponents.push({ value: secs, unit: secondsUnit });
     }
@@ -177,8 +188,8 @@ const toXXhrYYminZZsec = (
     }
 
     return `${negative ? '-' : ''}${timeComponents
-        .map((component) => component.value + ' ' + t(component.unit, { count: component.value }))
-        .join(' ')}`;
+        .map((component) => component.value + spacer + t(component.unit, { count: component.value }))
+        .join(spacer)}`;
 };
 
 /**

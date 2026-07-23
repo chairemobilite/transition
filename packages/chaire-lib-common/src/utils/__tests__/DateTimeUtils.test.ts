@@ -125,6 +125,34 @@ describe('toXXhrYYminZZsec', () => {
     });
 
     test.each([
+        [34, '34s'],
+        [125, '2m5s'],
+        [7263, '2h1m3s'],
+        [7203, '2h0m3s'],
+        [0, '0s']
+    ])('toXXhrYYminZZsec with empty spacer: %s seconds => %s', (value, expected) => {
+        expect(
+            DateTimeUtils.toXXhrYYminZZsec(value as any, mockT, {
+                hourUnit: 'h',
+                minuteUnit: 'm',
+                secondsUnit: 's',
+                spacer: ''
+            })
+        ).toEqual(expected);
+    });
+
+    test.each([
+        [34, '34 s'],
+        [125, '2 m 5 s'],
+        [3661, '61 m 1 s'],
+        [7263, '121 m 3 s']
+    ])('toXXhrYYminZZsec with empty hourUnit folds hours into minutes: %s seconds => %s', (value, expected) => {
+        expect(
+            DateTimeUtils.toXXhrYYminZZsec(value as any, mockT, { hourUnit: '', minuteUnit: 'm', secondsUnit: 's' })
+        ).toEqual(expected);
+    });
+
+    test.each([
         [34, false],
         [0, true]
     ])('with zeroText: %s', (value, withSeconds) => {

@@ -26,6 +26,7 @@ DEFAULT_ROUTING_SPEED_MPS is another arbitrary speed for matching which makes it
 const DEFAULT_MIN_MATCHING_TIMESTAMP = 500; // can be overriden by data.minMatchingTimestamp, in seconds
 const DEFAULT_ROUTING_SPEED_MPS = 20;
 const DEFAULT_WAYPOINT_RADIUS_METERS = 15;
+
 export interface PathGeographyResults {
     direct: MapMatchingResults;
     points: FeatureCollection<Point>;
