@@ -25,14 +25,8 @@ type TrRoutingBatchStartParameters = TrRoutingStartParameters & {
     memcachedServer?: string;
 };
 
-const getServiceName = function (port: number, processIndex: number = 0) {
-    // When spawning multiple instances, the first one will have the classic service name
-    // and the other ones (index 1 and above) will have the index added at the end
-    if (processIndex <= 0) {
-        return `trRouting${port}`;
-    } else {
-        return `trRouting${port}_${processIndex}`;
-    }
+const getServiceName = function (port: number) {
+    return `trRouting${port}`;
 };
 
 const startTrRoutingProcess = async (
@@ -51,11 +45,10 @@ const startTrRoutingProcess = async (
         cacheAllScenarios?: boolean; // Flag to enable the trRouting connection cache for all scenario
         logFiles: TrRoutingConfig['logs'];
         memcachedServer?: string; // If defined, enable use of memcached and use the value as the server URL
-    },
-    processIndex: number = -1
+    }
 ) => {
     const osrmWalkingServerInfo = osrmService.getMode('walking').getHostPort();
-    const serviceName = getServiceName(port, processIndex);
+    const serviceName = getServiceName(port);
     const tagName = 'trRouting';
 
     const [command, cwd] =
@@ -88,10 +81,6 @@ const startTrRoutingProcess = async (
     // Enable memcached usage in TrRouting
     if (memcachedServer) {
         commandArgs.push(`--useMemcached=${memcachedServer}`);
-    }
-
-    if (processIndex >= 0) {
-        commandArgs.push('--enableReusePort=true');
     }
 
     const waitString = 'ready.';
@@ -199,8 +188,6 @@ const status = async (parameters: { port?: number }) => {
     }
 };
 
-const MAX_THREADS_PER_PROCESS = 16; // TrRouting saturate at 24 threads, so let's not get there
-
 const startBatch = async function (
     numberOfCpus?: number,
     {
@@ -232,19 +219,7 @@ const startBatch = async function (
         memcachedServer: memcachedServer
     };
 
-    // Since a single process cannot handle too many threads, we will spawn multiple process
-    // TODO This can go away if we change trRouting to handle more threads
-    // https://github.com/chairemobilite/trRouting/issues/340
-    const processCount = Math.ceil(numberOfCpus / MAX_THREADS_PER_PROCESS);
-    const threadsPerProcess = Math.ceil(numberOfCpus / processCount);
-
-    const startPromises: Promise<any>[] = [];
-    for (let i = 0; i < processCount; i++) {
-        // Last process may get fewer threads if total doesn't divide evenly
-        const threads = Math.min(threadsPerProcess, numberOfCpus - i * threadsPerProcess);
-        startPromises.push(startTrRoutingProcess(port, false, threads, params, i));
-    }
-    await Promise.all(startPromises);
+    await startTrRoutingProcess(port, false, numberOfCpus, params);
 
     return {
         status: 'started',
@@ -254,18 +229,8 @@ const startBatch = async function (
 };
 
 const stopBatch = async function (port: number = serverConfig.getTrRoutingConfig('batch').port) {
-    await stop({ port: port }); // Stop the first one the normal way
-    // Since we don't have a good way to Iterate through the running extra instances
-    // We check for each index and stop if we cannot find one. Only check the first X instances, assuming
-    // the absolute max is 256 threads machines.
-    for (let i = 1; i <= 256 / MAX_THREADS_PER_PROCESS; i++) {
-        const serviceName = getServiceName(port, i);
-        if (await ProcessManager.isServiceRunning(serviceName)) {
-            await ProcessManager.stopProcess(serviceName, 'trRouting');
-        } else {
-            break; // No more processes
-        }
-    }
+    await stop({ port: port });
+
     return {
         status: 'stopped',
         service: 'trRoutingBatch',
