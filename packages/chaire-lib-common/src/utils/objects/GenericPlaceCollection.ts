@@ -12,6 +12,7 @@ import GenericMapObjectCollection from './GenericMapObjectCollection';
 import { _isBlank } from '../LodashExtensions';
 import Preferences from '../../config/Preferences';
 import routingServiceManager from '../../services/routing/RoutingServiceManager';
+import { ceilToPositiveInteger } from '../MathUtils';
 
 /**
  * A collection of point locations on a map
@@ -103,8 +104,8 @@ export default abstract class GenericPlaceCollection<
                 const distanceMeters = distances[i];
                 pointsInRoutedRadius.push({
                     id: pointInBirdRadius.properties.id,
-                    walkingTravelTimesSeconds: Math.ceil(travelTimeSeconds),
-                    walkingDistancesMeters: Math.ceil(distanceMeters)
+                    walkingTravelTimesSeconds: ceilToPositiveInteger(travelTimeSeconds),
+                    walkingDistancesMeters: ceilToPositiveInteger(distanceMeters)
                 });
             }
         }

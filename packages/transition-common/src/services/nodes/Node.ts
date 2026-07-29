@@ -24,6 +24,7 @@ import {
     PlaceCategory,
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 export interface TransferableNodes {
     nodesIds: string[];
@@ -364,7 +365,7 @@ export class Node extends GenericPlace<NodeAttributes> implements Saveable {
             0
         );
         this.attributes.routing_radius_meters = Math.max(
-            Math.ceil(maxStopDistance),
+            ceilToPositiveInteger(maxStopDistance),
             this.attributes.routing_radius_meters
         );
         this._updateHistory();

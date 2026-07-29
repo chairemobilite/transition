@@ -15,6 +15,7 @@ import { _isBlank } from '../../utils/LodashExtensions';
 import Preferences from '../../config/Preferences';
 import * as Status from '../../utils/Status';
 import * as OSRMRoutingAPI from '../../api/OSRMRouting';
+import { ceilToPositiveInteger } from '../../utils/MathUtils';
 
 const defaultRoutingRadiusMeters = 20;
 
@@ -171,7 +172,7 @@ export default class OSRMRoutingService extends RoutingService.default {
     public async mapMatch(params: RoutingService.MapMatchParameters): Promise<RoutingService.MapMatchingResults> {
         // we need to divide radiuses by 3 since osrm match service will use RADIUS_MULTIPLIER of 3.
         const radiuses = params.points.features.map((feature) =>
-            Math.ceil((feature.properties?.radius || defaultRoutingRadiusMeters) / 3)
+            ceilToPositiveInteger((feature.properties?.radius || defaultRoutingRadiusMeters) / 3)
         );
         const timestamps = params.points.features.map((feature) => feature.properties?.timestamp || 0);
         const routingResult = await this.callOsrmMap({
