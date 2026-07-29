@@ -78,11 +78,19 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
 
     const actualOutboundPathId = schedulePeriod.outbound_path_id;
     const outboundPathId =
-        actualOutboundPathId || (outboundPathsChoices.length === 1 ? outboundPathsChoices[0].value : '');
+        actualOutboundPathId !== undefined
+            ? actualOutboundPathId
+            : outboundPathsChoices.length === 1
+                ? outboundPathsChoices[0].value
+                : '';
 
     const actualInboundPathId = schedulePeriod.inbound_path_id;
     const inboundPathId =
-        actualInboundPathId || (inboundPathsChoices.length === 1 ? inboundPathsChoices[0].value : undefined);
+        actualInboundPathId !== undefined
+            ? actualInboundPathId
+            : inboundPathsChoices.length === 1
+                ? inboundPathsChoices[0].value
+                : undefined;
 
     // When only one path is available, sync the auto-selected default into form state
     // so it gets saved even if the user never interacts with the dropdown.
@@ -183,12 +191,15 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
 
     return (
         <div
-            className="tr__form-section _flex-container-row"
+            className="tr__form-section"
             key={periodShortname}
             style={{
+                display: 'flex',
+                flexDirection: 'row',
+                flexShrink: 0,
                 borderRight: '1px solid rgba(255,255,255,0.2)',
                 alignItems: 'flex-start',
-                minWidth: '20rem'
+                width: 'fit-content'
             }}
         >
             <h4 className="_aside-heading-container" style={{ minHeight: '30rem' }}>
@@ -199,7 +210,7 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
                     <span className="_strong">{periodEndAtTimeStr}</span> <span>• {periodName}</span>
                 </span>
             </h4>
-            <div className="tr__form-section">
+            <div className="tr__form-section" style={{ maxWidth: '300px' }}>
                 <div className="tr__form-section">
                     <div className="apptr__form-input-container">
                         <label>{t('transit:transitSchedule:OutboundPath')}</label>
@@ -209,6 +220,7 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
                             choices={outboundPathsChoices}
                             disabled={isFrozen}
                             t={t}
+                            style={{ width: '100%' }}
                             onValueChange={(e) =>
                                 onValueChange(`periods[${periodIndex}].outbound_path_id`, {
                                     value: e.target.value
@@ -256,6 +268,7 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
                             choices={inboundPathsChoices}
                             disabled={isFrozen}
                             t={t}
+                            style={{ width: '100%' }}
                             onValueChange={(e) =>
                                 onValueChange(`periods[${periodIndex}].inbound_path_id`, {
                                     value: e.target.value
@@ -354,12 +367,13 @@ const TransitSchedulePeriod: React.FC<TransitSchedulePeriodProps> = (props) => {
                 <div className="tr__form-section">
                     {isFrozen !== true && (
                         <div className="tr__form-buttons-container _left">
-                            {isReadyForScheduleGeneration(
-                                calculationMode,
-                                inboundIntervalSeconds,
-                                outboundIntervalSeconds,
-                                numberOfUnits
-                            ) && (
+                            {!_isBlank(outboundPathId) &&
+                                isReadyForScheduleGeneration(
+                                    calculationMode,
+                                    inboundIntervalSeconds,
+                                    outboundIntervalSeconds,
+                                    numberOfUnits
+                                ) && (
                                 <Button
                                     color="blue"
                                     icon={faSyncAlt}

@@ -24,6 +24,7 @@ export type InputSelectProps = {
     localePrefix?: string;
     t?: (string) => string;
     disabled?: boolean;
+    style?: React.CSSProperties;
 };
 
 type defaultInputType = {
@@ -44,7 +45,8 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
     choices = [],
     localePrefix = 'main',
     t = (_str) => '',
-    disabled = false
+    disabled = false,
+    style
 }: InputSelectProps) => {
     const actualValue = value === undefined ? defaultValue : value;
     const defaultAttributes: defaultInputType = {
@@ -94,7 +96,8 @@ const InputSelect: React.FunctionComponent<InputSelectProps> = ({
             style={{
                 overflow: 'hidden',
                 whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis'
+                textOverflow: 'ellipsis',
+                ...style
             }}
         >
             {!noBlank && <option key={'_blank'} value=""></option>}
