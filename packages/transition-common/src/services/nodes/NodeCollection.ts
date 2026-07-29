@@ -17,6 +17,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 /**
  * A collection of transit nodes
@@ -87,7 +88,7 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
 
     setNetworkTravelTimesForBirdDistanceAccessibleNodes(object, geojson, prefix, mode: RoutingMode = 'walking') {
         // geojson: origin or destination geojson
-        return new Promise((resolve, _reject) => {
+        return new Promise((resolve, reject) => {
             if (_isBlank(geojson) && typeof object.toGeojson === 'function') {
                 geojson = object.toGeojson();
             }
@@ -134,39 +135,49 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
                         object.attributes[`walking_5min_${attributePrefix}accessible_nodes_count`] = 0;
 
                         for (let i = 0, count = birdDistanceAccessibleNodes.length; i < count; i++) {
-                            if (isNaN(Number(travelTimesSeconds[i])) || isNaN(Number(distancesMeters[i]))) {
+                            const travelTimeSeconds = Number(travelTimesSeconds[i]);
+                            const distanceMeters = Number(distancesMeters[i]);
+                            if (
+                                !Number.isFinite(travelTimeSeconds) ||
+                                travelTimeSeconds < 0 ||
+                                !Number.isFinite(distanceMeters) ||
+                                distanceMeters < 0
+                            ) {
                                 console.log(
-                                    `ERROR: OSRM mode ${mode}: duration or distance is NaN for object ${object.get(
+                                    `ERROR: OSRM mode ${mode}: duration or distance is invalid for object ${object.get(
                                         'id'
                                     )}`
                                 );
                             } else if (
-                                travelTimesSeconds[i] <=
+                                travelTimeSeconds <=
                                 Preferences.current.transit.nodes.maxAccessEgressWalkingTravelTimeSeconds
                             ) {
                                 const node = birdDistanceAccessibleNodes[i];
                                 object.attributes.data[`${nodesPrefix}`].push(node.properties.id);
                                 object.attributes.data[`${nodesPrefix}TravelTimes`].push(
-                                    Math.ceil(travelTimesSeconds[i])
+                                    ceilToPositiveInteger(travelTimeSeconds)
                                 );
-                                object.attributes.data[`${nodesPrefix}Distances`].push(Math.ceil(distancesMeters[i]));
-                                if (travelTimesSeconds[i] <= 1200) {
+                                object.attributes.data[`${nodesPrefix}Distances`].push(
+                                    ceilToPositiveInteger(distanceMeters)
+                                );
+                                if (travelTimeSeconds <= 1200) {
                                     object.attributes[`walking_20min_${attributePrefix}accessible_nodes_count`]++;
                                 }
-                                if (travelTimesSeconds[i] <= 900) {
+                                if (travelTimeSeconds <= 900) {
                                     object.attributes[`walking_15min_${attributePrefix}accessible_nodes_count`]++;
                                 }
-                                if (travelTimesSeconds[i] <= 600) {
+                                if (travelTimeSeconds <= 600) {
                                     object.attributes[`walking_10min_${attributePrefix}accessible_nodes_count`]++;
                                 }
-                                if (travelTimesSeconds[i] <= 300) {
+                                if (travelTimeSeconds <= 300) {
                                     object.attributes[`walking_5min_${attributePrefix}accessible_nodes_count`]++;
                                 }
                             }
                             accessibleNodesCount++;
                         }
                         resolve(accessibleNodesCount);
-                    });
+                    })
+                    .catch(reject);
             } else {
                 resolve(0);
             }

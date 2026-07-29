@@ -9,7 +9,7 @@ import { MapMatchingResults, MapLeg } from 'chaire-lib-common/lib/services/routi
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import { roundToDecimals, ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
@@ -53,7 +53,9 @@ type RoutingResult = {
 type ComputeSegmentDataParams = {
     path: Path;
     segmentIndex: number;
-    segmentTimeAndDistance: TimeAndDistance;
+    /** Raw OSRM (or equivalent) duration; used as speed input for accel/decel physics */
+    routedDurationSeconds: number;
+    distanceMeters: number;
     /** ID of the departure node for this segment */
     nodeId: string | undefined;
     initial: SegmentData;
@@ -336,12 +338,14 @@ const getDwellTimeSecondsForNode = (path: Path, nodeId: unknown): number => {
 const calculateLayoverSeconds = (path: Path, totalTravelTimeWithDwellTimesSeconds: number): number => {
     const customLayoverMinutes: any = path.getData('customLayoverMinutes', null);
     if (!_isBlank(customLayoverMinutes)) {
-        return customLayoverMinutes * 60;
+        return ceilToPositiveInteger(customLayoverMinutes * 60);
     }
-    return Math.max(
-        Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
-            totalTravelTimeWithDwellTimesSeconds,
-        Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
+    return ceilToPositiveInteger(
+        Math.max(
+            Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
+                totalTravelTimeWithDwellTimesSeconds || 0,
+            Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds || 0
+        )
     );
 };
 
@@ -425,13 +429,9 @@ const isNewSegment = (
  * @returns The segment duration, dwell time, and optional time ratio for unchanged segments
  */
 const computeSegmentData = (params: ComputeSegmentDataParams): ComputeSegmentDataResult => {
-    const { path, segmentIndex, segmentTimeAndDistance, nodeId, initial, changesInfo } = params;
+    const { path, segmentIndex, routedDurationSeconds, distanceMeters, nodeId, initial, changesInfo } = params;
 
-    const duration = calculateSegmentDuration(
-        path,
-        segmentTimeAndDistance.distanceMeters || 0,
-        segmentTimeAndDistance.travelTimeSeconds
-    );
+    const duration = calculateSegmentDuration(path, distanceMeters, routedDurationSeconds);
     // First segment's departure is the path start — no dwell time (layover is separate)
     const nodeDwellTimeSeconds = segmentIndex === 0 ? 0 : getDwellTimeSecondsForNode(path, nodeId);
 
@@ -503,7 +503,8 @@ const buildSegmentsAndGeometry = (
     const nodeIds = path.attributes.nodes;
     const dwellTimeDurationsSeconds: number[] = [];
     let nextNodeIndex = 1;
-    let segmentTimeAndDistance: TimeAndDistance = { travelTimeSeconds: 0, distanceMeters: 0 };
+    let routedDurationSeconds = 0;
+    let distanceMeters = 0;
     let ratioCumulated = 0;
     let numberOfSegmentsCumulated = 0;
 
@@ -522,13 +523,15 @@ const buildSegmentsAndGeometry = (
 
         appendLegCoordinates(leg, globalCoordinates);
 
-        segmentTimeAndDistance.travelTimeSeconds += leg.duration;
-        segmentTimeAndDistance.distanceMeters = (segmentTimeAndDistance.distanceMeters || 0) + Math.ceil(leg.distance);
-
+        routedDurationSeconds += leg.duration;
+        distanceMeters += leg.distance;
         // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
         if (i === routing.legs.length - 1 && !nodeIds[nextNodeIndex]) {
             segments.push(segmentCoordinatesStartIndex);
-            segmentsData.push(segmentTimeAndDistance);
+            segmentsData.push({
+                travelTimeSeconds: ceilToPositiveInteger(routedDurationSeconds),
+                distanceMeters: ceilToPositiveInteger(distanceMeters)
+            });
             break;
         }
         // Next point is a waypoint, not a node — still accumulating the same segment.
@@ -536,16 +539,17 @@ const buildSegmentsAndGeometry = (
             continue;
         }
 
+        const segmentDistanceMeters = ceilToPositiveInteger(distanceMeters);
         const segmentIndex = segments.length;
-        const segmentParams: ComputeSegmentDataParams = {
+        const result = computeSegmentData({
             path,
             segmentIndex,
-            segmentTimeAndDistance,
+            routedDurationSeconds,
+            distanceMeters: segmentDistanceMeters,
             nodeId: nodeIds[nextNodeIndex - 1],
             initial,
             changesInfo
-        };
-        const result = computeSegmentData(segmentParams);
+        });
 
         if (result.hasRatio) {
             numberOfSegmentsCumulated++;
@@ -554,13 +558,13 @@ const buildSegmentsAndGeometry = (
 
         segments.push(segmentCoordinatesStartIndex);
         segmentsData.push({
-            travelTimeSeconds: result.duration.calculatedSegmentDurationSeconds,
-            distanceMeters: segmentTimeAndDistance.distanceMeters
+            travelTimeSeconds: ceilToPositiveInteger(result.duration.calculatedSegmentDurationSeconds),
+            distanceMeters: segmentDistanceMeters
         });
         noDwellTimeDurationsSeconds.push(result.duration.noDwellTimeDurationSeconds);
         dwellTimeDurationsSeconds.push(result.dwellTimeSeconds);
-        // reset for next segment:
-        segmentTimeAndDistance = { travelTimeSeconds: 0, distanceMeters: 0 };
+        routedDurationSeconds = 0;
+        distanceMeters = 0;
         nextNodeIndex++;
     }
 
@@ -616,8 +620,9 @@ const adjustSegmentTime = (
         current.segmentsData[segmentIndex].travelTimeSeconds = initialTime! - adjustment;
     } else {
         // New or modified segment: scale the routing-calculated time by the ratio from existing data
-        current.segmentsData[segmentIndex].travelTimeSeconds =
-            current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime;
+        current.segmentsData[segmentIndex].travelTimeSeconds = ceilToPositiveInteger(
+            current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime
+        );
     }
 };
 
