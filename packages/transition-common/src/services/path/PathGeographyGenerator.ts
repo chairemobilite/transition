@@ -9,7 +9,7 @@ import { MapMatchingResults, MapLeg } from 'chaire-lib-common/lib/services/routi
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
+import { roundToDecimals, ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
@@ -336,12 +336,14 @@ const getDwellTimeSecondsForNode = (path: Path, nodeId: unknown): number => {
 const calculateLayoverSeconds = (path: Path, totalTravelTimeWithDwellTimesSeconds: number): number => {
     const customLayoverMinutes: any = path.getData('customLayoverMinutes', null);
     if (!_isBlank(customLayoverMinutes)) {
-        return customLayoverMinutes * 60;
+        return ceilToPositiveInteger(customLayoverMinutes * 60);
     }
-    return Math.max(
-        Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
-            totalTravelTimeWithDwellTimesSeconds,
-        Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds
+    return ceilToPositiveInteger(
+        Math.max(
+            Preferences.current.transit.paths.data.defaultLayoverRatioOverTotalTravelTime *
+                totalTravelTimeWithDwellTimesSeconds || 0,
+            Preferences.current.transit.paths.data.defaultMinLayoverTimeSeconds || 0
+        )
     );
 };
 
@@ -373,6 +375,7 @@ const buildPathData = (
         travelTimeWithoutDwellTimesSeconds: totals.totalTravelTimeWithoutDwellTimesSeconds,
         totalDistanceMeters: totals.totalDistance,
         totalDwellTimeSeconds: totals.totalDwellTimeSeconds,
+        // Totals are sums of already-integer segment times, dwells and layover.
         operatingTimeWithoutLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds,
         operatingTimeWithLayoverTimeSeconds: totals.totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
         totalTravelTimeWithReturnBackSeconds: totals.totalTravelTimeWithReturnBackSeconds + layoverTimeSeconds,
@@ -522,11 +525,13 @@ const buildSegmentsAndGeometry = (
 
         appendLegCoordinates(leg, globalCoordinates);
 
+        // Routed duration stays fractional: it is the speed input for accel/decel physics.
         segmentTimeAndDistance.travelTimeSeconds += leg.duration;
-        segmentTimeAndDistance.distanceMeters = (segmentTimeAndDistance.distanceMeters || 0) + Math.ceil(leg.distance);
-
+        segmentTimeAndDistance.distanceMeters = (segmentTimeAndDistance.distanceMeters || 0) + leg.distance;
         // Path cannot finish at a waypoint, so this last segment is not part of the total calculations.
         if (i === routing.legs.length - 1 && !nodeIds[nextNodeIndex]) {
+            segmentTimeAndDistance.distanceMeters = ceilToPositiveInteger(segmentTimeAndDistance.distanceMeters || 0);
+            segmentTimeAndDistance.travelTimeSeconds = ceilToPositiveInteger(segmentTimeAndDistance.travelTimeSeconds);
             segments.push(segmentCoordinatesStartIndex);
             segmentsData.push(segmentTimeAndDistance);
             break;
@@ -536,6 +541,7 @@ const buildSegmentsAndGeometry = (
             continue;
         }
 
+        segmentTimeAndDistance.distanceMeters = ceilToPositiveInteger(segmentTimeAndDistance.distanceMeters || 0);
         const segmentIndex = segments.length;
         const segmentParams: ComputeSegmentDataParams = {
             path,
@@ -619,6 +625,10 @@ const adjustSegmentTime = (
         current.segmentsData[segmentIndex].travelTimeSeconds =
             current.segmentsData[segmentIndex].travelTimeSeconds * current.ratioDifferenceTime;
     }
+    // Store integer seconds so path totals equal the sum of their parts.
+    current.segmentsData[segmentIndex].travelTimeSeconds = ceilToPositiveInteger(
+        current.segmentsData[segmentIndex].travelTimeSeconds
+    );
 };
 
 /**

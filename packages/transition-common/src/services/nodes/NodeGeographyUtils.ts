@@ -22,6 +22,7 @@ import {
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 // TODO: test
 const placesInBirdRadiusMeters = (node: Node, placeCollection: PlaceCollection, birdRadiusMeters = 1000) => {
@@ -90,7 +91,7 @@ export const placesInWalkingTravelTimeRadiusSeconds = async (
     placeCollection: PlaceCollection,
     maxWalkingTravelTimeRadiusSeconds = Preferences.get('transit.nodes.maxTransferWalkingTravelTimeSeconds')
 ): Promise<AccessiblePlacesPerTravelTime> => {
-    const maxWalkingTravelTimeMinutes = Math.ceil(maxWalkingTravelTimeRadiusSeconds / 60.0);
+    const maxWalkingTravelTimeMinutes = ceilToPositiveInteger(maxWalkingTravelTimeRadiusSeconds / 60.0);
     const walkingSpeedMetersPerSeconds = Preferences.get('defaultWalkingSpeedMetersPerSeconds');
     const radiusBirdDistanceMeters = maxWalkingTravelTimeRadiusSeconds * walkingSpeedMetersPerSeconds;
     const placesByTravelTimeByCategoryTemplate: { [key in PlaceCategory]: number[] }[] = [];
@@ -133,12 +134,12 @@ export const placesInWalkingTravelTimeRadiusSeconds = async (
                 placeInBirdRadius.geometry.coordinates[1]
             ) * 1000;
         const travelTimeSeconds = useBirdDistances
-            ? Math.ceil(birdDistanceMeters / walkingSpeedMetersPerSeconds)
+            ? ceilToPositiveInteger(birdDistanceMeters / walkingSpeedMetersPerSeconds)
             : durations[i];
 
         if (!_isBlank(travelTimeSeconds) && travelTimeSeconds <= maxWalkingTravelTimeRadiusSeconds) {
             if (useBirdDistances || birdDistanceMeters <= distances[i] + 100) {
-                const travelTimeMinutes = Math.ceil(travelTimeSeconds / 60.0);
+                const travelTimeMinutes = ceilToPositiveInteger(travelTimeSeconds / 60.0);
                 // osrm will calculate and give very short durations and distances when the nearest network osm node is very far (out of routing network), so we make sure not to keep these.
                 if (travelTimeMinutes <= maxWalkingTravelTimeMinutes) {
                     const category: PlaceCategory = placeInBirdRadius.properties.data.category;

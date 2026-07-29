@@ -14,6 +14,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GtfsInternalData, StopTimeImportData, StopTime } from './GtfsImportTypes';
 
 import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 /**
  * Estimate stop_times row count from the number of trips.
@@ -156,7 +157,7 @@ implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' |
             const timeBetweenReferences =
                 (stopTimes[stopIndex] as StopTime).arrivalTimeSeconds -
                 (stopTimes[startIndex] as StopTime).departureTimeSeconds;
-            const interpolationDelta = Math.ceil(timeBetweenReferences / (stopIndex - startIndex));
+            const interpolationDelta = ceilToPositiveInteger(timeBetweenReferences / (stopIndex - startIndex));
             // Interpolate times
             for (let segmentIndex = startIndex + 1; segmentIndex < stopIndex; segmentIndex++) {
                 (stopTimes[segmentIndex] as StopTime).arrivalTimeSeconds =

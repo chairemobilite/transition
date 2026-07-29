@@ -15,14 +15,14 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 jest.mock('../../../models/db/transitNodes.db.queries', () => {
     return {
         getNodesInBirdDistance: jest.fn()
-    }
+    };
 });
 const mockedGetNodesInBirdDistance = nodesDbQueries.getNodesInBirdDistance as jest.MockedFunction<typeof nodesDbQueries.getNodesInBirdDistance>;
 
 const mockTableFrom = RoutingServiceManagerMock.routingServiceManagerMock.getRoutingServiceForEngine('engine').tableFrom;
 const mockTableTo = RoutingServiceManagerMock.routingServiceManagerMock.getRoutingServiceForEngine('engine').tableTo;
-// Actual response does not matter for this test, just return 0s for every destination 
-mockTableFrom.mockImplementation(async (params) => ({ query: '', durations: params.destinations.map(d => 0), distances: params.destinations.map(d => 0) }));
+// Actual response does not matter for this test, just return 0s for every destination
+mockTableFrom.mockImplementation(async (params) => ({ query: '', durations: params.destinations.map((d) => 0), distances: params.destinations.map((d) => 0) }));
 
 const commonProperties = {
     is_enabled: true,
@@ -30,7 +30,7 @@ const commonProperties = {
     default_dwell_time_seconds: 20,
     is_frozen: false,
     data: { }
-}
+};
 
 // 4 nodes: 1 reference node, 2 within 1km distance, one beyond
 
@@ -87,8 +87,8 @@ beforeEach(() => {
 describe('getTransferableNodes', () => {
 
     let refNode: Node;
-    const travelTimeSeconds = Preferences.get('transit.nodes.maxTransferWalkingTravelTimeSeconds')
-    const defaultSpeedMps = Preferences.get('defaultWalkingSpeedMetersPerSeconds')
+    const travelTimeSeconds = Preferences.get('transit.nodes.maxTransferWalkingTravelTimeSeconds');
+    const defaultSpeedMps = Preferences.get('defaultWalkingSpeedMetersPerSeconds');
     const distanceMeters = Math.ceil(defaultSpeedMps * travelTimeSeconds);
 
     beforeEach(() => {
@@ -119,7 +119,7 @@ describe('getTransferableNodes', () => {
             walkingTravelTimesSeconds: [0, 150, 550],
             walkingDistancesMeters: [0, 120, 512]
         });
-        
+
     });
 
     test('With some accessible nodes, but too far from network, or too long', async() => {
@@ -139,7 +139,7 @@ describe('getTransferableNodes', () => {
             walkingTravelTimesSeconds: [0, 150],
             walkingDistancesMeters: [0, 120]
         });
-        
+
     });
 
     test('No other node within distance', async() => {
@@ -185,8 +185,8 @@ describe('getTransferableNodesWithAffected', () => {
 
     test('With transferable nodes', async() => {
         const node = nodeCollection.newObject(referenceNodeGeojson);
-        const nodesInBirdRadius = [ 
-            { id: nodeAttributesClose1.id, distance: 300 }, 
+        const nodesInBirdRadius = [
+            { id: nodeAttributesClose1.id, distance: 300 },
             { id: nodeAttributesClose2.id, distance: 700 }
         ];
         mockedGetNodesInBirdDistance.mockResolvedValueOnce(nodesInBirdRadius);
@@ -201,7 +201,7 @@ describe('getTransferableNodesWithAffected', () => {
             durations: [130, 300],
             distances: [410, 910]
         });
-    
+
         const transferableNodes = await TransferableNodeUtils.getTransferableNodesWithAffected(node, nodeCollection, nodesInBirdRadius);
         expect(transferableNodes).toBeDefined();
         expect((transferableNodes as any).from).toEqual({
@@ -209,7 +209,7 @@ describe('getTransferableNodesWithAffected', () => {
             walkingDistancesMeters: [ 0, 400, 900 ],
             walkingTravelTimesSeconds: [0, 120, 240 ]
         });
-    
+
         // Make sure the table from was called with the expected parameters
         expect(mockTableFrom).toHaveBeenCalledTimes(1);
         expect(mockTableFrom).toHaveBeenCalledWith({ mode: 'walking', origin: node.toGeojson(), destinations: [ nodeClose1Geojson, nodeClose2Geojson ] });
@@ -223,12 +223,12 @@ describe('getTransferableNodesWithAffected', () => {
             walkingTravelTimesSeconds: [130, 300 ]
         });
     });
-    
+
     test('updateTransferableNodes without transferable nodes', async() => {
         const nodeFar = nodeCollection.newObject(nodeFarGeojson);
         const nodesInBirdRadius = [];
         mockedGetNodesInBirdDistance.mockResolvedValueOnce(nodesInBirdRadius);
-    
+
         const transferableNodes = await TransferableNodeUtils.getTransferableNodesWithAffected(nodeFar, nodeCollection, nodesInBirdRadius);
         expect(transferableNodes).toBeDefined();
         expect((transferableNodes as any).from).toEqual({
@@ -241,6 +241,6 @@ describe('getTransferableNodesWithAffected', () => {
             walkingDistancesMeters: [ ],
             walkingTravelTimesSeconds: [ ]
         });
-    
+
     });
 });

@@ -7,6 +7,7 @@
 import * as RoutingService from './RoutingService';
 import * as turf from '@turf/turf';
 import _cloneDeep from 'lodash/cloneDeep';
+import { ceilToPositiveInteger } from '../../utils/MathUtils';
 
 //TODO: Add tests
 
@@ -29,7 +30,7 @@ export default class ManualRoutingService extends RoutingService.default {
             defaultRunningSpeedMps = 30 / 3.6; // this should not happen!
         }
         const runningSpeed = defaultRunningSpeedMps;
-        const birdDistanceDuration = Math.ceil(lineLength / runningSpeed);
+        const birdDistanceDuration = ceilToPositiveInteger(lineLength / runningSpeed);
         const legs: RoutingService.MapLeg[] = [];
         let legCoordinates: GeoJSON.Position[] = [];
 
@@ -46,7 +47,7 @@ export default class ManualRoutingService extends RoutingService.default {
                 const legLength = turf.length(legGeojson, { units: 'meters' });
                 legs.push({
                     distance: legLength,
-                    duration: Math.ceil(legLength / runningSpeed),
+                    duration: ceilToPositiveInteger(legLength / runningSpeed),
                     steps: [
                         {
                             distance: legLength,

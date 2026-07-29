@@ -17,6 +17,10 @@ import Line from '../Line';
 import { lineAttributesBaseData, lineAttributesMinimalData, lineAttributesWithPathAndSchedule } from './LineData';
 import { EventEmitter } from 'events';
 import Schedule from '../../schedules/Schedule';
+import PathCollection from '../../path/PathCollection';
+import { getPathObject } from '../../path/__tests__/PathData';
+import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
+import { TestUtils, RoutingServiceManagerMock } from 'chaire-lib-common/lib/test';
 
 const eventManager = EventManagerMock.eventManagerMock;
 
@@ -228,4 +232,62 @@ describe('Test schedules management', () => {
         expect(line.getSchedules()).toEqual({});
     });
 
+});
+
+describe('calculateDeadHeadTravelTimesBetweenPaths', () => {
+    const mockRoute = RoutingServiceManagerMock.routingServiceManagerMock.getRoutingServiceForEngine('engine').route;
+    const engineService = routingServiceManager.getRoutingServiceForEngine('engine');
+    const originalRoute = engineService.route;
+
+    beforeEach(() => {
+        engineService.route = mockRoute;
+        mockRoute.mockReset();
+    });
+
+    afterEach(() => {
+        engineService.route = originalRoute;
+    });
+
+    const setupLineWithTwoPaths = () => {
+        const pathCollection = new PathCollection([], {});
+        const lineId = lineAttributesBaseData.id;
+        const path1 = getPathObject({ lineId, pathCollection }, 'smallReal');
+        const path2 = getPathObject({ lineId, pathCollection }, 'smallReal');
+        const nodesById: Record<string, GeoJSON.Feature<GeoJSON.Point>> = {};
+        for (const nodeId of [...path1.attributes.nodes, ...path2.attributes.nodes]) {
+            nodesById[nodeId] = TestUtils.makePoint([-73, 45], { id: nodeId });
+        }
+        const collectionManager = {
+            get: (name: string) => (name === 'paths' ? pathCollection : { getById: (id: string) => nodesById[id] })
+        };
+        const line = new Line(
+            { ..._cloneDeep(lineAttributesBaseData), path_ids: [path1.getId(), path2.getId()] },
+            true,
+            collectionManager
+        );
+        return { line, path1, path2 };
+    };
+
+    test.each([
+        [540.7, 541],
+        [-1, null],
+        [null, null]
+    ])('stores routed duration %p as %p', async (duration, expected) => {
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+        try {
+            mockRoute.mockResolvedValue({ waypoints: [], routes: [{ duration }] } as any);
+            const { line, path1, path2 } = setupLineWithTwoPaths();
+
+            const result = await line.calculateDeadHeadTravelTimesBetweenPaths(eventManager);
+
+            expect(result[path1.getId()][path2.getId()]).toEqual(expected);
+            if (expected === null) {
+                expect(consoleError).toHaveBeenCalled();
+            } else {
+                expect(consoleError).not.toHaveBeenCalled();
+            }
+        } finally {
+            consoleError.mockRestore();
+        }
+    });
 });

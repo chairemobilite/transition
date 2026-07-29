@@ -11,6 +11,7 @@ import type { TimeAndDistance } from 'transition-common/lib/services/path/PathTy
 import { StopTime } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 import {
     length as turfLength,
     cleanCoords as turfCleanCoords,
@@ -47,9 +48,9 @@ const calculateLayoverTimeSeconds = (
     defaultMin: number
 ): number => {
     if (customLayoverMinutes !== undefined) {
-        return customLayoverMinutes * 60;
+        return ceilToPositiveInteger(customLayoverMinutes * 60);
     }
-    return Math.ceil(Math.max(defaultRatio * totalTravelTimeWithDwellTimesSeconds, defaultMin));
+    return ceilToPositiveInteger(Math.max(defaultRatio * totalTravelTimeWithDwellTimesSeconds, defaultMin));
 };
 
 /**
@@ -84,7 +85,7 @@ export const computeSegmentTimesFromStopTimes = (
 
     // calculate trip averages
     const segmentsData: TimeAndDistance[] = segmentTravelTimeTotals.map((total, i) => ({
-        travelTimeSeconds: Math.ceil(total / numTrips),
+        travelTimeSeconds: ceilToPositiveInteger(total / numTrips),
         distanceMeters: segmentDistancesMeters[i]
     }));
 
@@ -183,7 +184,7 @@ const sliceShapeIntoSegments = (
             segments.push(pathCoordinates.length - 1);
         }
         pathCoordinates = pathCoordinates.concat(segmentCoordinates);
-        segmentDistancesMeters.push(Math.ceil(segmentLengthMeters));
+        segmentDistancesMeters.push(ceilToPositiveInteger(segmentLengthMeters));
     }
 
     return { pathCoordinates, segments, segmentDistancesMeters };
@@ -215,8 +216,9 @@ const buildPathData = (params: {
         dwellTimeSeconds: dwellTimeSecondsData,
         layoverTimeSeconds: layoverTimeSeconds,
         travelTimeWithoutDwellTimesSeconds: totalTravelTimeWithoutDwellTimesSeconds,
-        totalDistanceMeters: Math.ceil(totalDistanceMeters),
+        totalDistanceMeters: ceilToPositiveInteger(totalDistanceMeters),
         totalDwellTimeSeconds: totalDwellTimeSeconds,
+        // Totals are sums of already-integer segment times, dwells and layover.
         operatingTimeWithoutLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds,
         operatingTimeWithLayoverTimeSeconds: totalTravelTimeWithDwellTimesSeconds + layoverTimeSeconds,
         totalTravelTimeWithReturnBackSeconds: null,

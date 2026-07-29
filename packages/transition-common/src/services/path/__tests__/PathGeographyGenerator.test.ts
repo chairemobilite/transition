@@ -71,6 +71,8 @@ const sum = (total: number, num: number) => { return total + num; };
 const twoDecimals = (num: number, denum: number) => { return Math.round(num / denum * 100) / 100; };
 const segmentDuration = (distanceMeters: number, routedDurationSeconds: number) =>
     durationFromAccelerationDecelerationDistanceAndRunningSpeed(DEFAULT_ACC_DEC, DEFAULT_ACC_DEC, distanceMeters, distanceMeters / routedDurationSeconds);
+const storedSegmentDuration = (distanceMeters: number, routedDurationSeconds: number) =>
+    Math.ceil(segmentDuration(distanceMeters, routedDurationSeconds));
 
 test('Generate From Routing Total Calculations', async() => {
     /* Test path between 2 nodes with engine */
@@ -122,7 +124,7 @@ test('Generate From Routing Total Calculations', async() => {
         coordinates: [node1.geometry.coordinates, node4.geometry.coordinates]
     });
     let expectedNoDwellTimes = [66.67];
-    let expectedTravelTimes = [segmentDuration(1000, 66.67)];
+    let expectedTravelTimes = [storedSegmentDuration(1000, 66.67)];
     let expectedDistances = [1000];
     const expectedDwellTime = NODE4_DWELL_TIME;
     let expectedTotalTime = expectedTravelTimes.reduce(sum, 0);
@@ -140,9 +142,9 @@ test('Generate From Routing Total Calculations', async() => {
         travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: expectedOperatingTime,
-        operatingTimeWithLayoverTimeSeconds: expectedOperatingTime + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: expectedOperatingTime + LAYOVER_TIME,
+        operatingTimeWithoutLayoverTimeSeconds: Math.ceil(expectedOperatingTime),
+        operatingTimeWithLayoverTimeSeconds: Math.ceil(expectedOperatingTime + LAYOVER_TIME),
+        totalTravelTimeWithReturnBackSeconds: Math.ceil(expectedOperatingTime + LAYOVER_TIME),
         averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, expectedNoDwellTime),
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, expectedOperatingTime),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, expectedOperatingTime + LAYOVER_TIME)
@@ -193,9 +195,9 @@ test('Generate From Routing Total Calculations', async() => {
         travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: expectedOperatingTime,
-        operatingTimeWithLayoverTimeSeconds: expectedOperatingTime + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: expectedOperatingTime + LAYOVER_TIME,
+        operatingTimeWithoutLayoverTimeSeconds: Math.ceil(expectedOperatingTime),
+        operatingTimeWithLayoverTimeSeconds: Math.ceil(expectedOperatingTime + LAYOVER_TIME),
+        totalTravelTimeWithReturnBackSeconds: Math.ceil(expectedOperatingTime + LAYOVER_TIME),
         averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, expectedNoDwellTime),
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, expectedOperatingTime),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, expectedOperatingTime + LAYOVER_TIME)
@@ -270,7 +272,7 @@ test('Generate From Routing Simple Use Cases', async() => {
         coordinates: [node1.geometry.coordinates, waypoint1, node4.geometry.coordinates, node6.geometry.coordinates]
     });
     const expectedNoDwellTimes = [100, 66.67];
-    const expectedTravelTime = [segmentDuration(1500, 100), segmentDuration(1000, 66.67)];
+    const expectedTravelTime = [storedSegmentDuration(1500, 100), storedSegmentDuration(1000, 66.67)];
     const expectedDistances = [1500, 1000];
     const expectedDwellTime = NODE4_DWELL_TIME + 25;
     const expectedTotalTime = expectedTravelTime.reduce(sum, 0);
@@ -290,9 +292,9 @@ test('Generate From Routing Simple Use Cases', async() => {
         travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: expectedDwellTime + expectedTotalTime,
-        operatingTimeWithLayoverTimeSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
+        operatingTimeWithoutLayoverTimeSeconds: Math.ceil(expectedDwellTime + expectedTotalTime),
+        operatingTimeWithLayoverTimeSeconds: Math.ceil(expectedDwellTime + expectedTotalTime + LAYOVER_TIME),
+        totalTravelTimeWithReturnBackSeconds: Math.ceil(expectedDwellTime + expectedTotalTime + LAYOVER_TIME),
         averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, expectedNoDwellTime),
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime + LAYOVER_TIME)
@@ -419,7 +421,7 @@ test('Generate From Routing', async() => {
     expect(complexPath.attributes.segments).toEqual([0, 2, 4]);
     // Use leg-level additions to match the floating point accumulation in the production code
     const expectedNoDwellTimes = [200, 100 + 66.67, 100];
-    const expectedTravelTime = [segmentDuration(1500 + 1500, 100 + 150), segmentDuration(1500 + 1000, 150 + 66.67)];
+    const expectedTravelTime = [storedSegmentDuration(1500 + 1500, 100 + 150), storedSegmentDuration(1500 + 1000, 150 + 66.67)];
     const expectedDistances = [1500 + 1500, 1500 + 1000];
     const expectedDwellTime = NODE4_DWELL_TIME + 25;
     const expectedTotalTime = expectedTravelTime.reduce(sum, 0);
@@ -442,9 +444,9 @@ test('Generate From Routing', async() => {
         travelTimeWithoutDwellTimesSeconds: expectedNoDwellTime,
         totalDistanceMeters: expectedTotalDistance,
         totalDwellTimeSeconds: expectedDwellTime,
-        operatingTimeWithoutLayoverTimeSeconds: expectedDwellTime + expectedTotalTime,
-        operatingTimeWithLayoverTimeSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
-        totalTravelTimeWithReturnBackSeconds: expectedDwellTime + expectedTotalTime + LAYOVER_TIME,
+        operatingTimeWithoutLayoverTimeSeconds: Math.ceil(expectedDwellTime + expectedTotalTime),
+        operatingTimeWithLayoverTimeSeconds: Math.ceil(expectedDwellTime + expectedTotalTime + LAYOVER_TIME),
+        totalTravelTimeWithReturnBackSeconds: Math.ceil(expectedDwellTime + expectedTotalTime + LAYOVER_TIME),
         averageSpeedWithoutDwellTimesMetersPerSecond: twoDecimals(expectedTotalDistance, expectedNoDwellTime),
         operatingSpeedMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime),
         operatingSpeedWithLayoverMetersPerSecond: twoDecimals(expectedTotalDistance, expectedTotalTime + expectedDwellTime + LAYOVER_TIME)
@@ -753,7 +755,7 @@ describe('Node insert and remove operations', () => {
             { previousTime: initialSegments[2].travelTimeSeconds, distance: legsAfterInsert[3].distance, routedDuration: legsAfterInsert[3].duration },
         ]);
         expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(
-            segmentDuration(legsAfterInsert[0].distance, legsAfterInsert[0].duration) * ratio
+            Math.ceil(segmentDuration(legsAfterInsert[0].distance, legsAfterInsert[0].duration) * ratio)
         );
     });
 
@@ -795,10 +797,10 @@ describe('Node insert and remove operations', () => {
             { previousTime: initialSegments[2].travelTimeSeconds, distance: legsAfterInsert[3].distance, routedDuration: legsAfterInsert[3].duration },
         ]);
         expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(
-            segmentDuration(legsAfterInsert[1].distance, legsAfterInsert[1].duration) * ratio
+            Math.ceil(segmentDuration(legsAfterInsert[1].distance, legsAfterInsert[1].duration) * ratio)
         );
         expect(path.attributes.data.segments[2].travelTimeSeconds).toEqual(
-            segmentDuration(legsAfterInsert[2].distance, legsAfterInsert[2].duration) * ratio
+            Math.ceil(segmentDuration(legsAfterInsert[2].distance, legsAfterInsert[2].duration) * ratio)
         );
     });
 
@@ -842,7 +844,7 @@ describe('Node insert and remove operations', () => {
             { previousTime: initialSegments[2].travelTimeSeconds, distance: legsAfterInsert[2].distance, routedDuration: legsAfterInsert[2].duration },
         ]);
         expect(path.attributes.data.segments[3].travelTimeSeconds).toEqual(
-            segmentDuration(legsAfterInsert[3].distance, legsAfterInsert[3].duration) * ratio
+            Math.ceil(segmentDuration(legsAfterInsert[3].distance, legsAfterInsert[3].duration) * ratio)
         );
     });
 
@@ -910,7 +912,7 @@ describe('Node insert and remove operations', () => {
             { previousTime: initialSegments[2].travelTimeSeconds, distance: legsAfterRemove[1].distance, routedDuration: legsAfterRemove[1].duration },
         ]);
         expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(
-            segmentDuration(legsAfterRemove[0].distance, legsAfterRemove[0].duration) * ratio
+            Math.ceil(segmentDuration(legsAfterRemove[0].distance, legsAfterRemove[0].duration) * ratio)
         );
     });
 
@@ -965,9 +967,9 @@ describe('Node insert and remove operations', () => {
         expect(path.attributes.data.routingFailed).toBeFalsy();
         expect(path.attributes.data.segments.length).toEqual(3);
         // All segments recalculated from OSRM — none preserve previous times
-        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(segmentDuration(1500, 100));
-        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(segmentDuration(1000, 66.67));
-        expect(path.attributes.data.segments[2].travelTimeSeconds).toEqual(segmentDuration(1200, 80));
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(storedSegmentDuration(1500, 100));
+        expect(path.attributes.data.segments[1].travelTimeSeconds).toEqual(storedSegmentDuration(1000, 66.67));
+        expect(path.attributes.data.segments[2].travelTimeSeconds).toEqual(storedSegmentDuration(1200, 80));
     });
 
     test('forceRecalculate uses node dwell times even when previous dwell was zero with short travel time', async () => {
@@ -1214,9 +1216,9 @@ describe('Waypoint change operations', () => {
         // Ratio from unchanged segment 1 (single leg 2)
         const ratio = initialSegments[1].travelTimeSeconds / segmentDuration(legs[2].distance, legs[2].duration);
         // Changed segment 0: legs 0+1 combined
-        const changedSegDistance = Math.ceil(legs[0].distance) + Math.ceil(legs[1].distance);
+        const changedSegDistance = Math.ceil(legs[0].distance + legs[1].distance);
         const changedSegDuration = legs[0].duration + legs[1].duration;
-        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(segmentDuration(changedSegDistance, changedSegDuration) * ratio);
+        expect(path.attributes.data.segments[0].travelTimeSeconds).toEqual(Math.ceil(segmentDuration(changedSegDistance, changedSegDuration) * ratio));
     });
 
     test('waypoint after last node has no effect on segment times', async() => {
