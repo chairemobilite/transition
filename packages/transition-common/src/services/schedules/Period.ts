@@ -57,8 +57,11 @@ export const findPeriodShortname = (
             return period.shortname;
         }
     }
-    // Assign pre-first-period trips (within overflow window) to the first period
-    const firstPeriod = periods[0];
+    // Assign pre-first-period trips (within overflow window) to the earliest period.
+    // Reduce rather than positional indexing so the overflow does not assume periods are sorted.
+    const firstPeriod = periods.reduce((earliest, period) =>
+        period.startAtHour < earliest.startAtHour ? period : earliest
+    );
     const firstStartSeconds = firstPeriod.startAtHour * 3600;
     if (
         timeSecondsSinceMidnight < firstStartSeconds &&
@@ -67,8 +70,8 @@ export const findPeriodShortname = (
         return firstPeriod.shortname;
     }
 
-    // Assign post-last-period trips (within overflow window) to the last period
-    const lastPeriod = periods[periods.length - 1];
+    // Assign post-last-period trips (within overflow window) to the latest period (see note above).
+    const lastPeriod = periods.reduce((latest, period) => (period.endAtHour > latest.endAtHour ? period : latest));
     const lastEndSeconds = lastPeriod.endAtHour * 3600;
     if (
         timeSecondsSinceMidnight >= lastEndSeconds &&

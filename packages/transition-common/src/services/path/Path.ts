@@ -55,6 +55,16 @@ import type { TimeAndDistance } from './PathTypes';
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
 
+/** Aggregated per-segment travel times, dwell times, and speed stats for a single period and service. */
+export type PeriodSegmentData = {
+    segments: TimeAndDistance[];
+    dwellTimeSeconds: number[];
+    travelTimeWithoutDwellTimesSeconds: number;
+    operatingTimeWithoutLayoverTimeSeconds: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond: number;
+    operatingSpeedMetersPerSecond: number;
+};
+
 export interface PathAttributesData {
     defaultLayoverRatioOverTotalTravelTime?: number;
     defaultMinLayoverTimeSeconds?: number;
@@ -84,6 +94,11 @@ export interface PathAttributesData {
     gtfs?: {
         shape_id: string;
     };
+    segmentsByServiceAndPeriod?: {
+        [serviceId: string]: {
+            [periodShortname: string]: PeriodSegmentData;
+        };
+    };
     increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
     // FIXME: Consider putting all those calculated path data in a single object where each is not optional
     operatingTimeWithoutLayoverTimeSeconds?: number;
@@ -91,11 +106,11 @@ export interface PathAttributesData {
     directRouteBetweenTerminalsDistanceMeters?: number;
     travelTimeWithoutDwellTimesSeconds?: number;
     directRouteBetweenTerminalsTravelTimeSeconds?: number;
-    operatingSpeedMetersPerSecond?: number;
+    operatingSpeedMetersPerSecond?: number | null;
     operatingTimeWithLayoverTimeSeconds?: number;
     maxRunningSpeedKmH?: number;
     totalTravelTimeWithReturnBackSeconds?: number;
-    averageSpeedWithoutDwellTimesMetersPerSecond?: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond?: number | null;
     customLayoverMinutes?: number;
     totalDistanceMeters?: number;
     temporaryManualRouting?: boolean;
@@ -130,6 +145,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     protected static displayName = 'Path';
     _forceRecalculate = false;
 
+    /** When true, the next geography update recalculates all segments from OSRM instead of preserving previous times. */
     setForceRecalculate(value: boolean) {
         this._forceRecalculate = value;
     }
@@ -843,6 +859,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
+            segmentsByServiceAndPeriod: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now
