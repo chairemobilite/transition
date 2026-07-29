@@ -19,6 +19,7 @@ import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/net
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Service from 'transition-common/lib/services/service/Service';
 import { randomInRange } from 'chaire-lib-common/lib/utils/RandomUtils';
 import { ResultSerialization } from '../../../evolutionaryAlgorithm/candidate/types';
@@ -278,12 +279,10 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
         // FIXME We need to have the paths and lines loaded in a CollectionManager to save the scenarios and re-generate schedules at the end. But not the whole data
         await this.loadServerData(serviceLocator.socketEventManager);
 
-        // Add the symlink to the cache data, the main cache may have been reinitialized since the last execution.
-        this.addCacheSymlink();
-
         // Get the simulated lines from cache, to make sure the order is the same as before
         const simulatedLineCollection = await lineCollectionFromCache(this.getCacheDirectory() + '/simulatedLines');
-        this.simulatedLineCollection = simulatedLineCollection;
+        // TODO Remove the as LineCollection when we fix the type generic in default.cache.queries
+        this.simulatedLineCollection = simulatedLineCollection as LineCollection;
 
         // Read the services from the cache, with all individual line services
         // Save services and lines, with their schedules, to cache
@@ -329,7 +328,8 @@ class EvolutionaryTransitNetworkDesignJobExecutor extends TransitNetworkDesignJo
             const currentGenerationData = this.job.attributes.internal_data.currentGeneration;
             // Get the current scenario collection from cache to recover previous scenarios
             const scenarioCollection = await scenarioCollectionFromCache(this.getCacheDirectory());
-            const candidates = resumeCandidatesFromChromosomes(this, currentGenerationData, scenarioCollection);
+            // TODO Remove the as ScenarioCollection when we fix the type generic in default.cache.queries
+            const candidates = resumeCandidatesFromChromosomes(this, currentGenerationData, scenarioCollection as ScenarioCollection);
             console.log(
                 `Resumed generation ${this.currentIteration} with ${candidates.length} candidates from checkpoint.`
             );

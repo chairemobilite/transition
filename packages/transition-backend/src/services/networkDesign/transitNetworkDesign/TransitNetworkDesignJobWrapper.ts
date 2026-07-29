@@ -363,7 +363,7 @@ export class TransitNetworkDesignJobWrapper<
      */
     prepareCacheDirectory = () => {
         const absoluteCacheDirectory = this.getCacheDirectory();
-        const mainCacheDirectory = `${fileManager.directoryManager.cacheDirectory}/${config.projectShortname}`;
+        const mainCacheDirectory = `${fileManager.directoryManager.transitCacheDirectory}`;
 
         // TODO: make sure we copy every files, even new files like stations and stops.
 
@@ -419,51 +419,7 @@ export class TransitNetworkDesignJobWrapper<
             true
         );
 
-        this.addCacheSymlink();
-
         console.log(`Prepared cache directory files to ${absoluteCacheDirectory} from ${mainCacheDirectory}`);
-    };
-
-    addCacheSymlink = () => {
-        const absoluteCacheDirectory = this.getCacheDirectory();
-        const mainCacheDirectory = `${fileManager.directoryManager.cacheDirectory}/${config.projectShortname}`;
-
-        // FIXME HACK Add a symlink from mainCacheDirectory to the job cache
-        // directory because the path in the json to capnp server is relative to
-        // main cache path Create symbolic link pointing to the job cache
-        // directory Add a symbolic link such that mainCacheDirectory + all
-        // directory hierarchy points to the job cache directory
-        try {
-            // Create the full path structure inside mainCacheDirectory
-            const symlinkPath = path.join(mainCacheDirectory, absoluteCacheDirectory);
-
-            // Ensure the parent directory exists
-            const symlinkParentDir = path.dirname(symlinkPath);
-            if (!fs.existsSync(symlinkParentDir)) {
-                fs.mkdirSync(symlinkParentDir, { recursive: true });
-            }
-
-            // Remove existing entry at the symlink path. On macOS,
-            // fs.unlinkSync fails with EPERM on directories, so we need to
-            // distinguish between symlinks and real directories using lstatSync.
-            if (fs.existsSync(symlinkPath)) {
-                const stat = fs.lstatSync(symlinkPath);
-                if (stat.isSymbolicLink()) {
-                    fs.unlinkSync(symlinkPath);
-                } else if (stat.isDirectory()) {
-                    fs.rmSync(symlinkPath, { recursive: true });
-                } else {
-                    fs.unlinkSync(symlinkPath);
-                }
-            }
-
-            // Create symbolic link pointing to the job cache directory
-            fs.symlinkSync(absoluteCacheDirectory, symlinkPath, 'dir');
-
-            console.log(`Created symbolic link: ${symlinkPath} -> ${absoluteCacheDirectory}`);
-        } catch (error) {
-            console.warn(`Failed to create symbolic link: ${error}`);
-        }
     };
 
     async addMessages(messages: {
