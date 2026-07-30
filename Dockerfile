@@ -1,19 +1,5 @@
 # Transition Docker file
 
-# TODO Remove json2capnp related build. We keep it around for the moment to not break script that runs it directly
-# Build json2capnp
-# the capnp crate does not build on buster or older so we need to use a separate image
-# since node does not provide a buster image.
-# Added benefit of splitting the image
-# We copy the executable later
-FROM debian:trixie-slim AS json2capnpbuild
-WORKDIR /app/services/json2capnp
-COPY services/json2capnp ./
-# Adding build-essential for jemalloc allocator
-RUN apt-get update && apt-get -y --no-install-recommends install build-essential cargo ca-certificates
-RUN cargo build
-
-
 # Build Node app
 FROM node:24-trixie
 WORKDIR /app
@@ -36,9 +22,6 @@ COPY .env.docker /app/.env
 
 #TODO We probably need to do something different for the projects configuration directories
 # the docker-compose file have an example of using volume for part of a project
-
-# Copy in json2capnp
-COPY --from=json2capnpbuild /app/services/json2capnp/target/debug/json2capnp services/json2capnp/
 
 # Copy in trRouting and osrm binaries
 # For trRouting

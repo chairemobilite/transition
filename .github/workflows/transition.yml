@@ -71,16 +71,6 @@ jobs:
           exit 1
         fi
 
-  cargo-test:
-    name: Json2capnp
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v7
-    - run: cargo build
-      working-directory: ./services/json2capnp
-    - run: cargo test
-      working-directory: ./services/json2capnp
-
   test-sequential:
     runs-on: ubuntu-latest
     services:

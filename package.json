@@ -28,7 +28,6 @@
         "start:demo": "PROJECT_CONFIG=${PWD}/examples/config.js yarn workspace transition-backend run start",
         "start:debug": "yarn workspace transition-backend run start:debug",
         "start:tracing": "yarn workspace transition-backend run start:tracing",
-        "start:json2capnp": "cd services/json2capnp && cargo run --release",
         "test": "yarn workspaces run test",
         "test:unit": "yarn workspaces run test:unit",
         "test:sequential": "yarn workspaces run test:sequential",
