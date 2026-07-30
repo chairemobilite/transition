@@ -38,7 +38,7 @@ services:
     command:
       - "/bin/sh"
       - "-c"
-      - "sh -c \"cd services/json2capnp && pwd && ./json2capnp 2000 /config/runtime/cache/demo_transition > /config/runtime/json2capnp.log & yarn build:prod && yarn start\""
+      - "sh -c \"yarn build:prod && yarn start\""
     depends_on:
       - postgres
     tty: true

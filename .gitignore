@@ -69,8 +69,6 @@ stats.json
 
 # rust
 **/*.rs.bk
-services/json2capnp/target
-services/json2capnp/testData
 
 # vscode
 .vscode/launch.json
