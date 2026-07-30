@@ -175,6 +175,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.on('waypoint.startDrag', this.onStartDragWaypoint);
         serviceLocator.eventManager.on('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.on('waypoint.update', this.onUpdateWaypoint);
+        serviceLocator.eventManager.on('waypoint.endDrag', this.onEndDragWaypoint);
         serviceLocator.eventManager.on('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
         serviceLocator.eventManager.on('selected.updateLayers.path', this.onPathGeographyChanged);
         // Call the updateLayers method to display the path on the map, as the event may have been emitted before the listener was added
@@ -190,6 +191,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.off('waypoint.startDrag', this.onStartDragWaypoint);
         serviceLocator.eventManager.off('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.off('waypoint.update', this.onUpdateWaypoint);
+        serviceLocator.eventManager.off('waypoint.endDrag', this.onEndDragWaypoint);
         serviceLocator.eventManager.off('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
         serviceLocator.eventManager.off('selected.updateLayers.path', this.onPathGeographyChanged);
         serviceLocator.keyboardManager.off('m');
@@ -562,6 +564,17 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'transitPathWaypointsSelected',
             data: turfFeatureCollection([waypointGeojson])
+        });
+    };
+
+    onEndDragWaypoint = () => {
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'transitPathWaypointsSelected',
+            data: turfFeatureCollection([])
+        });
+        this.setState({
+            waypointDraggingAfterNodeIndex: undefined,
+            waypointDraggingIndex: undefined
         });
     };
 

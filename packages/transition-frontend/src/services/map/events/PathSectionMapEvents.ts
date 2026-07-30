@@ -23,6 +23,28 @@ const isAgenciesActiveSection = (activeSection: string) => activeSection === 'ag
 // when determining waypoint insertion position
 let isPathUpdateInProgress = false;
 
+/** Delay before clearing `_featureDragJustEnded`; matches routing OD (issue #1956). */
+const FEATURE_DRAG_CLICK_GUARD_MS = 300;
+
+// Click tolerance in pixels for path/node/waypoint detection
+const CLICK_TOLERANCE = 5;
+
+/** Screen position where the current waypoint drag started; used to distinguish click vs drag. */
+let pathWaypointDragStartPoint: { x: number; y: number } | null = null;
+
+/**
+ * Returns true when the pointer moved beyond click tolerance since mousedown.
+ */
+const pathWaypointDragDidMove = (e: MapMouseEvent): boolean => {
+    if (!pathWaypointDragStartPoint) {
+        return false;
+    }
+    return (
+        Math.abs(e.point.x - pathWaypointDragStartPoint.x) > CLICK_TOLERANCE ||
+        Math.abs(e.point.y - pathWaypointDragStartPoint.y) > CLICK_TOLERANCE
+    );
+};
+
 /**
  * Deduplicates an array of map features by their path ID property.
  * queryRenderedFeatures can return the same path multiple times when
@@ -44,33 +66,32 @@ const deduplicatePathFeatures = (paths: MapGeoJSONFeature[]): MapGeoJSONFeature[
 };
 
 const onPathWaypointMouseDown = (e: MapLayerMouseEvent) => {
-    // start drag:
-    const removingWaypoint = serviceLocator.keyboardManager.keyIsPressed('alt');
-    if (e.features && e.features[0] && !removingWaypoint) {
-        const map = e.target as MapWithCustomEventsState;
-        const feature = e.features[0];
-        serviceLocator.eventManager.emit('map.disableDragPan');
-        map._currentDraggingFeature = 'waypoint';
-        addDraggingClass();
-        // Create a clean GeoJSON object with only the needed properties to avoid
-        // MapLibre serialization errors ("can't serialize object of unregistered class")
-        const cleanFeature: GeoJSON.Feature<GeoJSON.Point> = {
-            type: 'Feature',
-            geometry: feature.geometry as GeoJSON.Point,
-            properties: {
-                afterNodeIndex: feature.properties?.afterNodeIndex,
-                waypointIndex: feature.properties?.waypointIndex,
-                type: feature.properties?.type
-            }
-        };
-        serviceLocator.eventManager.emit('waypoint.startDrag', cleanFeature);
-        e.originalEvent.stopPropagation();
+    if (!e.features?.[0]) {
+        return;
     }
+
+    const feature = e.features[0];
+    const map = e.target as MapWithCustomEventsState;
+    serviceLocator.eventManager.emit('map.disableDragPan');
+    map._currentDraggingFeature = 'waypoint';
+    pathWaypointDragStartPoint = { x: e.point.x, y: e.point.y };
+    addDraggingClass();
+    // Create a clean GeoJSON object with only the needed properties to avoid
+    // MapLibre serialization errors ("can't serialize object of unregistered class")
+    const cleanFeature: GeoJSON.Feature<GeoJSON.Point> = {
+        type: 'Feature',
+        geometry: feature.geometry as GeoJSON.Point,
+        properties: {
+            afterNodeIndex: feature.properties?.afterNodeIndex,
+            waypointIndex: feature.properties?.waypointIndex,
+            type: feature.properties?.type
+        }
+    };
+    serviceLocator.eventManager.emit('waypoint.startDrag', cleanFeature);
 };
 
-const onPathWaypointMouseUp = (e: MapMouseEvent) => {
+const onPathWaypointMouseUp = async (e: MapMouseEvent) => {
     const map = e.target as MapWithCustomEventsState;
-    // stop drag if on edit node:
     if (map._currentDraggingFeature === 'waypoint') {
         // Clear any node hover state from dragging
         if (map._hoverNodeIntegerId && map._hoverNodeSource) {
@@ -100,14 +121,37 @@ const onPathWaypointMouseUp = (e: MapMouseEvent) => {
                 );
             }
             // TODO What about the else? if the waypoint is _on_ an existing node, should it be removed? Now it does nothing, no even update it, so there are 2 waypoints drawn on the map...
-        } else {
+        } else if (pathWaypointDragDidMove(e)) {
             serviceLocator.eventManager.emit('waypoint.update', e.lngLat.toArray());
+        } else {
+            // Click without drag removes the waypoint; synthetic click is ignored via _featureDragJustEnded.
+            const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path') as
+                | TransitPath
+                | undefined;
+            const waypointFeatures = features.filter((feature) => feature.source === 'transitPathWaypoints');
+            if (selectedPath && !selectedPath.isFrozen() && waypointFeatures.length > 0 && !isPathUpdateInProgress) {
+                isPathUpdateInProgress = true;
+                const attributes = waypointFeatures[0].properties || {};
+                try {
+                    await selectedPath.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex);
+                    serviceLocator.selectedObjectsManager.setSelection('path', [selectedPath]);
+                    serviceLocator.eventManager.emit('selected.updateLayers.path');
+                } finally {
+                    isPathUpdateInProgress = false;
+                }
+            }
         }
+        serviceLocator.eventManager.emit('waypoint.endDrag');
+        pathWaypointDragStartPoint = null;
         map._currentDraggingFeature = null;
+        // Ignore the synthetic click MapLibre fires right after this drag-release (routing OD pattern, #1956).
+        map._featureDragJustEnded = true;
+        setTimeout(() => {
+            map._featureDragJustEnded = false;
+        }, FEATURE_DRAG_CLICK_GUARD_MS);
         removeDraggingClass();
         removeHoverClass(); // Clean up hover state since mouseleave doesn't fire during drag
         serviceLocator.eventManager.emit('map.enableDragPan');
-        e.originalEvent.stopPropagation();
     }
 };
 
@@ -218,16 +262,22 @@ const showPathSelectionContextMenu = (paths: MapGeoJSONFeature[], e: MapMouseEve
 // TODO Original code in click.events.js had a _draggingEventsOrder check. Is
 // it still needed? If we have problems, there should be an event handler of
 // higher priority to check it before running any other
-// Click tolerance in pixels for path/node/waypoint detection
-const CLICK_TOLERANCE = 5;
-
 const onPathSectionMapClick = async (e: MapMouseEvent) => {
+    const map = e.target as MapWithCustomEventsState;
+    // After releasing a dragged waypoint, MapLibre still fires a synthetic `click`
+    // (no pan happened since dragPan was disabled). Ignoring it prevents removing
+    // the waypoint or inserting another one at the drop location (routing OD pattern, #1956).
+    if (map._featureDragJustEnded) {
+        map._featureDragJustEnded = false;
+        e.originalEvent.stopPropagation();
+        return;
+    }
+
     const features = e.target.queryRenderedFeatures([
         [e.point.x - CLICK_TOLERANCE, e.point.y - CLICK_TOLERANCE],
         [e.point.x + CLICK_TOLERANCE, e.point.y + CLICK_TOLERANCE]
     ]);
 
-    const map = e.target;
     const featureSources = features.map((feature) => {
         return feature.source;
     });
@@ -293,27 +343,8 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
 
     if (path && !path.isFrozen()) {
         e.originalEvent.stopPropagation();
+
         if (
-            // clicked on waypoint (remove)
-            clickedWaypointIndex >= 0 &&
-            clickedNodeIndex < 0
-            //&& serviceLocator.keyboardManager.keyIsPressed('alt')
-        ) {
-            // Skip if another path update is in progress to prevent race conditions
-            if (isPathUpdateInProgress) {
-                return;
-            }
-            isPathUpdateInProgress = true;
-            const attributes = features[clickedWaypointIndex].properties || {};
-            const path = selectedPath as TransitPath;
-            try {
-                await path.removeWaypoint(attributes.afterNodeIndex, attributes.waypointIndex);
-                serviceLocator.selectedObjectsManager.setSelection('path', [path]);
-                serviceLocator.eventManager.emit('selected.updateLayers.path');
-            } finally {
-                isPathUpdateInProgress = false;
-            }
-        } else if (
             // insert waypoint in path at click on selected path
             clickedWaypointIndex < 0 &&
             clickedSelectedPathIndex >= 0 &&
