@@ -11,8 +11,6 @@ use capnp::serialize_packed;
 use serde_json;
 use std::io::BufReader;
 use geojson::GeoJson;
-use geobuf;
-use protobuf::Message;
 
 pub fn write_collection(
     json: &serde_json::Value,
@@ -94,14 +92,9 @@ pub fn write_collection(
                     capnp_data.reborrow().init_segments(0);
                 }
 
-                let geojson_json = json!({
-                    "type": "Feature",
-                    "properties": {},
-                    "geometry": feature.geometry.as_ref().unwrap()
-                });
-                let geobuf = geobuf::encode::Encoder::encode(&geojson_json, 6, 2).unwrap().write_to_bytes().unwrap();
-
-                capnp_data.set_geography(&geobuf);
+                //TODO We do not use the geography in trRouting, so there's no point in filling it.
+                //TODO Next step will be to remove it from the definition file, which need a sync with trRouting
+                //TODO Keep this commented line as explicit mention that we do not fill it
                 //capnp_data.set_geography(&geojson_json["geometry"].to_string().as_str());
 
             }
@@ -159,12 +152,9 @@ pub fn read_collection(
         }
         properties_json["segments"] = json!(segments_vec);
 
-        let mut geobuf_data = geobuf::geobuf_pb::Data::new();
-
-        geobuf_data.merge_from_bytes(&capnp_object.get_geography().unwrap()).unwrap();
-        let mut geojson : serde_json::Value = geobuf::decode::Decoder::decode(&geobuf_data).unwrap_or(json!({
+        let mut geojson : serde_json::Value = json!({
             "geometry": null
-        }));
+        });
 
         geojson["id"] = json!(integer_id);
         geojson["properties"] = properties_json;
