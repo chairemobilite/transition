@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+/** Per-segment distance and travel time, used throughout the path system for both OSRM and GTFS-derived times. */
 export type TimeAndDistance = {
     distanceMeters: number | null;
     travelTimeSeconds: number;
@@ -19,6 +20,7 @@ export type TypeNodeChange = {
     index: number;
 };
 
+/** Describes what changed on a path edit, used to decide which segment times to preserve vs. recalculate. */
 export type SegmentChangeInfo = {
     lastNodeChange?: TypeNodeChange;
     lastWaypointChangedSegmentIndex?: number;
