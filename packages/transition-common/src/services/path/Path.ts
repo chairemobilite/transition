@@ -20,6 +20,8 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
 import type { SegmentChangeInfo } from './PathTypes';
+import type { Checkpoint } from './PathSegmentTimeUtils';
+import { resolveCheckpoint, computeOccurrence } from './PathSegmentTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -55,6 +57,16 @@ import type { TimeAndDistance } from './PathTypes';
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
 
+/** Aggregated per-segment travel times, dwell times, and speed stats for a single period and service. */
+export type PeriodSegmentData = {
+    segments: TimeAndDistance[];
+    dwellTimeSeconds: number[];
+    travelTimeWithoutDwellTimesSeconds: number;
+    operatingTimeWithoutLayoverTimeSeconds: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond: number;
+    operatingSpeedMetersPerSecond: number;
+};
+
 export interface PathAttributesData {
     defaultLayoverRatioOverTotalTravelTime?: number;
     defaultMinLayoverTimeSeconds?: number;
@@ -80,9 +92,15 @@ export interface PathAttributesData {
     waypoints: [number, number][][];
     waypointTypes: string[][];
     segments?: TimeAndDistance[];
+    segmentTimesCheckpoints?: Checkpoint[];
     dwellTimeSeconds?: number[];
     gtfs?: {
         shape_id: string;
+    };
+    segmentsByServiceAndPeriod?: {
+        [serviceId: string]: {
+            [periodShortname: string]: PeriodSegmentData;
+        };
     };
     increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
     // FIXME: Consider putting all those calculated path data in a single object where each is not optional
@@ -91,11 +109,11 @@ export interface PathAttributesData {
     directRouteBetweenTerminalsDistanceMeters?: number;
     travelTimeWithoutDwellTimesSeconds?: number;
     directRouteBetweenTerminalsTravelTimeSeconds?: number;
-    operatingSpeedMetersPerSecond?: number;
+    operatingSpeedMetersPerSecond?: number | null;
     operatingTimeWithLayoverTimeSeconds?: number;
     maxRunningSpeedKmH?: number;
     totalTravelTimeWithReturnBackSeconds?: number;
-    averageSpeedWithoutDwellTimesMetersPerSecond?: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond?: number | null;
     customLayoverMinutes?: number;
     totalDistanceMeters?: number;
     temporaryManualRouting?: boolean;
@@ -130,6 +148,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     protected static displayName = 'Path';
     _forceRecalculate = false;
 
+    /** When true, the next geography update recalculates all segments from OSRM instead of preserving previous times. */
     setForceRecalculate(value: boolean) {
         this._forceRecalculate = value;
     }
@@ -399,6 +418,29 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const nodeTypes = this.attributes.data.nodeTypes;
         let recomputePath = false;
         if (nodeIds.length > 0 && removeIndex < nodeIds.length) {
+            // Remove any checkpoint that spans the deleted node, and adjust
+            // occurrence numbers for surviving checkpoints when needed.
+            const checkpoints = this.attributes.data.segmentTimesCheckpoints;
+            if (checkpoints && checkpoints.length > 0) {
+                const removedNodeId = nodeIds[removeIndex];
+                const removedOccurrence = computeOccurrence(nodeIds, removeIndex);
+                const surviving: Checkpoint[] = [];
+                for (const cp of checkpoints) {
+                    const resolved = resolveCheckpoint(cp, nodeIds);
+                    if (!resolved) continue;
+                    if (resolved.fromNodeIndex <= removeIndex && removeIndex <= resolved.toNodeIndex) continue;
+                    // Adjust occurrence numbers if an earlier occurrence of the same node was removed
+                    const adjusted = { ...cp };
+                    if (cp.fromNodeId === removedNodeId && (cp.fromNodeOccurrence ?? 0) > removedOccurrence) {
+                        adjusted.fromNodeOccurrence = (cp.fromNodeOccurrence ?? 0) - 1;
+                    }
+                    if (cp.toNodeId === removedNodeId && (cp.toNodeOccurrence ?? 0) > removedOccurrence) {
+                        adjusted.toNodeOccurrence = (cp.toNodeOccurrence ?? 0) - 1;
+                    }
+                    surviving.push(adjusted);
+                }
+                this.attributes.data.segmentTimesCheckpoints = surviving.length > 0 ? surviving : undefined;
+            }
             nodeIds.splice(removeIndex, 1);
             nodeTypes.splice(removeIndex, 1);
             this.attributes.nodes = nodeIds;
@@ -834,6 +876,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
+            segmentTimesCheckpoints: undefined,
             dwellTimeSeconds: null, // the last travel time is the travel time to go back to first stop
             layoverTimeSeconds: null,
             travelTimeWithoutDwellTimesSeconds: null,
@@ -843,6 +886,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
+            segmentsByServiceAndPeriod: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now
