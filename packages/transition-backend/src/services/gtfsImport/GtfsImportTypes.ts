@@ -35,6 +35,12 @@ export interface FrequencyImportData {
     [key: string]: Frequencies[];
 }
 
+/** A trip's stop times paired with its service ID, used for period bucketing during GTFS import. */
+export type TripStopTimesWithService = {
+    stopTimes: StopTime[];
+    serviceId: string;
+};
+
 export interface GtfsInternalData {
     agencyIdsByAgencyGtfsId: { [key: string]: string };
     lineIdsByRouteGtfsId: { [key: string]: string };
