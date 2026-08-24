@@ -111,12 +111,14 @@ jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
 
     return {
         resultParser: originalModule.default.resultParser,
-        create: jest.fn().mockImplementation(({ jobId, tripIndex, data }) => {
-            resultsInDb.push({
-                job_id: jobId,
-                trip_index: tripIndex,
-                data
-            })
+        createMany: jest.fn().mockImplementation((results: { jobId: number; tripIndex: number; data: any }[]) => {
+            results.forEach(({ jobId, tripIndex, data }) => {
+                resultsInDb.push({
+                    job_id: jobId,
+                    trip_index: tripIndex,
+                    data
+                });
+            });
         }),
         collection: jest.fn().mockImplementation((jobId, options) => ({ totalCount: resultsInDb.length, tripResults: resultsInDb })),
         deleteForJob: jest.fn(),
@@ -124,7 +126,7 @@ jest.mock('../../../models/db/batchRouteResults.db.queries', () => {
         countResults: jest.fn().mockResolvedValue(0) // The result is used for logging, any value works
     };
 });
-const mockResultCreate = resultDbQueries.create as jest.MockedFunction<typeof resultDbQueries.create>;
+const mockResultCreateMany = resultDbQueries.createMany as jest.MockedFunction<typeof resultDbQueries.createMany>;
 const mockResultCollection = resultDbQueries.collection as jest.MockedFunction<typeof resultDbQueries.collection>;
 const mockResultDeleteForJob = resultDbQueries.deleteForJob as jest.MockedFunction<typeof resultDbQueries.deleteForJob>;
 const mockStreamResults = resultDbQueries.streamResults as jest.MockedFunction<typeof resultDbQueries.streamResults>;
@@ -182,7 +184,7 @@ beforeEach(async () => {
     resultsInDbCnt = 0;
     routeOdTripMock.mockClear();
     mockCreateStream.mockClear();
-    mockResultCreate.mockClear();
+    mockResultCreateMany.mockClear();
     mockResultCollection.mockClear();
     mockResultDeleteForJob.mockClear();
     mockStreamResults.mockClear();
@@ -233,13 +235,13 @@ test('Batch route to csv', async () => {
     );
 
     // Validate the result database calls
-    expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
-    for (let i = 0; i < odTrips.length; i++) {
-        expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockResultCreateMany).toHaveBeenCalledTimes(Math.ceil(odTrips.length / 250)); //Called only once per checkpoint
+    expect(mockResultCreateMany).toHaveBeenCalledWith(
+        odTrips.map((_, i) => expect.objectContaining({
             jobId,
             tripIndex: i
-        }));
-    }
+        }))
+    );
     expect(mockStreamResults).toHaveBeenCalledTimes(1);
     expect(mockStreamResults).toHaveBeenCalledWith(jobId);
     expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
@@ -309,13 +311,13 @@ test('Batch route with some errors', async () => {
     expect(csvStream.data.length).toEqual(odTrips.length + 1);
 
     // Validate the result database calls
-    expect(mockResultCreate).toHaveBeenCalledTimes(odTrips.length);
-    for (let i = 0; i < odTrips.length; i++) {
-        expect(mockResultCreate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockResultCreateMany).toHaveBeenCalledTimes(Math.ceil(odTrips.length / 250)); //Called only once per checkpoint
+    expect(mockResultCreateMany).toHaveBeenCalledWith(
+        odTrips.map((_, i) => expect.objectContaining({
             jobId,
             tripIndex: i
-        }));
-    }
+        }))
+    );
     expect(mockStreamResults).toHaveBeenCalledTimes(1);
     expect(mockStreamResults).toHaveBeenCalledWith(jobId);
     expect(mockResultDeleteForJob).toHaveBeenCalledTimes(1);
@@ -338,7 +340,7 @@ test('Batch route with too many errors', async () => {
     });
 
     // Validate the result database calls
-    expect(mockResultCreate).not.toHaveBeenCalled();
+    expect(mockResultCreateMany).not.toHaveBeenCalled();
     expect(mockResultCollection).not.toHaveBeenCalled();
     expect(mockResultDeleteForJob).not.toHaveBeenCalled();
 });
@@ -403,6 +405,12 @@ describe('Batch route from checkpoint', () => {
         expect(checkpointListenerMock).toHaveBeenCalledWith(500);
         expect(checkpointListenerMock).toHaveBeenCalledWith(750);
         expect(checkpointListenerMock).toHaveBeenCalledWith(756);
+
+        expect(mockResultCreateMany).toHaveBeenCalledTimes(4); // Once per checkpoint
+        expect(mockResultCreateMany).toHaveBeenNthCalledWith(1, expect.arrayContaining([
+            expect.objectContaining({ tripIndex: 0 }),
+            expect.objectContaining({ tripIndex: 249 })
+        ]));
     });
 
     test('Checkpoint callback is called after resuming', async () => {
