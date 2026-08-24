@@ -20,6 +20,8 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
 import type { SegmentChangeInfo } from './PathTypes';
+import type { Checkpoint } from './PathSegmentTimeUtils';
+import { resolveCheckpoint, computeOccurrence } from './PathSegmentTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -55,6 +57,16 @@ import type { TimeAndDistance } from './PathTypes';
 export const pathDirectionArray = ['loop', 'outbound', 'inbound', 'other'] as const;
 export type PathDirection = (typeof pathDirectionArray)[number];
 
+/** Aggregated per-segment travel times, dwell times, and speed stats for a single period and service. */
+export type PeriodSegmentData = {
+    segments: TimeAndDistance[];
+    dwellTimeSeconds: number[];
+    travelTimeWithoutDwellTimesSeconds: number;
+    operatingTimeWithoutLayoverTimeSeconds: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond: number;
+    operatingSpeedMetersPerSecond: number;
+};
+
 export interface PathAttributesData {
     defaultLayoverRatioOverTotalTravelTime?: number;
     defaultMinLayoverTimeSeconds?: number;
@@ -80,9 +92,15 @@ export interface PathAttributesData {
     waypoints: [number, number][][];
     waypointTypes: string[][];
     segments?: TimeAndDistance[];
+    segmentTimesCheckpoints?: Checkpoint[];
     dwellTimeSeconds?: number[];
     gtfs?: {
         shape_id: string;
+    };
+    segmentsByServiceAndPeriod?: {
+        [serviceId: string]: {
+            [periodShortname: string]: PeriodSegmentData;
+        };
     };
     increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
     // FIXME: Consider putting all those calculated path data in a single object where each is not optional
@@ -91,11 +109,11 @@ export interface PathAttributesData {
     directRouteBetweenTerminalsDistanceMeters?: number;
     travelTimeWithoutDwellTimesSeconds?: number;
     directRouteBetweenTerminalsTravelTimeSeconds?: number;
-    operatingSpeedMetersPerSecond?: number;
+    operatingSpeedMetersPerSecond?: number | null;
     operatingTimeWithLayoverTimeSeconds?: number;
     maxRunningSpeedKmH?: number;
     totalTravelTimeWithReturnBackSeconds?: number;
-    averageSpeedWithoutDwellTimesMetersPerSecond?: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond?: number | null;
     customLayoverMinutes?: number;
     totalDistanceMeters?: number;
     temporaryManualRouting?: boolean;
@@ -130,6 +148,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     protected static displayName = 'Path';
     _forceRecalculate = false;
 
+    /** When true, the next geography update recalculates all segments from OSRM instead of preserving previous times. */
     setForceRecalculate(value: boolean) {
         this._forceRecalculate = value;
     }
@@ -399,6 +418,29 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const nodeTypes = this.attributes.data.nodeTypes;
         let recomputePath = false;
         if (nodeIds.length > 0 && removeIndex < nodeIds.length) {
+            // Remove any checkpoint that spans the deleted node, and adjust
+            // occurrence numbers for surviving checkpoints when needed.
+            const checkpoints = this.attributes.data.segmentTimesCheckpoints;
+            if (checkpoints && checkpoints.length > 0) {
+                const removedNodeId = nodeIds[removeIndex];
+                const removedOccurrence = computeOccurrence(nodeIds, removeIndex);
+                const surviving: Checkpoint[] = [];
+                for (const cp of checkpoints) {
+                    const resolved = resolveCheckpoint(cp, nodeIds);
+                    if (!resolved) continue;
+                    if (resolved.fromNodeIndex <= removeIndex && removeIndex <= resolved.toNodeIndex) continue;
+                    // Adjust occurrence numbers if an earlier occurrence of the same node was removed
+                    const adjusted = { ...cp };
+                    if (cp.fromNodeId === removedNodeId && (cp.fromNodeOccurrence ?? 0) > removedOccurrence) {
+                        adjusted.fromNodeOccurrence = (cp.fromNodeOccurrence ?? 0) - 1;
+                    }
+                    if (cp.toNodeId === removedNodeId && (cp.toNodeOccurrence ?? 0) > removedOccurrence) {
+                        adjusted.toNodeOccurrence = (cp.toNodeOccurrence ?? 0) - 1;
+                    }
+                    surviving.push(adjusted);
+                }
+                this.attributes.data.segmentTimesCheckpoints = surviving.length > 0 ? surviving : undefined;
+            }
             nodeIds.splice(removeIndex, 1);
             nodeTypes.splice(removeIndex, 1);
             this.attributes.nodes = nodeIds;
@@ -831,9 +873,101 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return features;
     }
 
+    /**
+     * Get the stored segment data for a specific service and period, or undefined when none is
+     * stored for that (serviceId, periodShortname).
+     */
+    getSegmentsForPeriodAndService(periodShortname: string, serviceId: string): PeriodSegmentData | undefined {
+        return this.attributes.data.segmentsByServiceAndPeriod?.[serviceId]?.[periodShortname];
+    }
+
+    /** Compute an equal-weight average across multiple services' PeriodSegmentData for the same period. */
+    private _averagePeriodSegmentData(dataArray: PeriodSegmentData[]): PeriodSegmentData {
+        const numSegments = Math.min(...dataArray.map((d) => d.segments.length));
+        const numStops = Math.min(...dataArray.map((d) => d.dwellTimeSeconds.length));
+        const count = dataArray.length;
+
+        const avgSegments: TimeAndDistance[] = [];
+        const avgDwell: number[] = [];
+
+        for (let i = 0; i < numSegments; i++) {
+            let travelSum = 0;
+            let distSum = 0;
+            let hasDistance = false;
+            for (const d of dataArray) {
+                travelSum += d.segments[i].travelTimeSeconds;
+                if (d.segments[i].distanceMeters !== null) {
+                    distSum += d.segments[i].distanceMeters!;
+                    hasDistance = true;
+                }
+            }
+            avgSegments.push({
+                travelTimeSeconds: Math.round(travelSum / count),
+                distanceMeters: hasDistance ? Math.round(distSum / count) : null
+            });
+        }
+
+        for (let i = 0; i < numStops; i++) {
+            let dwellSum = 0;
+            for (const d of dataArray) {
+                dwellSum += d.dwellTimeSeconds[i];
+            }
+            avgDwell.push(Math.round(dwellSum / count));
+        }
+
+        const travelTimeWithoutDwellTimesSeconds = avgSegments.reduce((sum, s) => sum + s.travelTimeSeconds, 0);
+        const totalDwellTime = avgDwell.reduce((sum, d) => sum + d, 0);
+        const operatingTimeWithoutLayoverTimeSeconds = travelTimeWithoutDwellTimesSeconds + totalDwellTime;
+        const totalDistanceMeters = this.attributes.data.totalDistanceMeters ?? 0;
+
+        return {
+            segments: avgSegments,
+            dwellTimeSeconds: avgDwell,
+            travelTimeWithoutDwellTimesSeconds,
+            operatingTimeWithoutLayoverTimeSeconds,
+            averageSpeedWithoutDwellTimesMetersPerSecond:
+                travelTimeWithoutDwellTimesSeconds > 0
+                    ? Math.round((totalDistanceMeters / travelTimeWithoutDwellTimesSeconds) * 100) / 100
+                    : 0,
+            operatingSpeedMetersPerSecond:
+                operatingTimeWithoutLayoverTimeSeconds > 0
+                    ? Math.round((totalDistanceMeters / operatingTimeWithoutLayoverTimeSeconds) * 100) / 100
+                    : 0
+        };
+    }
+
+    /** Recompute base segment data (data.segments, data.dwellTimeSeconds, and derived stats)
+     *  as a weighted average across all entries in segmentsByServiceAndPeriod.
+     *  Also refreshes derived statistics. Creates a single history entry. */
+    updateBaseFromServicePeriodData() {
+        const byServiceAndPeriod = this.attributes.data.segmentsByServiceAndPeriod;
+        if (!byServiceAndPeriod) return;
+
+        const allPeriodData: PeriodSegmentData[] = [];
+        for (const serviceEntries of Object.values(byServiceAndPeriod)) {
+            for (const periodData of Object.values(serviceEntries)) {
+                allPeriodData.push(periodData);
+            }
+        }
+        if (allPeriodData.length === 0) return;
+
+        const avg = allPeriodData.length === 1 ? allPeriodData[0] : this._averagePeriodSegmentData(allPeriodData);
+
+        this.attributes.data.segments = avg.segments;
+        this.attributes.data.dwellTimeSeconds = avg.dwellTimeSeconds;
+        this.attributes.data.travelTimeWithoutDwellTimesSeconds = avg.travelTimeWithoutDwellTimesSeconds;
+        this.attributes.data.operatingTimeWithoutLayoverTimeSeconds = avg.operatingTimeWithoutLayoverTimeSeconds;
+        this.attributes.data.averageSpeedWithoutDwellTimesMetersPerSecond =
+            avg.averageSpeedWithoutDwellTimesMetersPerSecond;
+        this.attributes.data.operatingSpeedMetersPerSecond = avg.operatingSpeedMetersPerSecond;
+        this.refreshStats();
+        this._updateHistory();
+    }
+
     emptyGeography() {
         const newData = {
             segments: null, // the last segment is the return back to first stop
+            segmentTimesCheckpoints: undefined,
             dwellTimeSeconds: null, // the last travel time is the travel time to go back to first stop
             layoverTimeSeconds: null,
             travelTimeWithoutDwellTimesSeconds: null,
@@ -843,6 +977,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             averageSpeedWithoutDwellTimesMetersPerSecond: null,
             operatingSpeedMetersPerSecond: null,
             operatingSpeedWithLayoverMetersPerSecond: null,
+            segmentsByServiceAndPeriod: null,
             variables: {}
         };
         this.set('geography', null); // TODO: fix this, it should never be null when typing correctly, but setting coordinates to an empty array fails right now

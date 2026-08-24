@@ -997,6 +997,7 @@ describe('AsymmetricScheduleStrategy', () => {
     
             mockPath = {
                 getData: jest.fn(() => [60, 90, 120]),
+                getSegmentsForPeriodAndService: jest.fn(() => undefined),
                 attributes: {
                     data: { segments: [] },
                     nodes: ['a', 'b', 'c']
@@ -1033,9 +1034,11 @@ describe('AsymmetricScheduleStrategy', () => {
                 units: mockUnits,
                 path: mockPath,
                 trips,
-                direction: ScheduleTypes.UnitDirection.OUTBOUND
+                direction: ScheduleTypes.UnitDirection.OUTBOUND,
+                periodShortname: 'test_period',
+                serviceId: 'test_service'
             });
-    
+
             expect(result.unitId).toBe(1);
             expect(findBestUnitSpy).toHaveBeenCalledWith(1000, ScheduleTypes.UnitDirection.OUTBOUND, mockUnits);
             expect(generateTripSpy).toHaveBeenCalledWith(expect.objectContaining({
@@ -1047,17 +1050,19 @@ describe('AsymmetricScheduleStrategy', () => {
                 dwellTimes: [60, 90, 120]
             }));
         });
-    
+
         it('should return null when no unit is available', () => {
             findBestUnitSpy.mockReturnValue(null);
-    
+
             const result = strategy['processDeparture']({
                 currentTime: 1000,
                 totalTimeSeconds: 3600,
                 units: mockUnits,
                 path: mockPath,
                 trips,
-                direction: ScheduleTypes.UnitDirection.OUTBOUND
+                direction: ScheduleTypes.UnitDirection.OUTBOUND,
+                periodShortname: 'test_period',
+                serviceId: 'test_service'
             });
     
             expect(result.unitId).toBeNull();
@@ -1373,7 +1378,9 @@ describe('AsymmetricScheduleStrategy', () => {
                 trips: [],
                 usedUnitsIds,
                 outboundDepartures,
-                inboundDepartures
+                inboundDepartures,
+                periodShortname: 'test_period',
+                serviceId: 'test_service'
             };
             
             // Default mock behavior: return unit ID 1 for outbound, 2 for inbound
@@ -1474,6 +1481,8 @@ describe('AsymmetricScheduleStrategy', () => {
             units: [mockUnit],
             outboundPath: { get: () => 'outbound' } as any,
             inboundPath: { get: () => 'inbound' } as any,
+            periodShortname: 'test_period',
+            serviceId: 'test_service',
             ...overrides
         });
     
@@ -1608,6 +1617,7 @@ describe('AsymmetricScheduleStrategy', () => {
             get: (key: string) => key === 'id' ? `mock-${direction}-id` : undefined,
             getId: () => `mock-${direction}-id`,
             getLine: () => ({ shortname: `${direction}-line` }),
+            getSegmentsForPeriodAndService: () => undefined,
             attributes: {
                 line_id: `${direction}-line-id`,
                 data: {
@@ -1762,7 +1772,9 @@ describe('AsymmetricScheduleStrategy', () => {
                 inboundTotalTimeSeconds: 1600,
                 units: [],
                 outboundPath: {} as any,
-                inboundPath: {} as any
+                inboundPath: {} as any,
+                periodShortname: 'test_period',
+                serviceId: 'test_service'
             };
 
             const result = strategy.generateTrips(options);

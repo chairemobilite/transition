@@ -874,3 +874,33 @@ test('Update Geography with manual routing type for terminal nodes', async () =>
         }
     }));
 });
+
+describe('scaleTimesToTarget', () => {
+    test('scales times proportionally to match target', () => {
+        const result = PathGeographyUtils.scaleTimesToTarget([10, 20, 30], 120);
+        expect(result).not.toBeNull();
+        expect(result!.reduce((sum, v) => sum + v, 0)).toBe(120);
+    });
+
+    test('returns null when total OSRM time is 0', () => {
+        const result = PathGeographyUtils.scaleTimesToTarget([0, 0, 0], 100);
+        expect(result).toBeNull();
+    });
+
+    test('does not produce negative last segment when target is very short', () => {
+        // Many segments with large values scaled to a very small target:
+        // rounding each segment up could exceed the target, making last-segment adjustment negative
+        const segments = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]; // total = 100
+        const result = PathGeographyUtils.scaleTimesToTarget(segments, 3); // ratio = 0.03
+        expect(result).not.toBeNull();
+        for (const val of result!) {
+            expect(val).toBeGreaterThanOrEqual(0);
+        }
+    });
+
+    test('does not produce negative last segment with single-segment path', () => {
+        const result = PathGeographyUtils.scaleTimesToTarget([100], 50);
+        expect(result).not.toBeNull();
+        expect(result![0]).toBe(50);
+    });
+});

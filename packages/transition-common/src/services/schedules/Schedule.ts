@@ -12,6 +12,7 @@ import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWit
 import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from '../path/Path';
+import type { TimeAndDistance } from '../path/PathTypes';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
@@ -116,6 +117,8 @@ export interface GenerateTripsOptions {
     outboundPath: TransitPath;
     inboundPath?: TransitPath;
     period?: any;
+    periodShortname: string;
+    serviceId: string;
 }
 
 // Interface for calculateResourceRequirements options
@@ -138,6 +141,8 @@ export interface GenerateTripsWithIntervalsOptions {
     units: TransitUnit[];
     outboundPath: TransitPath;
     inboundPath?: TransitPath;
+    periodShortname: string;
+    serviceId: string;
 }
 
 // Interface for initializeUnits
@@ -173,6 +178,8 @@ export interface ProcessDeparturesOptions {
     usedUnitsIds: Set<number>;
     outboundDepartures: number[];
     inboundDepartures: number[];
+    periodShortname: string;
+    serviceId: string;
 }
 
 // Interface for processDeparture
@@ -183,6 +190,8 @@ export interface ProcessDepartureOptions {
     path: TransitPath;
     trips: any[];
     direction: UnitDirection;
+    periodShortname: string;
+    serviceId: string;
 }
 
 // Interface for generateTrip
@@ -249,7 +258,7 @@ export abstract class BaseScheduleStrategy implements ScheduleGenerationStrategy
             const trip = {
                 id: uuidV4(),
                 path_id: path.get('id'),
-                departure_time_seconds: tripStartAtSeconds,
+                departure_time_seconds: Math.round(tripStartAtSeconds),
                 arrival_time_seconds: Math.round(tripTimeSoFar),
                 node_arrival_times_seconds: tripArrivalTimesSeconds,
                 node_departure_times_seconds: tripDepartureTimesSeconds,
@@ -485,17 +494,24 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
     }
 
     protected processDeparture(options: ProcessDepartureOptions) {
-        const { currentTime, totalTimeSeconds, units, path, trips, direction } = options;
+        const { currentTime, totalTimeSeconds, units, path, trips, direction, periodShortname, serviceId } = options;
 
         const unitTransit = this.findBestUnit(currentTime, direction, units);
         if (unitTransit) {
-            const dwellTimesData = path.getData('dwellTimeSeconds');
+            const periodData = path.getSegmentsForPeriodAndService(periodShortname, serviceId);
 
-            const dwellTimes: number[] = Array.isArray(dwellTimesData)
-                ? dwellTimesData.map((time) => Number(time))
-                : new Array(Node.length).fill(0);
-
-            const segments = path.attributes.data.segments || [];
+            let dwellTimes: number[];
+            let segments: TimeAndDistance[];
+            if (periodData) {
+                dwellTimes = periodData.dwellTimeSeconds;
+                segments = periodData.segments;
+            } else {
+                const dwellTimesData = path.getData('dwellTimeSeconds');
+                dwellTimes = Array.isArray(dwellTimesData)
+                    ? dwellTimesData.map((time) => Number(time))
+                    : new Array(path.attributes.nodes.length).fill(0);
+                segments = path.attributes.data.segments || [];
+            }
 
             const trip = this.generateTrip({
                 tripStartAtSeconds: currentTime,
@@ -584,7 +600,9 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                 units: options.units,
                 path: options.outboundPath,
                 trips: options.trips,
-                direction: UnitDirection.OUTBOUND
+                direction: UnitDirection.OUTBOUND,
+                periodShortname: options.periodShortname,
+                serviceId: options.serviceId
             });
             if (result.unitId) options.usedUnitsIds.add(result.unitId);
         }
@@ -598,7 +616,9 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                 units: options.units,
                 path: options.inboundPath,
                 trips: options.trips,
-                direction: UnitDirection.INBOUND
+                direction: UnitDirection.INBOUND,
+                periodShortname: options.periodShortname,
+                serviceId: options.serviceId
             });
             if (result.unitId) options.usedUnitsIds.add(result.unitId);
         }
@@ -704,7 +724,9 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                 trips,
                 usedUnitsIds,
                 outboundDepartures,
-                inboundDepartures
+                inboundDepartures,
+                periodShortname: options.periodShortname,
+                serviceId: options.serviceId
             } as ProcessDeparturesOptions);
         }
 
@@ -726,17 +748,40 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         units: TransitUnit[];
         outboundPath: TransitPath;
         inboundPath?: TransitPath;
+        periodShortname: string;
+        serviceId: string;
     }) {
         const trips: any[] = [];
         const unitsCount = options.units.length;
 
-        // Path and time segment extraction
-        const outboundSegments = options.outboundPath.attributes.data.segments;
+        // Path and time segment extraction: use period-specific data if available
+        const outboundPeriodData = options.outboundPath.getSegmentsForPeriodAndService(
+            options.periodShortname,
+            options.serviceId
+        );
+        const outboundSegments = outboundPeriodData
+            ? outboundPeriodData.segments
+            : options.outboundPath.attributes.data.segments;
         const outboundNodes = options.outboundPath.attributes.nodes;
-        const outboundDwellTimes = options.outboundPath.getData('dwellTimeSeconds');
+        const outboundDwellTimes = outboundPeriodData
+            ? outboundPeriodData.dwellTimeSeconds
+            : options.outboundPath.getData('dwellTimeSeconds');
 
-        const inboundSegments = options.inboundPath ? options.inboundPath.attributes.data.segments : undefined;
+        const inboundPeriodData = options.inboundPath?.getSegmentsForPeriodAndService(
+            options.periodShortname,
+            options.serviceId
+        );
+        const inboundSegments = inboundPeriodData
+            ? inboundPeriodData.segments
+            : options.inboundPath
+                ? options.inboundPath.attributes.data.segments
+                : undefined;
         const inboundNodes = options.inboundPath ? options.inboundPath.attributes.nodes : undefined;
+        const inboundDwellTimes = inboundPeriodData
+            ? inboundPeriodData.dwellTimeSeconds
+            : options.inboundPath
+                ? options.inboundPath.getData('dwellTimeSeconds')
+                : undefined;
         const cycleTimeSeconds = options.outboundTotalTimeSeconds + options.inboundTotalTimeSeconds;
 
         // Initialize units with staggered start times
@@ -782,7 +827,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                             path: options.inboundPath,
                             segments: inboundSegments || [],
                             nodes: inboundNodes as string[],
-                            dwellTimes: Array.isArray(outboundDwellTimes) ? outboundDwellTimes : []
+                            dwellTimes: Array.isArray(inboundDwellTimes) ? inboundDwellTimes : []
                         })
                     );
                 }
@@ -827,7 +872,9 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
                 inboundTotalTimeSeconds,
                 units,
                 outboundPath,
-                inboundPath
+                inboundPath,
+                periodShortname: options.periodShortname,
+                serviceId: options.serviceId
             });
         }
     }
@@ -898,16 +945,32 @@ export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
             inboundTotalTimeSeconds,
             units,
             outboundPath,
-            inboundPath
+            inboundPath,
+            periodShortname,
+            serviceId
         } = options;
 
-        const outboundSegments = outboundPath.attributes.data.segments;
+        const outboundPeriodData = outboundPath.getSegmentsForPeriodAndService(periodShortname, serviceId);
+        const outboundSegments = outboundPeriodData
+            ? outboundPeriodData.segments
+            : outboundPath.attributes.data.segments;
         const outboundNodes = outboundPath.attributes.nodes;
-        const outboundDwellTimes = outboundPath.getData('dwellTimeSeconds');
+        const outboundDwellTimes = outboundPeriodData
+            ? outboundPeriodData.dwellTimeSeconds
+            : outboundPath.getData('dwellTimeSeconds');
 
-        const inboundSegments = inboundPath ? inboundPath.attributes.data.segments : undefined;
+        const inboundPeriodData = inboundPath?.getSegmentsForPeriodAndService(periodShortname, serviceId);
+        const inboundSegments = inboundPeriodData
+            ? inboundPeriodData.segments
+            : inboundPath
+                ? inboundPath.attributes.data.segments
+                : undefined;
         const inboundNodes = inboundPath ? inboundPath.attributes.nodes : undefined;
-        const inboundDwellTimes = inboundPath ? inboundPath.attributes.data.dwellTimeSeconds : undefined;
+        const inboundDwellTimes = inboundPeriodData
+            ? inboundPeriodData.dwellTimeSeconds
+            : inboundPath
+                ? inboundPath.attributes.data.dwellTimeSeconds
+                : undefined;
 
         const trips: any[] = [];
         const unitsCount = units.length;
@@ -1214,10 +1277,20 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
         // get outbound/inbound paths info to calculate number of units required or minimum interval and travel times:
 
-        // calculate durations
-        const outboundTotalTimeSeconds = outboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0;
+        // calculate durations: use period-specific segment data if available, otherwise fall back to global path data
+        const serviceId = this.attributes.service_id;
+        const outboundPeriodData = outboundPath.getSegmentsForPeriodAndService(periodShortname, serviceId);
+        const outboundLayoverSeconds = (outboundPath.attributes.data.layoverTimeSeconds ?? 0) as number;
+        const outboundTotalTimeSeconds = outboundPeriodData
+            ? outboundPeriodData.operatingTimeWithoutLayoverTimeSeconds + outboundLayoverSeconds
+            : outboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0;
+
+        const inboundPeriodData = inboundPath?.getSegmentsForPeriodAndService(periodShortname, serviceId);
+        const inboundLayoverSeconds = (inboundPath?.attributes.data.layoverTimeSeconds ?? 0) as number;
         const inboundTotalTimeSeconds = inboundPath
-            ? inboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0
+            ? inboundPeriodData
+                ? inboundPeriodData.operatingTimeWithoutLayoverTimeSeconds + inboundLayoverSeconds
+                : inboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0
             : 0;
 
         // Create the generation strategy
@@ -1244,7 +1317,9 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
             units,
             outboundPath,
             inboundPath,
-            period
+            period,
+            periodShortname,
+            serviceId
         } as GenerateTripsOptions);
 
         // Update period attributes
