@@ -9,6 +9,7 @@ import _isString from 'lodash/isString';
 import _padStart from 'lodash/padStart';
 import { _isBlank } from './LodashExtensions';
 import type { TFunction } from 'i18next';
+import { ceilToPositiveInteger } from './MathUtils';
 
 /**
  * Formats the number of seconds since midnight to a time string (HH:MM[:ss]).
@@ -72,7 +73,7 @@ const timeStrToDecimalHour = function (timeStr) {
     return null;
 };
 
-const secondsToMinutes = function (seconds, rounding = Math.ceil) {
+const secondsToMinutes = function (seconds, rounding = ceilToPositiveInteger) {
     seconds = parseInt(seconds);
     return _isFinite(seconds) ? rounding(seconds / 60) : null;
 };
@@ -82,7 +83,7 @@ const secondsToMinutesDecimal = function (seconds) {
     return _isFinite(seconds) ? seconds / 60 : null;
 };
 
-const secondsToHours = function (seconds, rounding = Math.ceil) {
+const secondsToHours = function (seconds, rounding = ceilToPositiveInteger) {
     seconds = parseInt(seconds);
     return _isFinite(seconds) ? rounding(seconds / 3600) : null;
 };
@@ -92,7 +93,7 @@ const secondsToHoursDecimal = function (seconds) {
     return _isFinite(seconds) ? seconds / 3600 : null;
 };
 
-const minutesToHours = function (minutes: string | number, rounding = Math.ceil) {
+const minutesToHours = function (minutes: string | number, rounding = ceilToPositiveInteger) {
     minutes = typeof minutes === 'string' ? parseInt(minutes) : minutes;
     return _isFinite(minutes) ? rounding(minutes / 60) : null;
 };
@@ -222,7 +223,7 @@ const intTimeToSecondsSinceMidnight = function (intTime) {
 };
 
 // returns value as seconds, rounded, ceiled or floored to the nearest 60 seconds:
-const roundSecondsToNearestMinute = function (seconds: number, rounding = Math.ceil): number {
+const roundSecondsToNearestMinute = function (seconds: number, rounding = ceilToPositiveInteger): number {
     return rounding(seconds / 60) * 60;
 };
 

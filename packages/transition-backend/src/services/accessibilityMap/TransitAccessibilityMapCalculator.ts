@@ -39,11 +39,12 @@ import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import placesDbQueries from '../../models/db/places.db.queries';
 import { clipPolygon as clipPolygonWithPostGIS } from '../../models/db/geometryUtils.db.queries';
 import censusDbQueries from '../../models/db/census.db.queries';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const getDurations = (maxDuration: number, numberOfPolygons: number): number[] => {
-    const durations = [maxDuration];
+    const durations = [ceilToPositiveInteger(maxDuration)];
     for (let i = numberOfPolygons - 1; i > 0; i--) {
-        durations.push(Math.ceil((i * maxDuration) / numberOfPolygons));
+        durations.push(ceilToPositiveInteger((i * maxDuration) / numberOfPolygons));
     }
     return durations;
 };

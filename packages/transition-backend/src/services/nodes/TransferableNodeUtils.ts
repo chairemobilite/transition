@@ -10,6 +10,7 @@ import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TransitNode, { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { getNodesInBirdDistance } from './NodeCollectionUtils';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const getTransferableNodesFromBirdRadius = (
     nodesInBirdRadius: { id: string; distance: number }[],
@@ -25,9 +26,9 @@ const getTransferableNodesFromBirdRadius = (
 
         transferableNodes.nodesIds.push(nodeInBirdRadius.id);
         transferableNodes.walkingTravelTimesSeconds.push(
-            Math.ceil(nodeInBirdRadius.distance / walkingSpeedMetersPerSeconds)
+            ceilToPositiveInteger(nodeInBirdRadius.distance / walkingSpeedMetersPerSeconds)
         );
-        transferableNodes.walkingDistancesMeters.push(Math.ceil(nodeInBirdRadius.distance));
+        transferableNodes.walkingDistancesMeters.push(ceilToPositiveInteger(nodeInBirdRadius.distance));
     }
     return transferableNodes;
 };
@@ -69,8 +70,8 @@ const getTransferableNodeOsrm = async (
             if (nodeInBirdRadius.distance <= distanceMeters + 100) {
                 // osrm will calculate and give very short durations and distances when the nearest network osm node is very far (out of routing network), so we make sure not to keep these.
                 transferableNodes.nodesIds.push(nodeInBirdRadius.id);
-                transferableNodes.walkingTravelTimesSeconds.push(Math.ceil(travelTimeSeconds));
-                transferableNodes.walkingDistancesMeters.push(Math.ceil(distanceMeters));
+                transferableNodes.walkingTravelTimesSeconds.push(ceilToPositiveInteger(travelTimeSeconds));
+                transferableNodes.walkingDistancesMeters.push(ceilToPositiveInteger(distanceMeters));
             }
         }
     }

@@ -14,6 +14,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from '../path/Path';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
@@ -390,9 +391,9 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         if (_isNumber(period.number_of_units)) {
             period.inboundIntervalSeconds = 0;
             tripsNumberOfUnits = period.number_of_units;
-            tripsIntervalSeconds = Math.ceil(cycleTimeSeconds / period.number_of_units);
+            tripsIntervalSeconds = ceilToPositiveInteger(cycleTimeSeconds / period.number_of_units);
             if (secondAllowed !== true) {
-                tripsIntervalSeconds = Math.ceil(tripsIntervalSeconds / 60) * 60;
+                tripsIntervalSeconds = ceilToPositiveInteger(tripsIntervalSeconds / 60) * 60;
             }
 
             period.calculated_interval_seconds = tripsIntervalSeconds;
@@ -404,18 +405,18 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             // Precise calculation of unit requirements for each direction
 
             // For outbound trips: how many units are needed to maintain the interval
-            const outboundUnitsNeeded = Math.ceil(outboundTotalTimeSeconds / period.interval_seconds);
+            const outboundUnitsNeeded = ceilToPositiveInteger(outboundTotalTimeSeconds / period.interval_seconds);
 
             // For inbound trips: how many units are needed to maintain the interval
-            const inboundUnitsNeeded = Math.ceil(inboundTotalTimeSeconds / period.inbound_interval_seconds);
+            const inboundUnitsNeeded = ceilToPositiveInteger(inboundTotalTimeSeconds / period.inbound_interval_seconds);
 
             // We need enough units for both directions
             tripsNumberOfUnits = outboundUnitsNeeded + inboundUnitsNeeded;
 
             // Check if additional units are needed for simultaneous starts
             const simultaneousStartsNeeded = Math.min(
-                Math.ceil(totalPeriod / period.interval_seconds),
-                Math.ceil(totalPeriod / period.inbound_interval_seconds)
+                ceilToPositiveInteger(totalPeriod / period.interval_seconds),
+                ceilToPositiveInteger(totalPeriod / period.inbound_interval_seconds)
             );
 
             // Ensure a minimum number of units for initial simultaneous departures
@@ -627,8 +628,8 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             const periodDuration = options.endAtSecondsSinceMidnight - options.startAtSecondsSinceMidnight;
 
             // Estimated number of departures in each direction during the period
-            const outboundDepartures = Math.ceil(periodDuration / options.outboundIntervalSeconds);
-            const inboundDepartures = Math.ceil(periodDuration / options.inboundIntervalSeconds);
+            const outboundDepartures = ceilToPositiveInteger(periodDuration / options.outboundIntervalSeconds);
+            const inboundDepartures = ceilToPositiveInteger(periodDuration / options.inboundIntervalSeconds);
 
             // Calculate the distribution ratio based on the number of departures
             const totalDepartures = outboundDepartures + inboundDepartures;
@@ -742,7 +743,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         // Initialize units with staggered start times
         for (let i = 0; i < unitsCount; i++) {
             const unit = options.units[i];
-            unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
+            unit.timeInCycle = i === 0 ? 0 : ceilToPositiveInteger((i * cycleTimeSeconds) / unitsCount);
         }
 
         // Trip generation loop
@@ -858,13 +859,13 @@ export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
             // ignore number of units if interval is set
             tripsIntervalSeconds = period.interval_seconds;
             tripsNumberOfUnitsFloat = cycleTimeSeconds / period.interval_seconds;
-            tripsNumberOfUnits = Math.ceil(cycleTimeSeconds / period.interval_seconds);
+            tripsNumberOfUnits = ceilToPositiveInteger(cycleTimeSeconds / period.interval_seconds);
             period.calculated_interval_seconds = tripsIntervalSeconds;
             period.calculated_number_of_units = tripsNumberOfUnitsFloat;
         } else if (_isNumber(period.number_of_units)) {
-            tripsIntervalSeconds = Math.ceil(cycleTimeSeconds / period.number_of_units);
+            tripsIntervalSeconds = ceilToPositiveInteger(cycleTimeSeconds / period.number_of_units);
             tripsIntervalSeconds =
-                secondAllowed === true ? tripsIntervalSeconds : Math.ceil(tripsIntervalSeconds / 60) * 60;
+                secondAllowed === true ? tripsIntervalSeconds : ceilToPositiveInteger(tripsIntervalSeconds / 60) * 60;
             tripsNumberOfUnits = period.number_of_units;
             period.calculated_interval_seconds = tripsIntervalSeconds;
             period.calculated_number_of_units = period.number_of_units;
@@ -915,7 +916,7 @@ export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
 
         for (let i = 0; i < unitsCount; i++) {
             const unit = units[i];
-            unit.timeInCycle = Math.ceil((i * cycleTimeSeconds) / unitsCount);
+            unit.timeInCycle = i === 0 ? 0 : ceilToPositiveInteger((i * cycleTimeSeconds) / unitsCount);
         }
 
         for (let timeSoFar = startAtSecondsSinceMidnight; timeSoFar < endAtSecondsSinceMidnight; timeSoFar++) {
@@ -1214,10 +1215,12 @@ class Schedule extends ObjectWithHistory<ScheduleAttributes> implements Saveable
 
         // get outbound/inbound paths info to calculate number of units required or minimum interval and travel times:
 
-        // calculate durations
-        const outboundTotalTimeSeconds = outboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0;
+        // calculate durations (ceil to whole seconds: timeInCycle advances by 1 each simulated second)
+        const outboundTotalTimeSeconds = ceilToPositiveInteger(
+            outboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0
+        );
         const inboundTotalTimeSeconds = inboundPath
-            ? inboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0
+            ? ceilToPositiveInteger(inboundPath.attributes.data.operatingTimeWithLayoverTimeSeconds || 0)
             : 0;
 
         // Create the generation strategy

@@ -25,6 +25,7 @@ import { featureCollection as turfFeatureCollection } from '@turf/turf';
 // eslint-disable-next-line n/no-unpublished-import
 import type { Route as GtfsRoute } from 'gtfs-types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModes.length; i < countI; i++) {
@@ -47,7 +48,7 @@ export interface LineAttributes extends GenericAttributes {
     is_enabled?: boolean;
     data: {
         gtfs?: GtfsRoute;
-        deadHeadTravelTimesBetweenPathsByPathId?: { [key: string]: { [key: string]: number } };
+        deadHeadTravelTimesBetweenPathsByPathId?: { [key: string]: { [key: string]: number | null } };
         numberOfVehicles?: number;
         [key: string]: any;
     };
@@ -219,16 +220,16 @@ export class Line extends ObjectWithHistory<LineAttributes> implements Saveable 
                             overview: 'full'
                         });
 
-                        const travelTimeSeconds = _get(routingResult, 'routes[0].duration', null);
-
-                        if (travelTimeSeconds === null) {
+                        let travelTimeSeconds = _get(routingResult, 'routes[0].duration', null);
+                        if (travelTimeSeconds === -1 || travelTimeSeconds === null) {
                             console.error(
                                 `line ${this.toString()} has a deadHeadTravelTime that could not be found (path1: ${path1Id} > path2: ${path2Id}), we will use travel time of first `
                             );
+                            travelTimeSeconds = null;
                         }
 
                         deadHeadTravelTimesBetweenPathsByPathId[path1Id][path2Id] =
-                            travelTimeSeconds !== null ? Math.ceil(travelTimeSeconds) : null;
+                            travelTimeSeconds !== null ? ceilToPositiveInteger(travelTimeSeconds) : null;
                         routingsByPairsOfNodes[path1TerminalNodeId][path2TerminalNodeId] =
                             deadHeadTravelTimesBetweenPathsByPathId[path1Id][path2Id];
                     }

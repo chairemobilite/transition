@@ -140,11 +140,25 @@ export const sequentialArray = function (n: number, startAt = 0, increment = 1):
     return array;
 };
 
+/**
+ * Ceil a numeric value to a positive integer.
+ * @param value The value to ceil to a positive integer.
+ * @returns The value rounded up to the nearest positive integer.
+ * Throws an error if the value is not a finite number or < 0.
+ */
+export const ceilToPositiveInteger = function (value: number): number {
+    if (!Number.isFinite(value) || value < 0) {
+        throw new Error('ceilToPositiveInteger: Value must be a finite number and >= 0');
+    }
+    return Math.ceil(value);
+};
+
 export default {
     parseIntOrNull,
     parseFloatOrNull,
     roundToDecimals,
     median,
     permutationsWithRepetition,
-    sequentialArray
+    sequentialArray,
+    ceilToPositiveInteger
 };

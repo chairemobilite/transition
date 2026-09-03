@@ -124,3 +124,25 @@ test('should get sequential array', function() {
     expect(MathUtils.sequentialArray(4, 2, 2)).toEqual([2,4,6,8]);
     expect(MathUtils.sequentialArray(5, 1.5, 0.5)).toEqual([1.5,2,2.5,3,3.5]);
 });
+
+test.each([
+    [540, 540],
+    [540.1, 541],
+    [540.7, 541],
+    [0, 0],
+    [0.0, 0],
+    [0.1, 1],
+    [1.9, 2]
+])('should ceil to positive integer %p => %p', (input, expected) => {
+    expect(MathUtils.ceilToPositiveInteger(input)).toBe(expected);
+});
+
+test.each([
+    [-5],
+    [-0.1],
+    [NaN],
+    [Infinity],
+    [-Infinity]
+])('should throw for invalid input %p', (input) => {
+    expect(() => MathUtils.ceilToPositiveInteger(input as any)).toThrow('ceilToPositiveInteger: Value must be a finite number and >= 0');
+});

@@ -23,7 +23,7 @@ import type { SegmentChangeInfo } from './PathTypes';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { roundToDecimals, median } from 'chaire-lib-common/lib/utils/MathUtils';
+import { roundToDecimals, median, ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 // TODO Should not be needed
 // import ODProximityLineGenerator from './generators/ODProximityLineGenerator';
 import lineModesConfig from '../../config/lineModes';
@@ -926,8 +926,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             .filter((distance) => distance !== null) as number[];
 
         if (segmentDistances.length > 0) {
-            variables.d_l_min = Math.ceil(Math.min(...segmentDistances));
-            variables.d_l_max = Math.ceil(Math.max(...segmentDistances));
+            variables.d_l_min = ceilToPositiveInteger(Math.min(...segmentDistances));
+            variables.d_l_max = ceilToPositiveInteger(Math.max(...segmentDistances));
             variables.d_l_avg = roundToDecimals(_mean(segmentDistances), 0);
             variables.d_l_med = roundToDecimals(median(segmentDistances), 0);
         }
@@ -958,11 +958,11 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         if (
             nodesCount < 2 ||
             _isBlank(this.get('direction')) ||
-            !_isNumber(this.getData('totalDistanceMeters')) ||
-            !_isNumber(this.getData('operatingTimeWithLayoverTimeSeconds')) ||
-            !_isNumber(this.getData('travelTimeWithoutDwellTimesSeconds')) ||
-            !_isNumber(this.getData('totalDwellTimeSeconds')) ||
-            !_isNumber(this.getData('layoverTimeSeconds')) ||
+            !_isFinite(this.getData('totalDistanceMeters')) ||
+            !_isFinite(this.getData('operatingTimeWithLayoverTimeSeconds')) ||
+            !_isFinite(this.getData('travelTimeWithoutDwellTimesSeconds')) ||
+            !_isFinite(this.getData('totalDwellTimeSeconds')) ||
+            !_isFinite(this.getData('layoverTimeSeconds')) ||
             this.getData('routingFailed') === true ||
             this.attributes.segments.length !== nodesCount - 1 ||
             dwellTimesSeconds.length !== nodesCount ||
@@ -972,12 +972,12 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         }
         for (let i = 0, count = nodesCount - 1; i < count; i++) {
             if (
-                !_isNumber(dwellTimesSeconds[i]) ||
+                !_isFinite(dwellTimesSeconds[i]) ||
                 dwellTimesSeconds[i] < 0 ||
                 !segments[i] ||
-                !_isNumber(segments[i].distanceMeters) ||
+                !_isFinite(segments[i].distanceMeters) ||
                 segments[i].distanceMeters === null ||
-                !_isNumber(segments[i].travelTimeSeconds) ||
+                !_isFinite(segments[i].travelTimeSeconds) ||
                 segments[i].travelTimeSeconds < 0
             ) {
                 /*console.log(dwellTimesSeconds[i], segments[i])*/
@@ -1153,7 +1153,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             nodeDwellTimeSeconds !== undefined && nodeDwellTimeSeconds >= 0
                 ? nodeDwellTimeSeconds
                 : defaultGeneralDwellTimeSeconds;
-        return Math.ceil(Math.max(defaultNodeDwellTime, pathDwellTimeSeconds));
+        return ceilToPositiveInteger(Math.max(defaultNodeDwellTime, pathDwellTimeSeconds));
     }
 
     getTemporalTortuosity() {
@@ -1266,7 +1266,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
 
     averageInterNodesDistanceMeters() {
         if (this.isComplete()) {
-            return Math.ceil((this.attributes.data.totalDistanceMeters || 0) / (this.countNodes() - 1));
+            return ceilToPositiveInteger((this.attributes.data.totalDistanceMeters || 0) / (this.countNodes() - 1));
         }
         return null;
     }

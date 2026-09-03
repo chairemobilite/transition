@@ -15,6 +15,7 @@ import {
     OdTripSimulationDescriptor,
     OdTripSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 export const OdTripSimulationTitle = 'OdTripSimulation';
 
@@ -154,13 +155,13 @@ export default class OdTripSimulation implements SimulationMethod {
             (this.simulationDataAttributes.transitNetworkDesignParameters.nbOfVehicles || 1) * 120;
 
         return {
-            transfersCount: Math.ceil(transfersCount),
+            transfersCount: ceilToPositiveInteger(transfersCount),
             totalCount: Math.round(totalCount),
             routedCount: Math.round(routedCount),
             nonRoutedCount: Math.round(nonRoutedCount),
-            totalWalkingTimeMinutes: Math.ceil(totalWalkingTimeMinutes),
-            totalWaitingTimeMinutes: Math.ceil(totalWaitingTimeMinutes),
-            totalTravelTimeMinutes: Math.ceil(totalTravelTimeMinutes),
+            totalWalkingTimeMinutes: ceilToPositiveInteger(totalWalkingTimeMinutes),
+            totalWaitingTimeMinutes: ceilToPositiveInteger(totalWaitingTimeMinutes),
+            totalTravelTimeMinutes: ceilToPositiveInteger(totalTravelTimeMinutes),
             avgWalkingTimeMinutes: Math.round((totalWalkingTimeMinutes / routedCount) * 100) / 100,
             avgWaitingTimeMinutes: Math.round((totalWaitingTimeMinutes / routedCount) * 100) / 100,
             avgTravelTimeMinutes: Math.round((totalTravelTimeMinutes / routedCount) * 100) / 100,

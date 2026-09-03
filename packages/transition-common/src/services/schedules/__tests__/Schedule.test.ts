@@ -473,6 +473,65 @@ describe('generateForPeriod', () => {
         }
     });
 
+    describe('generates trips when operatingTimeWithLayoverTimeSeconds is fractional', () => {
+        // 540.7 ceils to 541 (trunc/round-down would be 540); 540.3 ceils to 541 (trunc/round would be 540)
+        const outboundDurationSeconds = 540.7;
+        const inboundDurationSeconds = 540.3;
+        const intervalSeconds = minutesToSeconds(15) as number;
+        let tripsByDirection: {
+            outbound: ScheduleTypes.SchedulePeriodTrip[];
+            inbound: ScheduleTypes.SchedulePeriodTrip[];
+        };
+        let calculatedNumberOfUnits: number | undefined;
+
+        beforeEach(() => {
+            const localPathCollection = new PathCollection([], {});
+            const localCollectionManager = new CollectionManager(null);
+            const outbound = getPathObject({ lineId, pathCollection: localPathCollection }, 'smallReal');
+            const inbound = getPathObject({ lineId, pathCollection: localPathCollection }, 'smallReal');
+            inbound.attributes.direction = 'inbound';
+            outbound.attributes.data.operatingTimeWithLayoverTimeSeconds = outboundDurationSeconds;
+            inbound.attributes.data.operatingTimeWithLayoverTimeSeconds = inboundDurationSeconds;
+
+            localCollectionManager.add(
+                'lines',
+                new LineCollection([new Line({ id: lineId, path_ids: [outbound.getId(), inbound.getId()] }, false)], {})
+            );
+            localCollectionManager.add('paths', localPathCollection);
+
+            const testAttributes = _cloneDeep(scheduleAttributesForUpdate);
+            const testPeriods = _cloneDeep(smallPeriodsForUpdate);
+            testPeriods[0].interval_seconds = intervalSeconds;
+            testPeriods[0].outbound_path_id = outbound.getId();
+            testPeriods[0].inbound_path_id = inbound.getId();
+            testAttributes.periods = testPeriods;
+
+            const schedule = new Schedule(testAttributes, true, localCollectionManager);
+            const { trips } = schedule.generateForPeriod(testPeriods[0].period_shortname as string);
+            tripsByDirection = {
+                outbound: trips.filter((trip) => trip.path_id === outbound.getId()),
+                inbound: trips.filter((trip) => trip.path_id === inbound.getId())
+            };
+            calculatedNumberOfUnits = schedule.attributes.periods[0].calculated_number_of_units;
+        });
+
+        test.each([['outbound'], ['inbound']] as const)('%s trip count is greater than zero', (direction) => {
+            expect(tripsByDirection[direction].length).toBeGreaterThan(0);
+        });
+
+        test('ceils both path durations to whole seconds before scheduling', () => {
+            const periodStart = timeStrToSecondsSinceMidnight('10:00') as number;
+            // Unit 0's return starts after ceil(540.7)=541s; trunc would be 540s.
+            expect(tripsByDirection.inbound.map((trip) => trip.departure_time_seconds)).toContain(
+                periodStart + Math.ceil(outboundDurationSeconds)
+            );
+            // Cycle is ceil(540.7)+ceil(540.3)=1082; trunc 1080, round 1081.
+            expect(calculatedNumberOfUnits).toEqual(
+                (Math.ceil(outboundDurationSeconds) + Math.ceil(inboundDurationSeconds)) / intervalSeconds
+            );
+        });
+    });
+
     test('Update unexisting period', () => {
         // Use a 15-minute frequency
         const testFrequencyMinutes = 15;

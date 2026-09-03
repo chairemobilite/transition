@@ -21,6 +21,7 @@ import scheduleDbQueries from '../../models/db/transitSchedules.db.queries';
 import { objectToCache as lineObjectToCache } from '../../models/capnpCache/transitLines.cache.queries';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 type TripAndStopTimes = { trip: GtfsTypes.Trip; stopTimes: StopTime[] };
 
@@ -432,8 +433,8 @@ const generateFrequencyBasedTrips = (
         // For interval, take the average of inbound/outbound frequencies
         currentPeriod.interval_seconds =
             inboundData !== undefined
-                ? Math.ceil((outboundData.frequencySeconds + inboundData.frequencySeconds) / 2)
-                : Math.ceil(outboundData.frequencySeconds);
+                ? ceilToPositiveInteger((outboundData.frequencySeconds + inboundData.frequencySeconds) / 2)
+                : ceilToPositiveInteger(outboundData.frequencySeconds);
 
         schedule.generateForPeriod(currentPeriod.period_shortname as string);
     }
