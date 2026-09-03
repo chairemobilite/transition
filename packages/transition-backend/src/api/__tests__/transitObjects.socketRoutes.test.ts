@@ -92,10 +92,10 @@ describe('Object socket routes', () => {
         test('deleteMultiple when the route exists', (done) => {
             // Create ids to delete and set the mock to return those ids as deleted
             const objectIdsToDelete = [uuidV4(), uuidV4()];
-            (mockDataHandlerWithAllFunctions.deleteMultiple as jest.MockedFunction<Exclude<typeof mockDataHandlerWithAllFunctions.deleteMultiple, undefined>>).mockResolvedValueOnce(Status.createOk({ deletedIds: objectIdsToDelete }));
-            socketStub.emit('transitObjects.deleteMultiple', objectIdsToDelete, (status: Status.Status<{ deletedIds: string[] }>) => {
+            (mockDataHandlerWithAllFunctions.deleteMultiple as jest.MockedFunction<Exclude<typeof mockDataHandlerWithAllFunctions.deleteMultiple, undefined>>).mockResolvedValueOnce(Status.createOk({ deletedCount: objectIdsToDelete.length }));
+            socketStub.emit('transitObjects.deleteMultiple', objectIdsToDelete, (status: Status.Status<{ deletedCount: number }>) => {
                 expect(Status.isStatusOk(status)).toEqual(true);
-                expect(Status.unwrap(status)).toEqual({ deletedIds: objectIdsToDelete});
+                expect(Status.unwrap(status)).toEqual({ deletedCount: objectIdsToDelete.length });
                 expect(mockDataHandlerWithAllFunctions.deleteMultiple).toHaveBeenLastCalledWith(socketStub, objectIdsToDelete);
                 done();
             });

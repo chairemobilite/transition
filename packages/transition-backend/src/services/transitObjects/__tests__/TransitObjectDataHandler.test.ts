@@ -68,40 +68,40 @@ describe('TransitObjectDataHandler scenarios', () => {
 
         test('returns ok and emits socket notifications when some objects were deleted', async () => {
             const idsToDelete = ['scenario-1', 'scenario-2'];
-            mockedScenariosDeleteMultiple.mockResolvedValueOnce(idsToDelete);
+            mockedScenariosDeleteMultiple.mockResolvedValueOnce(idsToDelete.length);
             mockedIsSocketIo.mockReturnValue(true);
 
             const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, idsToDelete);
 
             expect(mockedScenariosDeleteMultiple).toHaveBeenCalledWith(idsToDelete);
             expect(Status.isStatusOk(status)).toEqual(true);
-            expect(Status.unwrap(status)).toEqual({ deletedIds: idsToDelete });
+            expect(Status.unwrap(status)).toEqual({ deletedCount: idsToDelete.length });
             expect((socketStub as any).broadcast.emit).toHaveBeenCalledWith('data.updated');
             expect((socketStub as any).emit).toHaveBeenCalledWith('cache.dirty');
         });
 
         test('returns ok and does not emit when socket is not Socket.IO', async () => {
             const idsToDelete = ['scenario-1', 'scenario-2'];
-            mockedScenariosDeleteMultiple.mockResolvedValueOnce(idsToDelete);
+            mockedScenariosDeleteMultiple.mockResolvedValueOnce(idsToDelete.length);
             mockedIsSocketIo.mockReturnValue(false);
 
             const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, idsToDelete);
 
             expect(mockedScenariosDeleteMultiple).toHaveBeenCalledWith(idsToDelete);
             expect(Status.isStatusOk(status)).toEqual(true);
-            expect(Status.unwrap(status)).toEqual({ deletedIds: idsToDelete });
+            expect(Status.unwrap(status)).toEqual({ deletedCount: idsToDelete.length });
             expect((socketStub as any).broadcast.emit).not.toHaveBeenCalled();
             expect((socketStub as any).emit).not.toHaveBeenCalled();
         });
 
         test('does not emit notifications when no object was deleted', async () => {
-            mockedScenariosDeleteMultiple.mockResolvedValueOnce([]);
+            mockedScenariosDeleteMultiple.mockResolvedValueOnce(0);
             mockedIsSocketIo.mockReturnValue(true);
 
             const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, ['scenario-1']);
 
             expect(Status.isStatusOk(status)).toEqual(true);
-            expect(Status.unwrap(status)).toEqual({ deletedIds: [] });
+            expect(Status.unwrap(status)).toEqual({ deletedCount: 0 });
             expect((socketStub as any).broadcast.emit).not.toHaveBeenCalled();
             expect((socketStub as any).emit).not.toHaveBeenCalled();
         });

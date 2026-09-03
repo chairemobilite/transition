@@ -349,8 +349,16 @@ describe(`${objectName}`, () => {
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
-        const ids = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
-        expect(ids).toEqual([newObjectAttributes.id, newObjectAttributes2.id]);
+        // One has just been deleted, the other is frozen, so no object should be deleted here
+        const deletedCount = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCount).toEqual(0);
+
+        // Update the second object to not be frozen anymore, so it can be deleted in the next step
+        const idUpdated = await dbQueries.update(newObjectAttributes2.id, { is_frozen: false });
+        expect(idUpdated).toBe(newObjectAttributes2.id);
+        // Second object should be deleted this time
+        const deletedCountAfterUnfreeze = await dbQueries.deleteMultiple([newObjectAttributes.id, newObjectAttributes2.id]);
+        expect(deletedCountAfterUnfreeze).toEqual(1);
 
     });
 

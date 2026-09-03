@@ -46,7 +46,7 @@ export interface TransitObjectDataHandler {
     update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>;
     delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     // Optional function to delete multiple objects. Only objects supporting it will have this function
-    deleteMultiple?: (socket: EventEmitter, ids: string[]) => Promise<Status.Status<{ deletedIds: string[] }>>;
+    deleteMultiple?: (socket: EventEmitter, ids: string[]) => Promise<Status.Status<{ deletedCount: number }>>;
     geojsonCollection?: (
         params?
     ) => Promise<
@@ -300,13 +300,13 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                             'DeleteMultipleWithObjectCacheNotSupported'
                         );
                     }
-                    const deletedIds = await transitClassConfig.deleteMultiple(ids);
-                    if (deletedIds.length > 0 && isSocketIo(socket)) {
+                    const deletedCount = await transitClassConfig.deleteMultiple(ids);
+                    if (deletedCount > 0 && isSocketIo(socket)) {
                         // Objects were deleted, notify clients
                         socket.broadcast.emit('data.updated');
                         socket.emit('cache.dirty');
                     }
-                    return Status.createOk({ deletedIds });
+                    return Status.createOk({ deletedCount });
                 } catch (error) {
                     console.error('Error deleting multiple objects: ', error);
                     return Status.createError(

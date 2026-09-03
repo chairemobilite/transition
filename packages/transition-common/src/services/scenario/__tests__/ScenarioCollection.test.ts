@@ -129,7 +129,7 @@ test('should construct scenario collection with or without features', function()
 });
 
 describe('deleteByIds', () => {
-    const deleteMultipleSocketMock = jest.fn().mockImplementation(async (deletedIds, callback) => callback(Status.createOk({ deletedIds })));
+    const deleteMultipleSocketMock = jest.fn().mockImplementation(async (deletedIds, callback) => callback(Status.createOk({ deletedCount: deletedIds.length })));
 
     beforeAll(() => {
         socketMock.on('transitScenarios.deleteMultiple', deleteMultipleSocketMock);
@@ -148,9 +148,9 @@ describe('deleteByIds', () => {
         const collection = new ScenarioCollection([], {}, eventManager);
         
         const serviceIds = [uuidV4(), uuidV4(), uuidV4()];
-        const deletedIds = await collection.deleteByIds(serviceIds, socketMock);
+        const deletedCount = await collection.deleteByIds(serviceIds, socketMock);
 
-        expect(deletedIds).toEqual(serviceIds);
+        expect(deletedCount).toEqual(serviceIds.length);
         expect(deleteMultipleSocketMock).toHaveBeenCalledTimes(1);
         expect(deleteMultipleSocketMock).toHaveBeenCalledWith(serviceIds, expect.any(Function));
     });
@@ -160,12 +160,12 @@ describe('deleteByIds', () => {
         const collection = new ScenarioCollection([], {}, eventManager);
 
         // Return a successful response with only the first service id deleted
-        deleteMultipleSocketMock.mockImplementationOnce(async (ids, callback) => callback(Status.createOk({ deletedIds: [ids[0]] })));
+        deleteMultipleSocketMock.mockImplementationOnce(async (ids, callback) => callback(Status.createOk({ deletedCount: 1 })));
         
         const serviceIds = [uuidV4(), uuidV4(), uuidV4()];
-        const deletedIds = await collection.deleteByIds(serviceIds, socketMock);
+        const deletedCount = await collection.deleteByIds(serviceIds, socketMock);
 
-        expect(deletedIds).toEqual([serviceIds[0]]);
+        expect(deletedCount).toEqual(1);
         expect(deleteMultipleSocketMock).toHaveBeenCalledTimes(1);
         expect(deleteMultipleSocketMock).toHaveBeenCalledWith(serviceIds, expect.any(Function));
     });
