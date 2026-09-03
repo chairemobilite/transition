@@ -1,0 +1,10 @@
+[out:json][timeout:100];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+way["amenity"~"^(kindergarten|childcare)$"](poly:{{polyboundary}});
+relation["amenity"~"^(kindergarten|childcare)$"](poly:{{polyboundary}});
+
+);
+out geom;

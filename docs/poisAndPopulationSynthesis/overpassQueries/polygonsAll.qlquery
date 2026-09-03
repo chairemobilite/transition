@@ -1,0 +1,25 @@
+[out:json][timeout:25][bbox:{{bbox}}];
+(
+  way[~"^(leisure|craft|man_made|emergency|healthcare|military|office|historic|public_transport|shop|tourism|)$"~"."](poly:{{polyboundary}});
+  (way["building"](poly:{{polyboundary}}); - way["building"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan)$"](poly:{{polyboundary}}););
+  (way["amenity"](poly:{{polyboundary}}); - way["amenity"="parking"](poly:{{polyboundary}}););
+  way["building"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan)$"]["amenity"](poly:{{polyboundary}});
+  way["railway"~"^(station|roundhouse|wash)$"](poly:{{polyboundary}});
+  way["waterway"~"^(dock|boatyard|fuel)$"](poly:{{polyboundary}});
+  way["highway"~"^(services|rest_area)$"](poly:{{polyboundary}});
+  way["power"~"^(plant|substation)$"](poly:{{polyboundary}});
+  way["telecom"~"^(data_center)$"](poly:{{polyboundary}});  
+
+  relation["type"="multipolygon"][~"^(leisure|amenity|craft|man_made|emergency|healthcare|military|office|historic|public_transport|shop|tourism|)$"~"."](poly:{{polyboundary}});
+  (relation["type"="multipolygon"]["building"](poly:{{polyboundary}}); - relation["type"="multipolygon"]["building"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan)$"](poly:{{polyboundary}}););
+  (relation["type"="multipolygon"]["amenity"](poly:{{polyboundary}}); - relation["type"="multipolygon"]["amenity"="parking"](poly:{{polyboundary}}););
+  relation["type"="multipolygon"]["building"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan)$"]["amenity"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["railway"~"^(station|roundhouse|wash)$"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["waterway"~"^(dock|boatyard|fuel)$"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["highway"~"^(services|rest_area)$"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["power"~"^(plant|substation)$"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["telecom"~"^(data_center)$"](poly:{{polyboundary}});
+  
+);
+
+out geom;
