@@ -43,6 +43,8 @@ export interface PreferencesModel {
         overlayOpacity: number;
         /** Overlay color: 'black' or 'white' */
         overlayColor: 'black' | 'white';
+        /** Min map zoom (1–15) for path waypoint layers / editing; not under transit.paths so Path defaults do not copy it */
+        pathWaypointMinZoom: number;
     };
     colorPicker: {
         /** Hexadecimal strings of the various colors that should be available */
@@ -62,7 +64,8 @@ const defaultPreferences: PreferencesModel = {
         zoom: 10,
         basemapShortname: 'osm',
         overlayOpacity: 50,
-        overlayColor: 'black'
+        overlayColor: 'black',
+        pathWaypointMinZoom: 10
     },
     socketUploadChunkSize: 10240000,
     defaultWalkingSpeedMetersPerSeconds: 5 / 3.6,
