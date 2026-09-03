@@ -5,15 +5,247 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { CsvFieldMappingDescriptor, CsvFileAndFieldMapper, CsvFileAndMapping } from '../../../csv';
+import { demandFieldDescriptors } from '../../../transitDemand/TransitOdDemandFromCsv';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+
+type OdTripEvaluationOptions = {
+    // The percentage of the OD trip in the demand to use for the simulation
+    sampleRatio: number;
+    /**
+     * Name fo the fitness function to use for a single trip
+     *
+     * FIXME These functions have hard coded number, we may need to allow to
+     * parameterize the various functions. Now, the functions are defined in the
+     * defaultPreferences, identified by name. See if we need a { type: string;
+     * parameters: ... } type
+     */
+    odTripFitnessFunction: string;
+    /**
+     * Name of the fitness function to use to evaluate the simulation run
+     *
+     * FIXME These functions have hard coded number, we may need to allow to
+     * parameterize the various functions. Now, the functions are defined in the
+     * defaultPreferences, identified by name. See if we need a { type: string;
+     * parameters: ... } type
+     */
+    fitnessFunction: string;
+};
+
+export type OdTripSimulationFromCsvAttributes = {
+    projection: string;
+    id: string;
+    originLat: string;
+    originLon: string;
+    destinationLat: string;
+    destinationLon: string;
+    expansionFactor?: string;
+};
+
+export type OdTripSimulationDemandFromCsvAttributes = CsvFileAndMapping<OdTripSimulationFromCsvAttributes>;
+
+export type NodeWeightFromCsvAttributes = {
+    nodeUuid: string;
+    weight: string;
+};
+
+export type NodeWeightCsvFileAndMapping = CsvFileAndMapping<NodeWeightFromCsvAttributes>;
 
 // Define OD trip simulation options
 export type OdTripSimulationOptions = {
-    dataSourceId: string;
-    sampleRatio: number;
-    odTripFitnessFunction: string;
-    fitnessFunction: string;
+    // Transit routing parameters to use for the simulation
+    transitRoutingAttributes: TransitRoutingBaseAttributes;
+    evaluationOptions: OdTripEvaluationOptions;
+    // Describe where to get the OD trip data for the simulation
+    demandAttributes: OdTripSimulationDemandFromCsvAttributes;
+    /** Optional per-node weights to bias the network design toward better-served nodes */
+    nodeWeightAttributes?: NodeWeightCsvFileAndMapping;
 };
+
+class TransitRoutingAttributesDescriptor implements SimulationAlgorithmDescriptor<TransitRoutingBaseAttributes> {
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.transitRoutingAttributes';
+
+    getOptions = () => {
+        const transitRoutingAttributesDefaultsFromPref = Preferences.get(
+            'transit.routing.transit'
+        ) as TransitRoutingBaseAttributes;
+        return {
+            minWaitingTimeSeconds: {
+                i18nName: 'transit:transitRouting.MinimumWaitingTimeMinutes',
+                i18nHelp: 'transit:transitRouting.MinimumWaitingTimeMinutesHelp',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
+                validate: (value: number) => value >= 0,
+                default: transitRoutingAttributesDefaultsFromPref.minWaitingTimeSeconds
+            },
+            maxTransferTravelTimeSeconds: {
+                i18nName: 'transit:transitRouting.MaximumTransferTravelTimeMinutes',
+                i18nHelp: 'transit:transitRouting.MaximumTransferTravelTimeMinutesHelp',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
+                validate: (value: number) => value >= 0,
+                default: transitRoutingAttributesDefaultsFromPref.maxTransferTravelTimeSeconds
+            },
+            maxAccessEgressTravelTimeSeconds: {
+                i18nName: 'transit:transitRouting.MaximumAccessEgressTravelTimeMinutes',
+                i18nHelp: 'transit:transitRouting.MaximumAccessEgressTravelTimeMinutesHelp',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
+                validate: (value: number) => value >= 0,
+                default: transitRoutingAttributesDefaultsFromPref.maxAccessEgressTravelTimeSeconds
+            },
+            maxWalkingOnlyTravelTimeSeconds: {
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.MaxWalkingOnlyTravelTimeMinutes',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
+                validate: (value: number) => value >= 0,
+                default: transitRoutingAttributesDefaultsFromPref.maxWalkingOnlyTravelTimeSeconds
+            },
+            maxFirstWaitingTimeSeconds: {
+                i18nName: 'transit:transitRouting.MaximumFirstWaitingTimeMinutes',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
+                validate: (value: number) => value >= 0,
+                default: transitRoutingAttributesDefaultsFromPref.maxFirstWaitingTimeSeconds
+            },
+            maxTotalTravelTimeSeconds: {
+                i18nName: 'transit:transitRouting.MaximumTotalTravelTimeMinutes',
+                type: 'seconds' as const,
+                askAs: 'minutes' as const,
+                validate: (value: number) => value >= 0,
+                default: transitRoutingAttributesDefaultsFromPref.maxTotalTravelTimeSeconds
+            },
+            walkingSpeedMps: {
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.WalkingSpeedMps',
+                type: 'number' as const,
+                validate: (value: number) => value > 0,
+                default: transitRoutingAttributesDefaultsFromPref.walkingSpeedMps
+            },
+            walkingSpeedFactor: {
+                i18nName: 'transit:networkDesign.simulationMethods.odTrips.WalkingSpeedFactor',
+                i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.WalkingSpeedFactorHelp',
+                type: 'number' as const,
+                validate: (value: number) => value > 0,
+                default: transitRoutingAttributesDefaultsFromPref.walkingSpeedFactor
+            }
+        };
+    };
+
+    validateOptions = (_options: Partial<TransitRoutingBaseAttributes>): { valid: boolean; errors: string[] } => {
+        return { valid: true, errors: [] };
+    };
+}
+
+class SimulationOptionsDescriptor implements SimulationAlgorithmDescriptor<OdTripEvaluationOptions> {
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.simulationOptions';
+
+    getOptions = () => ({
+        sampleRatio: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.OdTripsSampleRatio',
+            type: 'percentage' as const,
+            validate: (value: number) => value > 0 && value <= 1,
+            default: 1
+        },
+        odTripFitnessFunction: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.fitness.odTripFitnessFunction',
+            i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.fitness.help.odTripFitnessFunction',
+            type: 'select' as const,
+            required: true,
+            choices: () => [
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.travelTimeCost',
+                    value: 'travelTimeCost'
+                },
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.travelTimeWithTransferPenalty',
+                    value: 'travelTimeWithTransferPenalty'
+                }
+            ]
+        },
+        fitnessFunction: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.fitness.fitnessFunction',
+            i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.fitness.help.fitnessFunction',
+            type: 'select' as const,
+            required: true,
+            choices: () => [
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyUserPlusOperatingCosts',
+                    value: 'hourlyUserPlusOperatingCosts'
+                },
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyUserCosts',
+                    value: 'hourlyUserCosts'
+                },
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.hourlyOperatingCosts',
+                    value: 'hourlyOperatingCosts'
+                },
+                {
+                    label: 'transit:networkDesign.simulationMethods.odTrips.fitness.differentialUserCosts',
+                    value: 'differentialUserCosts'
+                }
+            ]
+        }
+    });
+
+    validateOptions = (
+        _options: Partial<OdTripEvaluationOptions>
+    ): { valid: boolean; errors: TranslatableMessage[] } => {
+        return { valid: true, errors: [] };
+    };
+}
+
+// Add expansion factor to the demand field descriptors, and time is not required
+const demandFieldsWithoutTime = demandFieldDescriptors.filter((descriptor) => descriptor.key !== 'time');
+const odDemandFieldDescriptors: CsvFieldMappingDescriptor[] = [
+    ...demandFieldsWithoutTime,
+    {
+        key: 'expansionFactor',
+        i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.expansionFactorAttribute',
+        type: 'single',
+        required: false,
+        autoMatch: ['expansion_factor', 'expansionFactor', 'factor', 'exp_factor']
+    }
+];
+
+/**
+ * Describe a CSV file field mapping for a transition origin/destination pair file
+ */
+export class TransitOdTripSimulationDemandFromCsv extends CsvFileAndFieldMapper<OdTripSimulationFromCsvAttributes> {
+    constructor(csvFileAndMapping?: OdTripSimulationDemandFromCsvAttributes | undefined) {
+        super(odDemandFieldDescriptors, csvFileAndMapping);
+    }
+}
+
+const nodeWeightFieldDescriptors: CsvFieldMappingDescriptor[] = [
+    {
+        key: 'nodeUuid',
+        i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightUuid',
+        type: 'single',
+        required: true,
+        autoMatch: ['uuid', 'id', 'node_uuid', 'nodeUuid', 'node_id', 'nodeId']
+    },
+    {
+        key: 'weight',
+        i18nLabel: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightValue',
+        type: 'single',
+        required: true,
+        autoMatch: ['weight', 'node_weight']
+    }
+];
+
+/** Describe a CSV file field mapping for node weights (uuid + weight) */
+export class NodeWeightFromCsvMapper extends CsvFileAndFieldMapper<NodeWeightFromCsvAttributes> {
+    constructor(csvFileAndMapping?: NodeWeightCsvFileAndMapping | undefined) {
+        super(nodeWeightFieldDescriptors, csvFileAndMapping);
+    }
+}
+
+const transitRoutingAttributesDescriptor = new TransitRoutingAttributesDescriptor();
+const simulationOptionsDescriptor = new SimulationOptionsDescriptor();
 
 /**
  * Descriptor class for the OD trip simulation method options. It documents the
@@ -24,69 +256,61 @@ export type OdTripSimulationOptions = {
  * trip routing results.
  */
 export class OdTripSimulationDescriptor implements SimulationAlgorithmDescriptor<OdTripSimulationOptions> {
-    getTranslatableName = (): string => 'transit:simulation:simulationMethods:OdTrips';
+    getTranslatableName = (): string => 'transit:networkDesign.simulationMethods.odTrips.Title';
 
     // TODO Add help texts
     getOptions = () => ({
-        dataSourceId: {
-            i18nName: 'transit:simulation:simulationMethods:OdTripsDataSource',
-            type: 'select' as const,
-            choices: async () => {
-                // FIXME Still using data source queries. When this code was in the
-                // backend, it used the query to fetch the data source, now let's just
-                // use an empty array (this won't work, but it already doesn't work)
-                const dataSources: { id: string; shortname: string }[] = [];
-                return dataSources.map((ds) => ({
-                    value: ds.id,
-                    label: ds.shortname
-                }));
-            }
+        transitRoutingAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.transitRoutingAttributes',
+            type: 'nested' as const,
+            descriptor: transitRoutingAttributesDescriptor
         },
-        sampleRatio: {
-            i18nName: 'transit:simulation:simulationMethods:OdTripsSampleRatio',
-            type: 'number' as const,
-            validate: (value: number) => value > 0 && value <= 1,
-            default: 1
+        evaluationOptions: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.simulationOptions',
+            type: 'nested' as const,
+            descriptor: simulationOptionsDescriptor
         },
-        odTripFitnessFunction: {
-            i18nName: 'transit:simulation:fitness:odTripFitnessFunction',
-            type: 'select' as const,
-            choices: async () => [
-                {
-                    label: 'transit:simulation:fitness:travelTimeCost',
-                    value: 'travelTimeCost'
-                },
-                {
-                    label: 'transit:simulation:fitness:travelTimeWithTransferPenalty',
-                    value: 'travelTimeWithTransferPenalty'
-                }
-            ]
+        demandAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.demandAttributes',
+            type: 'csvFile' as const,
+            mappingDescriptors: odDemandFieldDescriptors,
+            importFileName: 'transit_od_trips.csv',
+            required: true
         },
-        fitnessFunction: {
-            i18nName: 'transit:simulation:fitness:fitnessFunction',
-            type: 'select' as const,
-            choices: async () => [
-                {
-                    label: 'transit:simulation:fitness:hourlyUserPlusOperatingCosts',
-                    value: 'hourlyUserPlusOperatingCosts'
-                },
-                {
-                    label: 'transit:simulation:fitness:hourlyUserCosts',
-                    value: 'hourlyUserCosts'
-                },
-                {
-                    label: 'transit:simulation:fitness:hourlyOperatingCosts',
-                    value: 'hourlyOperatingCosts'
-                }
-            ]
+        nodeWeightAttributes: {
+            i18nName: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightAttributes',
+            i18nHelp: 'transit:networkDesign.simulationMethods.odTrips.nodeWeightHelp',
+            type: 'csvFile' as const,
+            mappingDescriptors: nodeWeightFieldDescriptors,
+            importFileName: 'node_weights.csv'
         }
     });
 
-    validateOptions = (_options: Partial<OdTripSimulationOptions>): { valid: boolean; errors: string[] } => {
-        const valid = true;
-        const errors: string[] = [];
+    validateOptions = (
+        options: Partial<OdTripSimulationOptions>
+    ): { valid: boolean; errors: TranslatableMessage[] } => {
+        let valid = true;
+        const errors: TranslatableMessage[] = [];
 
-        // TODO Actually validate something
+        // Validate the demand attributes
+        if (options.demandAttributes !== undefined) {
+            const demandFieldMappers = new TransitOdTripSimulationDemandFromCsv(
+                options.demandAttributes as OdTripSimulationDemandFromCsvAttributes
+            );
+            if (!demandFieldMappers.isValid()) {
+                valid = false;
+                errors.push(...demandFieldMappers.getErrors());
+            }
+        }
+        if (options.nodeWeightAttributes !== undefined) {
+            const nodeWeightMappers = new NodeWeightFromCsvMapper(
+                options.nodeWeightAttributes as NodeWeightCsvFileAndMapping
+            );
+            if (!nodeWeightMappers.isValid()) {
+                valid = false;
+                errors.push(...nodeWeightMappers.getErrors());
+            }
+        }
 
         return { valid, errors };
     };

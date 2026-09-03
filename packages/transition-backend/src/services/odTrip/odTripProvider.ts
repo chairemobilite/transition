@@ -104,12 +104,33 @@ const extractOdTrip = (
         );
     }
 
+    // Collect all fields that were not processed as main fields into data
+    const processedFields = new Set([
+        mappings.id,
+        mappings.originLat,
+        mappings.originLon,
+        mappings.destinationLat,
+        mappings.destinationLon,
+        mappings.time
+    ]);
+    // FIXME Consider rather asking for the fields to keep instead of just
+    // adding them all, as some fields may be very large and we do not want to
+    // keep them in memory. The caller will know which fields are potentially
+    // useful. For now, just keep them all.
+    const data: { [key: string]: unknown } = {};
+    for (const [key, value] of Object.entries(line)) {
+        if (!processedFields.has(key)) {
+            data[key] = value;
+        }
+    }
+
     return new BaseOdTrip({
         internal_id: internalId,
         origin_geography: originGeography,
         destination_geography: destinationGeography,
         timeOfTrip: !_isBlank(departureTime) ? (departureTime as number) : (arrivalTime as number),
-        timeType: !_isBlank(departureTime) ? 'departure' : 'arrival'
+        timeType: !_isBlank(departureTime) ? 'departure' : 'arrival',
+        data
     });
 };
 

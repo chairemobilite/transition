@@ -24,17 +24,18 @@ import { BatchCalculationParameters } from 'transition-common/lib/services/batch
 import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
+import { JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { ExecutableJob } from '../../executableJob/ExecutableJob';
 import { BatchRouteJobType } from '../BatchRoutingJob';
 
-const CSV_FILE_NAME = 'batchRoutingResults.csv';
-const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';
-const GEOMETRY_FILE_NAME = 'batchRoutingGeometryResults.geojson';
+const getCsvFileName = (suffix: string) => `batchRoutingResults${suffix}.csv`;
+const getDetailedCsvFileName = (suffix: string) => `batchRoutingDetailedResults${suffix}.csv`;
+const getGeometryFileName = (suffix: string) => `batchRoutingGeometryResults${suffix}.geojson`;
 
 export interface BatchRoutingResultProcessor {
     processResult: (routingResult: OdTripRouteOutput) => void;
     end: () => void;
-    getFiles: () => { input: string; csv?: string; detailedCsv?: string; geojson?: string };
+    getFiles: () => { csv?: string; detailedCsv?: string; geojson?: string };
 }
 
 /**
@@ -42,19 +43,49 @@ export interface BatchRoutingResultProcessor {
  *
  */
 export const createRoutingFileResultProcessor = (
-    job: ExecutableJob<BatchRouteJobType>
+    job: ExecutableJob<JobDataType>,
+    batchParameters?: BatchCalculationParameters,
+    fileSuffix?: string
 ): BatchRoutingResultProcessor => {
-    return new BatchRoutingResultProcessorFile(job);
+    return new BatchRoutingResultProcessorFile(job, batchParameters, fileSuffix);
 };
 
 class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
-    private batchParameters: BatchCalculationParameters = this.job.attributes.data.parameters.transitRoutingAttributes;
+    private batchParameters: BatchCalculationParameters;
     private csvStream: fs.WriteStream | undefined;
     private csvDetailedStream: fs.WriteStream | undefined;
     private geometryStream: fs.WriteStream | undefined;
     private geometryStreamHasData = false;
 
-    constructor(private job: ExecutableJob<BatchRouteJobType>) {
+    /**
+     * Constructor
+     *
+     * @param job The job under which the files will be saved (doesn't have to
+     * be the job the results are from)
+     * @param [batchParameters] The batch calculation parameters, used to know
+     * which files to generate and which attributes to include in the csv, if
+     * not provided it will be extracted from the job's data. Defaults to the
+     * job's data parameters if the job is a BatchRoute job
+     * @param [fileSuffix] Optional suffix to add to the registered files.
+     * Defaults to empty string (no suffix)
+     */
+    constructor(
+        private job: ExecutableJob<JobDataType>,
+        batchParameters: BatchCalculationParameters | undefined = undefined,
+        private fileSuffix = ''
+    ) {
+        if (batchParameters !== undefined) {
+            this.batchParameters = batchParameters;
+        } else {
+            if (this.job.attributes.name === 'batchRoute') {
+                this.batchParameters = (
+                    this.job.attributes.data as BatchRouteJobType['data']
+                ).parameters.transitRoutingAttributes;
+            } else {
+                throw new Error('Missing batch parameter information and the job is not a batch route job');
+            }
+        }
+
         this.initResultFiles();
     }
 
@@ -62,21 +93,21 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
         const csvAttributes = getDefaultCsvAttributes(this.batchParameters.routingModes || []);
 
         // Register CSV output file
-        this.job.registerOutputFile('csv', CSV_FILE_NAME);
-        this.csvStream = this.job.getWriteStream('csv');
+        this.job.registerOutputFile('csv' + this.fileSuffix, getCsvFileName(this.fileSuffix));
+        this.csvStream = this.job.getWriteStream('csv' + this.fileSuffix);
         this.csvStream.on('error', console.error);
         this.csvStream.write(Object.keys(csvAttributes).join(',') + '\n');
 
         if (this.batchParameters.detailed) {
-            this.job.registerOutputFile('detailedCsv', DETAILED_CSV_FILE_NAME);
-            this.csvDetailedStream = this.job.getWriteStream('detailedCsv');
+            this.job.registerOutputFile('detailedCsv' + this.fileSuffix, getDetailedCsvFileName(this.fileSuffix));
+            this.csvDetailedStream = this.job.getWriteStream('detailedCsv' + this.fileSuffix);
             this.csvDetailedStream.on('error', console.error);
             this.csvDetailedStream.write(Object.keys(getDefaultStepsAttributes()).join(',') + '\n');
         }
 
         if (this.batchParameters.withGeometries) {
-            this.job.registerOutputFile('geojson', GEOMETRY_FILE_NAME);
-            this.geometryStream = this.job.getWriteStream('geojson');
+            this.job.registerOutputFile('geojson' + this.fileSuffix, getGeometryFileName(this.fileSuffix));
+            this.geometryStream = this.job.getWriteStream('geojson' + this.fileSuffix);
             this.geometryStream.on('error', console.error);
             this.geometryStream.write('{ "type": "FeatureCollection", "features": [');
         }
@@ -113,10 +144,9 @@ class BatchRoutingResultProcessorFile implements BatchRoutingResultProcessor {
     };
 
     getFiles = () => ({
-        input: this.job.getInputFileName(),
-        csv: CSV_FILE_NAME,
-        detailedCsv: this.batchParameters.detailed ? DETAILED_CSV_FILE_NAME : undefined,
-        geojson: this.batchParameters.withGeometries ? GEOMETRY_FILE_NAME : undefined
+        csv: getCsvFileName(this.fileSuffix),
+        detailedCsv: this.batchParameters.detailed ? getDetailedCsvFileName(this.fileSuffix) : undefined,
+        geojson: this.batchParameters.withGeometries ? getGeometryFileName(this.fileSuffix) : undefined
     });
 }
 

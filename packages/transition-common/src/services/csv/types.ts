@@ -34,6 +34,15 @@ export type CsvFieldMappingDescriptor = {
     /** Whether this mapping is required or if it is an optional field. If
      * required and not set, the i18nErrorLabel will be used to tell the user */
     required?: boolean;
+    /** For `single` and `routingTime` types: CSV column names to try for
+     *  auto-matching when a file is loaded (case-insensitive). */
+    autoMatch?: string[];
+    /** For `latLon` type: CSV column names to try for the latitude field
+     *  (case-insensitive). */
+    autoMatchLat?: string[];
+    /** For `latLon` type: CSV column names to try for the longitude field
+     *  (case-insensitive). */
+    autoMatchLon?: string[];
 };
 
 /**

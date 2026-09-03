@@ -4,31 +4,39 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import fs from 'fs';
 import pQueue from 'p-queue';
 import { EventEmitter } from 'events';
 
-import NetworkCandidate, { ResultSerialization } from '../candidate/Candidate';
+import NetworkCandidate from '../candidate/Candidate';
 import { collectionToCache } from '../../../models/capnpCache/transitScenarios.cache.queries';
-import * as AlgoTypes from '../internalTypes';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import SimulationRunBackend from '../../simulation/SimulationRun';
 import GenerationLogger from './GenerationLogger';
+import { EvolutionaryTransitNetworkDesignJobType } from '../../networkDesign/transitNetworkDesign/evolutionary/types';
+import { TransitNetworkDesignJobWrapper } from '../../networkDesign/transitNetworkDesign/TransitNetworkDesignJobWrapper';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { ResultSerialization } from '../candidate/types';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { TrRoutingBatchManager } from '../../transitRouting/TrRoutingBatchManager';
 
 abstract class Generation {
     protected fitnessSorter: (fitnessA: number, fitnessB: number) => number;
 
     constructor(
         protected candidates: NetworkCandidate[],
-        protected options: AlgoTypes.RuntimeAlgorithmData,
+        protected jobWrapper: TransitNetworkDesignJobWrapper<EvolutionaryTransitNetworkDesignJobType>,
         protected generationNumber = 1,
         protected logger: GenerationLogger
     ) {
+        // Use the minimize sorter if method type is OdTripSimulation, maximize otherwise
+        // FIXME This should be a parameter of something, it goes with the simulation method or set of methods
         this.fitnessSorter =
-            Preferences.current.simulations.geneticAlgorithms.fitnessSorters[
-                options.simulationRun.attributes.options?.fitnessSorter as string
-            ];
+            jobWrapper.parameters.simulationMethod.type === 'OdTripSimulation'
+                ? Preferences.current.simulations.geneticAlgorithms.fitnessSorters['minimize']
+                : Preferences.current.simulations.geneticAlgorithms.fitnessSorters['maximize'];
+
         this.logger =
             logger ||
             new GenerationLogger({
@@ -44,16 +52,16 @@ abstract class Generation {
         return this.getCandidates().length;
     }
 
-    getSimulationRun(): SimulationRunBackend {
-        return this.options.simulationRun;
-    }
-
     getGenerationNumber(): number {
         return this.generationNumber;
     }
 
-    async prepareCandidates(socket: EventEmitter) {
-        const time = Date.now();
+    async prepareCandidates(
+        socket: EventEmitter
+    ): Promise<{ warnings: TranslatableMessage[]; errors: TranslatableMessage[] }> {
+        const errors: TranslatableMessage[] = [];
+        const warnings: TranslatableMessage[] = [];
+        console.time(` generation ${this.generationNumber}: prepared candidates`);
 
         // TODO Cleanup old data?
 
@@ -62,30 +70,37 @@ abstract class Generation {
         const promiseQueue = new pQueue({ concurrency: 1 });
 
         const candidatePreparationPromises = this.candidates.map(
-            async (candidate, candidateIdx) =>
-                await promiseQueue.add(async () => {
-                    try {
-                        return await candidate.prepareScenario(socket);
-                    } catch (err) {
-                        console.error(
-                            `Error preparing scenario for candidate ${candidateIdx} of ${this.generationNumber}th generation: ${err}`
-                        );
-                    }
-                })
+            async (candidate, _candidateIdx) =>
+                await promiseQueue.add(async () => await candidate.prepareScenario(socket))
         );
 
-        try {
-            const scenarios = await Promise.all(candidatePreparationPromises);
-            const scenarioCollection = new ScenarioCollection(scenarios, {});
-            await collectionToCache(scenarioCollection, this.options.simulationRun.getCacheDirectoryPath());
-            console.log(
-                `  generation ${this.generationNumber}: preparation completed in ${
-                    (Date.now() - time) / 1000
-                } sec. and saved in ${this.options.simulationRun.getProjectRelativeCacheDirectoryPath()}`
-            );
-        } catch {
-            console.log('Some candidates could not be prepared');
-        }
+        const results = await Promise.allSettled(candidatePreparationPromises);
+
+        // Handle fulfilled and rejected promises separately
+        const scenarios: Scenario[] = [];
+        results.forEach((result, candidateIdx) => {
+            if (result.status === 'fulfilled') {
+                scenarios.push(result.value!);
+            } else {
+                // Handle failed simulation
+                const warning = `Error preparing scenario for candidate ${candidateIdx} of ${this.generationNumber}th generation: ${result.reason}`;
+                warnings.push(warning);
+                console.warn(warning);
+            }
+        });
+        const scenarioCollection = new ScenarioCollection(scenarios, {});
+        const cachePath = this.jobWrapper.getCacheDirectory();
+        console.log(`  generation ${this.generationNumber}: writing ${scenarios.length} scenarios to cache`);
+        // FIXME Job type should provide the cache path if we need it
+        await collectionToCache(scenarioCollection, cachePath);
+        const scenariosCacheFile = `${cachePath}/scenarios.capnpbin`;
+        const fileExists = fs.existsSync(scenariosCacheFile);
+        const fileSize = fileExists ? fs.statSync(scenariosCacheFile).size : 0;
+        console.log(
+            `  generation ${this.generationNumber}: scenarios cache file ${scenariosCacheFile} exists=${fileExists} size=${fileSize}`
+        );
+        console.timeEnd(` generation ${this.generationNumber}: prepared candidates`);
+        return { errors, warnings };
     }
 
     /**
@@ -95,26 +110,51 @@ abstract class Generation {
      * @returns `true` if the simulation was completed successfully.
      */
     async simulate(): Promise<boolean> {
-        const time = Date.now();
-
+        console.time(` generation ${this.generationNumber}: simulated candidates`);
         console.log(`  generation ${this.generationNumber}: simulating candidates`);
 
+        // Start TrRouting for the generation
+        const cacheDir = this.jobWrapper.getCacheDirectory();
+        const memcachedServer = this.jobWrapper.getMemcachedInstance()?.getServer();
+        const realBatchManager = new TrRoutingBatchManager(new EventEmitter());
+        const startResults = await realBatchManager.startBatch(
+            1000, // TODO Fake high number to get above maxparallelCalculator
+            { cacheDirectoryPath: cacheDir, memcachedServer }
+        );
+        this.jobWrapper.setTrRoutingBatchStartResult(startResults);
+
         const candidatesCount = this.getSize();
-        const candidates = this.getCandidates();
+        const validCandidates = this.getCandidates().filter((candidate) => candidate.getScenario() !== undefined);
+        if (validCandidates.length < this.jobWrapper.parameters.algorithmConfiguration.config.populationSizeMin) {
+            throw new TrError(
+                'Not enough valid candidates to continue the evolutionary algorithm at generation',
+                'GALGEN001',
+                {
+                    text: 'transit:networkDesign:evolutionaryAlgorithm:errors:NotEnoughValidCandidates',
+                    params: { generationNumber: String(this.generationNumber) }
+                }
+            );
+        }
         // Run the simulation for each candidate
-        const promises: Promise<{
-            results: { [key: string]: { fitness: number; results: unknown } };
-        }>[] = [];
+        // Create p-queue with concurrency of 1
+        const promiseQueue = new pQueue({ concurrency: 1 });
+
         for (let i = 0; i < candidatesCount; i++) {
-            promises.push(candidates[i].simulate());
+            const candidateIdx = i;
+            if (validCandidates[candidateIdx].getScenario() !== undefined) {
+                promiseQueue.add(async () => {
+                    console.log(
+                        `  generation ${this.generationNumber}: simulating candidate ${candidateIdx + 1}/${candidatesCount}`
+                    );
+                    await validCandidates[candidateIdx].simulate();
+                });
+            }
         }
 
-        await Promise.all(promises);
+        await promiseQueue.onIdle();
         this.sortCandidates();
-
-        console.log(
-            `  generation ${this.generationNumber}: simulation completed in ${(Date.now() - time) / 1000} sec.`
-        );
+        await realBatchManager.stopBatch();
+        console.timeEnd(` generation ${this.generationNumber}: simulated candidates`);
 
         this.logger.doLog(this);
 
@@ -131,19 +171,22 @@ abstract class Generation {
      * @param top The number of top scenarios to return
      * @returns An array of the top scenarios
      */
-    getBestScenarios(top = 1): Scenario[] {
-        const bestScenarios: Scenario[] = [];
-        for (let i = 0; i < Math.min(top, this.candidates.length); i++) {
-            const bestCandidate = this.candidates[i];
-            const scenario = bestCandidate.getScenario();
-            if (scenario !== undefined) {
-                bestScenarios.push(scenario);
-            }
-        }
-        return bestScenarios;
+    getBestCandidates(top = 1): NetworkCandidate[] {
+        this.sortCandidates();
+        return this.candidates.slice(0, top);
     }
 
-    abstract sortCandidates(): Promise<void>;
+    abstract sortCandidates(): void;
+
+    async cleanupCandidates(): Promise<void> {
+        const promiseQueue = new pQueue({ concurrency: 1 });
+
+        for (const candidate of this.candidates) {
+            promiseQueue.add(async () => {
+                await candidate.cleanup();
+            });
+        }
+    }
 }
 
 export default Generation;

@@ -16,6 +16,7 @@ interface RouteOdTripParameters {
     routing: TransitRoutingQueryAttributes;
     trRoutingPort?: number;
     reverseOD: boolean;
+    suppressExpectedRouteErrors?: boolean;
 }
 
 const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripParameters): Promise<OdTripRouteResult> {
@@ -29,6 +30,8 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
         : odTrip.attributes.destination_geography;
     const uuid = odTrip.getId();
     const internalId = odTrip.attributes.internal_id || '';
+    const data = odTrip.attributes.data;
+    const timeSecondsSinceMidnight = odTrip.attributes.timeOfTrip;
 
     if (!origin || !origin.coordinates || !destination || !destination.coordinates) {
         return {
@@ -44,12 +47,14 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
         ...routingAttributes,
         originGeojson,
         destinationGeojson,
-        timeSecondsSinceMidnight: odTrip.attributes.timeOfTrip,
+        timeSecondsSinceMidnight,
         timeType: odTrip.attributes.timeType
     };
 
     try {
-        const results: RoutingResultsByMode = await Routing.calculate(tripQueryAttributes);
+        const results: RoutingResultsByMode = await Routing.calculate(tripQueryAttributes, {
+            suppressExpectedRouteErrors: parameters.suppressExpectedRouteErrors
+        });
 
         // We do not need the walkOnlyPath in the results, as it is already present in the other modes
         if (results.transit) {
@@ -61,6 +66,8 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
             internalId,
             origin,
             destination,
+            timeOfTrip: timeSecondsSinceMidnight,
+            data,
             results
         };
     } catch (error) {
@@ -69,6 +76,8 @@ const routeOdTrip = async function (odTrip: BaseOdTrip, parameters: RouteOdTripP
             internalId,
             origin,
             destination,
+            timeOfTrip: timeSecondsSinceMidnight,
+            data,
             error: TrError.isTrError(error) ? error.export() : String(error)
         };
     }

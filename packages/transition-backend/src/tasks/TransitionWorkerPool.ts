@@ -18,10 +18,21 @@ import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibi
 import { JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { EvolutionaryTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/evolutionary/types';
+import { runEvolutionaryTransitNetworkDesignJob } from '../services/networkDesign/transitNetworkDesign/evolutionary/EvolutionaryTransitNetworkDesignJob';
+import type { NodeAccessibilityWeightingJobType } from '../services/nodes/nodeAccessibilityWeighting/NodeAccessibilityWeightingJobType';
+import {
+    emitNodeAccessibilityPauseAtChunkBoundary,
+    wrapNodeAccessibilityWeighting,
+    type NodeAccessibilityWeightingProgressPayload,
+    type NodeAccessibilityWeightingTaskOutcome
+} from './nodeAccessibilityWeightingWorkerTask';
+
+export type { NodeAccessibilityWeightingProgressPayload } from './nodeAccessibilityWeightingWorkerTask';
 
 function newProgressEmitter(task: ExecutableJob<JobDataType>) {
     const eventEmitter = new EventEmitter();
-    eventEmitter.on('progress', (progressData: { name: string; customText?: string; progress: number }) => {
+    eventEmitter.on('progress', (progressData: NodeAccessibilityWeightingProgressPayload) => {
         workerpool.workerEmit({
             event: 'progress',
             data: progressData
@@ -143,11 +154,27 @@ const wrapBatchAccessMap = async (task: ExecutableJob<BatchAccessMapJobType>): P
     return result.completed;
 };
 
+const wrapEvolutionaryTransitNetworkDesign = async (task: EvolutionaryTransitNetworkDesignJob): Promise<boolean> => {
+    // TODO Validate input files like other tasks
+    const { status } = await runEvolutionaryTransitNetworkDesignJob(task, {
+        progressEmitter: newProgressEmitter(task),
+        isCancelled: getTaskCancelledFct(task)
+    });
+    console.log(`Evolutionary transit network design job ${task.attributes.id} completed with status ${status}`);
+    // TODO Handle results here
+    return status === 'success';
+};
+
+const workerHelpers = { newProgressEmitter, getTaskCancelledFct };
+
 // Exported for unit tests
 export const wrapTaskExecution = async (id: number) => {
     // Load task from database and execute only if it is pending, or resume tasks in progress
     const task = await ExecutableJob.loadTask(id);
     if (task.status !== 'pending' && task.status !== 'inProgress') {
+        if (task.status === 'paused' && task.attributes.name === 'nodeAccessibilityWeighting') {
+            emitNodeAccessibilityPauseAtChunkBoundary(task, workerHelpers);
+        }
         return;
     }
     const taskListener = taskUpdateListener();
@@ -163,12 +190,14 @@ export const wrapTaskExecution = async (id: number) => {
                 errors: ['transit:transitRouting:errors:UserDiskQuotaReached']
             };
             await task.save(taskListener);
+            emitNodeAccessibilityPauseAtChunkBoundary(task, workerHelpers);
             return;
         }
         // Set the status to in progress
         task.setInProgress();
         await task.save(taskListener);
         let taskResultStatus = true;
+        let nodeAccessibilityOutcome: NodeAccessibilityWeightingTaskOutcome | undefined;
         switch (task.attributes.name) {
         case 'batchRoute':
             taskResultStatus = await wrapBatchRoute(task as ExecutableJob<BatchRouteJobType>);
@@ -176,11 +205,30 @@ export const wrapTaskExecution = async (id: number) => {
         case 'batchAccessMap':
             taskResultStatus = await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
             break;
+        case 'evolutionaryTransitNetworkDesign':
+            taskResultStatus = await wrapEvolutionaryTransitNetworkDesign(
+                    task as EvolutionaryTransitNetworkDesignJob
+            );
+            break;
+        case 'nodeAccessibilityWeighting':
+            nodeAccessibilityOutcome = await wrapNodeAccessibilityWeighting(
+                    task as ExecutableJob<NodeAccessibilityWeightingJobType>,
+                    taskListener,
+                    workerHelpers
+            );
+            break;
         default:
             console.log(`Unknown task ${task.attributes.name}`);
             taskResultStatus = false;
         }
-        if (taskResultStatus) {
+        if (nodeAccessibilityOutcome !== undefined) {
+            if (nodeAccessibilityOutcome === 'completed') {
+                task.setCompleted();
+            } else if (nodeAccessibilityOutcome === 'failed') {
+                task.setFailed();
+            }
+            // 'paused': keep job status as paused (already persisted by the API)
+        } else if (taskResultStatus) {
             task.setCompleted();
         } else {
             task.setFailed();

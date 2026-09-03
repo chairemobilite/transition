@@ -36,8 +36,13 @@ const simulationAttributes: SimulationAttributes = {
         },
         transitNetworkDesignParameters: {
             maxTimeBetweenPassages: 15,
+            minTimeBetweenPassages: 5,
             nbOfVehicles: 9,
-            simulatedAgencies: ['arbitrary']
+            numberOfLinesMin: 1,
+            numberOfLinesMax: 10,
+            simulatedAgencies: ['arbitrary'],
+            nonSimulatedServices: [],
+            linesToKeep: []
         },
         algorithmConfiguration: {
             // Using 'mockAlgorithm' as mock algorithm type, cast to any for test to compile
@@ -65,9 +70,9 @@ const simulationRunAttributes = {
         functions: {},
         trRoutingStartingPort: 14000
     }
-}
+};
 
-test('static methods should work', function() {
+test('static methods should work', () => {
     expect(SimulationRun.getPluralName()).toBe('simulationRuns');
     expect(SimulationRun.getCapitalizedPluralName()).toBe('SimulationRuns');
     expect(SimulationRun.getDisplayName()).toBe('SimulationRun');
@@ -77,7 +82,7 @@ test('static methods should work', function() {
     expect(simulationRun.getDisplayName()).toBe('SimulationRun');
 });
 
-test('toString should return the correct string', function() {
+test('toString should return the correct string', () => {
     const simulationRun: SimulationRun = new SimulationRun(simulationRunAttributes, false);
     expect(simulationRun.toString(true)).toEqual('sim_' + simulationRunAttributes.simulation_id + '_run_' + simulationRun.getId());
     expect(simulationRun.toString(false)).toEqual('run_' + simulationRun.getId());
@@ -86,9 +91,9 @@ test('toString should return the correct string', function() {
 
 describe('Delete simulation run', () => {
     const socketStub = new EventEmitter();
-    
+
     test('Default cascade value', async () => {
-       
+
         const simulationRun: SimulationRun = new SimulationRun(simulationRunAttributes, false);
 
         socketStub.once('simulationRun.delete',  async (id: string, cascade: boolean, callback) => {
@@ -102,7 +107,7 @@ describe('Delete simulation run', () => {
     });
 
     test('With cascade value true', async () => {
-       
+
         const simulationRun: SimulationRun = new SimulationRun(simulationRunAttributes, false);
 
         socketStub.once('simulationRun.delete',  async (id: string, cascade: boolean, callback) => {
@@ -116,7 +121,7 @@ describe('Delete simulation run', () => {
     });
 
     test('With cascade value false', async () => {
-       
+
         const simulationRun: SimulationRun = new SimulationRun(simulationRunAttributes, false);
 
         socketStub.once('simulationRun.delete',  async (id: string, cascade: boolean, callback) => {
