@@ -24,6 +24,7 @@ import ServiceImporter from '../ServiceImporter';
 import PathImporter from '../PathImporter';
 import ScheduleImporter from '../ScheduleImporter';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 jest.mock('../../../models/db/transitLines.db.queries');
 jest.mock('../../../models/db/transitPaths.db.queries');
@@ -307,4 +308,47 @@ test('Test nodes failure', async() => {
     expect(mockServiceImport).not.toHaveBeenCalled();
     expect(mockedPathImport).not.toHaveBeenCalled();
     expect(mockedScheduleImport).not.toHaveBeenCalled();
+});
+
+describe('Surfacing TrError.localizedMessage to the user (issue #1909)', () => {
+    // Constructs a TrError carrying a translatable message; this could be a
+    // MalformedCsvError or any other TrError thrown anywhere in the import
+    // chain -- the importer is type-agnostic.
+    const makeTrError = (fileName: string) =>
+        new TrError(
+            `technical: malformed CSV ${fileName}`,
+            'MALFORMED_CSV_LINE_ENDINGS',
+            { text: 'transit:gtfs:errors:MalformedCsvFile', params: { fileName } }
+        );
+
+    test.each([
+        ['nodes',    'stops.txt',    () => mockStopImport.mockRejectedValueOnce(makeTrError('stops.txt'))],
+        ['agencies', 'agency.txt',   () => mockAgencyImport.mockRejectedValueOnce(makeTrError('agency.txt'))],
+        ['lines',    'routes.txt',   () => mockLineImport.mockRejectedValueOnce(makeTrError('routes.txt'))],
+        ['services', 'calendar.txt', () => mockServiceImport.mockRejectedValueOnce(makeTrError('calendar.txt'))]
+    ])('Replaces the generic %s-import error with the TrError localizedMessage', async (_step, fileName, makeRejection) => {
+        makeRejection();
+        const result = await GtfsImporter.importGtfsData('', importData as any);
+        expect(result.status).toEqual('failed');
+        const failedResult = result as { status: 'failed'; errors: any[] };
+        expect(failedResult.errors).toEqual([
+            { text: 'transit:gtfs:errors:MalformedCsvFile', params: { fileName } }
+        ]);
+    });
+
+    test('Falls back to the generic step-specific error for non-TrError failures', async () => {
+        mockStopImport.mockRejectedValueOnce(new Error('something else broke'));
+        const result = await GtfsImporter.importGtfsData('', importData as any);
+        expect(result.status).toEqual('failed');
+        const failedResult = result as { status: 'failed'; errors: any[] };
+        expect(failedResult.errors).toEqual([GtfsMessages.NodesImportError]);
+    });
+
+    test('Falls back to the generic step-specific error for a TrError without a localizedMessage', async () => {
+        mockStopImport.mockRejectedValueOnce(new TrError('some technical issue', 'CODE'));
+        const result = await GtfsImporter.importGtfsData('', importData as any);
+        expect(result.status).toEqual('failed');
+        const failedResult = result as { status: 'failed'; errors: any[] };
+        expect(failedResult.errors).toEqual([GtfsMessages.NodesImportError]);
+    });
 });

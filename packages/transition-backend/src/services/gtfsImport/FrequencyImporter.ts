@@ -8,6 +8,7 @@
 import type * as GtfsTypes from 'gtfs-types';
 
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { gtfsCsvOptions } from './gtfsCsvOptions';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
@@ -66,7 +67,7 @@ export class FrequencyImporter implements GtfsObjectPreparator<Frequencies> {
 
                 frequencies.push(frequency);
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         return frequencies;
     }

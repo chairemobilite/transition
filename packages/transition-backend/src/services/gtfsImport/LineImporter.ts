@@ -7,6 +7,7 @@
 // eslint-disable-next-line n/no-unpublished-import
 import type { Route as GtfsRouteSpec } from 'gtfs-types';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { gtfsCsvOptions } from './gtfsCsvOptions';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -66,7 +67,7 @@ export class LineImporter implements GtfsObjectImporter<LineImportData, Line> {
                     }
                 });
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         return lines;
     }

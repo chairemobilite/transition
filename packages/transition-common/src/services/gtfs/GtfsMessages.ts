@@ -18,5 +18,6 @@ export const GtfsMessages = {
     AgenciesImportError: 'transit:gtfs:errors:ErrorImportingAgencies',
     LinesImportError: 'transit:gtfs:errors:ErrorImportingLines',
     ServicesImportError: 'transit:gtfs:errors:ErrorImportingServices',
-    GtfsExportError: 'transit:gtfs:errors:ErrorExportingGtfs'
+    GtfsExportError: 'transit:gtfs:errors:ErrorExportingGtfs',
+    MalformedCsvFile: 'transit:gtfs:errors:MalformedCsvFile'
 };
