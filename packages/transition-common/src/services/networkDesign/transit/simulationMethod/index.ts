@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import type { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { UserDefinedConfigSchema } from '../../../../utils/userDefinedConfig';
 import {
     AccessibilityMapSimulationDescriptor,
     type AccessibilityMapSimulationOptions
@@ -47,7 +47,7 @@ export type SimulationMethodConfiguration = {
 
 // Simulation method descriptors
 const SIMULATION_METHOD_DESCRIPTORS: {
-    [K in SimulationMethodType]: SimulationAlgorithmDescriptor<SimulationMethodRegistry[K]>;
+    [K in SimulationMethodType]: UserDefinedConfigSchema<SimulationMethodRegistry[K]>;
 } = {
     OdTripSimulation: new OdTripSimulationDescriptor(),
     AccessibilityMapSimulation: new AccessibilityMapSimulationDescriptor()
@@ -61,7 +61,7 @@ const SIMULATION_METHOD_DESCRIPTORS: {
  */
 export const getSimulationMethodDescriptor = <T extends SimulationMethodType>(
     methodType: T
-): SimulationAlgorithmDescriptor<SimulationMethodRegistry[T]> => {
+): UserDefinedConfigSchema<SimulationMethodRegistry[T]> => {
     return SIMULATION_METHOD_DESCRIPTORS[methodType];
 };
 

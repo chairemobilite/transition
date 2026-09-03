@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitNetworkDesignAlgorithm, SimulationAlgorithmDescriptor } from '../../networkDesign/transit/TransitNetworkDesignAlgorithm';
+import { UserDefinedConfigSchema } from '../../../utils/userDefinedConfig';
+import { TransitNetworkDesignAlgorithm } from '../../networkDesign/transit/TransitNetworkDesignAlgorithm';
 
 export type AlgorithmStubOptions = {
     numericOption: number;
@@ -25,17 +26,17 @@ export class TransitNetworkDesignAlgorithmStub implements TransitNetworkDesignAl
 
 }
 
-export class SimulationAlgorithmDescriptorStub implements SimulationAlgorithmDescriptor<AlgorithmStubOptions> {
+export class SimulationAlgorithmDescriptorStub implements UserDefinedConfigSchema<AlgorithmStubOptions> {
     
     getTranslatableName = () => "string"
 
-    getOptions = () => ({ 
+    getFields = () => ({ 
         numericOption: { i18nName: 'numOption', type: 'number' as const, validate: (value: number) => value > 0 }, 
         stringOption: { i18nName: 'stringOption', type: 'string' as const }, 
         booleanOption: { i18nName: 'boolOption', type: 'boolean' as const } 
     });
 
-    validateOptions = (options: Partial<AlgorithmStubOptions>) => {
+    validateFields = (options: Partial<AlgorithmStubOptions>) => {
         let valid = true;
         let errors: string[] = [];
         if (options.stringOption === undefined) {
