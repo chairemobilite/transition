@@ -21,8 +21,10 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { ServiceAttributes } from 'transition-common/lib/services/service/Service';
 import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_services';
+const scenariosServicesTableName = 'tr_transit_scenario_services';
 
 // TODO Type the return values
 const attributesCleaner = function (attributes: Partial<ServiceAttributes>): { [key: string]: any } {
@@ -44,27 +46,57 @@ const attributesParser = (dbAttributes: {
     return dbAttributes as unknown as ServiceAttributes;
 };
 
-const collection = async (options: { serviceIds?: string[] } & WithTransaction = {}) => {
-    try {
-        // TODO When the complete collection is not sent to the client directly, there should be a sort option to this method
-        const query = knex
-            .select(
-                knex.raw(`s.*,
+const getCollectionBaseQuery = (): Knex.QueryBuilder => {
+    const query = knex
+        .select(
+            knex.raw(`s.*,
         TO_CHAR(start_date, 'YYYY-MM-DD') as start_date,
         TO_CHAR(end_date, 'YYYY-MM-DD') as end_date,
         ARRAY(SELECT TO_CHAR(UNNEST(only_dates), 'YYYY-MM-DD')) as only_dates,
         ARRAY(SELECT TO_CHAR(UNNEST(except_dates), 'YYYY-MM-DD')) as except_dates,
         COALESCE(color, '${Preferences.current.transit.services.defaultColor}') as color,
         array_remove(ARRAY_AGG(DISTINCT sched.line_id), null) as scheduled_lines`)
-            )
-            .from(`${tableName} as s`)
-            .leftJoin('tr_transit_schedules as sched', 's.id', 'sched.service_id')
-            .groupBy('s.id')
-            .where('is_enabled', true)
-            .orderBy('s.name');
+        )
+        .from(`${tableName} as s`)
+        .leftJoin('tr_transit_schedules as sched', 's.id', 'sched.service_id')
+        .groupBy('s.id');
+    return query;
+};
+
+const collection = async (options: { serviceIds?: string[] } & WithTransaction = {}) => {
+    try {
+        // TODO When the complete collection is not sent to the client directly, there should be a sort option to this method
+        const query = getCollectionBaseQuery().where('is_enabled', true).orderBy('s.name');
         if (options.serviceIds) {
             query.whereIn('s.id', options.serviceIds);
         }
+        if (options.transaction) {
+            query.transacting(options.transaction);
+        }
+        const collection = await query;
+        if (collection) {
+            return collection.map(attributesParser);
+        }
+    } catch (error) {
+        throw new TrError(
+            `cannot fetch transit services collection because of a database error (knex error: ${error})`,
+            'THQGC0002',
+            'TransitServiceCollectionCouldNotBeFetchedBecauseDatabaseError'
+        );
+    }
+    throw new TrError(
+        'cannot fetch transit services collection because database did not return a valid array',
+        'THQGC0001',
+        'TransitServiceCollectionCouldNotBeFetchedBecauseDatabaseError'
+    );
+};
+
+const collectionForScenario = async (scenarioId: string, options: WithTransaction = {}) => {
+    try {
+        const query = getCollectionBaseQuery()
+            .where('is_enabled', true)
+            .join(`${scenariosServicesTableName} as scServ`, 'scServ.service_id', 's.id')
+            .where('scServ.scenario_id', scenarioId);
         if (options.transaction) {
             query.transacting(options.transaction);
         }
@@ -165,5 +197,6 @@ export default {
     truncate: truncate.bind(null, knex, tableName),
     destroy: destroy.bind(null, knex),
     collection,
-    getServiceNamesStartingWith
+    getServiceNamesStartingWith,
+    collectionForScenario
 };

@@ -51,7 +51,7 @@ export default function (socket: EventEmitter) {
             // Save specific line objects to cache, for example when deleting a service that has scheduled lines
             // TODO Move to its own method? Or remove the need for this at all?
             try {
-                const lines = await linesDbQueries.collection(lineIds);
+                const lines = await linesDbQueries.collection({ lineIds });
                 const affectedLines = lines.map((lineAttributes) => new Line(lineAttributes, false));
                 await linesDbQueries.collectionWithSchedules(affectedLines);
                 await lineCacheQueries.objectsToCache(affectedLines);

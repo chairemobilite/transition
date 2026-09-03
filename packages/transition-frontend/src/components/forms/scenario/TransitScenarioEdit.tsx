@@ -58,33 +58,42 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
     }
 
     private updateTransitPathLayer = () => {
-        serviceLocator.socketEventManager.emit(
-            'transitPaths.getForServices',
-            this.props.scenario.attributes.services,
-            (status: Status.Status<GeoJSON.FeatureCollection<GeoJSON.LineString, PathAttributes>>) => {
-                try {
-                    const paths = Status.unwrap(status);
-                    // TODO: The scenario may have excluded lines/services/agencies that should be excluded too
-                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
-                        'map.updateLayer',
-                        {
-                            layerName: 'transitPathsForServices',
-                            data: paths
-                        }
-                    );
-                    this.setState({ paths });
-                } catch {
-                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
-                        'map.updateLayer',
-                        {
-                            layerName: 'transitPathsForServices',
-                            data: turfFeatureCollection([])
-                        }
-                    );
-                    this.setState({ paths: turfFeatureCollection([]) });
-                }
+        const handleResponse = (
+            status: Status.Status<GeoJSON.FeatureCollection<GeoJSON.LineString, PathAttributes>>
+        ) => {
+            if (Status.isStatusOk(status)) {
+                const paths = Status.unwrap(status);
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPathsForServices',
+                    data: paths
+                });
+                this.setState({ paths });
+            } else {
+                // There was an error in the query, reset the layer to empty feature collection
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPathsForServices',
+                    data: turfFeatureCollection([])
+                });
+                this.setState({ paths: turfFeatureCollection([]) });
             }
-        );
+        };
+        if (this.props.scenario.isNew()) {
+            // Get paths for the selected service if the scenario is new
+            serviceLocator.socketEventManager.emit(
+                'transitPaths.getForServices',
+                this.props.scenario.attributes.services,
+                handleResponse
+            );
+        } else {
+            // Get paths for the current scenario
+            // FIXME This does not take into account the content being edited,
+            // it's for the scenario in the DB only
+            serviceLocator.socketEventManager.emit(
+                'transitPaths.getForScenario',
+                this.props.scenario.id,
+                handleResponse
+            );
+        }
     };
 
     componentDidMount() {

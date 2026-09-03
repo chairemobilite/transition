@@ -23,7 +23,7 @@ export default function (socket: EventEmitter) {
             callback: (status: Status.Status<GeoJSON.FeatureCollection<GeoJSON.LineString>>) => void
         ) => {
             try {
-                const paths = await pathsDbQueries.geojsonCollection({ scenarioId });
+                const paths = await pathsDbQueries.geojsonCollectionForScenario(scenarioId);
                 callback(Status.createOk(paths));
             } catch (error) {
                 console.error(`An error occurred while getting paths for scenario ${scenarioId}: ${error}`);
