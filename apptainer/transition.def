@@ -1,0 +1,46 @@
+# Apptainer definition file for Transition.
+#
+# This builds on top of the Docker image already produced by the project's
+# own CI (see .github/workflows/build-docker-image.yml), instead of
+# duplicating the Dockerfile. Rebuild whenever a specific Transition version
+# should be pinned, by changing the tag below.
+#
+# Build (on a machine where you have root, or via a remote/CI builder --
+# Calcul Quebec login/compute nodes do not allow this):
+#   apptainer build transition.sif transition.def
+#
+# See ../docs/runOnHPC.md for full usage instructions, including how to run
+# PostGIS and how to launch a batch calculation job under SLURM.
+
+Bootstrap: docker
+From: chairemobilite/transition:latest
+
+%labels
+    Maintainer Chaire Mobilite en transport
+    Application Transition
+
+%help
+    Apptainer image for running Transition (including batch routing and
+    batch accessibility map calculations) on HPC clusters such as those
+    managed by Calcul Quebec / the Digital Research Alliance of Canada.
+
+    This image only contains the application itself. It expects:
+      - A reachable PostGIS database (see docs/runOnHPC.md to run one as a
+        separate Apptainer instance).
+      - A project directory bind-mounted (config.js, .env, and a
+        pre-populated runtime/ directory with any OSM/OSRM data prepared
+        ahead of time, since compute nodes usually have no internet access).
+
+    Examples:
+      apptainer exec --bind /path/to/project:/config transition.sif \
+          sh -c "yarn migrate"
+
+      apptainer exec --bind /path/to/project:/config transition.sif \
+          yarn node packages/transition-backend/lib/scripts/listTasks.task.js
+
+%environment
+    export PROJECT_CONFIG=${PROJECT_CONFIG:-/config/config.js}
+    export TRANSITION_DOTENV=${TRANSITION_DOTENV:-/config/.env}
+
+%runscript
+    exec "$@"
