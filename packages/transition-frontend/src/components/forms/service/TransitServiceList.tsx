@@ -18,6 +18,7 @@ import ServiceCollection from 'transition-common/lib/services/service/ServiceCol
 import TransitServiceButton from './TransitServiceButton';
 import ButtonList from '../../parts/ButtonList';
 import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
+import { SelectAllWidget } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
 interface ServiceListProps extends WithTranslation {
     serviceCollection: ServiceCollection;
@@ -28,6 +29,7 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
     const [showModal, setShowModal] = useState(false);
     const [checkedServices, setCheckedServices] = useState<Record<string, boolean>>({});
     const [showDeleteSelectedModal, setShowDeleteSelectedModal] = useState(false);
+    const checkableServices = props.serviceCollection?.getFeatures().filter((service) => !service.isFrozen()) ?? [];
 
     const newService = function () {
         const defaultColor = Preferences.get('transit.services.defaultColor', '#0086FF');
@@ -50,6 +52,18 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
         },
         [setCheckedServices]
     );
+
+    const selectAll = () => {
+        const checkedServices: Record<string, boolean> = {};
+        checkableServices.forEach((service) => {
+            checkedServices[service.id] = true;
+        });
+        setCheckedServices(checkedServices);
+    };
+
+    const unselectAll = () => {
+        setCheckedServices({});
+    };
 
     const deleteUnused = async () => {
         if (props.serviceCollection) {
@@ -101,6 +115,15 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
 
     const checkServiceIds = Object.keys(checkedServices);
     const hasChecked = checkServiceIds.length > 0;
+    const allChecked = checkServiceIds.length === checkableServices.length;
+
+    const toggleSelectAll = () => {
+        if (allChecked) {
+            unselectAll();
+        } else {
+            selectAll();
+        }
+    };
     return (
         <div className="tr__list-transit-services-container">
             <div className="tr__section-header-container">
@@ -115,6 +138,12 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
                 <ToggleableHelp namespace="transit" section="transitService" />
             </div>
             <ButtonList key="services">
+                <SelectAllWidget
+                    allChecked={allChecked}
+                    hasItems={checkableServices.length > 0}
+                    localePrefix="main"
+                    toggle={toggleSelectAll}
+                />
                 {props.serviceCollection &&
                     props.serviceCollection
                         .getFeatures()

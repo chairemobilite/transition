@@ -11,7 +11,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _chunkify } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export type SelectAllWidgetProps = {
-    id: string;
+    id?: string;
     allChecked: boolean;
     hasItems: boolean;
     localePrefix: string;
