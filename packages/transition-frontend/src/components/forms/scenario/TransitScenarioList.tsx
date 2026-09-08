@@ -19,6 +19,7 @@ import ScenarioCollection from 'transition-common/lib/services/scenario/Scenario
 import TransitScenarioButton from './TransitScenarioButton';
 import ButtonList from '../../parts/ButtonList';
 import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
+import { SelectAllWidget } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 
 interface ScenarioListProps {
     scenarioCollection: ScenarioCollection;
@@ -29,6 +30,7 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
     const { t } = useTranslation('transit');
     const [checkedScenarios, setCheckedScenarios] = useState<Record<string, boolean>>({});
     const [showDeleteSelectedModal, setShowDeleteSelectedModal] = useState(false);
+    const checkableScenarios = props.scenarioCollection?.getFeatures().filter((scenario) => !scenario.isFrozen()) ?? [];
 
     const newScenario = function () {
         const defaultColor = Preferences.get('transit.scenarios.defaultColor', '#0086FF');
@@ -51,6 +53,18 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
         },
         [setCheckedScenarios]
     );
+
+    const selectAll = () => {
+        const checkedScenarios: Record<string, boolean> = {};
+        checkableScenarios.forEach((scenario) => {
+            checkedScenarios[scenario.id] = true;
+        });
+        setCheckedScenarios(checkedScenarios);
+    };
+
+    const unselectAll = () => {
+        setCheckedScenarios({});
+    };
 
     const deleteSelected = async () => {
         if (props.scenarioCollection) {
@@ -82,6 +96,15 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
 
     const checkScenarioIds = Object.keys(checkedScenarios);
     const hasChecked = checkScenarioIds.length > 0;
+    const allChecked = checkScenarioIds.length === checkableScenarios.length;
+
+    const toggleSelectAll = () => {
+        if (allChecked) {
+            unselectAll();
+        } else {
+            selectAll();
+        }
+    };
     return (
         <div className="tr__list-transit-scenarios-container">
             <div className="tr__section-header-container">
@@ -96,6 +119,12 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
                 <ToggleableHelp namespace="transit" section="transitScenario" />
             </div>
             <ButtonList key="scenarios">
+                <SelectAllWidget
+                    allChecked={allChecked}
+                    hasItems={checkableScenarios.length > 0}
+                    localePrefix="main"
+                    toggle={toggleSelectAll}
+                />
                 {props.scenarioCollection &&
                     props.scenarioCollection
                         .getFeatures()
