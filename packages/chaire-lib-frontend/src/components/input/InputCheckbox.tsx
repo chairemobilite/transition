@@ -5,10 +5,37 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { JSX } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation, withTranslation, WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _chunkify } from 'chaire-lib-common/lib/utils/LodashExtensions';
+
+export type SelectAllWidgetProps = {
+    id: string;
+    allChecked: boolean;
+    localePrefix: string;
+    toggle: () => void;
+};
+
+export const SelectAllWidget = (props: SelectAllWidgetProps) => {
+    const { id, allChecked, localePrefix } = props;
+    const { t } = useTranslation([localePrefix]);
+
+    const onClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        props.toggle();
+    };
+
+    return (
+        <div className="tr__form-input-checkbox-group-column" key={id}>
+            <div className="label-input-container">
+                <button type="button" id={id} className={'_input'} onClick={onClick}>
+                    {t(allChecked ? `${localePrefix}:UnselectAll` : `${localePrefix}:SelectAll`) as string}
+                </button>
+            </div>
+        </div>
+    );
+};
 
 type choiceType = {
     value: string;
@@ -94,8 +121,7 @@ class InputCheckboxInner extends React.Component<InputCheckboxProps> {
         e.stopPropagation();
     }
 
-    selectAll(e: React.MouseEvent, checkAll: boolean): void {
-        e.stopPropagation();
+    selectAll(checkAll: boolean): void {
         const choices: string[] = checkAll ? this.props.choices.map((choice) => choice.value) : [];
         this.props.onValueChange({ target: { value: choices } });
     }
@@ -169,22 +195,12 @@ class InputCheckboxInner extends React.Component<InputCheckboxProps> {
             const allChecked = choices.find((choice) => !valueSet.has(choice.value)) === undefined;
             const id = `${this.props.id}_selectAll`;
             selectAllWidget = (
-                <div className="tr__form-input-checkbox-group-column" key={id}>
-                    <div className="label-input-container">
-                        <button
-                            type="button"
-                            id={id}
-                            className={'_input'}
-                            onClick={(e) => this.selectAll(e, !allChecked)}
-                        >
-                            {
-                                this.props.t(
-                                    allChecked ? `${localePrefix}:UnselectAll` : `${localePrefix}:SelectAll`
-                                ) as string
-                            }
-                        </button>
-                    </div>
-                </div>
+                <SelectAllWidget
+                    id={id}
+                    allChecked={allChecked}
+                    localePrefix={localePrefix}
+                    toggle={() => this.selectAll(!allChecked)}
+                />
             );
         }
 
