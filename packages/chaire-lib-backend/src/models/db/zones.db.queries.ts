@@ -165,6 +165,49 @@ const getZonesContaining = async (
 };
 
 /**
+ * Get the zones intersecting a given geography by data source. If there's no
+ * zone intersecting for a datasource, it will return `null`
+ * @param geography The feature for which to get the intersecting zones
+ * @param options 
+ * @param [options.dsIds=[]] The datasource IDs for which to get the
+ * intersecting zones. Leave empty to get all data sources
+ * @returns 
+ */
+const getIntersectingZonesByDatasources = async (
+    geography: GeoJSON.Feature,
+    options?: { dsIds: string[] }
+): Promise<({ dataSourceId: string; dsShortname: string; dsName: string, zoneId: string | null, zoneShortname: string | null, zoneName: string | null })[]> => {
+    try {
+        const { dsIds = []} = options ?? {};
+        const subquery = knex(tableName).select('id', 'shortname', 'name', 'data_source_id')
+        .where(st.intersects(st.geomFromGeoJSON(JSON.stringify(geography.geometry)), 'geography')).as('z');
+        const query = knex(`${dataSourceTbl} as ds`)
+            .select(
+                'ds.id as dataSourceId',
+                'ds.shortname as dsShortname',
+                'ds.name as dsName',
+                'z.id as zoneId',
+                'z.shortname as zoneShortname',
+                'z.name as zoneName')
+            .leftJoin(subquery, 'ds.id', 'z.data_source_id')
+            .where('ds.type', 'zones');
+        if (dsIds.length > 0) {
+            query.whereIn('z.data_source_id', dsIds);
+        }
+        const response = await query;
+        return response;
+    } catch (error) {
+        throw new TrError(
+            `Cannot get zones containing feature ${JSON.stringify(
+                geography.geometry
+            )} from table ${tableName} (knex error: ${error})`,
+            'DBQZONE0004',
+            'DatabaseGetZonesContainingBecauseDatabaseError'
+        );
+    }
+};
+
+/**
  * Imports the data of a zones array in the database (minus the geography), and then adds the geography after converting to WGS84, the format used by transition.
  *
  * @param inputArray An array of objects with the attributes 'zone', 'spatialReferenceId', and 'geography'.
@@ -284,6 +327,7 @@ export default {
     collection,
     deleteForDataSourceId: deleteForDataSourceId.bind(null, knex, tableName),
     getZonesContaining,
+    getIntersectingZonesByDatasources,
     addZonesAndConvertedGeography,
     addJsonDataBatch
 };
