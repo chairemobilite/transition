@@ -13,18 +13,23 @@ import { _chunkify } from 'chaire-lib-common/lib/utils/LodashExtensions';
 export type SelectAllWidgetProps = {
     id: string;
     allChecked: boolean;
+    hasItems: boolean;
     localePrefix: string;
     toggle: () => void;
 };
 
 export const SelectAllWidget = (props: SelectAllWidgetProps) => {
-    const { id, allChecked, localePrefix } = props;
+    const { id, allChecked, hasItems, localePrefix } = props;
     const { t } = useTranslation([localePrefix]);
 
     const onClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         props.toggle();
     };
+
+    if (!hasItems) {
+        return null;
+    }
 
     return (
         <div className="tr__form-input-checkbox-group-column" key={id}>
@@ -198,6 +203,7 @@ class InputCheckboxInner extends React.Component<InputCheckboxProps> {
                 <SelectAllWidget
                     id={id}
                     allChecked={allChecked}
+                    hasItems={choices.length > 0}
                     localePrefix={localePrefix}
                     toggle={() => this.selectAll(!allChecked)}
                 />

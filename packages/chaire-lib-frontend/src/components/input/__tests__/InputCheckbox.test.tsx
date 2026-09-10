@@ -235,6 +235,19 @@ describe('Checkboxes', () => {
         expect(mockOnChange).toHaveBeenCalledWith({ target: { value: [] } });
     });
 
+    test('Select/Unselect all with no choices', async () => {
+        mockOnChange.mockClear();
+        const { container } = render(
+            <InputCheckbox
+                id = {testId}
+                onValueChange = {mockOnChange}
+                choices = {[]}
+                allowSelectAll = {true}
+            />
+        );
+        // Make sure the select all button is not there
+        expect(container.querySelector(`button#${testId}_selectAll`)).toBeNull();
+    });
 });
 
 describe('Boolean Checkboxes', () => {
