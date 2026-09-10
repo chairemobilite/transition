@@ -171,18 +171,18 @@ class InputCheckboxInner extends React.Component<InputCheckboxProps> {
             selectAllWidget = (
                 <div className="tr__form-input-checkbox-group-column" key={id}>
                     <div className="label-input-container">
-                        <input
+                        <button
                             type="button"
                             id={id}
-                            name={this.props.id}
-                            className={'_input-checkbox'}
-                            value={
+                            className={'_input'}
+                            onClick={(e) => this.selectAll(e, !allChecked)}
+                        >
+                            {
                                 this.props.t(
                                     allChecked ? `${localePrefix}:UnselectAll` : `${localePrefix}:SelectAll`
                                 ) as string
                             }
-                            onClick={(e) => this.selectAll(e, !allChecked)}
-                        />
+                        </button>
                     </div>
                 </div>
             );
