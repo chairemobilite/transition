@@ -21,6 +21,9 @@ jest.mock('react-i18next', () => ({
         Component.defaultProps = { ...Component.defaultProps, t: (key) => key };
         return Component;
     },
+    useTranslation: () => ({
+        t: (key: string) => key,
+    }),
 }));
 
 describe('Checkboxes', () => {
@@ -190,7 +193,7 @@ describe('Checkboxes', () => {
             />
         );
         // Make sure the select all button is not there
-        expect(container.querySelector(`input#${testId}_selectAll`)).toBeNull();
+        expect(container.querySelector(`button#${testId}_selectAll`)).toBeNull();
 
         const defaultValueInput = container.querySelector(`input#${testId}_${defaultChoiceValue}`) as HTMLInputElement;
         expect(defaultValueInput.checked).toBeFalsy();
@@ -211,7 +214,7 @@ describe('Checkboxes', () => {
                 allowSelectAll = {true}
             />
         );
-        const selectAllButton = container.querySelector(`input#${testId}_selectAll`) as HTMLInputElement;
+        const selectAllButton = container.querySelector(`button#${testId}_selectAll`) as HTMLButtonElement;
         fireEvent.click(selectAllButton);
         await TestUtils.flushPromises();
         expect(mockOnChange).toHaveBeenCalledTimes(1);

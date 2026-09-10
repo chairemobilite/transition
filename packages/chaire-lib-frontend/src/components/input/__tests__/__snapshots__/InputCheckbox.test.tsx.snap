@@ -361,13 +361,13 @@ exports[`Checkboxes allow select all 1`] = `
     <div
       class="label-input-container"
     >
-      <input
-        class="_input-checkbox"
+      <button
+        class="_input"
         id="SelectWidgetId_selectAll"
-        name="SelectWidgetId"
         type="button"
-        value="main:SelectAll"
-      />
+      >
+        main:SelectAll
+      </button>
     </div>
   </div>
   <div
