@@ -30,6 +30,10 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
     const [checkedServices, setCheckedServices] = useState<Record<string, boolean>>({});
     const [showDeleteSelectedModal, setShowDeleteSelectedModal] = useState(false);
     const checkableServices = props.serviceCollection?.getFeatures().filter((service) => !service.isFrozen()) ?? [];
+    const checkableServiceIds = new Set(checkableServices.map((service) => service.id));
+    // checkedServices is not updated when serviceCollection changes.
+    // It needs to be filtered because it may contain ids of services that have been deleted.
+    const checkedServiceIds = Object.keys(checkedServices).filter((serviceId) => checkableServiceIds.has(serviceId));
 
     const newService = function () {
         const defaultColor = Preferences.get('transit.services.defaultColor', '#0086FF');
@@ -91,7 +95,7 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
                 name: 'DeletingSelectedServices',
                 progress: 0.0
             });
-            await props.serviceCollection.deleteByIds(Object.keys(checkedServices), serviceLocator.socketEventManager);
+            await props.serviceCollection.deleteByIds(checkedServiceIds, serviceLocator.socketEventManager);
             await props.serviceCollection.loadFromServer(
                 serviceLocator.socketEventManager,
                 serviceLocator.collectionManager
@@ -113,9 +117,8 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
             .find((service) => !service.isFrozen() && !service.hasScheduledLines()) !== undefined
         : false;
 
-    const checkServiceIds = Object.keys(checkedServices);
-    const hasChecked = checkServiceIds.length > 0;
-    const allChecked = checkServiceIds.length === checkableServices.length;
+    const hasChecked = checkedServiceIds.length > 0;
+    const allChecked = checkedServiceIds.length === checkableServices.length;
 
     const toggleSelectAll = () => {
         if (allChecked) {
@@ -180,7 +183,7 @@ const TransitServiceList: React.FunctionComponent<ServiceListProps> = (props: Se
                         <ConfirmModal
                             isOpen={true}
                             title={props.t('transit:transitService:ConfirmDeleteSelected', {
-                                count: checkServiceIds.length
+                                count: checkedServiceIds.length
                             })}
                             confirmAction={deleteSelected}
                             confirmButtonColor="red"
