@@ -31,6 +31,12 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
     const [checkedScenarios, setCheckedScenarios] = useState<Record<string, boolean>>({});
     const [showDeleteSelectedModal, setShowDeleteSelectedModal] = useState(false);
     const checkableScenarios = props.scenarioCollection?.getFeatures().filter((scenario) => !scenario.isFrozen()) ?? [];
+    const checkableScenariosIds = new Set(checkableScenarios.map((scenario) => scenario.id));
+    // checkedScenarios is not updated when scenarioCollection changes.
+    // It needs to be filtered because it may contain ids of scenarios that have been deleted.
+    const checkedScenarioIds = Object.keys(checkedScenarios).filter((scenarioId) =>
+        checkableScenariosIds.has(scenarioId)
+    );
 
     const newScenario = function () {
         const defaultColor = Preferences.get('transit.scenarios.defaultColor', '#0086FF');
@@ -73,10 +79,7 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
                     name: 'DeletingSelectedScenarios',
                     progress: 0.0
                 });
-                await props.scenarioCollection.deleteByIds(
-                    Object.keys(checkedScenarios),
-                    serviceLocator.socketEventManager
-                );
+                await props.scenarioCollection.deleteByIds(checkedScenarioIds, serviceLocator.socketEventManager);
                 await props.scenarioCollection.loadFromServer(
                     serviceLocator.socketEventManager,
                     serviceLocator.collectionManager
@@ -94,9 +97,8 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
         }
     };
 
-    const checkScenarioIds = Object.keys(checkedScenarios);
-    const hasChecked = checkScenarioIds.length > 0;
-    const allChecked = checkScenarioIds.length === checkableScenarios.length;
+    const hasChecked = checkedScenarioIds.length > 0;
+    const allChecked = checkedScenarioIds.length === checkableScenarios.length;
 
     const toggleSelectAll = () => {
         if (allChecked) {
@@ -161,7 +163,7 @@ const TransitScenarioList: React.FunctionComponent<ScenarioListProps> = (props: 
                         <ConfirmModal
                             isOpen={true}
                             title={t('transit:transitScenario:ConfirmDeleteSelected', {
-                                count: checkScenarioIds.length
+                                count: checkedScenarioIds.length
                             })}
                             confirmAction={deleteSelected}
                             confirmButtonColor="red"
