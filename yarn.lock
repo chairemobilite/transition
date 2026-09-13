@@ -4473,6 +4473,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/sax@npm:^1.2.7":
+  version: 1.2.7
+  resolution: "@types/sax@npm:1.2.7"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/d077a761a0753b079bf8279b3993948030ca86ed9125437b9b29c1de40db9b2deb7fddc369f014b58861d450e8b8cc75f163aa29dc8cea81952efbfd859168cf
+  languageName: node
+  linkType: hard
+
 "@types/send@npm:*":
   version: 0.17.4
   resolution: "@types/send@npm:0.17.4"
@@ -6357,6 +6366,7 @@ __metadata:
     "@types/passport": "npm:^1.0.17"
     "@types/passport-http-bearer": "npm:^1.0.42"
     "@types/passport-local": "npm:^1.0.38"
+    "@types/sax": "npm:^1.2.7"
     "@types/stream-chain": "npm:^2.1.0"
     "@types/stream-json": "npm:^1.7.8"
     "@types/validator": "npm:^13.15.10"
@@ -6400,6 +6410,7 @@ __metadata:
     pg-query-stream: "npm:^4.10.3"
     prettier: "npm:^3.9.10"
     rimraf: "npm:^6.1.3"
+    sax: "npm:^1.6.1"
     socket.io: "npm:^4.8.1"
     stream-chain: "npm:^3.4.0"
     stream-json: "npm:^1.9.1"
@@ -14431,6 +14442,13 @@ __metadata:
   bin:
     sass: sass.js
   checksum: 10c0/49a656dfab58299165ef94e71483a333972daee68c49fa542858d4912accdfb1707338226a165b1a2dfcdb2509fcda5a5b4f3780d14e49b6d38d93c8043475d3
+  languageName: node
+  linkType: hard
+
+"sax@npm:^1.6.1":
+  version: 1.6.1
+  resolution: "sax@npm:1.6.1"
+  checksum: 10c0/c91a71043d60da50fdf1e2cee936fc7ad4c9376afb8d1022aef5655f279433640859ec06b3b49abfcbe578fc7da2828cc1661e45aaedf835f5393496193437fa
   languageName: node
   linkType: hard
 
