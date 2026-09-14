@@ -243,6 +243,8 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
      * @param {ValidationTransformFactory} [createValidationTransform] Optional
      * content validator.
      * @return {*} The result of the query, as an xml string
+     * @throws If the download fails, the response fails validation, or the file
+     * can't be written or moved into place.
      * @memberof OsmOverpassDownloaderImpl
      */
     public async fetchAndWriteXml(
@@ -266,7 +268,8 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
     ): Promise<boolean> {
         const response = await this.downloadData(boundPoly, overpassXmlQueryString, fileType);
         // Taken from fetch-node documentation
-        console.log('Writing osm data to ' + filename);
+        const tempFilename = `${filename}.tmp`;
+        console.log('Writing osm data to temporary file ' + tempFilename);
         if (!response.body) {
             throw new Error('Response body is null');
         }
@@ -275,11 +278,13 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         await pipeline(
             Readable.fromWeb(response.body as ReadableStream<Uint8Array>),
             validationTransform,
-            fs.createWriteStream(filename)
+            fs.createWriteStream(tempFilename)
         );
         if (validationTransform.validationError) {
             throw validationTransform.validationError;
         }
+        console.log(`Moving ${tempFilename} to ${filename}`);
+        fs.renameSync(tempFilename, filename);
         console.log('Done writing osm data');
         return true;
     }
