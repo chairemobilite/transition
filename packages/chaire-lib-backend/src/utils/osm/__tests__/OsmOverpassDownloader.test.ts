@@ -7,8 +7,15 @@
 
 import OsmOverpassDownloader from '../OsmOverpassDownloader';
 import GeoJSON from 'geojson';
-import { Writable } from 'node:stream';
+import { Transform, Writable } from 'node:stream';
 import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import {
+    createXmlOsmElementValidationTransform,
+    ValidatingTransform,
+    ValidationTransformFactory
+} from '../OsmValidationTransform';
 
 global.fetch = jest.fn();
 const mockedFetch = global.fetch as jest.MockedFunction<typeof fetch>;
@@ -267,4 +274,101 @@ test('fetch and write geojson', async () => {
     expect(mockedFetch).toHaveBeenCalledTimes(1);
     expect(writtenData).toBe(JSON.stringify(geojsonWritten));
     expect(streamFilename).toBe('./test.json');
+});
+
+describe('fetchAndWriteXml atomic finalization', () => {
+    let tempDir: string;
+    let filename: string;
+    const errorMessage = 'forced validation failure for test';
+    const previousContent = 'previous content';
+
+    const createRejectingValidationTransform: ValidationTransformFactory = () => {
+        const transform: ValidatingTransform = new Transform({
+            transform(chunk, _encoding, callback) {
+                callback(null, chunk);
+            },
+            flush(callback) {
+                transform.validationError = new Error(errorMessage);
+                callback();
+            }
+        });
+        return transform;
+    };
+
+    const mockFetchXmlResponse = (status = 200) => {
+        const streamBody = new ReadableStream({
+            start(controller) {
+                controller.enqueue(new TextEncoder().encode(xmlData));
+                controller.close();
+            }
+        });
+        mockedFetch.mockResolvedValue(
+            Promise.resolve({
+                ok: status >= 200 && status < 300,
+                status,
+                body: streamBody
+            } as Partial<Response> as Response)
+        );
+    };
+
+    beforeEach(() => {
+        jest.restoreAllMocks(); // Prevent mocks from other tests, such as createWriteStream, from affecting this test
+        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'osm-overpass-downloader-test-'));
+        filename = path.join(tempDir, 'test.osm');
+        fs.writeFileSync(filename, previousContent);
+    });
+
+    afterEach(() => {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+    });
+
+    test('replaces destination on success', async () => {
+        mockFetchXmlResponse();
+
+        const writeIsSuccessful = await OsmOverpassDownloader.fetchAndWriteXml(
+            filename,
+            geojsonBoundaryPolygon,
+            overpassQuery,
+            createXmlOsmElementValidationTransform
+        );
+
+        expect(writeIsSuccessful).toBe(true);
+        expect(fs.readFileSync(filename, 'utf8')).toBe(xmlData);
+        expect(fs.existsSync(`${filename}.tmp`)).toBe(false);
+    });
+
+    test('keeps destination on failure', async () => {
+        mockFetchXmlResponse();
+
+        await expect(
+            OsmOverpassDownloader.fetchAndWriteXml(
+                filename,
+                geojsonBoundaryPolygon,
+                overpassQuery,
+                createRejectingValidationTransform
+            )
+        ).rejects.toThrow(errorMessage);
+
+        expect(fs.readFileSync(filename, 'utf8')).toBe(previousContent);
+        expect(fs.existsSync(`${filename}.tmp`)).toBe(true);
+        expect(fs.readFileSync(`${filename}.tmp`, 'utf8')).toBe(xmlData);
+    });
+
+    // Sample of common error statuses, rather than every possible one
+    test.each([400, 406, 429, 500, 504])('rejects error status %i', async (status) => {
+        mockFetchXmlResponse(status);
+
+        await expect(
+            OsmOverpassDownloader.fetchAndWriteXml(
+                filename,
+                geojsonBoundaryPolygon,
+                overpassQuery,
+                createXmlOsmElementValidationTransform
+            )
+        ).rejects.toEqual({ error: 'OverpassRequestError', status });
+
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        expect(fs.readFileSync(filename, 'utf8')).toBe(previousContent);
+        expect(fs.existsSync(`${filename}.tmp`)).toBe(false);
+    });
 });
