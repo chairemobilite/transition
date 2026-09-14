@@ -114,7 +114,7 @@ export class DownloadOsmNetworkData implements GenericTask {
                                 reject('Too many requests');
                             }
                         } else {
-                            console.error('Error download from API', error);
+                            console.error('Error fetching and writing OSM network data:', error);
                             reject(error);
                         }
                     }
