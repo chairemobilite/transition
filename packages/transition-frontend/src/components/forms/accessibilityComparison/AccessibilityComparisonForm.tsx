@@ -60,8 +60,8 @@ import { comparisonModes } from './comparisonModes';
 import AccessibilityMapCoordinatesComponent from '../accessibilityMap/widgets/AccessibilityMapCoordinateComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
-import LocationModeColorInfo from './LocationModeColorInfo';
-import ScenarioModeColorInfo from './ScenarioModeColorInfo';
+import LocationModeColorInfo from './widgets/LocationModeColorInfo';
+import ScenarioModeColorInfo from './widgets/ScenarioModeColorInfo';
 
 export interface AccessibilityComparisonFormProps extends WithTranslation {
     addEventListeners?: () => void;
