@@ -113,7 +113,7 @@ const calculateRoute = async (
 export class Routing {
     static async calculate(
         routingAttributes: TripRoutingQueryAttributes,
-        options: { isCancelled?: () => boolean } = {}
+        options: { isCancelled?: () => boolean; suppressExpectedRouteErrors?: boolean } = {}
     ): Promise<RoutingResultsByMode> {
         const { isCancelled } = options;
 
@@ -124,7 +124,9 @@ export class Routing {
             if (isCancelled && isCancelled()) {
                 throw 'Cancelled';
             }
-            routingPromises.push(this.calculateRoutingMode(routingMode, routingAttributes));
+            routingPromises.push(
+                this.calculateRoutingMode(routingMode, routingAttributes, options.suppressExpectedRouteErrors)
+            );
         }
 
         // Cancel further processing if the request was cancelled
@@ -156,7 +158,8 @@ export class Routing {
     // simpler to handle the async in the for loop in the main calculate function.
     private static async calculateRoutingMode(
         routingMode: RoutingMode | TransitMode,
-        routingAttributes: TripRoutingQueryAttributes
+        routingAttributes: TripRoutingQueryAttributes,
+        suppressExpectedRouteErrors = false
     ): Promise<TransitOrRouteCalculatorResult> {
         try {
             if (routingMode === 'transit') {
@@ -178,11 +181,21 @@ export class Routing {
                 };
             }
         } catch (error) {
-            const origDestStr = `${routingAttributes.originGeojson.geometry.coordinates.join(',')} to ${routingAttributes.destinationGeojson.geometry.coordinates.join(',')}`;
-            console.error(
-                `tripRouting: Error routing single mode ${routingMode} for ${origDestStr}:`,
-                TrError.isTrError(error) ? error.getCode() : error
-            );
+            const errorCode = TrError.isTrError(error)
+                ? error.getCode()
+                : typeof error === 'object' && error !== null
+                    ? (error as any).code
+                    : '';
+            const isExpectedNoRoute =
+                errorCode === 'NoRoute' ||
+                (typeof errorCode === 'string' && errorCode.startsWith('TRROUTING_NO_ROUTING'));
+            if (!(suppressExpectedRouteErrors && isExpectedNoRoute)) {
+                const origDestStr = `${routingAttributes.originGeojson.geometry.coordinates.join(',')} to ${routingAttributes.destinationGeojson.geometry.coordinates.join(',')}`;
+                console.error(
+                    `tripRouting: Error routing single mode ${routingMode} for ${origDestStr}:`,
+                    TrError.isTrError(error) ? `${error.getCode()} - ${error.message}` : error
+                );
+            }
             return {
                 routingMode,
                 result: !TrError.isTrError(error)

@@ -153,7 +153,7 @@ describe('File generator: Only CSV results', () => {
     });
 
     test('get files', () => {
-        expect(resultProcessor.getFiles()).toEqual({ input: inputFileName, csv: CSV_FILE_NAME, detailed: undefined, geojson: undefined });
+        expect(resultProcessor.getFiles()).toEqual({ csv: CSV_FILE_NAME, detailed: undefined, geojson: undefined });
     });
 
     test('Process results', () => {
@@ -180,7 +180,7 @@ describe('File generator: Only CSV results', () => {
 
         resultProcessor.end();
         expect(csvStream.writableEnded).toBeTruthy();
-        expect(resultProcessor.getFiles()).toEqual({ input: inputFileName, csv: CSV_FILE_NAME, detailed: undefined, geojson: undefined });
+        expect(resultProcessor.getFiles()).toEqual({ csv: CSV_FILE_NAME, detailed: undefined, geojson: undefined });
     })
 });
 
@@ -212,7 +212,7 @@ describe('File generator: CSV and detailed results', () => {
     });
 
     test('get files', () => {
-        expect(resultProcessor.getFiles()).toEqual({ input: expect.anything(), csv: CSV_FILE_NAME, detailedCsv: DETAILED_CSV_FILE_NAME, geojson: undefined });
+        expect(resultProcessor.getFiles()).toEqual({ csv: CSV_FILE_NAME, detailedCsv: DETAILED_CSV_FILE_NAME, geojson: undefined });
     });
 
     test('Process results', () => {
@@ -248,7 +248,7 @@ describe('File generator: CSV and detailed results', () => {
         resultProcessor.end();
         expect(csvStream.writableEnded).toBeTruthy();
         expect(detailedStream.writableEnded).toBeTruthy();
-        expect(resultProcessor.getFiles()).toEqual({ input: expect.anything(), csv: CSV_FILE_NAME, detailedCsv: DETAILED_CSV_FILE_NAME, geojson: undefined });
+        expect(resultProcessor.getFiles()).toEqual({ csv: CSV_FILE_NAME, detailedCsv: DETAILED_CSV_FILE_NAME, geojson: undefined });
     })
 });
 
@@ -281,7 +281,7 @@ describe('File generator: CSV and geojson results', () => {
     });
 
     test('get files', () => {
-        expect(resultProcessor.getFiles()).toEqual({ input: expect.anything(), csv: CSV_FILE_NAME, detailedCsv: undefined, geojson: GEOMETRY_FILE_NAME });
+        expect(resultProcessor.getFiles()).toEqual({ csv: CSV_FILE_NAME, detailedCsv: undefined, geojson: GEOMETRY_FILE_NAME });
     });
 
     test('Process results', () => {
@@ -323,7 +323,7 @@ describe('File generator: CSV and geojson results', () => {
         resultProcessor.end();
         expect(csvStream.writableEnded).toBeTruthy();
         expect(geojsonStream.writableEnded).toBeTruthy();
-        expect(resultProcessor.getFiles()).toEqual({ input: expect.anything(), csv: CSV_FILE_NAME, detailedCsv: undefined, geojson: GEOMETRY_FILE_NAME });
+        expect(resultProcessor.getFiles()).toEqual({ csv: CSV_FILE_NAME, detailedCsv: undefined, geojson: GEOMETRY_FILE_NAME });
 
         // make sure the geojson content is valid geojson
         const geojsonString = geojsonStream.data.join('');

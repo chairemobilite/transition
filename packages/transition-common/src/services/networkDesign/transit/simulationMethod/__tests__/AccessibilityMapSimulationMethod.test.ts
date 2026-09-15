@@ -16,7 +16,7 @@ describe('AccessibilityMapSimulationDescriptor', () => {
 
     describe('getTranslatableName', () => {
         test('should return the correct translatable name', () => {
-            expect(descriptor.getTranslatableName()).toBe('transit:simulation:simulationMethods:AccessibilityMap');
+            expect(descriptor.getTranslatableName()).toBe('transit:networkDesign.simulationMethods.accessibilityMap.Title');
         });
     });
 
@@ -32,7 +32,7 @@ describe('AccessibilityMapSimulationDescriptor', () => {
             const options = descriptor.getOptions();
             const dataSourceOption = options.dataSourceId;
 
-            expect(dataSourceOption.i18nName).toBe('transit:simulation:simulationMethods:AccessMapDataSources');
+            expect(dataSourceOption.i18nName).toBe('transit:networkDesign.simulationMethods.accessibilityMap.AccessMapDataSources');
             expect(dataSourceOption.type).toBe('select');
             expect(typeof dataSourceOption.choices).toBe('function');
         });
@@ -41,7 +41,7 @@ describe('AccessibilityMapSimulationDescriptor', () => {
             const options = descriptor.getOptions();
             const sampleRatioOption = options.sampleRatio;
 
-            expect(sampleRatioOption.i18nName).toBe('transit:simulation:simulationMethods:AccessMapMaxSampleRatio');
+            expect(sampleRatioOption.i18nName).toBe('transit:networkDesign.simulationMethods.accessibilityMap.AccessMapMaxSampleRatio');
             expect(sampleRatioOption.type).toBe('number');
             expect(sampleRatioOption.default).toBe(1);
             expect(typeof sampleRatioOption.validate).toBe('function');

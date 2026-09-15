@@ -41,6 +41,15 @@ type GenericCsvImportAndMappingFormProps<T extends Record<string, string> = Reco
      * file, when we know how to clean them up.
      */
     importFileName: string;
+    /**
+     * When true, the component does not render inline validation errors.
+     * The parent is responsible for calling `csvFieldMapper.getErrors()`
+     * and displaying them (e.g. on a submit button click). This makes it
+     * possible for the user to enter a form and not see errors while
+     * they are filling it out. Otherwise, fields that the user has not
+     * yet filled out will show errors if set as required.
+     */
+    hideErrors?: boolean;
 };
 
 /**
@@ -146,7 +155,7 @@ const GenericCsvImportAndMappingForm = <T extends Record<string, string> = Recor
             )}
             {csvFileFields.length !== 0 && (
                 <React.Fragment>
-                    <FormErrors errors={props.csvFieldMapper.getErrors()} />
+                    {!props.hideErrors && <FormErrors errors={props.csvFieldMapper.getErrors()} />}
                     {readyToUpload && (
                         <div className="tr__form-buttons-container">
                             <span title={t('transit:batchCalculation:UploadFile')}>

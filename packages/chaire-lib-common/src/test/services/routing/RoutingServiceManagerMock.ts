@@ -11,7 +11,9 @@ import {
     RouteResults,
     TableFromParameters,
     TableToParameters,
-    TableResults
+    TableResults,
+    TableManyToManyParameters,
+    TableManyToManyResults
 } from '../../../services/routing/RoutingService';
 import { RoutingServiceManager } from '../../../services/routing/RoutingServiceManager';
 
@@ -22,6 +24,9 @@ type mockMapMatchType = jest.MockedFunction<(params: MapMatchParameters) => Prom
 type mockRouteType = jest.MockedFunction<(params: MapMatchParameters) => Promise<RouteResults>>;
 type mockTableFromType = jest.MockedFunction<(params: TableFromParameters) => Promise<TableResults>>;
 type mockTableToType = jest.MockedFunction<(params: TableToParameters) => Promise<TableResults>>;
+type mockTableManyToManyType = jest.MockedFunction<
+    (params: TableManyToManyParameters) => Promise<TableManyToManyResults>
+>;
 
 const createMapMatchMock: () => mockMapMatchType = () => {
     const mockMapMatch: mockMapMatchType = jest.fn();
@@ -58,15 +63,27 @@ const createTableFromMock: () => mockTableFromType = () => {
 };
 
 const createTableToMock: () => mockTableToType = () => {
-    const mockTableFrom: mockTableToType = jest.fn();
-    mockTableFrom.mockImplementation(async (_params) => {
+    const mockTableTo: mockTableToType = jest.fn();
+    mockTableTo.mockImplementation(async (_params) => {
         return {
             query: '',
             distances: [],
             durations: []
         };
     });
-    return mockTableFrom;
+    return mockTableTo;
+};
+
+const createTableManyToManyMock: () => mockTableManyToManyType = () => {
+    const mockTableManyToMany: mockTableManyToManyType = jest.fn();
+    mockTableManyToMany.mockImplementation(async (_params) => {
+        return {
+            query: '',
+            distances: [],
+            durations: []
+        };
+    });
+    return mockTableManyToMany;
 };
 
 interface MockRoutingService extends RoutingService {
@@ -74,6 +91,7 @@ interface MockRoutingService extends RoutingService {
     mapMatch: mockMapMatchType;
     tableFrom: mockTableFromType;
     tableTo: mockTableToType;
+    tableManyToMany: mockTableManyToManyType;
 }
 
 /**
@@ -93,13 +111,15 @@ class RoutingServiceManagerMock implements RoutingServiceManager {
             route: createRouteMock(),
             mapMatch: createMapMatchMock(),
             tableFrom: createTableFromMock(),
-            tableTo: createTableToMock()
+            tableTo: createTableToMock(),
+            tableManyToMany: createTableManyToManyMock()
         };
         const osrmService = {
             route: createRouteMock(),
             mapMatch: createMapMatchMock(),
             tableFrom: createTableFromMock(),
-            tableTo: createTableToMock()
+            tableTo: createTableToMock(),
+            tableManyToMany: createTableManyToManyMock()
         };
         this._routingServices = {
             manual: this._defaultService,

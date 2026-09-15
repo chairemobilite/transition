@@ -55,11 +55,11 @@ const defaultSectionsConfig = {
         iconWhite: '/dist/images/icons/interface/od_routing_white.svg',
         iconBlack: '/dist/images/icons/interface/od_routing_black.svg'
     },
-    simulations: {
-        localizedTitle: 'transit:simulation:Simulations',
+    networkDesign: {
+        localizedTitle: 'transit:networkDesign:NetworkDesign',
         iconWhite: '/dist/images/icons/interface/simulation_white.svg',
         iconBlack: '/dist/images/icons/interface/simulation_black.svg',
-        enabled: false // Disabled by default as accessing this features requires CLI access
+        enabled: true // TODO Do not enable yet in main branche!! Until everything is well documented and functional
     },
     gtfsImport: {
         localizedTitle: 'transit:gtfs:Import',

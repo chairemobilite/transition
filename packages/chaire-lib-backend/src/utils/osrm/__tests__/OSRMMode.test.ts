@@ -51,33 +51,26 @@ describe('OSRM Mode tests', () => {
         const origin = TestUtils.makePoint([-73, 45]);
         const destination1 = TestUtils.makePoint([-73.1, 45.1]);
 
-
         const params = {
             mode: 'walking' as const,
             points: [origin, destination1]
         };
 
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockResolvedValue({
-            status: 'OK'
-        });
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response(JSON.stringify({ status: 'OK' }), {
             status: 200,
-            json: jsonResponse
-        } as Partial<Response> as Response);
+            headers: { 'Content-Type': 'application/json' }
+        });
         mockedFetch.mockResolvedValue(response);
 
         const result = await aMode.route(params);
         expect(mockedFetch).toHaveBeenCalledTimes(1);
         expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/route/v1/walking/-73,45;-73.1,45.1?alternatives=false&steps=false&annotations=false&continue_straight=default&geometries=geojson&overview=full', {"headers": {"Accept-Encoding": "identity"}});
 
-
     });
 
     test('Test invalid fetch with bad json', async () => {
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { /* noop */ });
 
-        // TODO: This test should be updated when a better way to manage errors is implemented
         const aMode = new OSRMMode('walking', '', 4000);
 
         const origin = TestUtils.makePoint([-73, 45]);
@@ -88,17 +81,19 @@ describe('OSRM Mode tests', () => {
             points: [origin, destination1]
         };
 
-        const jsonResponse = jest.fn() as jest.MockedFunction<Response['json']>;
-        jsonResponse.mockRejectedValueOnce(new Error('invalid json response body at TEST reason: Unexpected end of JSON input'));
-        const response = Promise.resolve({
-            ok: true,
+        const response = new Response('', {
             status: 200,
-            json: jsonResponse as any
-        } as Partial<Response> as Response);
+            headers: { 'Content-Type': 'application/json' }
+        });
         mockedFetch.mockResolvedValue(response);
 
-        await expect(aMode.route(params)).rejects.toThrow('invalid json response body at TEST reason: Unexpected end of JSON input');
+        await expect(aMode.route(params)).rejects.toThrow('Unexpected end of JSON input');
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining('OSRM route: failed to parse JSON')
+        );
 
+        consoleErrorSpy.mockRestore();
     });
 
     test('Test basic fetch with result validation', async () => {

@@ -71,7 +71,7 @@ test('Finish second chunk before first', () => {
     expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize);
 });
 
-test('Test the completed method', () => {
+test('Test the completed method', async () => {
     const chunkSize = 5;
     const extraItems = chunkSize - 2;
     const tracker = new CheckpointTracker(chunkSize, mockProgressEmitter);
@@ -85,7 +85,7 @@ test('Test the completed method', () => {
     expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize);
 
     // Call the completed method, expect a third checkpoint call
-    tracker.completed();
+    await tracker.completed();
     expect(mockCheckpoint).toHaveBeenCalledTimes(3);
     expect(mockCheckpoint).toHaveBeenCalledWith(2 * chunkSize + extraItems);
 });
