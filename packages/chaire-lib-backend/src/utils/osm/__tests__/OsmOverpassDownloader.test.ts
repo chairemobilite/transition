@@ -102,27 +102,27 @@ const jsonData = {
 };
 
 const geojsonWritten = {
-    "type":"FeatureCollection",
-    "features":[
+    'type':'FeatureCollection',
+    'features':[
         {
-            "type":"Feature",
-            "id":"node/123",
-            "properties":{"id":"node/123","timestamp":"2020-02-08T17:16:30Z","version":1,"user":"osmUser","changeset":1,"uid":1},
-            "geometry":{"type":"Point","coordinates":[-73.9678132,45.3941161]}
+            'type':'Feature',
+            'id':'node/123',
+            'properties':{ 'id':'node/123','timestamp':'2020-02-08T17:16:30Z','version':1,'user':'osmUser','changeset':1,'uid':1 },
+            'geometry':{ 'type':'Point','coordinates':[-73.9678132,45.3941161] }
         },
         {
-            "type":"Feature",
-            "id":"node/234",
-            "properties":{"id":"node/234","timestamp":"2020-02-08T17:16:30Z","version":1,"user":"osmUser","changeset":1,"uid":1},
-            "geometry":{"type":"Point","coordinates":[-73.9544677,45.3752717]}
+            'type':'Feature',
+            'id':'node/234',
+            'properties':{ 'id':'node/234','timestamp':'2020-02-08T17:16:30Z','version':1,'user':'osmUser','changeset':1,'uid':1 },
+            'geometry':{ 'type':'Point','coordinates':[-73.9544677,45.3752717] }
         },
         {
-            "type":"Feature",
-            "id":"node/345",
-            "properties":{"id":"node/345","timestamp":"2020-02-08T17:16:30Z","version":1,"user":"osmUser","changeset":1,"uid":1},
-            "geometry":{"type":"Point","coordinates":[-73.9545144,45.3751139]}
+            'type':'Feature',
+            'id':'node/345',
+            'properties':{ 'id':'node/345','timestamp':'2020-02-08T17:16:30Z','version':1,'user':'osmUser','changeset':1,'uid':1 },
+            'geometry':{ 'type':'Point','coordinates':[-73.9545144,45.3751139] }
         }
-]};
+    ] };
 
 const xmlData = `<?xml version="1.0" encoding="UTF-8"?>
 <osm version="0.6" generator="Overpass API 0.7.56.8 7d656e78">
@@ -165,7 +165,7 @@ test('download json data from overpass', async () => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/xml',
-            "User-Agent": "Transition/1.0 (+https://github.com/chairemobilite/transition)"
+            'User-Agent': 'Transition/1.0 (+https://github.com/chairemobilite/transition)'
         },
         body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'json')
     });
@@ -191,7 +191,7 @@ test('download geojson data from overpass', async () => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/xml',
-            "User-Agent": "Transition/1.0 (+https://github.com/chairemobilite/transition)"
+            'User-Agent': 'Transition/1.0 (+https://github.com/chairemobilite/transition)'
         },
         body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'json')
     });
@@ -225,7 +225,7 @@ test('download xml data from overpass', async () => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/xml',
-            "User-Agent": "Transition/1.0 (+https://github.com/chairemobilite/transition)"
+            'User-Agent': 'Transition/1.0 (+https://github.com/chairemobilite/transition)'
         },
         body: overpassQuery.replace('BOUNDARY', polyboundary).replace('OUTPUT', 'xml')
     });
@@ -239,8 +239,8 @@ test('fetch and write geojson', async () => {
     let streamFilename;
     mockWriteStream = new Writable({
         write(chunk, _encoding, callback) {
-          writtenData += chunk.toString();
-          callback();
+            writtenData += chunk.toString();
+            callback();
         }
     });
 
