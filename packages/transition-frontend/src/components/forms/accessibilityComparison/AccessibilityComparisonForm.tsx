@@ -91,6 +91,7 @@ interface AccessibilityComparisonFormState extends ChangeEventsState<TransitAcce
     possibleMaxTimes: { value: string }[];
     displayMaxTimeSelect: boolean;
     finalMap: TransitAccessibilityMapWithPolygonAndTimeResult[];
+    currentFinalMapIndex: number;
     contextMenu: HTMLElement | null;
     contextMenuRoot: Root | undefined;
     alternateScenario1Id?: string;
@@ -135,6 +136,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
             possibleMaxTimes: [],
             displayMaxTimeSelect: false,
             finalMap: [],
+            currentFinalMapIndex: 0,
             alternateScenario1Id: '',
             alternateScenario2Id: '',
             contextMenu: null,
@@ -277,17 +279,16 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
                 finalMap.push({ polygons, travelTime });
             }
 
-            this.setState({ finalMap });
             this.setState(
                 {
+                    finalMap,
                     currentPolygons: {
                         result1: currentResult1.polygons,
                         result2: currentResult2.polygons
-                    }
+                    },
+                    currentFinalMapIndex: 0
                 },
-                () => {
-                    this.displayMap(0);
-                }
+                this.displayMap
             ); //Function is put in callback, otherwise the map will try to display before the state is updated and throw an error.
             this.removePolygons(false);
         } catch {
@@ -311,7 +312,12 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
 
         for (let i = 0; i < finalMap.length; i++) {
             if (selectedMaxTime === finalMap[i].travelTime) {
-                this.displayMap(i);
+                this.setState(
+                    {
+                        currentFinalMapIndex: i
+                    },
+                    this.displayMap
+                );
                 return;
             }
         }
@@ -336,8 +342,12 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
         }
     }
 
-    displayMap(index: number) {
-        const currentResult = this.state.finalMap[index];
+    displayMap() {
+        const currentResult = this.state.finalMap.at(this.state.currentFinalMapIndex);
+        if (!currentResult) {
+            // No map to render. Normal if the user hasn't calculated a comparison yet
+            return;
+        }
         const { polygons } = currentResult;
 
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
