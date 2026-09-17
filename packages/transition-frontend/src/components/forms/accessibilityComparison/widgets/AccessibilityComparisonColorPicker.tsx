@@ -9,6 +9,8 @@ import React from 'react';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
 
+export type PointColorTarget = 'location1' | 'location2' | 'intersection';
+
 type ColorPickerProps = {
     defaultColor: string;
     label: string;

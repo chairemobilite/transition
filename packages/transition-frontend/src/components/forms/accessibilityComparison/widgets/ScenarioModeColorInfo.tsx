@@ -6,14 +6,15 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import AccessibilityComparisonColorPicker from './AccessibilityComparisonColorPicker';
+import AccessibilityComparisonColorPicker, { PointColorTarget } from './AccessibilityComparisonColorPicker';
 
 interface ScenarioColorProps {
     intersectionLocationColor: string;
     intersectionPolygonColor: string;
     comparisonPolygon1Color: string;
     comparisonPolygon2Color: string;
-    onValueChange: (colorToChange: string, newColor: string) => void;
+    onPolygonColorChange: (colorToChange: string, newColor: string) => void;
+    onPointColorChange: (colorToChange: string, target: PointColorTarget, newColor: string) => void;
 }
 
 export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> = (props: ScenarioColorProps) => {
@@ -26,7 +27,7 @@ export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> 
                 label={t('transit:accessibilityComparison:ScenarioLocation')}
                 colorValue={props.intersectionLocationColor}
                 onValueChange={(newColor) => {
-                    props.onValueChange('intersectionLocationColor', newColor);
+                    props.onPointColorChange('intersectionLocationColor', 'intersection', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -34,7 +35,7 @@ export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> 
                 label={t('transit:accessibilityComparison:ScenarioIntersectionPolygon')}
                 colorValue={props.intersectionPolygonColor}
                 onValueChange={(newColor) => {
-                    props.onValueChange('intersectionPolygonColor', newColor);
+                    props.onPolygonColorChange('intersectionPolygonColor', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -44,7 +45,7 @@ export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> 
                 })}
                 colorValue={props.comparisonPolygon1Color}
                 onValueChange={(newColor) => {
-                    props.onValueChange('comparisonPolygon1Color', newColor);
+                    props.onPolygonColorChange('comparisonPolygon1Color', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -54,7 +55,7 @@ export const ScenarioModeColorInfo: React.FunctionComponent<ScenarioColorProps> 
                 })}
                 colorValue={props.comparisonPolygon2Color}
                 onValueChange={(newColor) => {
-                    props.onValueChange('comparisonPolygon2Color', newColor);
+                    props.onPolygonColorChange('comparisonPolygon2Color', newColor);
                 }}
             />
         </React.Fragment>

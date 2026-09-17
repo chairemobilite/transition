@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import AccessibilityComparisonColorPicker from './AccessibilityComparisonColorPicker';
+import AccessibilityComparisonColorPicker, { PointColorTarget } from './AccessibilityComparisonColorPicker';
 
 interface LocationColorProps {
     intersectionPolygonColor: string;
@@ -14,7 +14,8 @@ interface LocationColorProps {
     comparisonPolygon1Color: string;
     comparisonLocation2Color: string;
     comparisonPolygon2Color: string;
-    onValueChange: (colorToChange: string, newColor: string) => void;
+    onPolygonColorChange: (colorToChange: string, newColor: string) => void;
+    onPointColorChange: (colorToChange: string, target: PointColorTarget, newColor: string) => void;
 }
 
 export const LocationModeColorInfo: React.FunctionComponent<LocationColorProps> = (props: LocationColorProps) => {
@@ -27,7 +28,7 @@ export const LocationModeColorInfo: React.FunctionComponent<LocationColorProps> 
                 label={t('transit:accessibilityComparison:LocationIntersectionPolygon')}
                 colorValue={props.intersectionPolygonColor}
                 onValueChange={(newColor) => {
-                    props.onValueChange('intersectionPolygonColor', newColor);
+                    props.onPolygonColorChange('intersectionPolygonColor', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -35,7 +36,7 @@ export const LocationModeColorInfo: React.FunctionComponent<LocationColorProps> 
                 label={t('transit:accessibilityComparison:LocationN', { locationNumber: '1' })}
                 colorValue={props.comparisonLocation1Color}
                 onValueChange={(newColor) => {
-                    props.onValueChange('comparisonLocation1Color', newColor);
+                    props.onPointColorChange('comparisonLocation1Color', 'location1', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -45,7 +46,7 @@ export const LocationModeColorInfo: React.FunctionComponent<LocationColorProps> 
                 })}
                 colorValue={props.comparisonPolygon1Color}
                 onValueChange={(newColor) => {
-                    props.onValueChange('comparisonPolygon1Color', newColor);
+                    props.onPolygonColorChange('comparisonPolygon1Color', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -53,7 +54,7 @@ export const LocationModeColorInfo: React.FunctionComponent<LocationColorProps> 
                 label={t('transit:accessibilityComparison:LocationN', { locationNumber: '2' })}
                 colorValue={props.comparisonLocation2Color}
                 onValueChange={(newColor) => {
-                    props.onValueChange('comparisonLocation2Color', newColor);
+                    props.onPointColorChange('comparisonLocation2Color', 'location2', newColor);
                 }}
             />
             <AccessibilityComparisonColorPicker
@@ -63,7 +64,7 @@ export const LocationModeColorInfo: React.FunctionComponent<LocationColorProps> 
                 })}
                 colorValue={props.comparisonPolygon2Color}
                 onValueChange={(newColor) => {
-                    props.onValueChange('comparisonPolygon2Color', newColor);
+                    props.onPolygonColorChange('comparisonPolygon2Color', newColor);
                 }}
             />
         </React.Fragment>

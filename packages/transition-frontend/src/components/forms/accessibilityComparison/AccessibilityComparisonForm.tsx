@@ -52,7 +52,7 @@ import TransitAccessibilityMapRouting, {
     MIN_WALKING_SPEED_KPH,
     MAX_WALKING_SPEED_KPH
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import { TransitAccessibilityMapComparisonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 import { calculateAccessibilityMap, calculateAccessibilityMapComparison } from '../../../services/routing/RoutingUtils';
 import AccessibilityComparisonStatsComponent from './AccessibilityComparisonStatsComponent';
@@ -62,6 +62,7 @@ import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import LocationModeColorInfo from './widgets/LocationModeColorInfo';
 import ScenarioModeColorInfo from './widgets/ScenarioModeColorInfo';
+import { PointColorTarget } from './widgets/AccessibilityComparisonColorPicker';
 
 export interface AccessibilityComparisonFormProps extends WithTranslation {
     addEventListeners?: () => void;
@@ -70,7 +71,7 @@ export interface AccessibilityComparisonFormProps extends WithTranslation {
     fileImportRef?: any;
 }
 
-type TransitAccessibilityMapWithPolygonAndTimeResult = TransitAccessibilityMapWithPolygonResult & {
+type TransitAccessibilityMapWithPolygonAndTimeResult = TransitAccessibilityMapComparisonResult & {
     travelTime?: number;
 };
 
@@ -266,17 +267,12 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
             for (let i = 0; i < numberOfPolygons; i++) {
                 const singleMap = mapComparison[i];
 
-                const polygons = turfFeatureCollection([
-                    ...singleMap.polygons.intersection,
-                    ...singleMap.polygons.scenario1Minus2,
-                    ...singleMap.polygons.scenario2Minus1
-                ]);
                 const travelTime =
                     numberOfPolygons === 1
                         ? routing.attributes.maxTotalTravelTimeSeconds
                         : Number(this.state.possibleMaxTimes[i].value);
 
-                finalMap.push({ polygons, travelTime });
+                finalMap.push({ polygons: singleMap.polygons, travelTime });
             }
 
             this.setState(
@@ -341,6 +337,21 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
             });
         }
     }
+    private colorizePolygons(
+        polygonsByCategory: TransitAccessibilityMapComparisonResult['polygons']
+    ): GeoJSON.FeatureCollection<GeoJSON.MultiPolygon> {
+        const withColor = (features: GeoJSON.Feature<GeoJSON.MultiPolygon>[], color: string) =>
+            features.map((feature) => ({
+                ...feature,
+                properties: { ...feature.properties, color }
+            }));
+
+        return turfFeatureCollection([
+            ...withColor(polygonsByCategory.intersection, this.state.intersectionPolygonColor),
+            ...withColor(polygonsByCategory.scenario1Minus2, this.state.comparisonPolygon1Color),
+            ...withColor(polygonsByCategory.scenario2Minus1, this.state.comparisonPolygon2Color)
+        ]);
+    }
 
     displayMap() {
         const currentResult = this.state.finalMap.at(this.state.currentFinalMapIndex);
@@ -348,7 +359,7 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
             // No map to render. Normal if the user hasn't calculated a comparison yet
             return;
         }
-        const { polygons } = currentResult;
+        const polygons = this.colorizePolygons(currentResult.polygons);
 
         (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
             layerName: 'accessibilityMapPolygons',
@@ -568,10 +579,34 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
         );
     }
 
-    private updateColor = (colorToChange: string, newColor: string) => {
-        this.setState({ [colorToChange]: newColor } as any);
+    private updatePolygonColor = (colorToChange: string, newColor: string) => {
+        this.setState({ [colorToChange]: newColor } as any, this.displayMap);
         this.savePreferenceColor(colorToChange, newColor);
     };
+
+    private updatePointColor = (colorToChange: string, target: PointColorTarget, newColor: string) => {
+        this.setState({ [colorToChange]: newColor } as any);
+        this.savePreferenceColor(colorToChange, newColor);
+        this.applyPointColor(target, newColor);
+    };
+
+    private applyPointColor(target: PointColorTarget, newColor: string) {
+        const routing = this.state.object;
+        const alternateRouting = this.state.alternateScenarioRouting;
+
+        if (target === 'location1' || target === 'intersection') {
+            routing.updatePointColor(newColor);
+        }
+        if (target === 'location2' || target === 'intersection') {
+            alternateRouting.updatePointColor(newColor);
+        }
+
+        const data = target === 'intersection' ? routing.locationToGeojson() : this.bothLocationsToGeojson();
+        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+            layerName: 'accessibilityMapPoints',
+            data
+        });
+    }
 
     // Takes in a color string of the rgba format and returns a new one with the same rgb values but the inputed alpha value.
     // Necessary for the stats component. We want to pass the polygons colors as props to color some text in the results table, but the colors for those are transparent, while we want to text to be opaque.
@@ -639,7 +674,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
                                 intersectionPolygonColor={this.state.intersectionPolygonColor}
                                 comparisonPolygon1Color={this.state.comparisonPolygon1Color}
                                 comparisonPolygon2Color={this.state.comparisonPolygon2Color}
-                                onValueChange={this.updateColor}
+                                onPolygonColorChange={this.updatePolygonColor}
+                                onPointColorChange={this.updatePointColor}
                             />
                         )}
                         {mode === 'locations' && (
@@ -649,7 +685,8 @@ class AccessibilityComparisonForm extends ChangeEventsForm<
                                 comparisonPolygon1Color={this.state.comparisonPolygon1Color}
                                 comparisonLocation2Color={this.state.comparisonLocation2Color}
                                 comparisonPolygon2Color={this.state.comparisonPolygon2Color}
-                                onValueChange={this.updateColor}
+                                onPolygonColorChange={this.updatePolygonColor}
+                                onPointColorChange={this.updatePointColor}
                             />
                         )}
                     </Collapsible>
