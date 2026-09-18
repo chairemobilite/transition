@@ -12,6 +12,7 @@ import _isEqual from 'lodash/isEqual';
 import _camelCase from 'lodash/camelCase';
 import _upperFirst from 'lodash/upperFirst';
 import _merge from 'lodash/merge';
+import { PartialDeep } from 'type-fest';
 
 /**
  * Type for objects that have an id, either a string (uuid) or a number (integer id).
@@ -83,7 +84,7 @@ export class GenericObject<T extends GenericAttributes> {
         this._errors = errors;
     }
 
-    mergeAttributes(updatedAttributes: Partial<T>): void {
+    mergeAttributes(updatedAttributes: PartialDeep<T>): void {
         _merge(this._attributes, _cloneDeep(updatedAttributes));
     }
 

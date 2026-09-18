@@ -13,13 +13,14 @@ import { bbox as turfBbox } from '@turf/turf';
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-import { buildSortedIndices, SortAlternativesBy } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
+import { buildSortedIndices } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { usePreference } from 'chaire-lib-frontend/lib/hooks/usePreference';
 import { useTranslation } from 'react-i18next';
 
 export interface RoutingResultStatus {
@@ -65,8 +66,7 @@ const showCurrentAlternative = async (
 const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (props: TransitRoutingResultsProps) => {
     const { t } = useTranslation('transit');
     const [displayIndex, setDisplayIndex] = useState(0);
-    // FIXME: Store in user preferences
-    const [sortedBy, setSortedBy] = useState<SortAlternativesBy>('none');
+    const [sortedBy, setSortedBy] = usePreference('transit.routing.sortAlternativesBy');
     // Track if this is the first render to fit bounds only on initial display
     const isInitialRenderRef = useRef(true);
 
