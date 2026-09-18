@@ -63,7 +63,6 @@ interface DashboardState {
     socketConnected: boolean;
     socketWasConnected: boolean;
     showFullSizePanel: boolean;
-    mainMapLayerGroups: string[];
     unsavedChangesModalIsOpen: boolean;
     availableRoutingModes: string[];
 }
@@ -89,7 +88,6 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
         // this default section will use default preferences because users prefs are not loaded yet.
         // The state will be updated after loading user prefs.
         const activeSection = Preferences.attributes.defaultSection;
-        const mainMapLayerGroups = ['transit'];
 
         this.state = {
             preferencesLoaded: false,
@@ -98,7 +96,6 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
             showFullSizePanel: false,
             activeSection,
             infoPanelPosition: 'right',
-            mainMapLayerGroups,
             unsavedChangesModalIsOpen: false,
             availableRoutingModes: []
         };
@@ -203,9 +200,6 @@ class Dashboard extends React.Component<DashboardProps, DashboardState> {
     };
 
     loadLayersAndCollections = () => {
-        if (!this.state.mainMapLayerGroups.includes('transit')) {
-            return;
-        }
         // TODO: Commented code will be back eventually (soon-ish), keeping it here as a reminder.
         const dataSourceCollection = new DataSourceCollection([], {}, serviceLocator.eventManager);
         const simulationCollection = new SimulationCollection([], {}, serviceLocator.eventManager);
