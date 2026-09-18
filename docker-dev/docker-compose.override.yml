@@ -14,7 +14,10 @@ services:
       - /bin/sh 
       - /app/docker-dev/entrypoint-dev.sh
     volumes:
-      # Bind mounts on the package directories. These enable instant code changes on the container without entirely rebuilding the image   
+      # These enable instant code changes on the container without entirely rebuilding the image
+
+      - ${PWD}/locales:/app/locales
+
       # It is necessary to bind individually every file in every package, and not just the package. This is because during compilation,
       # when each package is compiled, the container creates a lib/ folder that's needed to build and run the app. 
       # Binding the whole package would overwrite this lib/ folder.
