@@ -13,34 +13,14 @@ import { bbox as turfBbox } from '@turf/turf';
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import { buildSortedIndices } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
-import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { useTranslation } from 'react-i18next';
-
-// Get the travel time in seconds for a path, regardless of type
-// FIXME: Move to transition-common
-const getPathDuration = (result: RoutingResult, index: number): number => {
-    const path = result.getPath(index);
-    if (!path) return Infinity;
-    if (pathIsRoute(path)) {
-        return path.duration;
-    }
-    return path.totalTravelTime;
-};
-
-// Build an array of alternative indices sorted by ascending travel time
-// FIXME: Move to transition-common, and allow sorting by other things
-const buildSortedIndices = (result: RoutingResult): number[] => {
-    const count = result.getAlternativesCount();
-    const indices = Array.from({ length: count }, (_, i) => i);
-    indices.sort((a, b) => getPathDuration(result, a) - getPathDuration(result, b));
-    return indices;
-};
 
 export interface RoutingResultStatus {
     routingResult: RoutingResult;
