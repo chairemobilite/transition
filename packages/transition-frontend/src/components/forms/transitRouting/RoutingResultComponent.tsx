@@ -13,7 +13,7 @@ import { bbox as turfBbox } from '@turf/turf';
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-import { buildSortedIndices } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
+import { buildSortedIndices, SortAlternativesBy } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
@@ -66,7 +66,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     const { t } = useTranslation('transit');
     const [displayIndex, setDisplayIndex] = useState(0);
     // FIXME: Store in user preferences
-    const [sortedByDuration, setSortedByDuration] = useState(false);
+    const [sortedBy, setSortedBy] = useState<SortAlternativesBy>('none');
     // Track if this is the first render to fit bounds only on initial display
     const isInitialRenderRef = useRef(true);
 
@@ -74,14 +74,11 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     const error = result.getError();
     const alternativesCount = result.getAlternativesCount();
 
-    // Compute sorted indices when sorting is active
-    const sortedIndices = React.useMemo(
-        () => (sortedByDuration ? buildSortedIndices(result) : null),
-        [result, sortedByDuration]
-    );
+    // Compute alternative indices in display order
+    const sortedIndices = React.useMemo(() => buildSortedIndices(result, sortedBy), [result, sortedBy]);
 
     // Map display position to the actual alternative index
-    const alternativeIndex = sortedIndices ? sortedIndices[displayIndex] : displayIndex;
+    const alternativeIndex = sortedIndices[displayIndex];
 
     // Use effect to show the current alternative and fit bounds on initial render
     // Must be placed before any early returns to ensure hooks are called in the same order
@@ -110,7 +107,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
 
     const onSortButtonClick = () => {
         setDisplayIndex(0);
-        setSortedByDuration(!sortedByDuration);
+        setSortedBy(sortedBy === 'none' ? 'travelTime' : 'none');
     };
 
     return (
@@ -152,7 +149,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                     {alternativesCount > 1 && (
                         <Button
                             icon={faArrowDownShortWide}
-                            color={sortedByDuration ? 'green' : 'grey'}
+                            color={sortedBy === 'travelTime' ? 'green' : 'grey'}
                             iconClass="_icon-alone"
                             label=""
                             onClick={onSortButtonClick}
