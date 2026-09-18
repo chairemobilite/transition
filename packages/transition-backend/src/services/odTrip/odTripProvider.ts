@@ -27,14 +27,32 @@ export type OdTripCsvMapping = TransitDemandFromCsvRoutingAttributes & {
     debug?: boolean;
 };
 
+// Whether the value is a present, but empty, csv field. Absent columns
+// (undefined) are excluded, as they indicate a mapping error rather than an
+// empty value.
+const isEmptyCsvValue = (value: unknown): boolean => typeof value === 'string' && value.trim() === '';
+
+/**
+ * Extract an OD trip from a csv line. Returns `null` if the line's coordinate
+ * fields are all empty, as it represents a record without trip (frequent in OD
+ * survey files), which should be ignored instead of treated as an error.
+ */
 const extractOdTrip = (
     line: {
         [key: string]: any;
     },
     mappings: OdTripCsvMapping,
     projection: { srid: number; value: string }
-): BaseOdTrip => {
+): BaseOdTrip | null => {
     const internalId = line[mappings.id];
+    if (
+        isEmptyCsvValue(line[mappings.originLat]) &&
+        isEmptyCsvValue(line[mappings.originLon]) &&
+        isEmptyCsvValue(line[mappings.destinationLat]) &&
+        isEmptyCsvValue(line[mappings.destinationLon])
+    ) {
+        return null;
+    }
     const [originLat, originLon, destinationLat, destinationLon] = [
         parseFloat(line[mappings.originLat]),
         parseFloat(line[mappings.originLon]),
@@ -151,6 +169,7 @@ const parseOdTripsFromCsvInternal = async (
     const odTrips: BaseOdTrip[] = [];
     const projections = Preferences.get('proj4Projections');
     let nbErrors = 0;
+    let nbEmptyCoordinates = 0;
     const errors: TranslatableMessage[] = [];
 
     const projection =
@@ -168,17 +187,21 @@ const parseOdTripsFromCsvInternal = async (
         (line, rowNumber) => {
             try {
                 const odTrip = extractOdTrip(line, options, projection);
+                if (odTrip === null) {
+                    // Line without coordinates, ignore it
+                    nbEmptyCoordinates++;
+                } else {
+                    if (options.debug) {
+                        console.log(
+                            `line ${rowNumber} new odTrip ${odTrip.attributes.id}` +
+                                `${odTrip.attributes.timeType === 'departure' ? 'dts=' : 'ats='}${odTrip.attributes.timeOfTrip}` +
+                                `orig: ${odTrip.attributes.origin_geography.coordinates[0]},${odTrip.attributes.origin_geography.coordinates[1]}` +
+                                `dest: ${odTrip.attributes.destination_geography.coordinates[0]},${odTrip.attributes.destination_geography.coordinates[1]}`
+                        );
+                    }
 
-                if (options.debug) {
-                    console.log(
-                        `line ${rowNumber} new odTrip ${odTrip.attributes.id}` +
-                            `${odTrip.attributes.timeType === 'departure' ? 'dts=' : 'ats='}${odTrip.attributes.timeOfTrip}` +
-                            `orig: ${odTrip.attributes.origin_geography.coordinates[0]},${odTrip.attributes.origin_geography.coordinates[1]}` +
-                            `dest: ${odTrip.attributes.destination_geography.coordinates[0]},${odTrip.attributes.destination_geography.coordinates[1]}`
-                    );
+                    odTrips.push(odTrip);
                 }
-
-                odTrips.push(odTrip);
             } catch (error) {
                 // File has header, row number in file is + 1
                 addError(errors, error, nbErrors, rowNumber + 1);
@@ -197,6 +220,15 @@ const parseOdTripsFromCsvInternal = async (
         },
         { header: true }
     );
+
+    if (nbEmptyCoordinates > 0) {
+        // Warn about ignored lines, they may be legitimate records without trips, but could also be a file formatting problem
+        console.log(`Parsing OD trips: ${nbEmptyCoordinates} lines without coordinates were ignored`);
+        errors.push({
+            text: 'transit:transitRouting:errors:EmptyCoordinatesLinesIgnored',
+            params: { n: String(nbEmptyCoordinates) }
+        });
+    }
 
     return { odTrips, errors };
 };
