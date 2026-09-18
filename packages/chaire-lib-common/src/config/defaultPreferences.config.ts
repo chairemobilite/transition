@@ -8,6 +8,7 @@ import config from './shared/project.config';
 import lineModesDefaultValues from './lineModesDefaultValues';
 import constants from './constants';
 import type { ProjectMapBasemapShortname } from './mapBaseLayersProject.types';
+import { Get, IsAny } from 'type-fest';
 
 // @deprecated This type has moved to chaire-lib's project configuration
 interface SectionDescription {
@@ -48,8 +49,18 @@ export interface PreferencesModel {
         /** Hexadecimal strings of the various colors that should be available */
         colors: string[];
     };
+    transit: {
+        routing: {
+            sortAlternativesBy: 'none' | 'travelTime';
+            [key: string]: any;
+        };
+        [key: string]: any;
+    };
     [key: string]: any;
 }
+
+export type PreferenceType<P extends string> =
+    IsAny<Get<PreferencesModel, P>> extends true ? unknown : Get<PreferencesModel, P>;
 
 // TODO: Type more fields
 const defaultPreferences: PreferencesModel = {
@@ -348,6 +359,7 @@ const defaultPreferences: PreferencesModel = {
             defaultColor: '#0086FF'
         },
         routing: {
+            sortAlternativesBy: 'none',
             batch: {
                 withGeometry: false,
                 projection: String(constants.geographicCoordinateSystem.srid),
