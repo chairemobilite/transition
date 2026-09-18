@@ -22,9 +22,9 @@ jest.mock('chaire-lib-backend/lib/config/shared/db.config', () => ({
 const defaultSuffix = '-0';
 jest.mock('../ServiceUtils', () => ({
     getUniqueServiceName: jest.fn().mockImplementation((name) => name + defaultSuffix),
-    getServicesById: jest.fn().mockImplementation((serviceIds) => 
-        serviceIds.map((id: string) => id === serviceAttributes1.id 
-            ? new Service(serviceAttributes1, false) 
+    getServicesById: jest.fn().mockImplementation((serviceIds) =>
+        serviceIds.map((id: string) => id === serviceAttributes1.id
+            ? new Service(serviceAttributes1, false)
             : id === serviceAttributes2.id ? new Service(serviceAttributes2, false) : undefined)
         .filter((service) => service !== undefined)),
     saveServices: jest.fn().mockResolvedValue(undefined)
@@ -76,7 +76,7 @@ describe('duplicateAndSaveServices', () => {
 
     it('should duplicate and save a service with default options', async () => {
         // Duplicate and save the service
-        const duplicateStatus = await duplicateServices([serviceAttributes1.id, serviceAttributes2.id], {});
+        const duplicateStatus = await duplicateServices({ serviceIds: [serviceAttributes1.id, serviceAttributes2.id] }, {});
         expect(Status.isStatusOk(duplicateStatus)).toEqual(true);
         const duplicatedServiceMapping = Status.unwrap(duplicateStatus);
         expect(Object.keys(duplicatedServiceMapping).length).toEqual(2);
@@ -110,7 +110,7 @@ describe('duplicateAndSaveServices', () => {
         expect(currentTransaction).not.toEqual(transactionObjectMock);
 
         // Duplicate and save the service
-        const duplicateStatus = await duplicateServices([serviceAttributes1.id, serviceAttributes2.id], { transaction: currentTransaction});
+        const duplicateStatus = await duplicateServices({ serviceIds: [serviceAttributes1.id, serviceAttributes2.id] }, { transaction: currentTransaction});
         expect(Status.isStatusOk(duplicateStatus)).toEqual(true);
         const duplicatedServiceMapping = Status.unwrap(duplicateStatus);
         expect(Object.keys(duplicatedServiceMapping).length).toEqual(2);
@@ -143,7 +143,7 @@ describe('duplicateAndSaveServices', () => {
         const newServiceSuffix = '_copy';
 
         // Duplicate and save the service
-        const duplicateStatus = await duplicateServices([serviceAttributes1.id, serviceAttributes2.id], { newServiceSuffix });
+        const duplicateStatus = await duplicateServices({ serviceIds: [serviceAttributes1.id, serviceAttributes2.id], newServiceSuffix });
         expect(Status.isStatusOk(duplicateStatus)).toEqual(true);
         const duplicatedServiceMapping = Status.unwrap(duplicateStatus);
         expect(Object.keys(duplicatedServiceMapping).length).toEqual(2);
@@ -178,7 +178,7 @@ describe('duplicateAndSaveServices', () => {
         mockSaveServices.mockRejectedValueOnce(new TrError(error, 'ERRORSAVING'));
 
         // Duplicate the service
-        const duplicateStatus = await duplicateServices([serviceAttributes1.id], { });
+        const duplicateStatus = await duplicateServices({ serviceIds: [serviceAttributes1.id] }, { });
         expect(Status.isStatusError(duplicateStatus)).toEqual(true);
         expect(mockSaveServices).toHaveBeenCalledTimes(1);
     });
@@ -189,7 +189,7 @@ describe('duplicateAndSaveServices', () => {
         mockGetServicesById.mockRejectedValueOnce(new TrError(error, 'ERRORFETCHING'));
 
         // Duplicate the service
-        const duplicateStatus = await duplicateServices([serviceAttributes1.id], { });
+        const duplicateStatus = await duplicateServices({ serviceIds: [serviceAttributes1.id] }, { });
         expect(Status.isStatusError(duplicateStatus)).toEqual(true);
         expect(mockGetServicesById).toHaveBeenCalled();
         expect(mockSaveServices).not.toHaveBeenCalled();
@@ -201,7 +201,7 @@ describe('duplicateAndSaveServices', () => {
         mockGetUniqueServiceName.mockRejectedValueOnce(new TrError(error, 'ERRORGETTINGUNIQUE'));
 
         // Duplicate the service
-        const duplicateStatus = await duplicateServices([serviceAttributes1.id], { });
+        const duplicateStatus = await duplicateServices({ serviceIds: [serviceAttributes1.id] }, { });
         expect(Status.isStatusError(duplicateStatus)).toEqual(true);
         expect(mockGetServicesById).toHaveBeenCalled();
         expect(mockSaveServices).not.toHaveBeenCalled();

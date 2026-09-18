@@ -6,7 +6,10 @@
  */
 import { EventEmitter } from 'events';
 import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
-import { duplicateServices } from '../services/transitObjects/transitServices/ServiceDuplicator';
+import {
+    DuplicateServiceOptions,
+    duplicateServices
+} from '../services/transitObjects/transitServices/ServiceDuplicator';
 import {
     DuplicateScheduleMappings,
     duplicateSchedules
@@ -148,8 +151,8 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
     // object's duplication has different additional options
 
     // Duplicate a service
-    socket.on('transitServices.duplicate', async (serviceIds: string[], options, callback) => {
-        const response = await duplicateServices(serviceIds, options);
+    socket.on('transitServices.duplicate', async (options: DuplicateServiceOptions, callback) => {
+        const response = await duplicateServices(options);
         callback(response);
     });
 

@@ -120,15 +120,15 @@ describe('Service duplication route', () => {
     test('Duplicate with default options', (done) => {
         const originalServices = [uuidV4(), uuidV4()];
         const savedServices = {
-            [originalServices[0]]: uuidV4(), 
+            [originalServices[0]]: uuidV4(),
             [originalServices[1]]: uuidV4()
         };
         mockedDuplicateAndSaveService.mockResolvedValueOnce(Status.createOk(savedServices));
 
-        socketStub.emit('transitServices.duplicate', originalServices, {}, (status) => {
+        socketStub.emit('transitServices.duplicate', { serviceIds: originalServices}, (status) => {
             expect(Status.isStatusOk(status)).toEqual(true);
             expect(Status.unwrap(status)).toEqual(savedServices);
-            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(originalServices, {});
+            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith({ serviceIds: originalServices});
             done();
         });
     });
@@ -136,16 +136,16 @@ describe('Service duplication route', () => {
     test('Duplicate with options', (done) => {
         const originalServices = [uuidV4(), uuidV4()];
         const savedServices = {
-            [originalServices[0]]: uuidV4(), 
+            [originalServices[0]]: uuidV4(),
             [originalServices[1]]: uuidV4()
         };
-        const options = { newServiceSuffix: ' copy'}
+        const options = { serviceIds: originalServices, newServiceSuffix: ' copy' }
         mockedDuplicateAndSaveService.mockResolvedValueOnce(Status.createOk(savedServices));
 
-        socketStub.emit('transitServices.duplicate', originalServices, options, (status) => {
+        socketStub.emit('transitServices.duplicate', options, (status) => {
             expect(Status.isStatusOk(status)).toEqual(true);
             expect(Status.unwrap(status)).toEqual(savedServices);
-            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(originalServices, options);
+            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(options);
             done();
         });
     });
@@ -154,10 +154,11 @@ describe('Service duplication route', () => {
         const originalServices = [uuidV4(), uuidV4()];
         mockedDuplicateAndSaveService.mockResolvedValueOnce(Status.createError('An error occurred'));
 
-        socketStub.emit('transitServices.duplicate', originalServices, {}, (status) => {
+        const options = { serviceIds: originalServices }
+        socketStub.emit('transitServices.duplicate', options, (status) => {
             expect(Status.isStatusOk(status)).toEqual(false);
             expect(Status.isStatusError(status)).toEqual(true);
-            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(originalServices, {});
+            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(options);
             done();
         });
     });
@@ -171,7 +172,7 @@ describe('Schedules update batch route', () => {
 
     test('updateSchedulesBatch with valid attributes', (done) => {
         const attributeList = [{id: 'test-id-1'}, {id: 'test-id-2'}];
-        
+
         socketStub.emit('transitSchedules.updateBatch', attributeList, (response) => {
             try {
                 // Verify the mock was called
@@ -180,7 +181,7 @@ describe('Schedules update batch route', () => {
                     socketStub,
                     attributeList
                 );
-                
+
                 // Verify the response
                 expect(response).toEqual({
                     ids: [
@@ -212,10 +213,10 @@ describe('Schedule duplication', () => {
 
     test('Duplicate with mappings', (done) => {
         const serviceMapping = {
-            [uuidV4()]: uuidV4(), 
+            [uuidV4()]: uuidV4(),
             [uuidV4()]: uuidV4()
         };
-        const newScheduleIdMapping = { 1: 2, 3: 4 }; 
+        const newScheduleIdMapping = { 1: 2, 3: 4 };
         mockedDuplicateSchedules.mockResolvedValueOnce(Status.createOk(newScheduleIdMapping));
 
         socketStub.emit('transitSchedules.duplicate', { serviceIdMapping: serviceMapping }, (status) => {
@@ -232,11 +233,11 @@ describe('Schedule duplication', () => {
 
     test('Duplicate where error occurred', (done) => {
         const serviceMapping = {
-            [uuidV4()]: uuidV4(), 
+            [uuidV4()]: uuidV4(),
             [uuidV4()]: uuidV4()
         };
         const lineMapping = {
-            [uuidV4()]: uuidV4(), 
+            [uuidV4()]: uuidV4(),
             [uuidV4()]: uuidV4()
         };
         const pathMapping = {

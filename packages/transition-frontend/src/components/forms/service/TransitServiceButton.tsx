@@ -59,8 +59,7 @@ const TransitServiceButton: React.FunctionComponent<ScheduleButtonProps> = (prop
 
         serviceLocator.socketEventManager.emit(
             'transitServices.duplicate',
-            [props.service.getId()],
-            { newServiceSuffix: t('main:copy') },
+            { serviceIds: [props.service.getId()], newServiceSuffix: t('main:copy') },
             async (response: Status.Status<string[]>) => {
                 if (Status.isStatusOk(response)) {
                     await serviceLocator.collectionManager
