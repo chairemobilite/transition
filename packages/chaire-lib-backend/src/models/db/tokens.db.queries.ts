@@ -145,7 +145,7 @@ export default {
     getById,
     getUserByToken,
     exists: exists.bind(null, knex, tableName),
-    delete: deleteRecord.bind(null, knex, tableName),
+    delete: deleteRecord.bind(null, knex, tableName, false),
     deleteToken,
     cleanExpiredApiTokens,
     defaultTokenLifespanDays
