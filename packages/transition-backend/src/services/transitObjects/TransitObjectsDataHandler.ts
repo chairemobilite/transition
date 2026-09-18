@@ -36,8 +36,27 @@ import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericOb
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
+import { duplicateSchedules } from './transitSchedules/ScheduleUtils';
+import { duplicateServices } from './transitServices/ServiceDuplicator';
 
-export interface TransitObjectDataHandler {
+type DuplicateFunction<TOptions> = (
+    options: TOptions
+) => Promise<Status.Status<Record<string | number, string | number>>>;
+
+interface TransitClassConfig<TDuplicateOptions = never> {
+    lowerCaseName: string;
+    className: string;
+    classNamePlural: string;
+    hasIntegerId?: boolean;
+    dbQueries: any;
+    cacheQueries: any;
+    collection?: unknown;
+    saveCollectionToCacheFct?: () => Promise<unknown>;
+    deleteMultiple?: (ids: string[]) => Promise<string[] | number[]>;
+    duplicate?: DuplicateFunction<TDuplicateOptions>;
+}
+
+export interface TransitObjectDataHandler<TDuplicateOptions = never> {
     lowerCaseName: string;
     className: string;
     classNamePlural: string;
@@ -45,8 +64,12 @@ export interface TransitObjectDataHandler {
     read: (id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
     update: (socket: EventEmitter, id: string, attributes: GenericAttributes) => Promise<Record<string, any>>;
     delete: (socket: EventEmitter, id: string, customCachePath: string | undefined) => Promise<Record<string, any>>;
+    duplicate?: (options: TDuplicateOptions) => Promise<Status.Status<Record<string | number, string | number>>>;
     // Optional function to delete multiple objects. Only objects supporting it will have this function
-    deleteMultiple?: (socket: EventEmitter, ids: string[]) => Promise<Status.Status<{ deletedIds: string[] }>>;
+    deleteMultiple?: (
+        socket: EventEmitter,
+        ids: string[]
+    ) => Promise<Status.Status<{ deletedIds: string[] | number[] }>>;
     geojsonCollection?: (
         params?
     ) => Promise<
@@ -62,7 +85,7 @@ export interface TransitObjectDataHandler {
     updateBatch?: (socket: EventEmitter, attributes: GenericAttributes[]) => Promise<Record<string, any>>;
 }
 
-const transitClassesConfig = {
+const transitClassesConfig: Record<string, TransitClassConfig> = {
     agencies: {
         lowerCaseName: 'agency',
         className: 'Agency',
@@ -118,7 +141,8 @@ const transitClassesConfig = {
         dbQueries: servicesDbQueries,
         cacheQueries: servicesCacheQueries,
         collection: new ServiceCollection([], {}),
-        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveServicesToCache
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveServicesToCache,
+        duplicate: duplicateServices
     },
     schedules: {
         lowerCaseName: 'schedule',
@@ -126,8 +150,22 @@ const transitClassesConfig = {
         classNamePlural: 'Schedules',
         hasIntegerId: false,
         dbQueries: schedulesDbQueries,
-        cacheQueries: {}
+        cacheQueries: {},
+        duplicate: duplicateSchedules
     }
+};
+
+const registerDuplicateHandler = <TOptions>(
+    configClass: TransitClassConfig<TOptions>,
+    dataHandler: TransitObjectDataHandler<TOptions>
+): void => {
+    const duplicateFct = configClass.duplicate;
+    if (duplicateFct === undefined) {
+        return;
+    }
+    dataHandler.duplicate = async (options: TOptions) => {
+        return await duplicateFct(options);
+    };
 };
 
 // TODO Add unit tests and typings when db queries and cache queries are refactored again. See if cache/db relation needs to be revisited now
@@ -267,6 +305,8 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
             }
         };
 
+        registerDuplicateHandler(transitClassConfig, dataHandler);
+
         // Delete multiple objects from database. Delete multiple needs to be
         // explicitly added, even if a `deleteMultiple` query exists in the DB
         // as we don't necessarily want to expose them all by default.
@@ -300,7 +340,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
                             'DeleteMultipleWithObjectCacheNotSupported'
                         );
                     }
-                    const deletedIds = await transitClassConfig.deleteMultiple(ids);
+                    const deletedIds = await transitClassConfig.deleteMultiple!(ids);
                     if (deletedIds.length > 0 && isSocketIo(socket)) {
                         // Objects were deleted, notify clients
                         socket.broadcast.emit('data.updated');
