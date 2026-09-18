@@ -6,7 +6,12 @@
  */
 import { pathIsRoute, RoutingResult } from './RoutingResult';
 
-// Get the travel time in seconds of an alternative
+export type SortAlternativesBy = 'none' | 'travelTime';
+
+/** Returns the sort key for alternative `index` of `result`. */
+export type AlternativeSortKey = (result: RoutingResult, index: number) => number;
+
+/** Get the travel time in seconds of an alternative, regardless of type */
 export const getAlternativeDuration = (result: RoutingResult, index: number): number => {
     const path = result.getPath(index);
     if (!path) return Infinity;
@@ -16,10 +21,22 @@ export const getAlternativeDuration = (result: RoutingResult, index: number): nu
     return path.totalTravelTime;
 };
 
-// Build an array of alternative indices sorted by ascending travel time
-export const buildSortedIndices = (result: RoutingResult): number[] => {
+export const sortComparators: Record<SortAlternativesBy, AlternativeSortKey> = {
+    none: () => 0,
+    travelTime: getAlternativeDuration
+};
+
+/**
+ * Build an array of alternative indices for `result`, ordered according to `sortBy`.
+ *
+ * @param result The routing result whose alternatives should be ordered
+ * @param sortBy The criterion to sort by
+ * @returns The alternative indices in the requested order
+ */
+export const buildSortedIndices = (result: RoutingResult, sortBy: SortAlternativesBy): number[] => {
     const count = result.getAlternativesCount();
     const indices = Array.from({ length: count }, (_, i) => i);
-    indices.sort((a, b) => getAlternativeDuration(result, a) - getAlternativeDuration(result, b));
+    const getKey = sortComparators[sortBy];
+    indices.sort((a, b) => getKey(result, a) - getKey(result, b));
     return indices;
 };
