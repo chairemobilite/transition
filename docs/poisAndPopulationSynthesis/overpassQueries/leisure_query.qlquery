@@ -1,0 +1,30 @@
+
+[out:json][timeout:25][bbox:{{bbox}}];
+(
+
+
+// amenities:
+node["amenity"~"^(bar|fast_food|food_court|ice_cream|pub|restaurant|cafe|library|toy_library|music_school|art_school|bicycle_rental|boat_rental|boat_sharing|car_rental|car_sharing|arts_centre|brothel|casino|cinema|gambling|planetarium|public_bookcase|social_centre|stripclub|social_facility|studio|swingerclub|theatre|animal_boarding|dive_centre|internet_cafe|kitchen|monastery|place_of_worship|public_bath|school|college|university)$"];
+way["amenity"~"^(bar|fast_food|food_court|ice_cream|pub|restaurant|cafe|library|toy_library|music_school|art_school|bicycle_rental|boat_rental|boat_sharing|car_rental|car_sharing|arts_centre|brothel|casino|cinema|gambling|planetarium|public_bookcase|social_centre|stripclub|social_facility|studio|swingerclub|theatre|animal_boarding|dive_centre|internet_cafe|kitchen|monastery|place_of_worship|public_bath|school|college|university)$"];
+relation["amenity"~"^(bar|fast_food|food_court|ice_cream|pub|restaurant|cafe|library|toy_library|music_school|art_school|bicycle_rental|boat_rental|boat_sharing|car_rental|car_sharing|arts_centre|brothel|casino|cinema|gambling|planetarium|public_bookcase|social_centre|stripclub|social_facility|studio|swingerclub|theatre|animal_boarding|dive_centre|internet_cafe|kitchen|monastery|place_of_worship|public_bath|school|college|university)$"];
+
+// buildings:
+
+node["building"~"^(hotel|cathedral|chapel|church|mosque|religious|shrine|synagogue|temple|civic|public|pavillon|sports_hall|riding_hall|grandstand|stadium)$"];
+way["building"~"^(hotel|cathedral|chapel|church|mosque|religious|shrine|synagogue|temple|civic|public|pavillon|sports_hall|riding_hall|grandstand|stadium)$"];
+relation["building"~"^(hotel|cathedral|chapel|church|mosque|religious|shrine|synagogue|temple|civic|public|pavillon|sports_hall|riding_hall|grandstand|stadium)$"];
+
+node["landuse"~"^(park|wood)$"];
+way["building"~"^(park|wood)$"];
+relation["building"~"^(park|wood)$"];
+
+node[~"^(tourism|sport|historic|leisure)$"~"."];
+way[~"^(tourism|sport|historic|leisure)$"~"."];
+relation[~"building"~"yes"];
+
+node["camping"~"^(reception)$"];
+way["camping"~"^(reception)$"];
+relation["camping"~"^(reception)$"];
+
+);
+out center body;
