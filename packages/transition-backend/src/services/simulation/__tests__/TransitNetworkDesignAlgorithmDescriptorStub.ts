@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitNetworkDesignAlgorithm, SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import { UserDefinedConfigSchema } from 'transition-common/lib/utils/userDefinedConfig';
 
 type AlgorithmStubOptions = {
     numericOption: number;
@@ -25,20 +26,20 @@ export class SimulationAlgorithmStub implements TransitNetworkDesignAlgorithm {
 
 }
 
-export class SimulationAlgorithmDescriptorStub implements SimulationAlgorithmDescriptor<AlgorithmStubOptions> {
+export class SimulationAlgorithmDescriptorStub implements UserDefinedConfigSchema<AlgorithmStubOptions> {
     
     getTranslatableName = () => "string"
 
-    getOptions = () => ({ 
+    getFields = () => ({ 
         numericOption: { i18nName: 'numOption', type: 'number' as const, validate: (value: number) => value > 0 }, 
         stringOption: { i18nName: 'stringOption', type: 'string' as const }, 
         booleanOption: { i18nName: 'boolOption', type: 'boolean' as const } 
     });
 
-    validateOptions = (options: Partial<AlgorithmStubOptions>) => {
+    validateFields = (fields: Partial<AlgorithmStubOptions>) => {
         let valid = true;
         let errors: string[] = [];
-        if (options.stringOption === undefined) {
+        if (fields.stringOption === undefined) {
             valid = false;
             errors.push('StringOptionMandatory');
         }
