@@ -10,6 +10,8 @@ import SocketIO from 'socket.io';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import uploadSocketRoutes from 'chaire-lib-backend/lib/api/uploads.socketRoutes';
 import serverConfig from 'chaire-lib-backend/lib/config/server.config';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import GtfsImportPreparation from '../services/gtfsImport/GtfsImportPreparation';
 import agenciesImporter from '../services/importers/AgenciesImporter';
 import nodesImporter from '../services/importers/NodesImporter';
@@ -18,6 +20,16 @@ import servicesImporter from '../services/importers/ServicesImporter';
 import linesImporter from '../services/importers/LinesImporter';
 import pathsImporter from '../services/importers/PathsImporter';
 import Users from 'chaire-lib-backend/lib/services/users/users';
+
+/**
+ * Build the payload for a `gtfsImporter.gtfsUploadError` socket event from an
+ * error caught while preparing a GTFS upload. If the error is a `TrError`
+ * with a `localizedMessage`, return that so the user gets a specific,
+ * actionable description; otherwise keep the historical generic string
+ * payload. Exported for unit testing.
+ */
+export const buildGtfsUploadErrorPayload = (err: unknown): TranslatableMessage =>
+    TrError.getLocalizedMessage(err) ?? 'error importing gtfs file ' + String(err);
 
 const gtfsImportFunction = async (socket: SocketIO.Socket, absoluteUserDir: string, filePath: string) => {
     const gtfsFilesDirectoryPath = `${absoluteUserDir}/gtfs/gtfs/`;
@@ -45,7 +57,7 @@ const gtfsImportFunction = async (socket: SocketIO.Socket, absoluteUserDir: stri
         console.log('GTFS zip file prepared');
     } catch (err) {
         console.error('Error importing gtfs file', err);
-        socket.emit('gtfsImporter.gtfsUploadError', 'error importing gtfs file ' + String(err));
+        socket.emit('gtfsImporter.gtfsUploadError', buildGtfsUploadErrorPayload(err));
     }
 };
 
