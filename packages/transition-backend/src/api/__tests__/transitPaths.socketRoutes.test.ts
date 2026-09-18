@@ -18,12 +18,12 @@ const mockedDbQuery = jest.fn();
 
 jest.mock('../../models/db/transitPaths.db.queries', () => {
     return {
-        geojsonCollection: jest.fn(),
+        geojsonCollectionForScenario: jest.fn(),
         geojsonCollectionForServices: jest.fn()
     }
 });
 
-const mockedGeojsonCollection = transitPathQueries.geojsonCollection as jest.MockedFunction<typeof transitPathQueries.geojsonCollection>;
+const mockedGeojsonCollectionForScenario = transitPathQueries.geojsonCollectionForScenario as jest.MockedFunction<typeof transitPathQueries.geojsonCollectionForScenario>;
 const mockedCollectionForService = transitPathQueries.geojsonCollectionForServices as jest.MockedFunction<typeof transitPathQueries.geojsonCollectionForServices>;
 
 describe('Schedules: get paths for scenario', () => {
@@ -43,22 +43,22 @@ describe('Schedules: get paths for scenario', () => {
             ]
         }
         ;
-        mockedGeojsonCollection.mockResolvedValueOnce(pathsGeojsonAttributes);
+        mockedGeojsonCollectionForScenario.mockResolvedValueOnce(pathsGeojsonAttributes);
         socketStub.emit('transitPaths.getForScenario', scenarioId, function (status) {
             expect(Status.isStatusOk(status));
             expect(Status.unwrap(status)).toEqual(pathsGeojsonAttributes);
-            expect(mockedGeojsonCollection).toHaveBeenLastCalledWith({ scenarioId });
+            expect(mockedGeojsonCollectionForScenario).toHaveBeenLastCalledWith(scenarioId);
             done();
         });
     });
 
     test('Get paths for scenario with error', (done) => {
-        mockedGeojsonCollection.mockRejectedValueOnce('DB error');
+        mockedGeojsonCollectionForScenario.mockRejectedValueOnce('DB error');
         socketStub.emit('transitPaths.getForScenario', scenarioId, function (status) {
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toBe('Error getting paths for scenario');
-            expect(mockedGeojsonCollection).toHaveBeenLastCalledWith({ scenarioId });
+            expect(mockedGeojsonCollectionForScenario).toHaveBeenLastCalledWith(scenarioId);
             done();
         });
     });
@@ -91,7 +91,7 @@ describe('Schedules: get paths for services', () => {
     });
 
     test('Get paths for services with error', (done) => {
-        mockedGeojsonCollection.mockRejectedValueOnce('DB error');
+        mockedGeojsonCollectionForScenario.mockRejectedValueOnce('DB error');
         socketStub.emit('transitPaths.getForServices', serviceIds, function (status) {
             expect(!Status.isStatusOk(status)).toBe(true);
             expect(Status.isStatusError(status)).toBe(true);
