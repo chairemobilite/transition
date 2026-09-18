@@ -690,6 +690,7 @@
             "InvalidOriginCoordinates": "Les coordonnées de l'origine sont invalides",
             "InvalidDestinationCoordinates": "Les coordonnées de la destination sont invalides",
             "InvalidLocationCoordinates": "Les coordonnées du lieu sont invalides",
+            "EmptyCoordinatesLinesIgnored": "{{n}} ligne(s) sans coordonnées d'origine et de destination ont été ignorées",
             "BatchRouteErrorOnLine": "Erreur à la ligne {{n}}:",
             "BatchRouteUnknownErrorOnLine": "Erreur à la ligne {{n}}",
             "TooManyErrorsParsingFile": "Le fichier contient trop d'erreurs",

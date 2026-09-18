@@ -336,6 +336,71 @@ test('Parse a csv file, wrong coordinates format', async () => {
     ])
 });
 
+test('Parse a csv file, lines without coordinates are ignored with a warning', async () => {
+    const data = [
+        // Valid line
+        {
+            id: 'id1',
+            originX: -34,
+            originY: 45,
+            destinationX: -34.23,
+            destinationY: 45.45,
+            time: '0800'
+        },
+        // Line without any coordinates (record without trip), should be ignored
+        {
+            id: 'id2',
+            time: '0800'
+        },
+        // Line with empty string coordinates, should be ignored
+        {
+            id: 'id3',
+            originX: '',
+            originY: '',
+            destinationX: '',
+            destinationY: '',
+            time: '0800'
+        },
+        // Line with only origin coordinates, should be an error
+        {
+            id: 'id4',
+            originX: -34,
+            originY: 45,
+            time: '0800'
+        }
+    ];
+
+    // Mock a CSV file stream based on the above test values
+    (fs.createReadStream as jest.Mock).mockReturnValueOnce(createCsvStream(dataToCsv(data, ['id','originX','originY','destinationX','destinationY','time'])));
+
+    const options = {
+        projection: '4326',
+        id: 'id',
+        originLon: 'originX',
+        originLat: 'originY',
+        destinationLon: 'destinationX',
+        destinationLat: 'destinationY',
+        timeType: 'departure' as const,
+        timeFormat: 'HMM',
+        time: 'time',
+    };
+
+    const { odTrips, errors } = await parseOdTripsFromCsv('path/to/file.csv', options);
+    expect(odTrips.length).toEqual(1);
+    expect(odTrips[0].attributes.internal_id).toEqual('id1');
+    expect(errors).toEqual([
+        {
+            text: 'transit:transitRouting:errors:BatchRouteErrorOnLine',
+            params: { n: '5' }
+        },
+        'transit:transitRouting:errors:InvalidDestinationCoordinates',
+        {
+            text: 'transit:transitRouting:errors:EmptyCoordinatesLinesIgnored',
+            params: { n: '2' }
+        }
+    ]);
+});
+
 test('Parse a csv file, too many faulty lines', async () => {
     const csvString = Array(20).fill("bar,data").join("\n");
 
