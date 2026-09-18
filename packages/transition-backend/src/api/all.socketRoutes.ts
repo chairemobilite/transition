@@ -12,7 +12,7 @@ import routingSocketRoutes from 'chaire-lib-backend/lib/api/routing.socketRoutes
 import gtfsSocketRoutes from './gtfs.socketRoutes';
 import cacheSocketRoutes from './cache.socketRoutes';
 import servicesSocketRoutes from './services.socketRoutes';
-import dataSourcesSocketRoutes from './dataSources.socketRoutes';
+import dataSourcesSocketRoutes from 'chaire-lib-backend/lib/api/dataSources.socketRoutes';
 import odPairsSocketRoutes from './odPairs.socketRoutes';
 import simulationsSocketRoutes from './simulations.socketRoutes';
 import transitSocketRoutesNew from './transit.socketRoutes';
