@@ -7,7 +7,6 @@
 import { EventEmitter } from 'events';
 import { v4 as uuidV4 } from 'uuid';
 
-import * as Status from 'chaire-lib-common/lib/utils/Status';
 import transitRoutes from '../dataSources.socketRoutes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
@@ -16,7 +15,7 @@ transitRoutes(socketStub);
 
 const mockedDbQuery = jest.fn();
 
-jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries', () => {
+jest.mock('../../models/db/dataSources.db.queries', () => {
     return {
         collection: jest.fn().mockImplementation(async () => {
             return mockedDbQuery();
