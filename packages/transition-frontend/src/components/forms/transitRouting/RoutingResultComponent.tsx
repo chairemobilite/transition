@@ -7,17 +7,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons/faAngleRight';
 import { faAngleLeft } from '@fortawesome/free-solid-svg-icons/faAngleLeft';
+import { faArrowDownShortWide } from '@fortawesome/free-solid-svg-icons/faArrowDownShortWide';
 import { bbox as turfBbox } from '@turf/turf';
 
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import { buildSortedIndices } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
+import { usePreference } from 'chaire-lib-frontend/lib/hooks/usePreference';
+import { useTranslation } from 'react-i18next';
 
 export interface RoutingResultStatus {
     routingResult: RoutingResult;
@@ -60,12 +64,21 @@ const showCurrentAlternative = async (
 };
 
 const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (props: TransitRoutingResultsProps) => {
-    const [alternativeIndex, setAlternativeIndex] = useState(0);
+    const { t } = useTranslation('transit');
+    const [displayIndex, setDisplayIndex] = useState(0);
+    const [sortedBy, setSortedBy] = usePreference('transit.routing.sortAlternativesBy');
     // Track if this is the first render to fit bounds only on initial display
     const isInitialRenderRef = useRef(true);
 
     const result = props.result;
     const error = result.getError();
+    const alternativesCount = result.getAlternativesCount();
+
+    // Compute alternative indices in display order
+    const sortedIndices = React.useMemo(() => buildSortedIndices(result, sortedBy), [result, sortedBy]);
+
+    // Map display position to the actual alternative index
+    const alternativeIndex = sortedIndices[displayIndex];
 
     // Use effect to show the current alternative and fit bounds on initial render
     // Must be placed before any early returns to ensure hooks are called in the same order
@@ -82,15 +95,19 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
         return <FormErrors errors={[error.export().localizedMessage]} />;
     }
 
-    const alternativesCount = result.getAlternativesCount();
     const path = result.getPath(alternativeIndex);
 
     const onLeftButtonClick = () => {
-        setAlternativeIndex(alternativeIndex > 0 ? alternativeIndex - 1 : alternativesCount - 1);
+        setDisplayIndex(displayIndex > 0 ? displayIndex - 1 : alternativesCount - 1);
     };
 
     const onRightButtonClick = () => {
-        setAlternativeIndex(alternativesCount > alternativeIndex + 1 ? alternativeIndex + 1 : 0);
+        setDisplayIndex(alternativesCount > displayIndex + 1 ? displayIndex + 1 : 0);
+    };
+
+    const onSortButtonClick = () => {
+        setDisplayIndex(0);
+        setSortedBy(sortedBy === 'none' ? 'travelTime' : 'none');
     };
 
     return (
@@ -117,7 +134,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                     )}
                     {alternativesCount > 0 && (
                         <span className="_strong">
-                            {alternativeIndex + 1}/{alternativesCount}
+                            {displayIndex + 1}/{alternativesCount}
                         </span>
                     )}
                     {alternativesCount > 1 && (
@@ -127,6 +144,16 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
                             iconClass="_icon-alone"
                             label=""
                             onClick={onRightButtonClick}
+                        />
+                    )}
+                    {alternativesCount > 1 && (
+                        <Button
+                            icon={faArrowDownShortWide}
+                            color={sortedBy === 'travelTime' ? 'green' : 'grey'}
+                            iconClass="_icon-alone"
+                            label=""
+                            onClick={onSortButtonClick}
+                            title={t('transit:transitPath.sort.TravelTime')}
                         />
                     )}
                 </div>
