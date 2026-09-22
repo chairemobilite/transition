@@ -17,6 +17,7 @@ import servicesDbQueries from '../transitServices.db.queries';
 import agencyDbQueries from '../transitAgencies.db.queries'
 import GeojsonCollection from 'transition-common/lib/services/path/PathCollection';
 import ObjectClass from 'transition-common/lib/services/path/Path';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const objectName = 'path';
 const agencyId = uuidV4();
@@ -24,7 +25,7 @@ const lineId = uuidV4();
 const serviceId = uuidV4();
 const scenarioId = uuidV4();
 
-const newObjectAttributes = {  
+const newObjectAttributes = {
     id          : uuidV4(),
     internal_id : 'InternalId test 1',
     is_frozen   : false,
@@ -147,7 +148,7 @@ describe(`${objectName}`, function() {
     });
 
     test('should read a new object in database', async () => {
-        
+
         const newObject = new ObjectClass(newObjectAttributes, false);
 
         const attributes = await dbQueries.read(newObjectAttributes.id);
@@ -164,7 +165,7 @@ describe(`${objectName}`, function() {
     });
 
     test('should update an object in database', async () => {
-        
+
         const id = await dbQueries.update(newObjectAttributes.id, updatedAttributes);
         expect(id).toBe(newObjectAttributes.id);
 
@@ -181,7 +182,7 @@ describe(`${objectName}`, function() {
     });
 
     test('should create a second new object in database', async () => {
-        
+
         const newObject = new ObjectClass(newObjectAttributes2, true);
         const id = await dbQueries.create(newObject.attributes)
         expect(id).toBe(newObjectAttributes2.id);
@@ -189,10 +190,10 @@ describe(`${objectName}`, function() {
     });
 
     test('should read geojson collection from database', async () => {
-        
+
         const _collection = await dbQueries.geojsonCollection();
         const geojsonCollection = new GeojsonCollection([], {});
-        geojsonCollection.loadFromCollection(_collection.features);           
+        geojsonCollection.loadFromCollection(_collection.features);
         const _newObjectAttributes = Object.assign({}, newObjectAttributes) as any;
         const _newObjectAttributes2 = Object.assign({}, newObjectAttributes2) as any;
         const collection = geojsonCollection.features;
@@ -216,7 +217,7 @@ describe(`${objectName}`, function() {
         expect(collection[0].properties).toEqual(new ObjectClass(_newObjectAttributes, false).attributes);
         expect(collection[1].properties.id).toBe(_newObjectAttributes2.id);
         expect(collection[1].properties).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
-        
+
     });
 
     test('should read geojson collection by scenario ID', async () => {
@@ -262,7 +263,7 @@ describe(`${objectName}`, function() {
 
         const geojsonCollection = await dbQueries.geojsonCollection({ scenarioId })
         expect(geojsonCollection.features.length).toBe(1);
-        
+
     });
 
     test('should read geojson collection by service IDs', async () => {
@@ -280,7 +281,7 @@ describe(`${objectName}`, function() {
         const _geojsonCollectionForService = await dbQueries.geojsonCollectionForServices([serviceId]);
         const collectionForService = _geojsonCollectionForService.features;
         expect(collectionForService.length).toEqual(1);
-        
+
         // Same but with unknown schedules
         const _geojsonCollectionForService2 = await dbQueries.geojsonCollectionForServices([serviceId, uuidV4(), uuidV4()]);
         const collectionForService2 = _geojsonCollectionForService2.features;
@@ -294,11 +295,11 @@ describe(`${objectName}`, function() {
         pathWithoutGeography.integer_id = 5;
         const newObject = new ObjectClass(pathWithoutGeography, true);
         const id = await dbQueries.create(newObject.attributes) as string;
-        
+
         // 3 features in the complete collection
         const _collection = await dbQueries.collection();
         expect(_collection.length).toEqual(3);
-        
+
         // 3 features with geography in default geojson collection
         const _featureCollection = await dbQueries.geojsonCollection();
         expect(_featureCollection.features.length).toEqual(3);
@@ -312,7 +313,7 @@ describe(`${objectName}`, function() {
     });
 
     test('should delete objects from database', async() => {
-        
+
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
@@ -400,6 +401,251 @@ describe('Paths, with transactions', () => {
         const object1 = collection.find((obj) => obj.id === newObjectAttributes.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining(new ObjectClass(newObjectAttributes, true).attributes));
+    });
+
+});
+
+describe('Paths duplication', () => {
+
+    beforeEach(async () => {
+        // Empty the path table
+        await dbQueries.truncate();
+        // Emptye the lines table and add a new line
+        await linesDbQueries.truncate();
+        await linesDbQueries.create({
+            id: lineId,
+            agency_id: agencyId,
+            color: '#ffffff',
+        } as any);
+        // Add a single path
+        const newObject = new ObjectClass(newObjectAttributes, true);
+        await dbQueries.create(newObject.attributes);
+    });
+
+    const add2PathsForLine = async (lineId: string) => {
+        // Add 2 new paths, with uuids in a reverse order from their insertion, different names and undefined integer_ids
+        const baseUuid = uuidV4();
+        const firstObjectUuid = `e${baseUuid.slice(1)}`;
+        const secondObjectUuid = `a${baseUuid.slice(1)}`;
+        const newPath1 = new ObjectClass({
+            ..._cloneDeep(newObjectAttributes),
+            id: firstObjectUuid,
+            line_id: lineId,
+            name: 'path 1',
+            integer_id: undefined
+        }, true);
+        const newPath2 = new ObjectClass({
+            ..._cloneDeep(newObjectAttributes),
+            id: secondObjectUuid,
+            line_id: lineId,
+            name: 'path 2',
+            integer_id: undefined
+        }, true);
+        await dbQueries.create(newPath1.attributes);
+        await dbQueries.create(newPath2.attributes);
+        return [firstObjectUuid, secondObjectUuid];
+    }
+
+    test('Duplicate single path with a non-blank suffix', async () => {
+        const pathIdMapping = await dbQueries.duplicate({
+            pathIds: [newObjectAttributes.id],
+            newPathSuffix: ' (copy)'
+        });
+
+        const duplicatedPath = await dbQueries.read(pathIdMapping[newObjectAttributes.id]);
+        expect(duplicatedPath.name).toBe(`${newObjectAttributes.name} (copy)`);
+    });
+
+    test('Duplicate single path without a suffix', async () => {
+        const pathIdMapping = await dbQueries.duplicate({
+            pathIds: [newObjectAttributes.id],
+            newPathSuffix: '   '
+        });
+
+        const duplicatedPath = await dbQueries.read(pathIdMapping[newObjectAttributes.id]);
+        expect(duplicatedPath.name).toBe(newObjectAttributes.name);
+    });
+
+    test('Duplicate with duplicated path ids', async () => {
+        // Count path before duplication
+        const pathCountBefore = (await dbQueries.collection()).length;
+
+        const pathIdMapping = await dbQueries.duplicate({
+            pathIds: [newObjectAttributes.id, newObjectAttributes.id],
+            newPathSuffix: '   '
+        });
+
+        expect(Object.keys(pathIdMapping).length).toEqual(1);
+        const duplicatedPath = await dbQueries.read(pathIdMapping[newObjectAttributes.id]);
+        expect(duplicatedPath.name).toBe(newObjectAttributes.name);
+        // Make sure only one path was added
+        const pathCountAfter = (await dbQueries.collection()).length;
+        expect(pathCountAfter).toEqual(pathCountBefore + 1);
+    });
+
+    test('Duplicate for multiple paths', async () => {
+        // Add 2 new paths, with uuids in a reverse order from their insertion, different names and undefined integer_ids
+        const insertedUuids = await add2PathsForLine(newObjectAttributes.line_id);
+
+        const pathIdMapping = await dbQueries.duplicate({
+            pathIds: [insertedUuids[1], insertedUuids[0]],
+            newPathSuffix: ' copy'
+        });
+
+        expect(pathIdMapping).toEqual({
+            [insertedUuids[0]]: expect.anything(),
+            [insertedUuids[1]]: expect.anything()
+        })
+        const duplicatedPath1 = await dbQueries.read(pathIdMapping[insertedUuids[0]]);
+        const duplicatedPath2 = await dbQueries.read(pathIdMapping[insertedUuids[1]]);
+        expect(duplicatedPath1.name).toBe('path 1 copy');
+        expect(duplicatedPath2.name).toBe('path 2 copy');
+    });
+
+    test('Duplicate paths with line mappings', async () => {
+        // Create a second line
+        const newLineId = await linesDbQueries.create({
+            agency_id: agencyId,
+            longname: 'line copy',
+            color: '#ffffee',
+        } as any) as string;
+
+        const pathIdMapping = await dbQueries.duplicate({
+            lineIdMapping: { [newObjectAttributes.line_id]: newLineId },
+            newPathSuffix: ' copy'
+        });
+
+        expect(pathIdMapping).toEqual({ [newObjectAttributes.id]: expect.anything() });
+        const duplicatedPath = await dbQueries.read(pathIdMapping[newObjectAttributes.id]);
+        expect(duplicatedPath).toEqual(expect.objectContaining({
+            ...newObjectAttributes,
+            name: `${newObjectAttributes.name} copy`,
+            line_id: newLineId,
+            integer_id: expect.anything(),
+            id: pathIdMapping[newObjectAttributes.id],
+            data: expect.anything() // Not equal to the attributes because they were changed by the object
+        }));
+        expect(duplicatedPath.integer_id).not.toBe(newObjectAttributes.integer_id);
+    });
+
+    test('Duplicate with both path ids and line mapping', async () => {
+        // Add 2 new paths, with uuids in a reverse order from their insertion, different names and undefined integer_ids
+        const insertedUuids = await add2PathsForLine(newObjectAttributes.line_id);
+
+        // Create a second line
+        const newLineId = await linesDbQueries.create({
+            agency_id: agencyId,
+            longname: 'line copy',
+            color: '#ffffee',
+        } as any) as string;
+
+        // Copy only the 2 new paths to line 2
+        const pathIdMapping = await dbQueries.duplicate({
+            lineIdMapping: { [newObjectAttributes.line_id]: newLineId },
+            pathIds: insertedUuids
+        });
+
+        expect(pathIdMapping).toEqual({
+            [insertedUuids[0]]: expect.anything(),
+            [insertedUuids[1]]: expect.anything()
+        })
+        const duplicatedPath1 = await dbQueries.read(pathIdMapping[insertedUuids[0]]);
+        const duplicatedPath2 = await dbQueries.read(pathIdMapping[insertedUuids[1]]);
+
+        // Validate both new paths, 2nd one should have higher integer_id
+        expect(duplicatedPath1).toEqual(expect.objectContaining({
+            ...newObjectAttributes,
+            name: 'path 1',
+            line_id: newLineId,
+            integer_id: expect.anything(),
+            id: pathIdMapping[insertedUuids[0]],
+            data: expect.anything() // Not equal to the attributes because they were changed by the object
+        }));
+        expect(duplicatedPath2).toEqual(expect.objectContaining({
+            ...newObjectAttributes,
+            name: 'path 2',
+            line_id: newLineId,
+            integer_id: expect.anything(),
+            id: pathIdMapping[insertedUuids[1]],
+            data: expect.anything() // Not equal to the attributes because they were changed by the object
+        }));
+        expect(duplicatedPath1.integer_id).toBeLessThan(duplicatedPath2.integer_id);
+    });
+
+    test('Duplicate when there are no paths for the line', async() => {
+        // Create a second line, without paths
+        const newLineId = await linesDbQueries.create({
+            agency_id: agencyId,
+            longname: 'new line',
+            color: '#ffffee',
+        } as any) as string;
+
+        // Create a third line, copy of the second
+        const newLineId2 = await linesDbQueries.create({
+            agency_id: agencyId,
+            longname: 'new line copy',
+            color: '#ffffee',
+        } as any) as string;
+
+        // Copy only the 2 new paths to line 2
+        const pathIdMapping = await dbQueries.duplicate({
+            lineIdMapping: { [newLineId]: newLineId2 }
+        });
+
+        expect(pathIdMapping).toEqual({});
+    });
+
+    test('Duplicate for unexisting path IDs', async() => {
+        // Copy only the 2 new paths to line 2
+        const pathIdMapping = await dbQueries.duplicate({
+            pathIds: [uuidV4()]
+        });
+
+        expect(pathIdMapping).toEqual({});
+    });
+
+    test('Duplicate for unexisting lines', async() => {
+        // Copy only the 2 new paths to line 2
+        const pathIdMapping = await dbQueries.duplicate({
+            lineIdMapping: { [uuidV4()]: uuidV4() }
+        });
+
+        expect(pathIdMapping).toEqual({});
+    });
+
+    test('Test transaction: duplication fine, but transaction fails later', async() => {
+        let error: any = undefined;
+        try {
+            // Wrap in a transaction
+            await knex.transaction(async (trx) => {
+                // Update, then delete the schedule, then throw an error
+                await dbQueries.duplicate({ pathIds: [newObjectAttributes.id], transaction: trx });
+                // Throw an error to make transaction fail
+                throw 'manualTransactionFailure';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toEqual('manualTransactionFailure');
+
+        // Make sure there is still only 1 schedule
+        const pathsInDb = await dbQueries.collection();
+        expect(pathsInDb.length).toEqual(1);
+    });
+
+    test('No mapping provided, should throw error', async () => {
+        // Duplicate the path without mapping, should throw an error
+        await expect(dbQueries.duplicate({ })).rejects.toThrow(TrError);
+    });
+
+    test('Mapping to non uuid line ids, should throw error', async () => {
+        // Duplicate the path with invalid line id
+        await expect(dbQueries.duplicate({ lineIdMapping: { notAUuid: 'other' } })).rejects.toThrow(TrError);
+    });
+
+    test('Mapping to non uuid path ids, should throw error', async () => {
+        // Duplicate the path with invalid path ids
+        await expect(dbQueries.duplicate({ pathIds: ['not a uuid'] })).rejects.toThrow(TrError);
     });
 
 });

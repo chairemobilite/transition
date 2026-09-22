@@ -38,6 +38,7 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';
 import { duplicateSchedules } from './transitSchedules/ScheduleUtils';
 import { duplicateServices } from './transitServices/ServiceDuplicator';
+import { duplicatePaths } from './transitPaths/PathDuplicator';
 
 type DuplicateFunction<TOptions> = (
     options: TOptions
@@ -122,7 +123,8 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         dbQueries: pathsDbQueries,
         cacheQueries: pathsCacheQueries,
         collection: new PathCollection([], {}),
-        saveCollectionToCacheFct: dbToCacheQueries.loadAndSavePathsToCache
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSavePathsToCache,
+        duplicate: duplicatePaths
     },
     scenarios: {
         lowerCaseName: 'scenario',
