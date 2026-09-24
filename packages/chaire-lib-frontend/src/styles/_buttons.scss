@@ -1,58 +1,43 @@
+@use "sass:map";
 @use "settings";
 
-@keyframes pulse_gradient_green {
-    0% {
-        background: settings.$button-green-gradient-top;
-    }
-
-    50% {
-        background: settings.$button-green-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-green-gradient-top;
+// Do not put light-dark() values in @keyframes: Chrome 153 crashes the renderer
+// ("Aw, Snap!", error code 5) when interpolating them, see #2065. The pulse
+// colors are resolved per theme into plain custom properties instead.
+@mixin button-pulse-colors($scheme) {
+    @each $color, $stops in settings.$button-pulse-colors {
+        --button-#{$color}-pulse-top: #{map.get($stops, "top", $scheme)};
+        --button-#{$color}-pulse-bottom: #{map.get($stops, "bottom", $scheme)};
     }
 }
 
-@keyframes pulse_gradient_red {
-    0% {
-        background: settings.$button-red-gradient-top;
-    }
+:root {
+    @include button-pulse-colors("light");
+}
 
-    50% {
-        background: settings.$button-red-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-red-gradient-top;
+@media (prefers-color-scheme: dark) {
+    :root:not([data-color-scheme="light"]) {
+        @include button-pulse-colors("dark");
     }
 }
 
-@keyframes pulse_gradient_blue {
-    0% {
-        background: settings.$button-blue-gradient-top;
-    }
-
-    50% {
-        background: settings.$button-blue-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-blue-gradient-top;
-    }
+:root[data-color-scheme="dark"] {
+    @include button-pulse-colors("dark");
 }
 
-@keyframes pulse_gradient_grey {
-    0% {
-        background: settings.$button-grey-gradient-top;
-    }
+@each $color, $stops in settings.$button-pulse-colors {
+    @keyframes pulse_gradient_#{$color} {
+        0% {
+            background: var(--button-#{$color}-pulse-top);
+        }
 
-    50% {
-        background: settings.$button-grey-gradient-bottom;
-    }
+        50% {
+            background: var(--button-#{$color}-pulse-bottom);
+        }
 
-    100% {
-        background: settings.$button-grey-gradient-top;
+        100% {
+            background: var(--button-#{$color}-pulse-top);
+        }
     }
 }
 

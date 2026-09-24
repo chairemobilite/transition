@@ -1,3 +1,5 @@
+@use "sass:map";
+
 // Colors
 $background-color: light-dark(rgb(248, 249, 251), rgb(29, 31, 33));
 $text-default-color: light-dark(rgba(33, 37, 41, 0.88), rgba(216, 239, 253, 0.7));
@@ -26,21 +28,36 @@ $green: light-dark(rgb(60, 120, 30), rgba(131, 170, 39, 1));
 $dark-green: light-dark(rgb(40, 80, 15), rgba(70, 100, 9, 1));
 
 // Button colors
+
+// Pulse colors are kept as separate light/dark values because light-dark()
+// must not be interpolated in @keyframes (Chrome 153 renderer crash, see #2065)
+$button-pulse-colors: (
+    "green": ("top": ("light": #7ab34d, "dark": #9bc95f), "bottom": ("light": #4a7b2a, "dark": #5f8f38)),
+    "red": ("top": ("light": #c45a4a, "dark": #d97a5f), "bottom": ("light": #8b2019, "dark": #b9312e)),
+    "blue": ("top": ("light": #4a6ba8, "dark": #6486bd), "bottom": ("light": #1e3a7a, "dark": #42578d)),
+    "grey": ("top": ("light": #6b6b6b, "dark": #8b8b8b), "bottom": ("light": #3d3d3d, "dark": #595959))
+);
+
+@function button-pulse-color($color, $stop) {
+    $values: map.get($button-pulse-colors, $color, $stop);
+    @return light-dark(map.get($values, "light"), map.get($values, "dark"));
+}
+
 $button-green: light-dark(#3d701f, #468024);
-$button-green-gradient-top: light-dark(#7ab34d, #9bc95f);
-$button-green-gradient-bottom: light-dark(#4a7b2a, #5f8f38);
+$button-green-gradient-top: button-pulse-color("green", "top");
+$button-green-gradient-bottom: button-pulse-color("green", "bottom");
 $button-green-border: light-dark(#5f8f38, #e2f0cc);
 $button-red: light-dark(#7a1212, #921617);
-$button-red-gradient-top: light-dark(#c45a4a, #d97a5f);
-$button-red-gradient-bottom: light-dark(#8b2019, #b9312e);
+$button-red-gradient-top: button-pulse-color("red", "top");
+$button-red-gradient-bottom: button-pulse-color("red", "bottom");
 $button-red-border: light-dark(#b9312e, #ecdcd8);
 $button-blue: light-dark(#1e3d82, #264d9b);
-$button-blue-gradient-top: light-dark(#4a6ba8, #6486bd);
-$button-blue-gradient-bottom: light-dark(#1e3a7a, #42578d);
+$button-blue-gradient-top: button-pulse-color("blue", "top");
+$button-blue-gradient-bottom: button-pulse-color("blue", "bottom");
 $button-blue-border: light-dark(#42578d, #d1dbe5);
 $button-grey: light-dark(#4a4a4a, #5c5c5c);
-$button-grey-gradient-top: light-dark(#6b6b6b, #8b8b8b);
-$button-grey-gradient-bottom: light-dark(#3d3d3d, #595959);
+$button-grey-gradient-top: button-pulse-color("grey", "top");
+$button-grey-gradient-bottom: button-pulse-color("grey", "bottom");
 $button-grey-border: light-dark(#6b6b6b, #dfdfdf);
 
 // Form colors
