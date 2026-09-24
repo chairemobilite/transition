@@ -24,10 +24,13 @@ import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
 import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 
 import scheduleQueries from './transitSchedules.db.queries';
+import { Knex } from 'knex';
 
 const tableName = 'tr_transit_lines';
 const joinedTable = 'tr_transit_paths';
 const joinedScheduleTable = 'tr_transit_schedules';
+const scenariosServicesTableName = 'tr_transit_scenario_services';
+const scenariosTableName = 'tr_transit_scenarios';
 
 const attributesCleaner = function (attributes: Partial<LineAttributes>): Partial<LineAttributes> {
     const _attributes = _cloneDeep(attributes);
@@ -53,32 +56,69 @@ const attributesParser = (dbAttributes: {
     return dbAttributes as unknown as LineAttributes;
 };
 
-const collection = async (lineIds?: string[]) => {
-    try {
-        // TODO There used to be a order by p.integer_id for path order, but
-        // this query as is won't work with the distinct, which is required
-        // since service ids was added to the query. The path refresh should
-        // rather be done by getting a collection from the DB, with the paths
-        // ordered instead of depending on this array field which should just be
-        // informative on the path count.
-        // TODO Return the count instead of the array of path and service ids?
-        const query = knex(`${tableName} as l`)
-            .leftJoin(`${joinedTable} as p`, function () {
-                this.on('l.id', 'p.line_id');
-            })
-            .leftJoin(`${joinedScheduleTable} as sched`, 'l.id', 'sched.line_id')
-            .select(
-                knex.raw(`
+const getCollectionBaseQuery = (): Knex.QueryBuilder => {
+    // TODO There used to be a order by p.integer_id for path order, but
+    // this query as is won't work with the distinct, which is required
+    // since service ids was added to the query. The path refresh should
+    // rather be done by getting a collection from the DB, with the paths
+    // ordered instead of depending on this array field which should just be
+    // informative on the path count.
+    // TODO Return the count instead of the array of path and service ids?
+    const query = knex(`${tableName} as l`)
+        .leftJoin(`${joinedTable} as p`, function () {
+            this.on('l.id', 'p.line_id');
+        })
+        .leftJoin(`${joinedScheduleTable} as sched`, 'l.id', 'sched.line_id')
+        .select(
+            knex.raw(`
       l.*,
       COALESCE(l.color, '${Preferences.current.transit.lines.defaultColor}') as color,
       array_remove(array_agg(distinct p.id), NULL) AS path_ids,
       array_remove(array_agg(distinct sched.service_id), NULL) AS service_ids
     `)
-            )
-            .where('l.is_enabled', 'TRUE');
+        )
+        .where('l.is_enabled', 'TRUE');
+    return query;
+};
+
+const collection = async ({ lineIds }: { lineIds?: string[] } = {}) => {
+    try {
+        const query = getCollectionBaseQuery().where('l.is_enabled', 'TRUE');
         if (lineIds !== undefined) {
             query.whereIn('l.id', lineIds);
         }
+        const collection = await query.groupByRaw('l.id').orderByRaw('LPAD(l.shortname, 20, \'0\'), l.id');
+        if (collection) {
+            return collection.map(attributesParser);
+        }
+        throw new TrError(
+            'cannot fetch transit lines collection because database did not return a valid array',
+            'TLQGC0001',
+            'TransitLineCollectionCouldNotBeFetchedBecauseDatabaseError'
+        );
+    } catch (error) {
+        throw new TrError(
+            `cannot fetch transit lines collection because of a database error (knex error: ${error})`,
+            'TLQGC0002',
+            'TransitLineCollectionCouldNotBeFetchedBecauseDatabaseError'
+        );
+    }
+};
+
+const collectionForScenario = async (scenarioId: string) => {
+    try {
+        const query = getCollectionBaseQuery()
+            .join(`${scenariosServicesTableName} as scServ`, 'scServ.service_id', 'sched.service_id')
+            .join(`${scenariosTableName} as sc`, 'sc.id', 'scServ.scenario_id')
+            .where('l.is_enabled', 'TRUE')
+            .where('sc.id', scenarioId)
+            .whereRaw('(sc.only_lines is null or sc.only_lines = \'{}\' or l.id = ANY(sc.only_lines))')
+            .whereRaw('(sc.except_lines is null or sc.except_lines = \'{}\' or l.id != ALL(sc.except_lines))')
+            .whereRaw('(sc.only_agencies is null or sc.only_agencies = \'{}\' or l.agency_id = ANY(sc.only_agencies))')
+            .whereRaw(
+                '(sc.except_agencies is null or sc.except_agencies = \'{}\' or l.agency_id != ALL(sc.except_agencies))'
+            );
+
         const collection = await query.groupByRaw('l.id').orderByRaw('LPAD(l.shortname, 20, \'0\'), l.id');
         if (collection) {
             return collection.map(attributesParser);
@@ -187,5 +227,6 @@ export default {
     destroy: destroy.bind(null, knex),
     // TODO Should collection also return the schedules?
     collection,
-    collectionWithSchedules
+    collectionWithSchedules,
+    collectionForScenario
 };
