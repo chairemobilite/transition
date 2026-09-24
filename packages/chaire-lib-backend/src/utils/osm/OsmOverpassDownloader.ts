@@ -14,6 +14,7 @@ import type { ReadableStream } from 'node:stream/web';
 import { geojsonToPolyBoundary } from 'chaire-lib-common/lib/utils/geometry/ConversionUtils';
 import allNodesXmlQuery from '../../config/osm/overpassQueries/allNodes';
 import allWaysAndRelationsXmlQuery from '../../config/osm/overpassQueries/allWaysAndRelations';
+import { createPassthroughTransform, ValidationTransformFactory } from './OsmValidationTransform';
 
 export interface OsmOverpassDownloader {
     downloadJson(boundPoly: GeoJSON.Polygon, overpassXmlQueryString: string): Promise<JSON>; // boundary polygon should not have holes!
@@ -239,15 +240,18 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
      * @param {*} [overpassXmlQueryString=allNodesXmlQuery] The XML query to
      * run. Placeholders BOUNDARY and OUTPUT will be replaced respectively by
      * the polygon boundaries in parameter and the output type, here 'xml'
+     * @param {ValidationTransformFactory} [createValidationTransform] Optional
+     * content validator.
      * @return {*} The result of the query, as an xml string
      * @memberof OsmOverpassDownloaderImpl
      */
     public async fetchAndWriteXml(
         filename: string,
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
-        overpassXmlQueryString = allNodesXmlQuery
+        overpassXmlQueryString = allNodesXmlQuery,
+        createValidationTransform?: ValidationTransformFactory
     ): Promise<boolean> {
-        return this.fetchAndWrite(filename, boundPoly, overpassXmlQueryString, 'xml');
+        return this.fetchAndWrite(filename, boundPoly, overpassXmlQueryString, 'xml', createValidationTransform);
     }
 
     /**
@@ -257,16 +261,28 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
         filename: string,
         boundPoly: GeoJSON.Polygon | GeoJSON.FeatureCollection | GeoJSON.Feature,
         overpassXmlQueryString: string,
-        fileType: 'xml' | 'json'
+        fileType: 'xml' | 'json',
+        createValidationTransform: ValidationTransformFactory = createPassthroughTransform
     ): Promise<boolean> {
         const response = await this.downloadData(boundPoly, overpassXmlQueryString, fileType);
         // Taken from fetch-node documentation
-        console.log('Writing osm data to ' + filename);
+        const tempFilename = `${filename}.tmp`;
+        console.log('Writing osm data to temporary file ' + tempFilename);
         if (!response.body) {
             throw new Error('Response body is null');
         }
+        const validationTransform = createValidationTransform();
         // Type assertion needed to bridge Web Streams API and Node.js streams
-        await pipeline(Readable.fromWeb(response.body as ReadableStream<Uint8Array>), fs.createWriteStream(filename));
+        await pipeline(
+            Readable.fromWeb(response.body as ReadableStream<Uint8Array>),
+            validationTransform,
+            fs.createWriteStream(tempFilename)
+        );
+        if (validationTransform.validationError) {
+            throw validationTransform.validationError;
+        }
+        console.log(`Moving ${tempFilename} to ${filename}`);
+        await fs.promises.rename(tempFilename, filename);
         console.log('Done writing osm data');
         return true;
     }
