@@ -16,40 +16,40 @@ describe('AccessibilityMapSimulationDescriptor', () => {
 
     describe('getTranslatableName', () => {
         test('should return the correct translatable name', () => {
-            expect(descriptor.getTranslatableName()).toBe('transit:simulation:simulationMethods:AccessibilityMap');
+            expect(descriptor.getTranslatableName()).toBe('transit:networkDesign.simulationMethods.accessibilityMap.Title');
         });
     });
 
-    describe('getOptions', () => {
+    describe('getFields', () => {
         test('should return options with correct structure', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
 
             expect(options).toHaveProperty('dataSourceId');
             expect(options).toHaveProperty('sampleRatio');
         });
 
         test('should configure dataSourceId option correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const dataSourceOption = options.dataSourceId;
 
-            expect(dataSourceOption.i18nName).toBe('transit:simulation:simulationMethods:AccessMapDataSources');
+            expect(dataSourceOption.i18nName).toBe('transit:networkDesign.simulationMethods.accessibilityMap.AccessMapDataSources');
             expect(dataSourceOption.type).toBe('select');
             expect(typeof dataSourceOption.choices).toBe('function');
         });
 
         test('should configure sampleRatio option correctly', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const sampleRatioOption = options.sampleRatio;
 
-            expect(sampleRatioOption.i18nName).toBe('transit:simulation:simulationMethods:AccessMapMaxSampleRatio');
+            expect(sampleRatioOption.i18nName).toBe('transit:networkDesign.simulationMethods.accessibilityMap.AccessMapMaxSampleRatio');
             expect(sampleRatioOption.type).toBe('number');
             expect(sampleRatioOption.default).toBe(1);
             expect(typeof sampleRatioOption.validate).toBe('function');
         });
 
-        test('should return empty choices for dataSourceId (FIXME case)', async () => {
-            const options = descriptor.getOptions();
-            const choices = await options.dataSourceId.choices();
+        test('should return empty choices for dataSourceId (FIXME case)', () => {
+            const options = descriptor.getFields();
+            const choices = options.dataSourceId.choices({});
 
             expect(Array.isArray(choices)).toBe(true);
             expect(choices).toHaveLength(0);
@@ -57,7 +57,7 @@ describe('AccessibilityMapSimulationDescriptor', () => {
 
         describe('sampleRatio validation', () => {
             test('should validate positive values <= 1', () => {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 const validate = options.sampleRatio.validate!;
 
                 expect(validate(0.5)).toBe(true);
@@ -66,7 +66,7 @@ describe('AccessibilityMapSimulationDescriptor', () => {
             });
 
             test('should reject values <= 0', () => {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 const validate = options.sampleRatio.validate!;
 
                 expect(validate(0)).toBe(false);
@@ -75,7 +75,7 @@ describe('AccessibilityMapSimulationDescriptor', () => {
             });
 
             test('should reject values > 1', () => {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 const validate = options.sampleRatio.validate!;
 
                 expect(validate(1.1)).toBe(false);
@@ -85,9 +85,9 @@ describe('AccessibilityMapSimulationDescriptor', () => {
         });
     });
 
-    describe('validateOptions', () => {
+    describe('validateFields', () => {
         test('should return valid result with empty errors for any options', () => {
-            const result = descriptor.validateOptions({});
+            const result = descriptor.validateFields({});
 
             expect(result.valid).toBe(true);
             expect(result.errors).toEqual([]);
@@ -99,15 +99,15 @@ describe('AccessibilityMapSimulationDescriptor', () => {
                 sampleRatio: 0.8
             };
 
-            const result = descriptor.validateOptions(options);
+            const result = descriptor.validateFields(options);
 
             expect(result.valid).toBe(true);
             expect(result.errors).toEqual([]);
         });
 
         test('should return valid result for partial options', () => {
-            const result1 = descriptor.validateOptions({ dataSourceId: 'test-id' });
-            const result2 = descriptor.validateOptions({ sampleRatio: 0.5 });
+            const result1 = descriptor.validateFields({ dataSourceId: 'test-id' });
+            const result2 = descriptor.validateFields({ sampleRatio: 0.5 });
 
             expect(result1.valid).toBe(true);
             expect(result1.errors).toEqual([]);
