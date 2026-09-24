@@ -14,6 +14,10 @@ const periods: TransitSchedulePeriod[] = [
 ];
 
 describe('findPeriodShortname', () => {
+    test('returns null for empty periods array', () => {
+        expect(findPeriodShortname([], 7 * 3600)).toBeNull();
+    });
+
     test('returns correct period for time within a period', () => {
         expect(findPeriodShortname(periods, 7 * 3600)).toBe('am_peak'); // 7:00
         expect(findPeriodShortname(periods, 12 * 3600)).toBe('midday'); // 12:00
@@ -39,11 +43,6 @@ describe('findPeriodShortname', () => {
         expect(findPeriodShortname(periods, 3 * 3600)).toBe('am_peak'); // 3AM (3h before 6AM)
         expect(findPeriodShortname(periods, 1 * 3600)).toBe('am_peak'); // 1AM (5h before 6AM)
         expect(findPeriodShortname(periods, 0)).toBe('am_peak'); // midnight (6h before 6AM)
-    });
-
-    test('returns null for empty periods array', () => {
-        expect(findPeriodShortname([], 0)).toBeNull();
-        expect(findPeriodShortname([], 12 * 3600)).toBeNull(); // midday
     });
 
     test('returns null for pre-first-period beyond 6 hour overflow', () => {
