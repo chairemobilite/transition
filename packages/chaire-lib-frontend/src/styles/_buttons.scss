@@ -1,61 +1,5 @@
 @use "settings";
 
-@keyframes pulse_gradient_green {
-    0% {
-        background: settings.$button-green-gradient-top;
-    }
-
-    50% {
-        background: settings.$button-green-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-green-gradient-top;
-    }
-}
-
-@keyframes pulse_gradient_red {
-    0% {
-        background: settings.$button-red-gradient-top;
-    }
-
-    50% {
-        background: settings.$button-red-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-red-gradient-top;
-    }
-}
-
-@keyframes pulse_gradient_blue {
-    0% {
-        background: settings.$button-blue-gradient-top;
-    }
-
-    50% {
-        background: settings.$button-blue-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-blue-gradient-top;
-    }
-}
-
-@keyframes pulse_gradient_grey {
-    0% {
-        background: settings.$button-grey-gradient-top;
-    }
-
-    50% {
-        background: settings.$button-grey-gradient-bottom;
-    }
-
-    100% {
-        background: settings.$button-grey-gradient-top;
-    }
-}
-
 .menu-button {
     font-size: settings.$font-size-small;
     opacity: 0.5;
@@ -129,7 +73,7 @@
     &:hover,
     &:active {
         &:not(.disabled) {
-            animation: pulse_gradient_green 1s linear infinite;
+            background: settings.$button-green-gradient-bottom;
         }
     }
 
@@ -144,7 +88,7 @@
     &.red:hover,
     &.red:active {
         &:not(.disabled) {
-            animation: pulse_gradient_red 1s linear infinite;
+            background: settings.$button-red-gradient-bottom;
         }
     }
 
@@ -159,7 +103,7 @@
     &.blue:hover,
     &.blue:active {
         &:not(.disabled) {
-            animation: pulse_gradient_blue 1s linear infinite;
+            background: settings.$button-blue-gradient-bottom;
         }
     }
 
@@ -174,7 +118,7 @@
     &.grey:hover,
     &.grey:active {
         &:not(.disabled) {
-            animation: pulse_gradient_grey 1s linear infinite;
+            background: settings.$button-grey-gradient-bottom;
         }
     }
 
