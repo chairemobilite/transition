@@ -330,6 +330,36 @@ class MapLibreLayerManager {
     getLayerConfig(layerName: string) {
         return this._layersByName[layerName];
     }
+
+    /**
+     * Updates a layer's minimum zoom on the map and in the stored spec (so re-add uses the new value).
+     *
+     * @param layerName MapLibre layer id
+     * @param minZoom Minimum zoom (inclusive)
+     */
+    updateLayerMinZoom(layerName: string, minZoom: number) {
+        const entry = this._layersByName[layerName];
+        if (!entry) {
+            return;
+        }
+        const spec = entry.layer as LayerSpecification & { minzoom?: number; maxzoom?: number };
+        spec.minzoom = minZoom;
+        if (!this._map?.getLayer(layerName)) {
+            return;
+        }
+        const existingLayer = this._map.getLayer(layerName);
+        const maxZoom = existingLayer?.maxzoom ?? this._map.getMaxZoom();
+        this._map.setLayerZoomRange(layerName, minZoom, maxZoom);
+    }
+
+    /**
+     * Applies the same minimum zoom to several layers (e.g. path waypoint layers after preference change).
+     */
+    updateLayersMinZoom(layerNames: string[], minZoom: number) {
+        for (let i = 0; i < layerNames.length; i++) {
+            this.updateLayerMinZoom(layerNames[i], minZoom);
+        }
+    }
 }
 
 export default MapLibreLayerManager;
