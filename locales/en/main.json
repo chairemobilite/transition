@@ -295,7 +295,8 @@
         "DateTimeFormat12H": "12 hours ({{formatted}})",
         "Map": "Map preferences",
         "MapOverlayOpacity": "Map overlay opacity (%)",
-        "MapOverlayColor": "Map overlay color"
+        "MapOverlayColor": "Map overlay color",
+        "MapNavigationControl": "Display map navigation controls"
     },
     "ShowingNofX": "Showing {{n}} of {{x}} results",
     "PageNofX": "Page {{n}} of {{x}}",
