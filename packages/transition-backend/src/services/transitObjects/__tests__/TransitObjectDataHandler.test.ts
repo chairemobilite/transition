@@ -5,11 +5,15 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
+import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter } from 'events';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import transitObjectDataHandlers from '../TransitObjectsDataHandler';
 import scenariosDbQueries from '../../../models/db/transitScenarios.db.queries';
 import { isSocketIo } from '../../../api/socketUtils';
+import { duplicateServices } from '../transitServices/ServiceDuplicator';
+import { duplicateSchedules, type DuplicateScheduleMappings } from '../transitSchedules/ScheduleUtils';
+import { duplicatePaths } from '../transitPaths/PathDuplicator';
 
 jest.mock('../../../models/db/transitAgencies.db.queries', () => ({}));
 jest.mock('../../../models/db/transitLines.db.queries', () => ({}));
@@ -33,9 +37,24 @@ jest.mock('../../../api/socketUtils', () => ({
     isSocketIo: jest.fn()
 }));
 
+jest.mock('../transitServices/ServiceDuplicator', () => ({
+    duplicateServices: jest.fn()
+}));
+
+jest.mock('../transitSchedules/ScheduleUtils', () => ({
+    duplicateSchedules: jest.fn()
+}));
+
+jest.mock('../transitPaths/PathDuplicator', () => ({
+    duplicatePaths: jest.fn()
+}));
+
 const mockedScenariosDeleteMultiple =
     scenariosDbQueries.deleteMultiple as jest.MockedFunction<Exclude<typeof scenariosDbQueries.deleteMultiple, undefined>>;
 const mockedIsSocketIo = isSocketIo as jest.MockedFunction<typeof isSocketIo>;
+const mockedServiceDuplicate = duplicateServices as jest.MockedFunction<typeof duplicateServices>;
+const mockedScheduleDuplicate = duplicateSchedules as jest.MockedFunction<typeof duplicateSchedules>;
+const mockedPathDuplicate = duplicatePaths as jest.MockedFunction<typeof duplicatePaths>;
 
 // Mock the socket with an EventEmitter mock that has an emit function we can spy on
 const socketStub = {
@@ -51,8 +70,11 @@ beforeEach(() => {
 });
 
 describe('TransitObjectDataHandler scenarios', () => {
+    // Assign the handler once, so that we don't forget to update copy-pasted tests from other handlers
+    const dataHandler = transitObjectDataHandlers.scenarios;
+
     test('check exposed scenarios handler', () => {
-        expect(transitObjectDataHandlers.scenarios).toEqual({
+        expect(dataHandler).toEqual({
             lowerCaseName: 'scenario',
             className: 'Scenario',
             classNamePlural: 'Scenarios',
@@ -71,7 +93,7 @@ describe('TransitObjectDataHandler scenarios', () => {
             mockedScenariosDeleteMultiple.mockResolvedValueOnce(idsToDelete);
             mockedIsSocketIo.mockReturnValue(true);
 
-            const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, idsToDelete);
+            const status = await dataHandler.deleteMultiple!(socketStub, idsToDelete);
 
             expect(mockedScenariosDeleteMultiple).toHaveBeenCalledWith(idsToDelete);
             expect(Status.isStatusOk(status)).toEqual(true);
@@ -85,7 +107,7 @@ describe('TransitObjectDataHandler scenarios', () => {
             mockedScenariosDeleteMultiple.mockResolvedValueOnce(idsToDelete);
             mockedIsSocketIo.mockReturnValue(false);
 
-            const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, idsToDelete);
+            const status = await dataHandler.deleteMultiple!(socketStub, idsToDelete);
 
             expect(mockedScenariosDeleteMultiple).toHaveBeenCalledWith(idsToDelete);
             expect(Status.isStatusOk(status)).toEqual(true);
@@ -98,7 +120,7 @@ describe('TransitObjectDataHandler scenarios', () => {
             mockedScenariosDeleteMultiple.mockResolvedValueOnce([]);
             mockedIsSocketIo.mockReturnValue(true);
 
-            const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, ['scenario-1']);
+            const status = await dataHandler.deleteMultiple!(socketStub, ['scenario-1']);
 
             expect(Status.isStatusOk(status)).toEqual(true);
             expect(Status.unwrap(status)).toEqual({ deletedIds: [] });
@@ -109,12 +131,145 @@ describe('TransitObjectDataHandler scenarios', () => {
         test('returns an error status when database deletion throws', async () => {
             mockedScenariosDeleteMultiple.mockRejectedValueOnce(new Error('db error'));
 
-            const status = await transitObjectDataHandlers.scenarios.deleteMultiple!(socketStub, ['scenario-1']);
+            const status = await dataHandler.deleteMultiple!(socketStub, ['scenario-1']);
 
             expect(Status.isStatusError(status)).toEqual(true);
             expect((status as any).error).toEqual('Error deleting multiple objects');
             expect((socketStub as any).broadcast.emit).not.toHaveBeenCalled();
             expect((socketStub as any).emit).not.toHaveBeenCalled();
+        });
+    });
+});
+
+describe('TransitObjectDataHandler schedules', () => {
+    // Assign the handler once, so that we don't forget to update copy-pasted tests from other handlers
+    const dataHandler = transitObjectDataHandlers.schedules;
+
+    test('check exposed schedules handler', () => {
+        expect(dataHandler).toEqual({
+            lowerCaseName: 'schedule',
+            className: 'Schedule',
+            classNamePlural: 'Schedules',
+            create: expect.any(Function),
+            read: expect.any(Function),
+            update: expect.any(Function),
+            delete: expect.any(Function),
+            duplicate: expect.any(Function),
+            updateBatch: expect.any(Function)
+        });
+    });
+
+    describe('duplicate', () => {
+
+        const serviceMapping = {
+            [uuidV4()]: uuidV4(),
+            [uuidV4()]: uuidV4()
+        };
+
+        test('returns ok and mapping when the duplicate function has been called', async () => {
+            const newScheduleIdMapping = { 1: 2, 3: 4 };
+            mockedScheduleDuplicate.mockResolvedValueOnce(Status.createOk(newScheduleIdMapping));
+
+            const status = await (dataHandler.duplicate as any)({ serviceIdMapping: serviceMapping });
+
+            expect(mockedScheduleDuplicate).toHaveBeenCalledWith({ serviceIdMapping: serviceMapping });
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(newScheduleIdMapping);
+        });
+
+        test('forwards the error when the duplication function returns an error', async () => {
+            mockedScheduleDuplicate.mockResolvedValueOnce(Status.createError('An error occurred while duplicating schedules'));
+
+            const status = await (dataHandler.duplicate as any)({ serviceIdMapping: serviceMapping });
+
+            expect(Status.isStatusError(status)).toEqual(true);
+            expect((status as any).error).toEqual('An error occurred while duplicating schedules');
+        });
+    });
+});
+
+describe('TransitObjectDataHandler services', () => {
+    // Assign the handler once, so that we don't forget to update copy-pasted tests from other handlers
+    const dataHandler = transitObjectDataHandlers.services;
+
+    test('check exposed handler', () => {
+        expect(dataHandler).toEqual({
+            lowerCaseName: 'service',
+            className: 'Service',
+            classNamePlural: 'Services',
+            create: expect.any(Function),
+            read: expect.any(Function),
+            update: expect.any(Function),
+            delete: expect.any(Function),
+            duplicate: expect.any(Function)
+        });
+    });
+
+    describe('duplicate', () => {
+
+        const duplicateOptions = { serviceIds: [uuidV4(), uuidV4()] };
+
+        test('returns ok and mapping when the duplicate function has been called', async () => {
+            const newServiceIdMapping = { [duplicateOptions.serviceIds[0]]: uuidV4(), [duplicateOptions.serviceIds[1]]: uuidV4() };
+            mockedServiceDuplicate.mockResolvedValueOnce(Status.createOk(newServiceIdMapping));
+
+            const status = await (dataHandler.duplicate as any)(duplicateOptions);
+
+            expect(mockedServiceDuplicate).toHaveBeenCalledWith(duplicateOptions);
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(newServiceIdMapping);
+        });
+
+        test('forwards the error when the duplication function returns an error', async () => {
+            mockedServiceDuplicate.mockResolvedValueOnce(Status.createError('An error occurred while duplicating services'));
+
+            const status = await (dataHandler.duplicate as any)(duplicateOptions);
+
+            expect(Status.isStatusError(status)).toEqual(true);
+            expect((status as any).error).toEqual('An error occurred while duplicating services');
+        });
+    });
+});
+
+describe('TransitObjectDataHandler paths', () => {
+    // Assign the handler once, so that we don't forget to update copy-pasted tests from other handlers
+    const dataHandler = transitObjectDataHandlers.paths;
+
+    test('check exposed handler', () => {
+        expect(dataHandler).toEqual({
+            lowerCaseName: 'path',
+            className: 'Path',
+            classNamePlural: 'Paths',
+            create: expect.any(Function),
+            read: expect.any(Function),
+            update: expect.any(Function),
+            delete: expect.any(Function),
+            duplicate: expect.any(Function)
+        });
+    });
+
+    describe('duplicate', () => {
+
+        const duplicateOptions = { pathIds: [uuidV4(), uuidV4()] };
+
+        test('returns ok and mapping when the duplicate function has been called', async () => {
+            const newPathIdMapping = { [duplicateOptions.pathIds[0]]: uuidV4(), [duplicateOptions.pathIds[1]]: uuidV4() };
+            mockedPathDuplicate.mockResolvedValueOnce(Status.createOk(newPathIdMapping));
+
+            const status = await (dataHandler.duplicate as any)(duplicateOptions);
+
+            expect(mockedPathDuplicate).toHaveBeenCalledWith(duplicateOptions);
+            expect(Status.isStatusOk(status)).toEqual(true);
+            expect(Status.unwrap(status)).toEqual(newPathIdMapping);
+        });
+
+        test('forwards the error when the duplication function returns an error', async () => {
+            mockedPathDuplicate.mockResolvedValueOnce(Status.createError('An error occurred while duplicating paths'));
+
+            const status = await (dataHandler.duplicate as any)(duplicateOptions);
+
+            expect(Status.isStatusError(status)).toEqual(true);
+            expect((status as any).error).toEqual('An error occurred while duplicating paths');
         });
     });
 });

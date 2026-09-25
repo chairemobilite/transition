@@ -23,8 +23,9 @@ const mockScheduleDataHandler: TransitObjectDataHandler = {
             console.error('Error batch updating schedules: ', error);
             return TrError.isTrError(error) ? error.export() : { error: 'Error updating batch' };
         }
-    }),
+    })
 };
+
 const mockDataHandlerWithAllFunctions: TransitObjectDataHandler = {
     lowerCaseName: 'object',
     className: 'Object',
@@ -41,7 +42,8 @@ const mockDataHandlerWithAllFunctions: TransitObjectDataHandler = {
     deleteMultipleCache: jest.fn().mockResolvedValue({}),
     loadCache: jest.fn().mockResolvedValue({}),
     saveCollectionCache: jest.fn().mockResolvedValue({}),
-    loadCollectionCache: jest.fn().mockResolvedValue({})
+    loadCollectionCache: jest.fn().mockResolvedValue({}),
+    duplicate: jest.fn().mockResolvedValue({})
 };
 
 jest.mock('../../services/transitObjects/TransitObjectsDataHandler', () => ({
@@ -57,25 +59,13 @@ jest.mock('../../services/transitObjects/TransitObjectsDataHandler', () => ({
     TransitObjectDataHandler: jest.fn()
 }));
 
-jest.mock('../../services/transitObjects/transitServices/ServiceDuplicator', () => ({
-    duplicateServices: jest.fn()
-}));
-
-jest.mock('../../services/transitObjects/transitSchedules/ScheduleUtils', () => ({
-    duplicateSchedules: jest.fn()
-}));
-
 import { v4 as uuidV4 } from 'uuid';
 import { EventEmitter } from 'events';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { TransitObjectDataHandler } from '../../services/transitObjects/TransitObjectsDataHandler';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import transitObjectRoutes from '../transitObjects.socketRoutes';
-import { duplicateServices } from '../../services/transitObjects/transitServices/ServiceDuplicator';
-import { duplicateSchedules } from '../../services/transitObjects/transitSchedules/ScheduleUtils';
 
-const mockedDuplicateAndSaveService = duplicateServices as jest.MockedFunction<typeof duplicateServices>;
-const mockedDuplicateSchedules = duplicateSchedules as jest.MockedFunction<typeof duplicateSchedules>;
 const socketStub = new EventEmitter();
 transitObjectRoutes(socketStub);
 
@@ -114,51 +104,32 @@ describe('Object socket routes', () => {
             expect(callback).not.toHaveBeenCalled();
         });
     });
-});
 
-describe('Service duplication route', () => {
-    test('Duplicate with default options', (done) => {
-        const originalServices = [uuidV4(), uuidV4()];
-        const savedServices = {
-            [originalServices[0]]: uuidV4(), 
-            [originalServices[1]]: uuidV4()
-        };
-        mockedDuplicateAndSaveService.mockResolvedValueOnce(Status.createOk(savedServices));
-
-        socketStub.emit('transitServices.duplicate', originalServices, {}, (status) => {
-            expect(Status.isStatusOk(status)).toEqual(true);
-            expect(Status.unwrap(status)).toEqual(savedServices);
-            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(originalServices, {});
-            done();
+    describe('duplicate route', () => {
+        test('duplicate when the route exists', (done) => {
+            // Create ids to delete and set the mock to return those ids as deleted
+            const duplicateOptions = { duplicateIds: [uuidV4(), uuidV4()] };
+            const response = { oldUUID: 'newUuid' };
+            (mockDataHandlerWithAllFunctions.duplicate as jest.MockedFunction<Exclude<typeof mockDataHandlerWithAllFunctions.duplicate, undefined>>).mockResolvedValueOnce(Status.createOk(response));
+            socketStub.emit('transitObjects.duplicate', duplicateOptions, (status: Status.Status<Record<string, string>>) => {
+                expect(Status.isStatusOk(status)).toEqual(true);
+                expect(Status.unwrap(status)).toEqual(response);
+                expect(mockDataHandlerWithAllFunctions.duplicate).toHaveBeenLastCalledWith(duplicateOptions);
+                done();
+            });
         });
-    });
 
-    test('Duplicate with options', (done) => {
-        const originalServices = [uuidV4(), uuidV4()];
-        const savedServices = {
-            [originalServices[0]]: uuidV4(), 
-            [originalServices[1]]: uuidV4()
-        };
-        const options = { newServiceSuffix: ' copy'}
-        mockedDuplicateAndSaveService.mockResolvedValueOnce(Status.createOk(savedServices));
+        test('The mocked schedule does not have a route for duplicate', () => {
+            const eventName = 'transitSchedules.duplicate';
 
-        socketStub.emit('transitServices.duplicate', originalServices, options, (status) => {
-            expect(Status.isStatusOk(status)).toEqual(true);
-            expect(Status.unwrap(status)).toEqual(savedServices);
-            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(originalServices, options);
-            done();
-        });
-    });
+            // Route is not registered
+            expect(socketStub.listenerCount(eventName)).toBe(0);
 
-    test('Duplicate where error occurred', (done) => {
-        const originalServices = [uuidV4(), uuidV4()];
-        mockedDuplicateAndSaveService.mockResolvedValueOnce(Status.createError('An error occurred'));
-
-        socketStub.emit('transitServices.duplicate', originalServices, {}, (status) => {
-            expect(Status.isStatusOk(status)).toEqual(false);
-            expect(Status.isStatusError(status)).toEqual(true);
-            expect(mockedDuplicateAndSaveService).toHaveBeenLastCalledWith(originalServices, {});
-            done();
+            // Optional stronger check: emit returns false when no listeners exist
+            const callback = jest.fn();
+            const emitted = socketStub.emit(eventName, { duplicateIds: ['id'] }, callback);
+            expect(emitted).toBe(false);
+            expect(callback).not.toHaveBeenCalled();
         });
     });
 });
@@ -171,7 +142,7 @@ describe('Schedules update batch route', () => {
 
     test('updateSchedulesBatch with valid attributes', (done) => {
         const attributeList = [{id: 'test-id-1'}, {id: 'test-id-2'}];
-        
+
         socketStub.emit('transitSchedules.updateBatch', attributeList, (response) => {
             try {
                 // Verify the mock was called
@@ -180,7 +151,7 @@ describe('Schedules update batch route', () => {
                     socketStub,
                     attributeList
                 );
-                
+
                 // Verify the response
                 expect(response).toEqual({
                     ids: [
@@ -205,54 +176,5 @@ describe('Schedules update batch route', () => {
             invalidAttributeList
         );
         expect(response).toHaveProperty('error');
-    });
-});
-
-describe('Schedule duplication', () => {
-
-    test('Duplicate with mappings', (done) => {
-        const serviceMapping = {
-            [uuidV4()]: uuidV4(), 
-            [uuidV4()]: uuidV4()
-        };
-        const newScheduleIdMapping = { 1: 2, 3: 4 }; 
-        mockedDuplicateSchedules.mockResolvedValueOnce(Status.createOk(newScheduleIdMapping));
-
-        socketStub.emit('transitSchedules.duplicate', { serviceIdMapping: serviceMapping }, (status) => {
-            try {
-                expect(Status.isStatusOk(status)).toEqual(true);
-                expect(Status.unwrap(status)).toEqual(newScheduleIdMapping);
-                expect(mockedDuplicateSchedules).toHaveBeenCalledWith({ serviceIdMapping: serviceMapping });
-                done();
-            } catch(error) {
-                done(error);
-            }
-        });
-    });
-
-    test('Duplicate where error occurred', (done) => {
-        const serviceMapping = {
-            [uuidV4()]: uuidV4(), 
-            [uuidV4()]: uuidV4()
-        };
-        const lineMapping = {
-            [uuidV4()]: uuidV4(), 
-            [uuidV4()]: uuidV4()
-        };
-        const pathMapping = {
-            [uuidV4()]: uuidV4()
-        }
-        mockedDuplicateSchedules.mockResolvedValueOnce(Status.createError('An error occurred'));
-
-        socketStub.emit('transitSchedules.duplicate', { serviceIdMapping: serviceMapping, lineIdMapping: lineMapping, pathIdMapping: pathMapping }, (status) => {
-            try {
-                expect(Status.isStatusOk(status)).toEqual(false);
-                expect(Status.isStatusError(status)).toEqual(true);
-                expect(mockedDuplicateSchedules).toHaveBeenLastCalledWith({ serviceIdMapping: serviceMapping, lineIdMapping: lineMapping, pathIdMapping: pathMapping });
-                done();
-            } catch(error) {
-                done(error);
-            }
-        });
     });
 });

@@ -18,20 +18,22 @@ import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
 
 // TODO Add more options, like the complete name of the new service
 export type DuplicateServiceOptions = {
+    serviceIds: string[];
     newServiceSuffix?: string;
 };
 
 /**
  * Duplicate services and save them in the database.
  *
- * @param serviceIds The IDs of the services to duplicate
  * @param options Duplication options
+ * @param options.serviceIds The IDs of the services to duplicate
+ * @param arg.transaction The optional transaction to use for the database queries
  * @returns A status object a mapping of the previous service IDs to the new
  * ones
  */
 export const duplicateServices = async (
-    serviceIds: string[],
-    { transaction, ...options }: DuplicateServiceOptions & WithTransaction
+    { serviceIds, ...options }: DuplicateServiceOptions,
+    { transaction }: WithTransaction = {}
 ): Promise<Status.Status<{ [previousId: string]: string }>> => {
     try {
         // Nested function to require a transaction around the duplication
@@ -70,7 +72,7 @@ export const duplicateServices = async (
  */
 const duplicateService = async (
     service: Service,
-    { newServiceSuffix = '', transaction }: DuplicateServiceOptions & WithTransaction
+    { newServiceSuffix = '', transaction }: Omit<DuplicateServiceOptions, 'serviceIds'> & WithTransaction
 ): Promise<Service> => {
     // Clone the complete object instead of just the attributes to make sure all
     // unique attributes are deleted from the original data and initialized on

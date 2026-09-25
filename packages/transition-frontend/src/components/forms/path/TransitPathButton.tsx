@@ -9,6 +9,7 @@ import { withTranslation, WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import Path, { PathAttributesData } from 'transition-common/lib/services/path/Path';
 import Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
@@ -25,6 +26,27 @@ interface PathButtonProps extends WithTranslation {
 
 const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: PathButtonProps) => {
     const pathIsSelected = (props.selectedPath && props.selectedPath.getId() === props.path.getId()) || false;
+    // Keep name of the ongoing operation, in the state to trigger redraw so the
+    // interface can be updated by disabling the buttons
+    // FIXME Deactivate the delete and duplicate buttons when ongoing operation, when it is supported
+    const [, setOngoingOperation] = React.useState<'duplicate' | 'delete' | null>(null);
+    // Ref to whether an operation is in progress, updated synchronously when
+    // operation starts to avoid quick repetition of the click
+    const operationInProgress = React.useRef(false);
+
+    // Set operation in progress
+    const beginOperation = (operation: 'duplicate' | 'delete') => {
+        if (operationInProgress.current) return false;
+        operationInProgress.current = true;
+        setOngoingOperation(operation);
+        return true;
+    };
+
+    // End operation
+    const endOperation = () => {
+        operationInProgress.current = false;
+        setOngoingOperation(null);
+    };
 
     const onSelect: React.MouseEventHandler = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -47,21 +69,28 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
         e.stopPropagation();
-
-        if (!props.path.isNew()) {
-            serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 0.0 });
-            await props.path.delete(serviceLocator.socketEventManager);
-            (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                layerName: 'transitPaths',
-                data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
-            });
-            serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 1.0 });
+        // Guard the deletion execution
+        if (!beginOperation('delete')) {
+            return;
         }
+        try {
+            if (!props.path.isNew()) {
+                serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 0.0 });
+                await props.path.delete(serviceLocator.socketEventManager);
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
+                });
+                serviceLocator.eventManager.emit('progress', { name: 'DeletingPath', progress: 1.0 });
+            }
 
-        if (pathIsSelected) {
-            serviceLocator.selectedObjectsManager.deselect('path');
+            if (pathIsSelected) {
+                serviceLocator.selectedObjectsManager.deselect('path');
+            }
+            serviceLocator.collectionManager.refresh('paths');
+        } finally {
+            endOperation();
         }
-        serviceLocator.collectionManager.refresh('paths');
     };
 
     const onCreateReversePath: React.MouseEventHandler = async (e: React.MouseEvent) => {
@@ -152,27 +181,45 @@ const TransitPathButton: React.FunctionComponent<PathButtonProps> = (props: Path
     const onDuplicate: React.MouseEventHandler = async (e: React.MouseEvent) => {
         e.stopPropagation();
 
-        serviceLocator.socketEventManager.emit('transitPath.read', props.path.getId(), null, async (response) => {
-            try {
-                const pathToDuplicate = new Path({ ...response.path }, false, serviceLocator.collectionManager);
-                const newAttributes = pathToDuplicate.getClonedAttributes(true);
-                if (newAttributes.name) {
-                    newAttributes.name = `${newAttributes.name} (${props.t('main:copy')})`;
+        // Guard duplication operation
+        if (!beginOperation('duplicate')) {
+            return;
+        }
+        // Call the backend duplication route with a copy suffix
+        serviceLocator.socketEventManager.emit(
+            'transitPaths.duplicate',
+            { pathIds: [props.path.getId()], newPathSuffix: ` (${props.t('main:copy')})` },
+            async (response: Status.Status<{ [originalPathId: string]: string }>) => {
+                if (Status.isStatusOk(response)) {
+                    try {
+                        // Refresh the path collection, the line and update the path layer on the map
+                        await serviceLocator.collectionManager
+                            .get('paths')
+                            .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
+                        serviceLocator.collectionManager.refresh('paths');
+                        // FIXME Manually adding the new path to the line's path_ids, until https://github.com/chairemobilite/transition/issues/2064 is fixed
+                        const pathMapping = Status.unwrap(response);
+                        props.line.attributes.path_ids.push(pathMapping[props.path.getId()]);
+                        props.line.refreshPaths();
+                        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                            'map.updateLayer',
+                            {
+                                layerName: 'transitPaths',
+                                data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
+                            }
+                        );
+                        // Make sure the line is selected after the path duplication is complete
+                        serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
+                        serviceLocator.collectionManager.refresh('lines');
+                    } catch (error) {
+                        console.error('Error refreshing paths after duplication: ', error);
+                    }
+                } else {
+                    console.error(response.error); // todo: better error handling
                 }
-                const duplicatePath = new Path(newAttributes, true, serviceLocator.collectionManager);
-                await duplicatePath.save(serviceLocator.socketEventManager);
-                serviceLocator.collectionManager.refresh('paths');
-                props.line.refreshPaths();
-                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-                    layerName: 'transitPaths',
-                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
-                });
-                serviceLocator.selectedObjectsManager.setSelection('line', [props.line]);
-                serviceLocator.collectionManager.refresh('lines');
-            } catch (error) {
-                console.error(error); // todo: better error handling
+                endOperation();
             }
-        });
+        );
     };
 
     const stopClick: React.MouseEventHandler = React.useCallback((e: React.MouseEvent) => {

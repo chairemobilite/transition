@@ -5,12 +5,23 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
-import { duplicateServices } from '../services/transitObjects/transitServices/ServiceDuplicator';
-import {
-    DuplicateScheduleMappings,
-    duplicateSchedules
-} from '../services/transitObjects/transitSchedules/ScheduleUtils';
+import transitObjectDataHandlers, {
+    TransitObjectDataHandler
+} from '../services/transitObjects/TransitObjectsDataHandler';
+
+const registerDuplicateRoute = <TDuplicateOptions>(
+    socket: EventEmitter,
+    dataHandler: TransitObjectDataHandler<TDuplicateOptions>
+): void => {
+    const duplicateFct = dataHandler.duplicate;
+    if (duplicateFct === undefined) {
+        return;
+    }
+    socket.on(`transit${dataHandler.classNamePlural}.duplicate`, async (options, callback) => {
+        const response = await dataHandler.duplicate!(options);
+        callback(response);
+    });
+};
 
 function setupObjectSocketRoutes(socket: EventEmitter) {
     for (const lowerCasePlural in transitObjectDataHandlers) {
@@ -45,6 +56,9 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
                 callback(response);
             }
         );
+
+        // Add the duplicate route
+        registerDuplicateRoute(socket, dataHandler);
 
         // Delete multiple objects from database
         if (dataHandler.deleteMultiple) {
@@ -142,22 +156,6 @@ function setupObjectSocketRoutes(socket: EventEmitter) {
             });
         }
     }
-
-    // Add duplication sockets routes. We can't add them in the loop above
-    // because they are not part of the transitObjectsDataHandlers, as each
-    // object's duplication has different additional options
-
-    // Duplicate a service
-    socket.on('transitServices.duplicate', async (serviceIds: string[], options, callback) => {
-        const response = await duplicateServices(serviceIds, options);
-        callback(response);
-    });
-
-    // Duplicate schedules for specific mappings
-    socket.on('transitSchedules.duplicate', async (options: DuplicateScheduleMappings, callback) => {
-        const response = await duplicateSchedules(options);
-        callback(response);
-    });
 }
 
 // Add operations on object socket routes for each object of Transition
