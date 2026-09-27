@@ -80,7 +80,7 @@ originParam:
   in: query
   name: originGeojson
   schema:
-    type: GeoJSON.Feature<GeoJSON.Point>
+    $ref: 'route.yml#/originGeojson'
   required: true
   description: GeoJson with the longitude/latitude coordinates of the origin, in the WSG84 coordinates system
 
@@ -88,7 +88,7 @@ destinationParam:
   in: query
   name: destinationGeojson
   schema:
-    type: GeoJSON.Feature<GeoJSON.Point>
+    $ref: 'route.yml#/destinationGeojson'
   required: true
   description: GeoJson with the longitude/latitude coordinates of the destination, in the WSG84 coordinates system
 
@@ -96,7 +96,7 @@ scenarioParam:
   in: query
   name: scenarioId
   schema:
-    type: scenarioId
+    type: string
   required: true
   # TODO: Scenario is very transition centric. Can't trRouting be used with a GTFS or some other type, without a scenario
   description: ID of the scenario to query. A scenario defines the services, agencies and lines to use for this transit calculation
