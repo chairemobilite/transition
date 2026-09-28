@@ -39,6 +39,7 @@ import { isSocketIo } from '../../api/socketUtils';
 import { duplicateSchedules } from './transitSchedules/ScheduleUtils';
 import { duplicateServices } from './transitServices/ServiceDuplicator';
 import { duplicatePaths } from './transitPaths/PathDuplicator';
+import { duplicateLines } from './transitLines/LineDuplicator';
 
 type DuplicateFunction<TOptions> = (
     options: TOptions
@@ -103,7 +104,8 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         dbQueries: linesDbQueries,
         cacheQueries: linesCacheQueries,
         collection: new LineCollection([], {}),
-        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveLinesToCache
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveLinesToCache,
+        duplicate: duplicateLines
     },
     nodes: {
         lowerCaseName: 'node',

@@ -9,14 +9,16 @@ import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Line from 'transition-common/lib/services/line/Line';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
-import { duplicateLine } from 'transition-common/lib/services/line/LineDuplicator';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import Agency from 'transition-common/lib/services/agency/Agency';
 
 interface LineButtonProps {
     line: Line;
+    agency: Agency;
     selectedLine?: Line;
     lineIsHidden: boolean;
     onObjectSelected?: (objectId: string) => void;
@@ -26,6 +28,21 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
     const { t } = useTranslation(['transit', 'main', 'notifications']);
     const [lineIsHidden, setLineIsHidden] = React.useState(props.lineIsHidden);
     const lineIsSelected = (props.selectedLine && props.selectedLine.getId() === props.line.getId()) || false;
+    // Keep name of the ongoing operation, in the state to trigger redraw so the
+    // interface can be updated by disabling the buttons
+    // FIXME Deactivate the delete and duplicate buttons when ongoing operation, when it is supported
+    const [, setOngoingOperation] = React.useState<'duplicate' | 'delete' | null>(null);
+    // Ref to whether an operation is in progress, updated synchronously when
+    // operation starts to avoid quick repetition of the click
+    const operationInProgress = React.useRef(false);
+
+    // Set operation in progress
+    const beginOperation = (operation: 'duplicate' | 'delete') => {
+        if (operationInProgress.current) return false;
+        operationInProgress.current = true;
+        setOngoingOperation(operation);
+        return true;
+    };
 
     React.useEffect(() => {
         setLineIsHidden((prevState) => (prevState !== props.lineIsHidden ? props.lineIsHidden : prevState));
@@ -46,6 +63,11 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
+        }
+
+        // Guard the deletion execution
+        if (!beginOperation('delete')) {
+            return;
         }
 
         const lineHasPaths = props.line.hasPaths();
@@ -74,23 +96,55 @@ const TransitLineButton: React.FunctionComponent<LineButtonProps> = (props: Line
             e.stopPropagation();
         }
 
-        serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 0.0 });
-        await duplicateLine(props.line, {
-            socket: serviceLocator.socketEventManager,
-            duplicateSchedules: true,
-            duplicateServices: true,
-            newLongname: `${props.line.get('longname')} (${t('main:Copy')})`,
-            newServiceSuffix: t('main:Copy')
-        });
+        // Guard duplication operation
+        if (!beginOperation('duplicate')) {
+            return;
+        }
 
-        serviceLocator.collectionManager.refresh('paths');
-        serviceLocator.collectionManager.refresh('lines');
-        serviceLocator.collectionManager.refresh('services');
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'transitPaths',
-            data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
-        });
-        serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
+        serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 0.0 });
+        serviceLocator.socketEventManager.emit(
+            'transitLines.duplicate',
+            {
+                lineIds: [props.line.getId()],
+                duplicateSchedules: true,
+                duplicateServices: true,
+                newObjectsSuffix: ` (${t('main:Copy')})`
+            },
+            async (response: Status.Status<{ [originalLineId: string]: string }>) => {
+                if (Status.isStatusOk(response)) {
+                    await Promise.all(
+                        ['paths', 'lines', 'services'].map((collectionName) =>
+                            serviceLocator.collectionManager
+                                .get(collectionName)
+                                .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager)
+                        )
+                    );
+                    // FIXME Manually adding the new line to the agency's path_ids, until https://github.com/chairemobilite/transition/issues/2064 is fixed
+                    const pathMapping = Status.unwrap(response);
+                    if (pathMapping[props.line.getId()] !== undefined) {
+                        const lineIds = props.agency.attributes.line_ids || [];
+                        lineIds.push(pathMapping[props.line.getId()]);
+                        props.agency.attributes.line_ids = lineIds;
+                        props.agency.refreshLines();
+                    }
+                    serviceLocator.collectionManager.refresh('paths');
+                    serviceLocator.collectionManager.refresh('lines');
+                    serviceLocator.collectionManager.refresh('services');
+                    // Refresh paths for the lien in props to get the new copied paths
+                    props.line.refreshPaths();
+                    (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>(
+                        'map.updateLayer',
+                        {
+                            layerName: 'transitPaths',
+                            data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
+                        }
+                    );
+                } else {
+                    console.error(response.error); // todo: better error handling
+                }
+                serviceLocator.eventManager.emit('progress', { name: 'SavingLine', progress: 1.0 });
+            }
+        );
     };
 
     const showOnMap = (e: React.MouseEvent) => {

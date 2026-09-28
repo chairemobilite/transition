@@ -169,7 +169,7 @@ const scheduleForServiceId = {
     }, {
         // Period with custom start and end, without trips
         integer_id: undefined,
-        id: uuidV4(), 
+        id: uuidV4(),
         "custom_start_at_str": "18:00",
         "custom_end_at_str": "23:00",
         "end_at_hour": 23,
@@ -254,7 +254,7 @@ const scheduleForServiceId2Period = [{
 }, {
     // Period with custom start and end, without trips
     integer_id: undefined,
-    id: uuidV4(), 
+    id: uuidV4(),
     "custom_start_at_str": "18:00",
     "custom_end_at_str": "23:00",
     "end_at_hour": 23,
@@ -490,6 +490,16 @@ describe(`schedules`, function () {
 
     });
 
+    test('getServiceIdsForLines', async () => {
+        // Get for an array of lines
+        const serviceIds = await dbQueries.getServiceIdsForLines([lineId, lineId2]);
+        expect(serviceIds).toEqual([scheduleForServiceId.service_id]);
+
+        // Get for an array of lines without schedules
+        const serviceIds2 = await dbQueries.getServiceIdsForLines([uuidV4()]);
+        expect(serviceIds2).toEqual([]);
+    })
+
     test('should delete object from database', async () => {
 
         const id = await dbQueries.delete(scheduleIntegerId as number);
@@ -593,6 +603,10 @@ describe('Schedules, with transactions', () => {
             updatedSchedule.periods[0].trips.splice(2, 1);
             originalUpdatedSchedule = updatedSchedule;
             await dbQueries.save(updatedSchedule, { transaction: trx });
+
+            // Get service ids for schedule
+            const serviceIds = await dbQueries.getServiceIdsForLines([originalSchedule.line_id], { transaction: trx });
+            expect(serviceIds).toEqual([originalSchedule.service_id])
         });
 
         // Make sure the object is there and updated
@@ -684,24 +698,24 @@ describe('Schedules save', () => {
     test('Create and update multiple schedules with success using saveAll', async() => {
         const originalSchedule1 = _cloneDeep(scheduleForServiceId) as any;
         let originalSchedule2 = _cloneDeep(scheduleForServiceId) as any;
-        
+
         originalSchedule2.id = uuidV4();
         originalSchedule2.periods = scheduleForServiceId2Period;
-        
+
         originalSchedule2.line_id = lineId2;
-    
+
         let originalUpdatedSchedules: any[] = [];
         let newIds: any[] = [];
-        
+
         await knex.transaction(async (trx) => {
-            // Save the original schedules 
+            // Save the original schedules
             newIds = await dbQueries.saveAll([originalSchedule1, originalSchedule2], { transaction: trx });
-    
+
             // Read the schedules we just saved from the DB
             const updatedSchedules = await Promise.all(
                 newIds.map(id => dbQueries.read(id, { transaction: trx }))
             );
-    
+
             // edit those schedules
             updatedSchedules.forEach((schedule) => {
                 delete schedule.updated_at;
@@ -711,7 +725,7 @@ describe('Schedules save', () => {
                         period.trips.forEach((trip) => delete trip.updated_at);
                     }
                 });
-                
+
                 if (schedule.line_id === scheduleForServiceId.line_id) {
                     schedule.periods.splice(1, 1);
                     schedule.periods[0].trips.splice(2, 1);
@@ -719,14 +733,14 @@ describe('Schedules save', () => {
                     schedule.periods.splice(0, 1);
                 }
             });
-    
+
             originalUpdatedSchedules = updatedSchedules;
             await dbQueries.saveAll(updatedSchedules, { transaction: trx });
         });
-    
+
         // Verify if the objects were correctly saved
         const readSchedules = await Promise.all(newIds.map(id => dbQueries.read(id)));
-        
+
         for (let i = 0; i < readSchedules.length; i++) {
             expectSchedulesSame(readSchedules[i], originalUpdatedSchedules[i]);
         }
@@ -817,7 +831,7 @@ describe('Schedules duplication', () => {
         const originalSchedule = _cloneDeep(scheduleForServiceId) as any;
         originalSchedule.periods[0].inbound_path_id = inboundPathId;
         originalSchedule.periods[0].trips[0].path_id = inboundPathId;
-        
+
         const originalScheduleId = await dbQueries.save(originalSchedule);
 
         // Duplicate the schedule with a line and path id mapping
@@ -864,7 +878,7 @@ describe('Schedules duplication', () => {
             originalSchedule.line_id = lineId;
             originalSchedule.service_id = serviceId;
             return originalSchedule;
-        };     
+        };
         const scheduleIdLine1Service1 = await dbQueries.save(getScheduleData(originalLineId1, originalServiceId1));
         const scheduleIdLine1Service2 = await dbQueries.save(getScheduleData(originalLineId1, originalServiceId2));
         const scheduleIdLine2Service1 = await dbQueries.save(getScheduleData(originalLineId2, originalServiceId1));
@@ -909,7 +923,7 @@ describe('Schedules duplication', () => {
                 });
             });
             return schedule;
-        }  
+        }
         const [originalL1S1, newL1S1] = [schedulesInDb.find(sched => sched.integer_id === scheduleIdLine1Service1), schedulesInDb.find(sched => sched.integer_id === scheduleIdMapping[scheduleIdLine1Service1])]
         expect(originalL1S1).toBeDefined();
         expect(newL1S1).toBeDefined();
