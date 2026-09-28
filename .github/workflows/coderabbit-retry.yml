@@ -46,11 +46,21 @@
 # * Include drafts:
 #     Remove `--draft=false` from the `gh pr list` call.
 #
-# * Bot login / auth:
+# * Bot login:
 #     Filter assumes the bot's API login is `coderabbitai[bot]`. If nothing ever
-#     triggers, dump a comment's `.user.login` to confirm. If CodeRabbit ignores
-#     comments posted by GITHUB_TOKEN (github-actions[bot]), swap in a PAT or a
-#     GitHub App token instead.
+#     triggers, dump a comment's `.user.login` to confirm.
+#
+# AUTH
+# ----
+# * Reads (listing PRs and comments) use the default GITHUB_TOKEN.
+# * The "@coderabbitai review" comment is posted with the CODERABBIT_RETRY_TOKEN
+#   secret: a fine-grained personal access token owned by a real user account
+#   (ideally a dedicated machine account), with "Pull requests: Read and write"
+#   on this repository. CodeRabbit ignores commands posted by bot accounts, so
+#   GITHUB_TOKEN (github-actions[bot]) or a GitHub App token (<app>[bot]) will
+#   not work.
+# * Callers using `workflow_call` must pass the secret, e.g. `secrets: inherit`,
+#   and the token must have access to the calling repository.
 # =============================================================================
 
 name: Retry rate-limited CodeRabbit reviews
@@ -61,7 +71,11 @@ on:
     - cron: '0 3-11/3 * * *'
   workflow_dispatch:
   workflow_call: # To be able to run it from other repo
-
+    secrets:
+      CODERABBIT_RETRY_TOKEN:
+        description: PAT of a user account, used to post the "@coderabbitai review" comment
+        required: true
+        
 concurrency:
   group: coderabbit-retry
   cancel-in-progress: false
@@ -77,6 +91,7 @@ jobs:
       - name: Retry oldest ready rate-limited PR per author
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RETRY_TOKEN: ${{ secrets.CODERABBIT_RETRY_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -128,7 +143,8 @@ jobs:
             fi
 
             echo "PR #$number ($author): window cleared, re-requesting review"
-            gh pr comment "$number" --repo "$REPO" --body "@coderabbitai review"
+            # Post as the PAT's user: CodeRabbit ignores commands from bot accounts.
+            GH_TOKEN="$RETRY_TOKEN" gh pr comment "$number" --repo "$REPO" --body "@coderabbitai review"
             echo "$author" >> handled_authors.txt
             sleep 5
           done < prs.tsv
