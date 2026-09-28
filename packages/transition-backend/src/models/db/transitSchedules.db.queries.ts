@@ -31,6 +31,13 @@ import {
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { Knex } from 'knex';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
+import {
+    createDuplicateQueryWithIdMapping,
+    joinWithClauses,
+    getIdMappingQuery,
+    getQueryFilters,
+    mapDuplicateIds
+} from './utils.db.queries';
 
 const scheduleTable = 'tr_transit_schedules';
 const periodTable = 'tr_transit_schedule_periods';
@@ -528,7 +535,7 @@ const getCollectionSubquery = (lineIds: string[] = []) => {
         })
         .select(
             knex.raw(`
-            p.*, 
+            p.*,
             json_agg(trip order by trip.departure_time_seconds) as trips
         `)
         )
@@ -546,7 +553,7 @@ const getCollectionSubquery = (lineIds: string[] = []) => {
         })
         .select(
             knex.raw(`
-            sched.*, 
+            sched.*,
             json_agg(periods order by periods.period_start_at_seconds) as periods
         `)
         )
@@ -615,6 +622,10 @@ const duplicateSchedule = async ({
     transaction?: Knex.Transaction;
 }): Promise<{ [originalScheduleId: number]: number }> => {
     try {
+        // FIXME Consider chunking the duplication in multiple queries,
+        // especially with periods and trips. When we need to duplicate
+        // schedules for a whole large agency, the current approach may make the
+        // query too large.
         if (Object.keys(lineIdMapping).length === 0 && Object.keys(serviceIdMapping).length === 0) {
             throw new Error(
                 'There needs to be either a line or service mapping or both to duplicate schedules, none provided.'
@@ -638,47 +649,11 @@ const duplicateSchedule = async ({
             }
         });
 
-        // Group query parts according to mappings values, if there are any or
-        // not. `mappingWith` is the `with` sql query part that creates the
-        // mapping table, `mappedField` is the field to use in the select/insert
-        // query, `mappedJoin` is the join to use in the select query,
-        // `whereClause` is the where clause to use in the query to select the
-        // schedules to duplicate, and `bindings` are the values to bind in the
-        // where clause
-        const getMappingQueries = (
-            objectIdMapping: { [key: string]: string },
-            mappedKey: string,
-            tblName: string,
-            canBeNull = false
-        ) => {
-            return Object.keys(objectIdMapping).length === 0
-                ? {
-                    mappingWith: '',
-                    mappedField: `${mappedKey}_id`,
-                    mappedJoin: '',
-                    whereClause: undefined,
-                    bindings: []
-                }
-                : {
-                    mappingWith: `${mappedKey}_mapping (original_id, new_id) as (\
-                values \
-                    ${Object.entries(objectIdMapping)
-        .map(([originalId, mappedId]) => `('${originalId}'::uuid, '${mappedId}'::uuid)`)
-        .join(',')} \
-                )`,
-                    mappedField: `${mappedKey}_mapping.new_id`,
-                    mappedJoin: `${canBeNull ? 'left ' : ''}join ${mappedKey}_mapping on ${mappedKey}_mapping.original_id = ${tblName}.${mappedKey}_id`,
-                    whereClause: `${mappedKey}_id in (${Object.keys(objectIdMapping)
-                        .map((_) => '?')
-                        .join(',')})`,
-                    bindings: Object.keys(objectIdMapping)
-                };
-        };
-        const lineMappingQuery = getMappingQueries(lineIdMapping, 'line', scheduleTable);
-        const serviceMappingQuery = getMappingQueries(serviceIdMapping, 'service', scheduleTable);
-        const pathMappingQuery = getMappingQueries(pathIdMapping, 'path', tripTable);
-        const inboundPathMappingQuery = getMappingQueries(pathIdMapping, 'inbound_path', periodTable, true);
-        const outboundPathMappingQuery = getMappingQueries(pathIdMapping, 'outbound_path', periodTable, true);
+        const lineMappingQuery = getIdMappingQuery(lineIdMapping, 'line', scheduleTable);
+        const serviceMappingQuery = getIdMappingQuery(serviceIdMapping, 'service', scheduleTable);
+        const pathMappingQuery = getIdMappingQuery(pathIdMapping, 'path', tripTable);
+        const inboundPathMappingQuery = getIdMappingQuery(pathIdMapping, 'inbound_path', periodTable, true);
+        const outboundPathMappingQuery = getIdMappingQuery(pathIdMapping, 'outbound_path', periodTable, true);
 
         // Nested function to require a transaction around the duplication
         const duplicateWithTransaction = async (trx: Knex.Transaction) => {
@@ -689,44 +664,30 @@ const duplicateSchedule = async ({
             // so that 3 queries are sufficient to copy all schedules, periods and
             // trips with the requested mappings
 
-            // Query to copy the schedules for the requested lines. Using raw as it
-            // is complex to put in knex
-            const duplicateSchedulesQuery = `with ${[lineMappingQuery.mappingWith, serviceMappingQuery.mappingWith].filter((query) => query !== '').join(', ')} \
+            // Query to copy the schedules for the requested lines. Using raw as
+            // it is complex to put in knex. The preceding `with` queries ensure
+            // only the desired objects are selected and duplicated.`
+            const scheduleWithClauses = joinWithClauses([lineMappingQuery, serviceMappingQuery]);
+            const duplicateSchedulesQuery = `${scheduleWithClauses.query}\
                 insert into ${scheduleTable}(line_id, service_id, periods_group_shortname, allow_seconds_based_schedules, is_frozen, data) \
-                    select ${lineMappingQuery.mappedField}, ${serviceMappingQuery.mappedField}, periods_group_shortname, allow_seconds_based_schedules, is_frozen, data 
+                    select ${lineMappingQuery.mappedField}, ${serviceMappingQuery.mappedField}, periods_group_shortname, allow_seconds_based_schedules, is_frozen, data
                     from ${scheduleTable} \
                     ${lineMappingQuery.mappedJoin} \
                     ${serviceMappingQuery.mappedJoin} \
                     order by id returning id`;
 
             // Put the where queries and bindings for lines and services in arrays to better join them if necessary in the query
-            const scheduleWhereQueries: { whereClauses: string[]; bindings: any[] } = {
-                whereClauses: [],
-                bindings: []
-            };
-            if (lineMappingQuery.whereClause) {
-                scheduleWhereQueries.whereClauses.push(lineMappingQuery.whereClause);
-                scheduleWhereQueries.bindings.push(...lineMappingQuery.bindings);
-            }
-            if (serviceMappingQuery.whereClause) {
-                scheduleWhereQueries.whereClauses.push(serviceMappingQuery.whereClause);
-                scheduleWhereQueries.bindings.push(...serviceMappingQuery.bindings);
-            }
+            const scheduleWhereQueries = getQueryFilters([lineMappingQuery, serviceMappingQuery]);
 
-            // The `sel` part selects the original schedule IDs and row numbers
-            // for services and lines, if specified and order them by row ID,
-            // the `ins` part duplicates the schedules, also ordered by ID and
-            // returns the new IDs. Both `sel` and `ins` have the same number of
-            // rows and the same order of elements. The last select matches the
-            // original and new IDs from the row number, effectively giving the
-            // mapping between old and new schedules.
             const scheduleIdMapping = await knex
                 .raw(
-                    `with sel as (select id, row_number() over (order by id) as rn from ${scheduleTable} where ${scheduleWhereQueries.whereClauses.join(' and ')} order by id), \
-                ins as (${duplicateSchedulesQuery}) \
-                select i.id, s.id as from_id from (select id, row_number() over (order by id) as rn from ins) i\
-                join sel s using(rn)`,
-                    scheduleWhereQueries.bindings
+                    createDuplicateQueryWithIdMapping(
+                        scheduleTable,
+                        duplicateSchedulesQuery,
+                        scheduleWhereQueries.whereClauses.join(' and '),
+                        'id'
+                    ),
+                    [...scheduleWhereQueries.bindings, ...scheduleWithClauses.bindings]
                 )
                 .transacting(trx);
 
@@ -738,62 +699,68 @@ const duplicateSchedule = async ({
             // schedules. Similar to above, it uses the scheduleIdMapping to
             // select the periods to duplicate, ordered by ID to generate the
             // mapping.
-            const scheduleMappingWithQuery = `schedule_mapping (original_id, new_id) as (\
-                values \
-                ${scheduleIdMapping.rows.map((mapping) => `(${mapping.from_id}, ${mapping.id})`).join(',')}\
-            )`;
-            const duplicatePeriodsQuery = `with ${[scheduleMappingWithQuery, outboundPathMappingQuery.mappingWith, inboundPathMappingQuery.mappingWith].filter((query) => query !== '').join(', ')} \
+            const scheduleMappingQuery = getIdMappingQuery(
+                mapDuplicateIds<number>(scheduleIdMapping.rows),
+                'schedule',
+                periodTable
+            );
+            const periodWithClauses = joinWithClauses([
+                scheduleMappingQuery,
+                outboundPathMappingQuery,
+                inboundPathMappingQuery
+            ]);
+            const duplicatePeriodsQuery = `${periodWithClauses.query}\
                 insert into ${periodTable}(schedule_id, outbound_path_id, inbound_path_id, period_shortname, interval_seconds, number_of_units, period_start_at_seconds, period_end_at_seconds, custom_start_at_seconds, custom_end_at_seconds) \
-                    select schedule_mapping.new_id, ${outboundPathMappingQuery.mappedField}, ${inboundPathMappingQuery.mappedField}, period_shortname, interval_seconds, number_of_units, period_start_at_seconds, period_end_at_seconds, custom_start_at_seconds, custom_end_at_seconds 
-                    from ${periodTable} 
-                    join schedule_mapping on schedule_mapping.original_id = ${periodTable}.schedule_id
+                    select ${scheduleMappingQuery.mappedField}, ${outboundPathMappingQuery.mappedField}, ${inboundPathMappingQuery.mappedField}, period_shortname, interval_seconds, number_of_units, period_start_at_seconds, period_end_at_seconds, custom_start_at_seconds, custom_end_at_seconds
+                    from ${periodTable}
+                    ${scheduleMappingQuery.mappedJoin}
                     ${outboundPathMappingQuery.mappedJoin} \
                     ${inboundPathMappingQuery.mappedJoin} \
                     order by id returning id`;
 
             const schedulePeriodIdMapping = await knex
                 .raw(
-                    `with sel as (select id, row_number() over (order by id) as rn from ${periodTable} where schedule_id in (${scheduleIdMapping.rows.map((_) => '?').join(',')}) order by id), \
-                ins as (${duplicatePeriodsQuery}) \
-                select i.id, s.id as from_id from (select id, row_number() over (order by id) as rn from ins) i\
-                join sel s using(rn)`,
-                    scheduleIdMapping.rows.map((mapping) => mapping.from_id)
+                    createDuplicateQueryWithIdMapping(
+                        periodTable,
+                        duplicatePeriodsQuery,
+                        scheduleMappingQuery.whereClause ?? '',
+                        'id'
+                    ),
+                    [...scheduleMappingQuery.bindings, ...periodWithClauses.bindings]
                 )
                 .transacting(trx);
 
             if (schedulePeriodIdMapping.rows.length === 0) {
-                return scheduleIdMapping.rows.reduce((acc, row) => {
-                    acc[row.from_id] = row.id;
-                    return acc;
-                }, {});
+                return mapDuplicateIds<number>(scheduleIdMapping.rows);
             }
 
             // Query to duplicate the schedule trips for the duplicated periods
-            const periodMappingWithQuery = `period_mapping (original_id, new_id) as (\
-                values \
-                ${schedulePeriodIdMapping.rows.map((mapping) => `(${mapping.from_id}, ${mapping.id})`).join(',')}\
-            )`;
-            const duplicateTripsQuery = `with ${[periodMappingWithQuery, pathMappingQuery.mappingWith].filter((query) => query !== '').join(', ')}
+            const periodMappingQuery = getIdMappingQuery(
+                mapDuplicateIds<number>(schedulePeriodIdMapping.rows),
+                'schedule_period',
+                tripTable
+            );
+            const tripWithClauses = joinWithClauses([periodMappingQuery, pathMappingQuery]);
+            const duplicateTripsQuery = `${tripWithClauses.query}
                 insert into ${tripTable}(schedule_period_id, path_id, unit_id, block_id, departure_time_seconds, arrival_time_seconds, seated_capacity, total_capacity, node_arrival_time_seconds, node_departure_time_seconds, nodes_can_board, nodes_can_unboard, data) \
-                    select period_mapping.new_id, ${pathMappingQuery.mappedField}, unit_id, block_id, departure_time_seconds, arrival_time_seconds, seated_capacity, total_capacity, node_arrival_time_seconds, node_departure_time_seconds, nodes_can_board, nodes_can_unboard, data \
+                    select ${periodMappingQuery.mappedField}, ${pathMappingQuery.mappedField}, unit_id, block_id, departure_time_seconds, arrival_time_seconds, seated_capacity, total_capacity, node_arrival_time_seconds, node_departure_time_seconds, nodes_can_board, nodes_can_unboard, data \
                     from ${tripTable} \
-                    join period_mapping on period_mapping.original_id = ${tripTable}.schedule_period_id \
+                    ${periodMappingQuery.mappedJoin} \
                     ${pathMappingQuery.mappedJoin} \
                     order by id returning id`;
 
             await knex
                 .raw(
-                    `with sel as (select id, row_number() over (order by id) as rn from ${tripTable} where schedule_period_id in (${schedulePeriodIdMapping.rows.map((_) => '?').join(',')}) order by id), \
-                ins as (${duplicateTripsQuery}) \
-                select i.id, s.id as from_id from (select id, row_number() over (order by id) as rn from ins) i\
-                join sel s using(rn)`,
-                    schedulePeriodIdMapping.rows.map((mapping) => mapping.from_id)
+                    createDuplicateQueryWithIdMapping(
+                        tripTable,
+                        duplicateTripsQuery,
+                        periodMappingQuery.whereClause ?? '',
+                        'id'
+                    ),
+                    [...periodMappingQuery.bindings, ...tripWithClauses.bindings]
                 )
                 .transacting(trx);
-            return scheduleIdMapping.rows.reduce((acc, row) => {
-                acc[row.from_id] = row.id;
-                return acc;
-            }, {});
+            return mapDuplicateIds<number>(scheduleIdMapping.rows);
         };
         // Make sure the update is done in a transaction, use the one in the options if available
         return transaction

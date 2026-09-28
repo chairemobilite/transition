@@ -25,6 +25,14 @@ import {
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { PathAttributes } from 'transition-common/lib/services/path/Path';
+import {
+    createDuplicateQueryWithIdMapping,
+    joinWithClauses,
+    getIdMappingQuery,
+    getIdSelectionQuery,
+    getQueryFilters,
+    mapDuplicateIds
+} from './utils.db.queries';
 
 const tableName = 'tr_transit_paths';
 const linesTableName = 'tr_transit_lines';
@@ -273,62 +281,8 @@ const duplicate = async ({
             }
         });
 
-        // Group query parts according to mappings values, if there are any or
-        // not. `mappingWith` is the `with` sql query part that creates the
-        // mapping table, `mappedField` is the field to use in the select/insert
-        // query, `mappedJoin` is the join to use in the select query,
-        // `whereClause` is the where clause to use in the query to select the
-        // schedules to duplicate, and `bindings` are the values to bind in the
-        // where clause
-        const getMappingQueries = (
-            objectIdMapping: { [key: string]: string },
-            mappedKey: string,
-            tblName: string,
-            canBeNull = false
-        ) => {
-            return Object.keys(objectIdMapping).length === 0
-                ? {
-                    mappingWith: '',
-                    mappedField: `${mappedKey}_id`,
-                    mappedJoin: '',
-                    whereClause: undefined,
-                    bindings: []
-                }
-                : {
-                    mappingWith: `${mappedKey}_mapping (original_id, new_id) as (\
-                values \
-                    ${Object.entries(objectIdMapping)
-        .map(([originalId, mappedId]) => `('${originalId}'::uuid, '${mappedId}'::uuid)`)
-        .join(',')} \
-                )`,
-                    mappedField: `${mappedKey}_mapping.new_id`,
-                    mappedJoin: `${canBeNull ? 'left ' : ''}join ${mappedKey}_mapping on ${mappedKey}_mapping.original_id = ${tblName}.${mappedKey}_id`,
-                    whereClause: `${mappedKey}_id in (${Object.keys(objectIdMapping)
-                        .map((_) => '?')
-                        .join(',')})`,
-                    bindings: Object.keys(objectIdMapping)
-                };
-        };
-        const lineMappingQuery = getMappingQueries(lineIdMapping, 'line', tableName);
-        // Not a mapping, but for sake of simplicity when creating the query,
-        // we'll also use a `with` clause, so those queries can all be merged
-        // together
-        const pathSelectionQuery =
-            pathIds.length === 0
-                ? {
-                    mappingWith: '',
-                    mappedJoin: '',
-                    whereClause: undefined,
-                    bindings: []
-                }
-                : {
-                    mappingWith: `path_selection(id) as (
-                    values ${pathIds.map((pathId) => `('${pathId}'::uuid)`).join(', ')}
-                )`,
-                    mappedJoin: `join path_selection on path_selection.id = ${tableName}.id`,
-                    whereClause: `id in (${pathIds.map((_) => '?').join(',')})`,
-                    bindings: pathIds
-                };
+        const lineMappingQuery = getIdMappingQuery(lineIdMapping, 'line', tableName);
+        const pathSelectionQuery = getIdSelectionQuery(pathIds, tableName);
 
         // Nested function to require a transaction around the duplication
         const duplicateWithTransaction = async (trx: Knex.Transaction) => {
@@ -341,7 +295,8 @@ const duplicate = async ({
             // Query to copy the requested paths for the requested lines if any.
             // Using raw as it is complex to put in knex
             const pathName = _isBlank(newPathSuffix) ? 'name' : 'name || ?';
-            const duplicatePathsQuery = `with ${[lineMappingQuery.mappingWith, pathSelectionQuery.mappingWith].filter((query) => query !== '').join(', ')} \
+            const withClauses = joinWithClauses([lineMappingQuery, pathSelectionQuery]);
+            const duplicatePathsQuery = `${withClauses.query}\
                 insert into ${tableName}(internal_id, direction, line_id, name, is_enabled, geography, nodes, stops, segments, description, data, is_frozen) \
                     select internal_id, direction, ${lineMappingQuery.mappedField}, ${pathName}, is_enabled, geography, nodes, stops, segments, description, data, is_frozen
                     from ${tableName} \
@@ -350,33 +305,21 @@ const duplicate = async ({
                     order by integer_id returning id, integer_id`;
 
             // Put the where queries and bindings for lines and services in arrays to better join them if necessary in the query
-            const pathWhereQueries: { whereClauses: string[]; bindings: any[] } = {
-                whereClauses: [],
-                bindings: []
-            };
-            if (lineMappingQuery.whereClause) {
-                pathWhereQueries.whereClauses.push(lineMappingQuery.whereClause);
-                pathWhereQueries.bindings.push(...lineMappingQuery.bindings);
-            }
-            if (pathSelectionQuery.whereClause) {
-                pathWhereQueries.whereClauses.push(pathSelectionQuery.whereClause);
-                pathWhereQueries.bindings.push(...pathSelectionQuery.bindings);
-            }
+            const pathWhereQueries = getQueryFilters([lineMappingQuery, pathSelectionQuery]);
 
-            // The `sel` part selects the original schedule IDs and row numbers
-            // for services and lines, if specified and order them by row ID,
-            // the `ins` part duplicates the schedules, also ordered by ID and
-            // returns the new IDs. Both `sel` and `ins` have the same number of
-            // rows and the same order of elements. The last select matches the
-            // original and new IDs from the row number, effectively giving the
-            // mapping between old and new schedules.
             const pathIdMapping = await knex
                 .raw(
-                    `with sel as (select id, integer_id, row_number() over (order by integer_id) as rn from ${tableName} where ${pathWhereQueries.whereClauses.join(' and ')} order by integer_id), \
-                ins as (${duplicatePathsQuery}) \
-                select i.id, i.integer_id, s.id as from_id, s.integer_id as from_integer_id from (select id, integer_id, row_number() over (order by integer_id) as rn from ins) i\
-                join sel s using(rn)`,
-                    [...pathWhereQueries.bindings, ...(_isBlank(newPathSuffix) ? [] : [newPathSuffix])]
+                    createDuplicateQueryWithIdMapping(
+                        tableName,
+                        duplicatePathsQuery,
+                        pathWhereQueries.whereClauses.join(' and '),
+                        'integer_id'
+                    ),
+                    [
+                        ...pathWhereQueries.bindings,
+                        ...withClauses.bindings,
+                        ...(_isBlank(newPathSuffix) ? [] : [newPathSuffix])
+                    ]
                 )
                 .transacting(trx);
 
@@ -384,10 +327,7 @@ const duplicate = async ({
                 return {};
             }
 
-            return pathIdMapping.rows.reduce((acc, row) => {
-                acc[row.from_id] = row.id;
-                return acc;
-            }, {});
+            return mapDuplicateIds<string>(pathIdMapping.rows);
         };
         // Make sure the update is done in a transaction, use the one in the options if available
         return transaction
