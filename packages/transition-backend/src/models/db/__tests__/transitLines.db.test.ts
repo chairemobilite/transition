@@ -14,7 +14,8 @@ import servicesDbQueries from '../transitServices.db.queries';
 import schedulesDbQueries from '../transitSchedules.db.queries';
 import pathsDbQueries from '../transitPaths.db.queries';
 import Collection        from 'transition-common/lib/services/line/LineCollection';
-import ObjectClass, { Line, LineAttributes }       from 'transition-common/lib/services/line/Line';
+import ObjectClass, { Line, LineAttributes } from 'transition-common/lib/services/line/Line';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const objectName = 'line';
 const agencyId   = '273a583c-df49-440f-8f44-f39fb0033c56';
@@ -44,7 +45,7 @@ const scheduleForServiceId2 = {
     data: {}
 };
 
-const pathAttributes = {  
+const pathAttributes = {
     id          : uuidV4(),
     internal_id : 'InternalId test 1',
     is_frozen   : false,
@@ -197,7 +198,7 @@ describe(`${objectName}`, () => {
     });
 
     test('Update a line in database', async() => {
-        
+
         const id = await dbQueries.update(newObjectAttributesWithSchedule.id, updatedAttributes);
         expect(id).toBe(newObjectAttributesWithSchedule.id);
 
@@ -248,7 +249,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should create a second new object in database', async() => {
-        
+
         const newObject = new ObjectClass(newObjectAttributes2, true);
         const id = await dbQueries.create(newObject.attributes)
         expect(id).toEqual(newObjectAttributes2.id);
@@ -256,7 +257,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should read collection from database', async() => {
-        
+
         const _collection = await dbQueries.collection();
         const objectCollection = new Collection([], {});
         objectCollection.loadFromCollection(_collection);
@@ -278,11 +279,11 @@ describe(`${objectName}`, () => {
         expect(collection[0].attributes).toMatchObject(new ObjectClass(_newObjectAttributes, false).attributes);
         expect(collection[1].getId()).toBe(_newObjectAttributes2.id);
         expect(collection[1].attributes).toMatchObject(new ObjectClass(_newObjectAttributes2, false).attributes);
-        
+
     });
 
     test('should read collection from database with specific line ids', async() => {
-        
+
         const _collection = await dbQueries.collection([newObjectAttributesWithSchedule.id, uuidV4()]);
         const objectCollection = new Collection([], {});
         objectCollection.loadFromCollection(_collection);
@@ -298,11 +299,11 @@ describe(`${objectName}`, () => {
         collection[0].attributes.service_ids?.sort((sidA, sidB) => sidA.localeCompare(sidB));
         expect(collection[0].getId()).toBe(_newObjectAttributes.id);
         expect(collection[0].attributes).toMatchObject(new ObjectClass(_newObjectAttributes, false).attributes);
-                
+
     });
 
     test('should read collection with schedules from database', async () => {
-        
+
         const _collection = await dbQueries.collection();
         const objectCollection = new Collection([], {});
         objectCollection.loadFromCollection(_collection);
@@ -328,7 +329,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should delete objects from database', async() => {
-        
+
         const id = await dbQueries.delete(newObjectAttributesWithSchedule.id)
         expect(id).toBe(newObjectAttributesWithSchedule.id);
 
@@ -424,6 +425,245 @@ describe('Lines, with transactions', () => {
         const object1 = collection.find((obj) => obj.id === attributesWihoutSched.id);
         expect(object1).toBeDefined();
         expect(object1).toEqual(expect.objectContaining(attributesWihoutSched));
+    });
+
+});
+
+describe('Lines duplication', () => {
+
+    beforeEach(async () => {
+        // Empty the path table
+        await dbQueries.truncate();
+        // Emptye the lines table and add a new line
+        await agenciesDbQueries.truncate();
+        await agenciesDbQueries.create({
+            id: agencyId,
+            acronym: 'test',
+            color: '#ffffff',
+        } as any);
+        // Add a single path
+        const newObject = new ObjectClass(newObjectAttributes2, true);
+        await dbQueries.create(newObject.attributes);
+    });
+
+    const add2LinesForAgency = async (lineId: string) => {
+        // Add 2 new lines, with uuids in a reverse order from their insertion, different names and undefined integer_ids
+        const baseUuid = uuidV4();
+        const firstObjectUuid = `e${baseUuid.slice(1)}`;
+        const secondObjectUuid = `a${baseUuid.slice(1)}`;
+        const newLine1 = new ObjectClass({
+            ..._cloneDeep(newObjectAttributes2),
+            id: firstObjectUuid,
+            agency_id: agencyId,
+            shortname: 'L1',
+            longname: 'line 1'
+        }, true);
+        const newLine2 = new ObjectClass({
+            ..._cloneDeep(newObjectAttributes2),
+            id: secondObjectUuid,
+            agency_id: agencyId,
+            shortname: 'L2',
+            longname: 'line 2'
+        }, true);
+        await dbQueries.create(newLine1.attributes);
+        await dbQueries.create(newLine2.attributes);
+        return [firstObjectUuid, secondObjectUuid];
+    }
+
+    test('Duplicate single line with a non-blank suffix', async () => {
+        const lineIdMapping = await dbQueries.duplicate({
+            lineIds: [newObjectAttributes2.id],
+            newLineSuffix: ' (copy)'
+        });
+
+        const duplicatedLine = await dbQueries.read(lineIdMapping[newObjectAttributes2.id]);
+        expect(duplicatedLine.longname).toBe(`${newObjectAttributes2.longname} (copy)`);
+    });
+
+    test('Duplicate single line without a suffix', async () => {
+        const lineIdMapping = await dbQueries.duplicate({
+            lineIds: [newObjectAttributes2.id],
+            newLineSuffix: '   '
+        });
+
+        const duplicatedLine = await dbQueries.read(lineIdMapping[newObjectAttributes2.id]);
+        expect(duplicatedLine.longname).toBe(newObjectAttributes2.longname);
+    });
+
+    test('Duplicate with duplicated line ids', async () => {
+        // Count path before duplication
+        const pathCountBefore = (await dbQueries.collection()).length;
+
+        const lineIdMapping = await dbQueries.duplicate({
+            lineIds: [newObjectAttributes2.id, newObjectAttributes2.id],
+            newLineSuffix: '   '
+        });
+
+        expect(Object.keys(lineIdMapping).length).toEqual(1);
+        const duplicatedLine = await dbQueries.read(lineIdMapping[newObjectAttributes2.id]);
+        expect(duplicatedLine.longname).toBe(newObjectAttributes2.longname);
+        // Make sure only one path was added
+        const pathCountAfter = (await dbQueries.collection()).length;
+        expect(pathCountAfter).toEqual(pathCountBefore + 1);
+    });
+
+    test('Duplicate for multiple lines', async () => {
+        // Add 2 new paths, with uuids in a reverse order from their insertion, different names and undefined integer_ids
+        const insertedUuids = await add2LinesForAgency(newObjectAttributes2.agency_id);
+
+        const lineIdMapping = await dbQueries.duplicate({
+            lineIds: [insertedUuids[1], insertedUuids[0]],
+            newLineSuffix: ' copy'
+        });
+
+        expect(lineIdMapping).toEqual({
+            [insertedUuids[0]]: expect.anything(),
+            [insertedUuids[1]]: expect.anything()
+        })
+        const duplicatedLine1 = await dbQueries.read(lineIdMapping[insertedUuids[0]]);
+        const duplicatedLine2 = await dbQueries.read(lineIdMapping[insertedUuids[1]]);
+        expect(duplicatedLine1.longname).toBe('line 1 copy');
+        expect(duplicatedLine2.longname).toBe('line 2 copy');
+    });
+
+    test('Duplicate lines with agency mappings', async () => {
+        // Create a second agency
+        const newAgencyId = await agenciesDbQueries.create({
+            acronym: 'agency copy',
+            color: '#ffffee',
+        } as any) as string;
+
+        const lineIdMapping = await dbQueries.duplicate({
+            agencyIdMapping: { [newObjectAttributes2.agency_id]: newAgencyId },
+            newLineSuffix: ' copy'
+        });
+
+        expect(lineIdMapping).toEqual({ [newObjectAttributes2.id]: expect.anything() });
+        const duplicatedLine = await dbQueries.read(lineIdMapping[newObjectAttributes2.id]);
+        expect(duplicatedLine).toEqual(expect.objectContaining({
+            ...newObjectAttributes2,
+            longname: `${newObjectAttributes2.longname} copy`,
+            shortname: newObjectAttributes2.shortname,
+            agency_id: newAgencyId,
+            integer_id: expect.anything(),
+            id: lineIdMapping[newObjectAttributes2.id],
+            data: expect.anything() // Not equal to the attributes because they were changed by the object
+        }));
+        expect(duplicatedLine.integer_id).not.toBe(newObjectAttributes2.integer_id);
+    });
+
+    test('Duplicate with both line ids and agency mapping', async () => {
+        // Add 2 new lines, with uuids in a reverse order from their insertion, different names and undefined integer_ids
+        const insertedUuids = await add2LinesForAgency(newObjectAttributes2.agency_id);
+
+        // Create a second line
+        const newAgencyId = await agenciesDbQueries.create({
+            acronym: 'test 2',
+            color: '#ffffee',
+        } as any) as string;
+
+        // Copy only the 2 new lines to second agency
+        const lineIdMapping = await dbQueries.duplicate({
+            agencyIdMapping: { [newObjectAttributes2.agency_id]: newAgencyId },
+            lineIds: insertedUuids
+        });
+
+        expect(lineIdMapping).toEqual({
+            [insertedUuids[0]]: expect.anything(),
+            [insertedUuids[1]]: expect.anything()
+        })
+        const duplicatedLine1 = await dbQueries.read(lineIdMapping[insertedUuids[0]]);
+        const duplicatedLine2 = await dbQueries.read(lineIdMapping[insertedUuids[1]]);
+
+        // Validate both new paths, 2nd one should have higher integer_id
+        expect(duplicatedLine1).toEqual(expect.objectContaining({
+            ...newObjectAttributes2,
+            longname: 'line 1',
+            shortname: 'L1',
+            agency_id: newAgencyId,
+            integer_id: expect.anything(),
+            id: lineIdMapping[insertedUuids[0]],
+            data: expect.anything() // Not equal to the attributes because they were changed by the object
+        }));
+        expect(duplicatedLine2).toEqual(expect.objectContaining({
+            ...newObjectAttributes2,
+            longname: 'line 2',
+            shortname: 'L2',
+            agency_id: newAgencyId,
+            integer_id: expect.anything(),
+            id: lineIdMapping[insertedUuids[1]],
+            data: expect.anything() // Not equal to the attributes because they were changed by the object
+        }));
+        expect(duplicatedLine1.integer_id).toBeLessThan(duplicatedLine2.integer_id as number);
+    });
+
+    test('Duplicate when there are no lines for the agency', async() => {
+        // Create a second agency, without lines
+        const newAgencyId1 = await agenciesDbQueries.create({
+            acronym: 'NewAg1'
+        } as any) as string;
+
+        // Create a third agency, as a copy of the second
+        const newAgencyId2 = await agenciesDbQueries.create({
+            acronym: 'Newag2'
+        } as any) as string;
+
+        const lineIdMapping = await dbQueries.duplicate({
+            agencyIdMapping: { [newAgencyId1]: newAgencyId2 }
+        });
+
+        expect(lineIdMapping).toEqual({});
+    });
+
+    test('Duplicate for unexisting line IDs', async() => {
+        const lineIdMapping = await dbQueries.duplicate({
+            lineIds: [uuidV4()]
+        });
+
+        expect(lineIdMapping).toEqual({});
+    });
+
+    test('Duplicate for unexisting agencies', async() => {
+        const lineIdMapping = await dbQueries.duplicate({
+            agencyIdMapping: { [uuidV4()]: uuidV4() }
+        });
+
+        expect(lineIdMapping).toEqual({});
+    });
+
+    test('Test transaction: duplication fine, but transaction fails later', async() => {
+        let error: any = undefined;
+        try {
+            // Wrap in a transaction
+            await knex.transaction(async (trx) => {
+                // duplicate, then throw an error
+                await dbQueries.duplicate({ lineIds: [newObjectAttributes2.id], transaction: trx });
+                // Throw an error to make transaction fail
+                throw 'manualTransactionFailure';
+            });
+        } catch(err) {
+            error = err;
+        }
+        expect(error).toEqual('manualTransactionFailure');
+
+        // Make sure there is still only 1 schedule
+        const pathsInDb = await dbQueries.collection();
+        expect(pathsInDb.length).toEqual(1);
+    });
+
+    test('No mapping provided, should throw error', async () => {
+        // Duplicate the line without mapping or selection, should throw an error
+        await expect(dbQueries.duplicate({ })).rejects.toThrow(TrError);
+    });
+
+    test('Mapping to non uuid agency ids, should throw error', async () => {
+        // Duplicate the line  with invalid agency id
+        await expect(dbQueries.duplicate({ agencyIdMapping: { notAUuid: 'other' } })).rejects.toThrow(TrError);
+    });
+
+    test('Mapping to non uuid line ids, should throw error', async () => {
+        // Duplicate the lines with invalid line ids
+        await expect(dbQueries.duplicate({ lineIds: ['not a uuid'] })).rejects.toThrow(TrError);
     });
 
 });

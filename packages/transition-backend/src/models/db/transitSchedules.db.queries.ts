@@ -461,6 +461,21 @@ const getScheduleIdsForLine = async function (
     return rows.map((row) => (row as any).id);
 };
 
+const getServiceIdsForLines = async function (
+    lineIds: string[],
+    options: { transaction?: Knex.Transaction } = {}
+): Promise<string[]> {
+    if (lineIds.length === 0) {
+        return [];
+    }
+    const query = knex(scheduleTable).distinct('service_id').whereIn('line_id', lineIds);
+    if (options.transaction) {
+        query.transacting(options.transaction);
+    }
+    const rows = await query;
+    return rows.map((row) => row.service_id);
+};
+
 const readScheduleTrips = async function (period_id: number, options: { transaction?: Knex.Transaction } = {}) {
     const query = knex(tripTable).select(knex.raw('*')).where('schedule_period_id', period_id);
     if (options.transaction) {
@@ -795,6 +810,7 @@ export default {
     saveAll,
     delete: deleteScheduleData,
     getScheduleIdsForLine,
+    getServiceIdsForLines,
     truncateSchedules: truncate.bind(null, knex, scheduleTable),
     truncateSchedulePeriods: truncate.bind(null, knex, periodTable),
     truncateScheduleTrips: truncate.bind(null, knex, tripTable),
