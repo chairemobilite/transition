@@ -13,6 +13,7 @@ import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
+import { faBezierCurve } from '@fortawesome/free-solid-svg-icons/faBezierCurve';
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -39,6 +40,7 @@ import Line from 'transition-common/lib/services/line/Line';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
@@ -258,6 +260,61 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
     closeScheduleGenerationFailuresModal = () => {
         this.setState({ serviceIdsWithFailedScheduleGeneration: [] });
         serviceLocator.selectedObjectsManager.deselect('path');
+    };
+
+    smoothPath = () => {
+        const path = this.props.path;
+        const coordinates = path.attributes?.geography?.coordinates;
+        const segments = path.attributes?.segments;
+        if (!coordinates || !segments || segments.length < 1) return;
+
+        serviceLocator.eventManager.emit('progress', { name: 'SmoothingPath', progress: 0.0 });
+
+        serviceLocator.socketEventManager.emit(
+            'transitPaths.smoothPath',
+            {
+                coordinates,
+                nodeIndices: segments,
+                iterations: 2
+            },
+            (status: Status.Status<{ waypoints: [number, number][][] }>) => {
+                if (Status.isStatusOk(status)) {
+                    const { waypoints } = Status.unwrap(status) as { waypoints: [number, number][][] };
+                    const nodeCount = path.attributes.nodes.length;
+
+                    const fullWaypoints: [number, number][][] = [];
+                    const fullWaypointTypes: string[][] = [];
+                    for (let i = 0; i < nodeCount; i++) {
+                        const segWps = waypoints[i] || [];
+                        fullWaypoints.push(segWps);
+                        fullWaypointTypes.push(segWps.map(() => 'manual'));
+                    }
+
+                    path.setData('waypoints', fullWaypoints);
+                    path.setData('waypointTypes', fullWaypointTypes);
+
+                    path.updateGeography()
+                        .then(() => {
+                            serviceLocator.selectedObjectsManager.setSelection('path', [path]);
+                            this.updateLayers();
+                            serviceLocator.eventManager.emit('progress', {
+                                name: 'SmoothingPath',
+                                progress: 1.0
+                            });
+                        })
+                        .catch((error) => {
+                            console.error('Error updating geography after smoothing:', error);
+                            serviceLocator.eventManager.emit('progress', {
+                                name: 'SmoothingPath',
+                                progress: 1.0
+                            });
+                        });
+                } else {
+                    console.error('Error smoothing path');
+                    serviceLocator.eventManager.emit('progress', { name: 'SmoothingPath', progress: 1.0 });
+                }
+            }
+        );
     };
 
     onDeselect = () => {
@@ -819,6 +876,21 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         });
                                 }}
                             />
+                        )}
+                        {isFrozen !== true && pathRoutingEngine === 'manual' && (
+                            <span title={this.props.t('transit:transitPath:SmoothPath')}>
+                                <Button
+                                    color="blue"
+                                    icon={faBezierCurve}
+                                    iconClass="_icon-alone"
+                                    label=""
+                                    disabled={
+                                        !path.attributes?.geography?.coordinates ||
+                                        path.attributes.geography.coordinates.length < 3
+                                    }
+                                    onClick={this.smoothPath}
+                                />
+                            </span>
                         )}
                         <span title={this.props.t('main:Save')}>
                             <Button
