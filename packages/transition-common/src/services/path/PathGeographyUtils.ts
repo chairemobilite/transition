@@ -57,8 +57,10 @@ class PathGeographyUtils {
     ): FeatureCollection<Point> => {
         const nodeIds = path.get('nodes', []);
         const nodeTypes = path.getData('nodeTypes', []);
-        const waypoints = path.getData('waypoints', []);
-        const waypointTypes = path.getData('waypointTypes', []);
+        // Modes such as gondola keep a straight cable between stations.
+        const ignoreWaypoints = path.allowsWaypoints() === false;
+        const waypoints = ignoreWaypoints ? [] : path.getData('waypoints', []);
+        const waypointTypes = ignoreWaypoints ? [] : path.getData('waypointTypes', []);
 
         // prepare matching query:
         const nodesAndWaypointsGeojsons: FeatureCollection<Point> = this.initializePointGeojsonCollection();
@@ -145,8 +147,10 @@ class PathGeographyUtils {
         path.attributes.data.waypoints = waypoints;
         path.attributes.data.waypointTypes = waypointTypes;
 
+        // Modes that disallow waypoints must not be routed from a leftover shape point.
+        const hasWaypoint = path.allowsWaypoints() !== false && waypoints[0] && waypoints[0].length > 0;
         // There is less than 1 node and no waypoints, empty the path
-        if (nodeIds.length < 2 && (!waypoints[0] || waypoints[0].length === 0)) {
+        if (nodeIds.length < 2 && !hasWaypoint) {
             return false;
         }
 
@@ -315,6 +319,25 @@ class PathGeographyUtils {
 
 export const pathGeographyUtils = new PathGeographyUtils();
 
+/**
+ * Drop stored waypoints once geography generation has finished for a mode that
+ * does not accept them. Gondola cables are a straight line between stations, so
+ * leftover shape points would no longer match the geometry.
+ * Editing methods leave those points in place until this runs.
+ * @param path Path whose geography was just generated
+ */
+const dropWaypointsWhenDisallowed = (path: {
+    allowsWaypoints: () => boolean;
+    attributes: { nodes?: unknown[]; data: { waypoints: unknown[][]; waypointTypes: unknown[][] } };
+}): void => {
+    if (path.allowsWaypoints()) {
+        return;
+    }
+    const nodeCount = path.attributes.nodes?.length ?? 0;
+    path.attributes.data.waypoints = Array.from({ length: nodeCount }, () => []);
+    path.attributes.data.waypointTypes = Array.from({ length: nodeCount }, () => []);
+};
+
 const updateGeography = async (path: any, changesInfo?: SegmentChangeInfo): Promise<{ path: any }> => {
     // TODO: Make the geography errors part of the path, when refactoring the class
     delete path.attributes.data.geographyErrors;
@@ -347,6 +370,7 @@ const updateGeography = async (path: any, changesInfo?: SegmentChangeInfo): Prom
 
     try {
         generatePathGeographyFromRouting(path, points, segmentResults, changesInfo);
+        dropWaypointsWhenDisallowed(path);
         path.validate();
         path.refreshStats();
         return { path };
