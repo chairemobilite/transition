@@ -1,11 +1,17 @@
 /*
- * Copyright 2026, Polytechnique Montreal and contributors
+ * Copyright Polytechnique Montreal and contributors
  *
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
 import { Position } from 'geojson';
 import { distance as turfDistance, point as turfPoint } from '@turf/turf';
+
+/**
+ * @see Chaikin, G.M. (1974). An algorithm for high-speed curve generation.
+ *      Computer Graphics and Image Processing, 3(4), 346–349.
+ *      https://doi.org/10.1016/0146-664X(74)90028-8
+ */
 
 /** 10°: below this, a vertex is treated as part of a dense curve, not a corner. */
 const MIN_DEFLECTION_ANGLE_RAD = (10 * Math.PI) / 180;
@@ -37,7 +43,7 @@ const calculateTurningAngle = (p1: Position, p2: Position, p3: Position): number
  * Dense geometry (close spacing) with large angles is considered
  * legitimate and is not flagged.
  */
-export function hasCoarseVertices(coords: Position[]): boolean {
+function hasCoarseVertices(coords: Position[]): boolean {
     if (coords.length < 3) return false;
 
     for (let i = 1; i < coords.length - 1; i++) {
@@ -67,6 +73,7 @@ export function hasCoarseVertices(coords: Position[]): boolean {
  *
  * Endpoints are preserved by skipping Q for the first edge
  * and R for the last edge.
+ *
  */
 function chaikinIteration(coords: Position[]): Position[] {
     if (coords.length < 3) return coords.slice();
@@ -101,7 +108,7 @@ function chaikinIteration(coords: Position[]): Position[] {
  * @param coords Coordinate array (including fixed node endpoints)
  * @param iterations Maximum number of smoothing iterations (default 2)
  */
-export function chaikinSmoothSegment(coords: Position[], iterations = 2): Position[] {
+function chaikinSmoothSegment(coords: Position[], iterations = 2): Position[] {
     if (coords.length < 3) return coords.slice();
 
     let current = coords;

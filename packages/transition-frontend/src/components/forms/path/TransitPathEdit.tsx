@@ -877,7 +877,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                 }}
                             />
                         )}
-                        {isFrozen !== true && pathRoutingEngine === 'manual' && (
+                        {/* Gondola cables are straight; Chaikin would invent corners. */}
+                        {isFrozen !== true && pathRoutingEngine === 'manual' && mode !== 'gondola' && (
                             <span title={this.props.t('transit:transitPath:SmoothPath')}>
                                 <Button
                                     color="blue"
