@@ -5,8 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-/** Minimum zoom level for waypoint visibility and operations */
-export const WAYPOINT_MIN_ZOOM = 14;
+/**
+ * Minimum zoom for waypoint visibility and insertion.
+ * The user-facing text is `notifications:WaypointMinZoom` and must mention this value.
+ */
+export const WAYPOINT_MIN_ZOOM = 12;
 
 // Define which layers should be visible for each section
 export const sectionLayers = {
