@@ -51,6 +51,11 @@ class TransitPathStub extends TransitObjectStub {
     getLine(): TransitObjectStub | undefined {
         return this.get('line_id') === line.get('id') ? line : undefined;
     }
+
+    /** Stubs accept waypoints unless a test overrides this. */
+    allowsWaypoints(): boolean {
+        return true;
+    }
 }
 
 const path = new TransitPathStub({
@@ -90,6 +95,75 @@ test('Calculate bird distance duration', () => {
     expect(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45.123456, -73.8642]), TestUtils.makePoint([45.123456, -75.8642]), defaultRunningSpeedMps)).toBe(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45, -75]), TestUtils.makePoint([45, -73]), defaultRunningSpeedMps));
     // Translate points to have doubles, but mixed (different latitude)
     expect(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45.123456, -73.8642]), TestUtils.makePoint([45, -75]), defaultRunningSpeedMps)).toBe(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45, -73]), TestUtils.makePoint([43.876544, -74.1358]), defaultRunningSpeedMps) - 1150);
+});
+
+test('prepareNodesAndWaypoints ignores waypoints when the path disallows them', () => {
+    const gondolaPath = new TransitPathStub({
+        id: 'gondolaPath',
+        line_id: line.get('id'),
+        nodes: [node1.properties.id, node2.properties.id],
+        data: {
+            nodeTypes: ['manual', 'manual'],
+            waypoints: [[waypoint1]],
+            waypointTypes: [['manual']],
+            routingEngine: 'manual'
+        }
+    });
+    gondolaPath.allowsWaypoints = () => false;
+
+    const prepared = PathGeographyUtils.prepareNodesAndWaypoints(gondolaPath, defaultRunningSpeedMps);
+
+    expect(prepared.features.map((feature) => feature.properties?.isNode)).toEqual([true, true]);
+    // Preparation only ignores the points. They stay until generation finishes.
+    expect(gondolaPath.attributes.data.waypoints).toEqual([[waypoint1]]);
+});
+
+test('updateGeography drops waypoints when the mode disallows them', async () => {
+    const matching = {
+        tracepoints: [node1, node2],
+        matchings: [
+            {
+                confidence: 99,
+                distance: 50,
+                duration: 360,
+                legs: [{ distance: 1000, duration: 66.67 }]
+            }
+        ]
+    };
+    const mockRoute = jest.fn().mockResolvedValue(matching);
+    const engineService = routingServiceManager.getRoutingServiceForEngine('engine');
+    const manualService = routingServiceManager.getRoutingServiceForEngine('manual');
+    const previousEngineMapMatch = engineService.mapMatch;
+    const previousManualMapMatch = manualService.mapMatch;
+    engineService.mapMatch = mockRoute;
+    manualService.mapMatch = mockRoute;
+
+    const gondolaPath = new TransitPathStub({
+        id: 'gondolaPath',
+        line_id: line.get('id'),
+        nodes: [node1.properties.id, node2.properties.id],
+        data: {
+            nodeTypes: ['manual', 'manual'],
+            waypoints: [[waypoint1]],
+            waypointTypes: [['manual']],
+            routingEngine: 'manual',
+            routingMode: 'driving'
+        }
+    }) as any;
+    gondolaPath.allowsWaypoints = () => false;
+    gondolaPath.refreshStats = jest.fn();
+    gondolaPath.validate = jest.fn();
+    gondolaPath.emptyGeography = jest.fn();
+
+    try {
+        await updateGeography(gondolaPath);
+    } finally {
+        engineService.mapMatch = previousEngineMapMatch;
+        manualService.mapMatch = previousManualMapMatch;
+    }
+
+    expect(gondolaPath.attributes.data.waypoints).toEqual([[], []]);
+    expect(gondolaPath.attributes.data.waypointTypes).toEqual([[], []]);
 });
 
 test('Should path update', () => {
@@ -148,6 +222,19 @@ test('Should path update', () => {
             ]
         }
     }))).toBeTruthy();
+
+    /* One node and a leftover waypoint, but the mode does not accept waypoints */
+    const gondolaWithOneNode = new TransitPathStub({
+        id: "path1",
+        line_id: line.get('id'),
+        nodes: [node1.properties.id],
+        data: {
+            waypoints: [[waypoint1]],
+            waypointTypes: [["manual"]]
+        }
+    });
+    gondolaWithOneNode.allowsWaypoints = () => false;
+    expect(PathGeographyUtils.shouldPathUpdate(gondolaWithOneNode)).toBeFalsy();
 
     /* The line does not exist */
     const noLinePath = new TransitPathStub({

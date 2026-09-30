@@ -477,6 +477,49 @@ describe('Update waypoints', () => {
     });
 });
 
+describe('Modes without waypoints', () => {
+    each([
+        ['gondola', false],
+        ['funicular', true],
+        ['bus', true]
+    ]).test('%s allowsWaypoints=%s', (mode: string, expected: boolean) => {
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.mode = mode;
+        expect(path.allowsWaypoints()).toBe(expected);
+    });
+
+    test('Gondola ignores waypoint insert, update and display', async () => {
+        // Waypoints may already be stored, for example after a mode change.
+        // Insert, update and shape conversion do not add or move them.
+        // Geography generation removes them once it finishes.
+        const path = new Path(_cloneDeep(pathAttributesNoGeometry), true);
+        path.attributes.mode = 'gondola';
+        path.attributes.nodes = [node1Id, node2Id];
+        path.attributes.data.nodeTypes = ['manual', 'manual'];
+        path.attributes.data.waypoints = [[newWaypoint], []];
+        path.attributes.data.waypointTypes = [['manual'], []];
+        updateGeographyMock.mockClear();
+
+        // Insert does not add modifiedWaypoint and does not recalculate geography.
+        await path.insertWaypoint(modifiedWaypoint, 'manual', 1, undefined);
+        expect(path.attributes.data.waypoints).toEqual([[newWaypoint], []]);
+        expect(updateGeographyMock).not.toHaveBeenCalled();
+
+        // Update does not move the existing waypoint.
+        await path.updateWaypoint(modifiedWaypoint, 'manual', 0, 0);
+        expect(path.attributes.data.waypoints).toEqual([[newWaypoint], []]);
+        expect(path.attributes.data.waypointTypes).toEqual([['manual'], []]);
+        expect(updateGeographyMock).not.toHaveBeenCalled();
+
+        // Shape coordinates are not copied into waypoints.
+        path.convertAllCoordinatesToWaypoints(true);
+        expect(path.attributes.data.waypoints).toEqual([[newWaypoint], []]);
+        expect(path.attributes.data.waypointTypes).toEqual([['manual'], []]);
+
+        expect(path.waypointsGeojsons()).toEqual([]);
+    });
+});
+
 describe('Remove waypoints', () => {
     each([
         ['No geography, unexisting waypoint', { nodes: [node1Id], nodeTypes: ['manual'], waypoints: [[]], waypointTypes: [[]], calculateGeography: false }, { calculateGeography: false }, 0, 0],
