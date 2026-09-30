@@ -56,8 +56,10 @@ class PathGeographyUtils {
     ): FeatureCollection<Point> => {
         const nodeIds = path.get('nodes', []);
         const nodeTypes = path.getData('nodeTypes', []);
-        const waypoints = path.getData('waypoints', []);
-        const waypointTypes = path.getData('waypointTypes', []);
+        // Modes such as gondola keep a straight cable between stations.
+        const ignoreWaypoints = path.allowsWaypoints() === false;
+        const waypoints = ignoreWaypoints ? [] : path.getData('waypoints', []);
+        const waypointTypes = ignoreWaypoints ? [] : path.getData('waypointTypes', []);
 
         // prepare matching query:
         const nodesAndWaypointsGeojsons: FeatureCollection<Point> = this.initializePointGeojsonCollection();

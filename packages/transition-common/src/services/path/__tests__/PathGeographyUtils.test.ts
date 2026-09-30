@@ -51,6 +51,11 @@ class TransitPathStub extends TransitObjectStub {
     getLine(): TransitObjectStub | undefined {
         return this.get('line_id') === line.get('id') ? line : undefined;
     }
+
+    /** Stubs accept waypoints unless a test overrides this. */
+    allowsWaypoints(): boolean {
+        return true;
+    }
 }
 
 const path = new TransitPathStub({
@@ -90,6 +95,25 @@ test('Calculate bird distance duration', () => {
     expect(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45.123456, -73.8642]), TestUtils.makePoint([45.123456, -75.8642]), defaultRunningSpeedMps)).toBe(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45, -75]), TestUtils.makePoint([45, -73]), defaultRunningSpeedMps));
     // Translate points to have doubles, but mixed (different latitude)
     expect(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45.123456, -73.8642]), TestUtils.makePoint([45, -75]), defaultRunningSpeedMps)).toBe(PathGeographyUtils.calculateBirdDistanceDuration(TestUtils.makePoint([45, -73]), TestUtils.makePoint([43.876544, -74.1358]), defaultRunningSpeedMps) - 1150);
+});
+
+test('prepareNodesAndWaypoints ignores waypoints when the path disallows them', () => {
+    const gondolaPath = new TransitPathStub({
+        id: 'gondolaPath',
+        line_id: line.get('id'),
+        nodes: [node1.properties.id, node2.properties.id],
+        data: {
+            nodeTypes: ['manual', 'manual'],
+            waypoints: [[waypoint1]],
+            waypointTypes: [['manual']],
+            routingEngine: 'manual'
+        }
+    });
+    gondolaPath.allowsWaypoints = () => false;
+
+    const prepared = PathGeographyUtils.prepareNodesAndWaypoints(gondolaPath, defaultRunningSpeedMps);
+
+    expect(prepared.features.map((feature) => feature.properties?.isNode)).toEqual([true, true]);
 });
 
 test('Should path update', () => {

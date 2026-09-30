@@ -258,9 +258,13 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
        returns null if routing engine is not manual and force is not true.
        If force param is set to true, the waypoints will be added even
        if the routing engine is not manual.
+       Modes that do not accept waypoints leave the path unchanged.
        TODO: testing!
     */
     convertAllCoordinatesToWaypoints(force = false) {
+        if (!this.allowsWaypoints()) {
+            return;
+        }
         const routingEngine = this.attributes.data.routingEngine || 'engine';
         if (force || routingEngine === 'manual') {
             const globalCoordinates = this.attributes.geography.coordinates;
@@ -461,7 +465,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
      * waypoint. If not set, it is added at the end of the path
      * @param insertIndex The index at which to insert this waypoint. If not
      * set, it is added at the end of the waypoints for this path
-     * @returns The updated path
+     * @returns The updated path. When the mode does not accept waypoints,
+     * the path is unchanged and geography is not recalculated.
      */
     async insertWaypoint(
         waypointCoordinates: [number, number],
@@ -469,6 +474,9 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         afterNodeIndex?: number,
         insertIndex?: number
     ): Promise<{ path: Path }> {
+        if (!this.allowsWaypoints()) {
+            return { path: this };
+        }
         const nodeIds = this.attributes.nodes;
         //console.log('inserting waypoint', waypointCoordinates, 'after node index: ' + afterNodeIndex + ' at insert index: ' + insertIndex);
         let afterNodeWaypoints: [number, number][] = [];
@@ -568,7 +576,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
      * @param afterNodeIndex The index of the node after which the waypoint is
      * located
      * @param waypointIndex The index of the waypoint to update
-     * @returns The updated path
+     * @returns The updated path. When the mode does not accept waypoints,
+     * the path is unchanged and geography is not recalculated.
      */
     async updateWaypoint(
         waypointCoordinates: [number, number],
@@ -576,6 +585,9 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         afterNodeIndex: number,
         waypointIndex: number
     ): Promise<{ path: Path }> {
+        if (!this.allowsWaypoints()) {
+            return { path: this };
+        }
         // Make sure waypoint exists
         if (
             _isBlank(this.attributes.data.waypoints[afterNodeIndex]) ||
@@ -803,6 +815,9 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     }
 
     waypointsGeojsons() {
+        if (!this.allowsWaypoints()) {
+            return [];
+        }
         const waypointsByNodeIndex = this.attributes.data.waypoints || [];
         const waypointTypesByNodeIndex = this.attributes.data.waypointTypes || [];
         const features: GeoJSON.Feature<GeoJSON.Point>[] = [];
@@ -1342,6 +1357,16 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
     getMode() {
         const line = this.getLine();
         return line ? line.attributes.mode : this.attributes.mode;
+    }
+
+    /**
+     * Whether this path's transit mode accepts waypoints between nodes.
+     * Gondola (aerial tram / ropeway) cables run straight between stations.
+     * @returns False when the mode config sets `allowsWaypoints` to false
+     */
+    allowsWaypoints(): boolean {
+        const modeConfig = lineModesConfigByMode[this.getMode()];
+        return !modeConfig || modeConfig.allowsWaypoints !== false;
     }
 
     countStops() {

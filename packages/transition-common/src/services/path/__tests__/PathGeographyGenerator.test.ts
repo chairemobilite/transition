@@ -63,6 +63,11 @@ class TransitPathStub extends TransitObjectStub {
         return this.get('line_id') === line.get('id') ? line : undefined;
     }
 
+    /** Stubs accept waypoints unless a test overrides this. */
+    allowsWaypoints(): boolean {
+        return true;
+    }
+
     getDwellTimeSecondsAtNode(nodeDwellTimeSeconds: number | undefined) : number {
         return nodeDwellTimeSeconds || DEFAULT_DWELL_TIME;
     }
