@@ -29,6 +29,11 @@ export type Notification =
           message: string[];
       }
     | {
+          type: 'warning';
+          name: string;
+          message: string[];
+      }
+    | {
           type: 'progress';
           name: string;
           message: string[];
@@ -58,6 +63,7 @@ class NotificationServiceImpl implements NotificationService {
         eventEmitter.on('progressCount', this.progressCountNotification);
         eventEmitter.on('progressClear', this.clearProgressNotification);
         eventEmitter.on('error', this.errorNotification);
+        eventEmitter.on('warning', this.warningNotification);
     };
 
     deregisterEventsOnEmitter = (eventEmitter: EventEmitter) => {
@@ -66,6 +72,7 @@ class NotificationServiceImpl implements NotificationService {
         eventEmitter.off('progressCount', this.progressCountNotification);
         eventEmitter.off('progressClear', this.clearProgressNotification);
         eventEmitter.off('error', this.errorNotification);
+        eventEmitter.off('warning', this.warningNotification);
     };
 
     addListener = (callback: (notifications: Notification) => void): void => {
@@ -121,6 +128,14 @@ class NotificationServiceImpl implements NotificationService {
             message: [`notifications:${progressData.name}`, `notifications:${progressData.error}`]
         };
         this.notifyListeners(newNotification);
+    };
+
+    private warningNotification = (data: { name: string }) => {
+        this.notifyListeners({
+            type: 'warning',
+            name: data.name,
+            message: [`notifications:${data.name}`]
+        });
     };
 
     private notifyListeners = (notification: Notification) => {

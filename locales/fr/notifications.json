@@ -253,6 +253,7 @@
   "Osc2arSaveCorridor"    : "Enregistrement du corridor dans les préférences",
   "Osc2arLoadPeriod"      : "Chargement de la période à partir des préférences",
   "Osc2arRemovePeriod"    : "Suppression du période des préférences",
-  "Osc2arSavePeriod"      : "Enregistrement de la période dans les préférences"
+  "Osc2arSavePeriod"      : "Enregistrement de la période dans les préférences",
 
+  "WaypointMinZoom": "Zoomez au moins au niveau 12 pour ajouter un point de passage"
 }

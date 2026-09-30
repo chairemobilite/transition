@@ -24,6 +24,11 @@ describe('No listener', () => {
         serviceLocator.eventManager.emit('error', { name: 'test', error: 'there was an error' })
     });
 
+    test('warning notification', () => {
+        serviceLocator.socketEventManager.emit('warning', { name: 'test' });
+        serviceLocator.eventManager.emit('warning', { name: 'test' });
+    });
+
     test('progress notification', () => {
         serviceLocator.socketEventManager.emit('progress', { name: 'test', progress: 0.3 });
         serviceLocator.eventManager.emit('progress', { name: 'test', progress: 0.3 });
@@ -213,7 +218,17 @@ describe('Emit on custom emitter', () => {
     beforeEach(() => {
         listener1.mockClear();
     })
-    
+
+    test('warning notification', () => {
+        eventEmitter.emit('warning', { name: 'WaypointMinZoom' });
+        expect(listener1).toHaveBeenCalledTimes(1);
+        expect(listener1).toHaveBeenLastCalledWith({
+            type: 'warning',
+            name: 'WaypointMinZoom',
+            message: ['notifications:WaypointMinZoom']
+        });
+    });
+
     test('error notification', () => {
         const error = { name: 'foo', error: 'there was an error' };
         const error2 = { name: 'bar', error: 'there was an error' };
