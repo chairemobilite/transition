@@ -24,6 +24,18 @@ const isAgenciesActiveSection = (activeSection: string) => activeSection === 'ag
 let isPathUpdateInProgress = false;
 
 /**
+ * Warns and returns true when the map is too far out to add a waypoint.
+ * @param {number} zoom Current map zoom
+ */
+const rejectWaypointBelowMinZoom = (zoom: number): boolean => {
+    if (zoom >= WAYPOINT_MIN_ZOOM) {
+        return false;
+    }
+    serviceLocator.eventManager.emit('warning', { name: 'WaypointMinZoom' });
+    return true;
+};
+
+/**
  * Deduplicates an array of map features by their path ID property.
  * queryRenderedFeatures can return the same path multiple times when
  * its geometry spans multiple map tiles.
@@ -319,8 +331,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
             clickedSelectedPathIndex >= 0 &&
             clickedNodeIndex < 0
         ) {
-            // Skip waypoint operations below minimum zoom level (waypoints are hidden below this zoom)
-            if (map.getZoom() < WAYPOINT_MIN_ZOOM) {
+            if (rejectWaypointBelowMinZoom(map.getZoom())) {
                 return;
             }
             // Skip if another path update is in progress to prevent race conditions
@@ -364,8 +375,7 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
                 }
             } else {
                 // add waypoint
-                // Skip waypoint operations below minimum zoom level (waypoints are hidden below this zoom)
-                if (map.getZoom() < WAYPOINT_MIN_ZOOM) {
+                if (rejectWaypointBelowMinZoom(map.getZoom())) {
                     return;
                 }
                 // Skip if another path update is in progress to prevent race conditions
