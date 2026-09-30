@@ -253,5 +253,7 @@
   "Osc2arSaveCorridor"    : "Saving a corridor into preferences",
   "Osc2arLoadPeriod"      : "Loading a period from preferences",
   "Osc2arRemovePeriod"    : "Deleting a period in preferences",
-  "Osc2arSavePeriod"      : "Saving a period into preferences"
+  "Osc2arSavePeriod"      : "Saving a period into preferences",
+
+  "WaypointMinZoom": "Zoom in to level 12 or closer to add a waypoint"
 }
