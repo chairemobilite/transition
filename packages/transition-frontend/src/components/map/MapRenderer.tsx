@@ -18,7 +18,7 @@ import {
     ProjectMapBasemapShortname
 } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 
-import MapControlsPanel from './TransitionMapControlsMenu';
+import MapConfigurationPanel from './TransitionMapControlsMenu';
 import { composeMapStyleWithOverlay, getProjectBasemapByShortname } from '../../config/projectBaseMapLayers';
 
 /** MapLibre style specification with sources and layers */
@@ -223,9 +223,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                 hash={true}
             >
                 <ScaleControl position="bottom-right" />
-            </MapLibreMap>
-            {mapLoaded && (
-                <MapControlsPanel
+                <MapConfigurationPanel
                     currentLayer={activeBasemapShortname}
                     currentZoom={currentZoom}
                     overlayOpacity={overlayOpacity}
@@ -235,7 +233,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                     onOverlayColorChange={onOverlayColorChange}
                     onResetView={handleResetView}
                 />
-            )}
+            </MapLibreMap>
             {confirmModalDeleteIsOpen && (
                 <ConfirmModal
                     title={t('transit:transitNode:ConfirmMultipleDelete')}
