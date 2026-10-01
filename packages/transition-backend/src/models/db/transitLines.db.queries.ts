@@ -34,6 +34,10 @@ const attributesCleaner = function (attributes: Partial<LineAttributes>): Partia
     delete _attributes.path_ids;
     delete _attributes.service_ids;
     delete _attributes.scheduleByServiceId;
+    // Let the db handle this field, it is used mostly for this purpose. We don't want to initialize to null if undefined
+    if (_attributes.integer_id === undefined) {
+        delete _attributes.integer_id;
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, created_at, updated_at, ...rest } = _attributes;
     Object.keys(rest).forEach((key) => (_attributes[key] = attributes[key] !== undefined ? attributes[key] : null));
@@ -129,7 +133,7 @@ const read = async (id: string) => {
         }
         const response = await knex.raw(
             `
-      SELECT 
+      SELECT
         l.*,
         COALESCE(l.color, '${Preferences.current.transit.lines.defaultColor}') as color,
         array_remove(array_agg(p.id ORDER BY p.integer_id), NULL) AS path_ids

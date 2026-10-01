@@ -38,13 +38,13 @@ const collection = async (): Promise<AgencyAttributes[]> => {
     try {
         const response = await knex.raw(
             `
-        SELECT 
+        SELECT
             a.*,
             COALESCE(a.color, '${Preferences.current.transit.agencies.defaultColor}') as color,
             array_remove(array_agg(l.id ORDER BY LPAD(l.shortname, 20, '0')), NULL) AS line_ids,
             array_remove(array_agg(DISTINCT u.id), NULL) AS unit_ids,
             array_remove(array_agg(DISTINCT g.id), NULL) AS garage_ids
-        FROM tr_transit_agencies a 
+        FROM tr_transit_agencies a
         LEFT JOIN tr_transit_lines   l ON l.agency_id = a.id
         LEFT JOIN tr_transit_units   u ON u.agency_id = a.id
         LEFT JOIN tr_transit_garages g ON g.agency_id = a.id
