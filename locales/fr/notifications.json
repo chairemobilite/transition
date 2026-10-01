@@ -240,20 +240,5 @@
   "GeneticAlgorithmPreparingGeneration": "Algorithme génétique: préparation de la génération",
   "GeneticAlgorithmSimulatingGeneration": "Algorithme génétique: simulation de la génération",
 
-  "Osc2arAddProject"      : "Création d'un nouveau Projet",
-  "Osc2arRemoveProject"   : "Suppression du Projet",
-  "Osc2arDuplicateProject": "Création de la copie du Projet",
-  "Osc2arSectionChange"   : "Chargement du Projet sélectionné",
-  "Osc2arChartPosition"   : "Changement de position des graphiques",
-  "Osc2arAddChart"        : "Ajout d'un nouveau graphique",
-  "Osc2arOpenMap"         : "Ouverture la carte",
-  "Osc2arCloseMap"        : "Fermeture de la carte",
-  "Osc2arLoadCorridor"    : "Chargement du corridor à partir des préférences",
-  "Osc2arRemoveCorridor"  : "Suppression du corridor des préférences",
-  "Osc2arSaveCorridor"    : "Enregistrement du corridor dans les préférences",
-  "Osc2arLoadPeriod"      : "Chargement de la période à partir des préférences",
-  "Osc2arRemovePeriod"    : "Suppression du période des préférences",
-  "Osc2arSavePeriod"      : "Enregistrement de la période dans les préférences",
-
   "WaypointMinZoom": "Zoomez au moins au niveau 12 pour ajouter un point de passage"
 }
