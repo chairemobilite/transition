@@ -1,0 +1,22 @@
+
+[out:json][timeout:25];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+(
+  way["building:flats"](poly:{{polyboundary}});
+  way["building"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan|farm)$"](poly:{{polyboundary}});
+  way["building:use"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan|farm)$"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["building:flats"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["building"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan|farm)$"](poly:{{polyboundary}});
+  relation["type"="multipolygon"]["building:use"~"^(residential|detached|house|semidetached_house|terrace|apartments|bungalow|cabin|dormitory|ger|houseboat|static_caravan|farm)$"](poly:{{polyboundary}});
+) ->.residential_buildings;
+
+node(w.residential_buildings)[entrance] -> .entrances;
+
+);
+
+.entrances out geom;
+.residential_buildings out geom;
+
