@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { UnimodalRoutingResult } from '../RoutingResult';
+import { RoutingResult, UnimodalRoutingResult } from '../RoutingResult';
 import { TransitRoutingResult } from '../TransitRoutingResult';
-import { getAlternativeDuration, buildSortedIndices } from '../RoutingResultSorter';
+import { SortedRoutingResult } from '../RoutingResultSorter';
 import { pathNoTransferRouteResult } from '../../../test/services/transitRouting/TrRoutingConstantsStubs';
 import TestUtils from '../../../test/TestUtils';
 
@@ -35,41 +35,59 @@ const transitResultWithTravelTimes = (totalTravelTimes: number[]) =>
         }))
     });
 
-describe('getAlternativeDuration', () => {
-    test('Returns the duration of a Route path', () => {
-        const result = unimodalResultWithDurations([123]);
-        expect(getAlternativeDuration(result, 0)).toEqual(123);
+const expectOrder = (sortedResult: SortedRoutingResult, result: RoutingResult, expectedIndices: number[]) => {
+    expect(sortedResult.getAlternativesCount()).toEqual(expectedIndices.length);
+    expectedIndices.forEach((originalIndex, position) => {
+        expect(sortedResult.getPath(position)).toBe(result.getPath(originalIndex));
+    });
+};
+
+describe.each([
+    ['unimodal', unimodalResultWithDurations],
+    ['transit', transitResultWithTravelTimes]
+])('SortedRoutingResult with a %s result', (_type: string, makeResult: (travelTimes: number[]) => RoutingResult) => {
+    test('"none" preserves the original order', () => {
+        const result = makeResult([300, 100, 200]);
+        expectOrder(new SortedRoutingResult(result, 'none'), result, [0, 1, 2]);
     });
 
-    test('Returns the totalTravelTime of a non-Route (transit) path', () => {
-        const result = transitResultWithTravelTimes([456]);
-        expect(getAlternativeDuration(result, 0)).toEqual(456);
+    test('"travelTime" orders alternatives by ascending travel time', () => {
+        const result = makeResult([300, 100, 200]);
+        expectOrder(new SortedRoutingResult(result, 'travelTime'), result, [1, 2, 0]);
     });
 
-    test('Returns Infinity when there is no path at the given index', () => {
-        const result = unimodalResultWithDurations([123]);
-        expect(getAlternativeDuration(result, 1)).toEqual(Infinity);
-    });
-});
-
-describe('buildSortedIndices', () => {
-    test('Returns an empty array when there are no alternatives', () => {
-        const result = unimodalResultWithDurations([]);
-        expect(buildSortedIndices(result, 'none')).toEqual([]);
+    test('getPath returns undefined for a position out of range', () => {
+        const result = makeResult([300]);
+        expect(new SortedRoutingResult(result, 'none').getPath(1)).toBeUndefined();
     });
 
-    test('"none" preserves the original order regardless of duration', () => {
-        const result = unimodalResultWithDurations([300, 100, 200]);
-        expect(buildSortedIndices(result, 'none')).toEqual([0, 1, 2]);
+    test('getPathGeojson gets the geojson of the original alternative at the sorted position', async () => {
+        const result = makeResult([300, 100, 200]);
+        // One distinct geojson per original alternative, so we can tell which one is returned
+        const geojsonByIndex: GeoJSON.FeatureCollection[] = [0, 1, 2].map(() => ({
+            type: 'FeatureCollection',
+            features: []
+        }));
+        const getPathGeojsonSpy = jest
+            .spyOn(result, 'getPathGeojson')
+            .mockImplementation(async (index) => geojsonByIndex[index]);
+        const options = { completeData: false };
+        const sortedResult = new SortedRoutingResult(result, 'travelTime');
+
+        const expectedIndices = [1, 2, 0];
+        for (const [position, originalIndex] of expectedIndices.entries()) {
+            expect(await sortedResult.getPathGeojson(position, options)).toBe(geojsonByIndex[originalIndex]);
+            expect(getPathGeojsonSpy).toHaveBeenLastCalledWith(originalIndex, options);
+        }
     });
 
-    test('"travelTime" orders indices by ascending duration for Route paths', () => {
-        const result = unimodalResultWithDurations([300, 100, 200]);
-        expect(buildSortedIndices(result, 'travelTime')).toEqual([1, 2, 0]);
-    });
+    test('getPathGeojson returns undefined for a position out of range', () => {
+        const result = makeResult([300]);
+        const getPathGeojsonSpy = jest
+            .spyOn(result, 'getPathGeojson')
+            .mockResolvedValue({ type: 'FeatureCollection', features: [] });
 
-    test('"travelTime" orders indices by ascending totalTravelTime for transit paths', () => {
-        const result = transitResultWithTravelTimes([300, 100, 200]);
-        expect(buildSortedIndices(result, 'travelTime')).toEqual([1, 2, 0]);
+        expect(new SortedRoutingResult(result, 'none').getPathGeojson(1, {})).toBeUndefined();
+        expect(getPathGeojsonSpy).not.toHaveBeenCalled();
     });
 });

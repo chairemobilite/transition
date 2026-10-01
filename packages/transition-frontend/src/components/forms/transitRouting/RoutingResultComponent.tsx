@@ -13,7 +13,7 @@ import { bbox as turfBbox } from '@turf/turf';
 import TransitRoutingResults from './TransitRoutingResultComponent';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-import { buildSortedIndices } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
+import { SortedRoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResultSorter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
@@ -35,17 +35,17 @@ export interface TransitRoutingResultsProps {
 }
 
 const showCurrentAlternative = async (
-    result: RoutingResult,
-    alternativeIndex: number,
+    sortedResult: SortedRoutingResult,
+    position: number,
     fitBounds: boolean = false
 ): Promise<void> => {
     const pathCollection = serviceLocator.collectionManager.get('paths');
     const segmentToGeojson = new SegmentToGeoJSONFromPaths(pathCollection);
     const options = { completeData: false, segmentToGeojson: segmentToGeojson.segmentToGeoJSONFromPaths };
-    const pathGeojson = await result.getPathGeojson(alternativeIndex, options);
+    const pathGeojson = await sortedResult.getPathGeojson(position, options);
     (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
         layerName: 'routingPoints',
-        data: result.originDestinationToGeojson()
+        data: sortedResult.result.originDestinationToGeojson()
     });
     serviceLocator.eventManager.emit('map.updateLayers', {
         routingPaths: pathGeojson,
@@ -74,11 +74,7 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
     const error = result.getError();
     const alternativesCount = result.getAlternativesCount();
 
-    // Compute alternative indices in display order
-    const sortedIndices = React.useMemo(() => buildSortedIndices(result, sortedBy), [result, sortedBy]);
-
-    // Map display position to the actual alternative index
-    const alternativeIndex = sortedIndices[displayIndex];
+    const sortedResult = React.useMemo(() => new SortedRoutingResult(result, sortedBy), [result, sortedBy]);
 
     // Use effect to show the current alternative and fit bounds on initial render
     // Must be placed before any early returns to ensure hooks are called in the same order
@@ -87,15 +83,15 @@ const RoutingResults: React.FunctionComponent<TransitRoutingResultsProps> = (pro
             return; // Skip showing alternative if there's an error
         }
         const shouldFitBounds = isInitialRenderRef.current;
-        showCurrentAlternative(result, alternativeIndex, shouldFitBounds);
+        showCurrentAlternative(sortedResult, displayIndex, shouldFitBounds);
         isInitialRenderRef.current = false;
-    }, [result, alternativeIndex, error]);
+    }, [sortedResult, displayIndex, error]);
 
     if (error) {
         return <FormErrors errors={[error.export().localizedMessage]} />;
     }
 
-    const path = result.getPath(alternativeIndex);
+    const path = sortedResult.getPath(displayIndex);
 
     const onLeftButtonClick = () => {
         setDisplayIndex(displayIndex > 0 ? displayIndex - 1 : alternativesCount - 1);
