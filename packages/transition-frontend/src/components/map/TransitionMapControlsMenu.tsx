@@ -6,7 +6,10 @@
  */
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import { useControl } from 'react-map-gl/maplibre';
+import type { ControlPosition, IControl, Map as MaplibreMap } from 'maplibre-gl';
 
 import type { ProjectMapBasemapShortname } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 import {
@@ -15,7 +18,7 @@ import {
     getProjectMapBaseLayers
 } from '../../config/projectBaseMapLayers';
 
-export interface MapControlsPanelProps {
+export interface MapConfigurationPanelProps {
     currentLayer: ProjectMapBasemapShortname;
     currentZoom: number;
     overlayOpacity: number;
@@ -24,6 +27,36 @@ export interface MapControlsPanelProps {
     onOverlayOpacityChange: (opacity: number) => void;
     onOverlayColorChange: (color: 'black' | 'white') => void;
     onResetView: () => void;
+}
+
+/**
+ * MapLibre IControl that owns the gear menu node.
+ * The map inserts this element; do not attach it to the DOM yourself.
+ * @see https://maplibre.org/maplibre-gl-js/docs/API/interfaces/IControl/
+ */
+class MapControlsControl implements IControl {
+    private _map: MaplibreMap | undefined;
+    private _container!: HTMLDivElement;
+
+    onAdd(map: MaplibreMap): HTMLElement {
+        this._map = map;
+        this._container = document.createElement('div');
+        this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group tr__map-controls';
+        return this._container;
+    }
+
+    onRemove(): void {
+        this._container.remove();
+        this._map = undefined;
+    }
+
+    getDefaultPosition(): ControlPosition {
+        return 'top-right';
+    }
+
+    getContainer(): HTMLDivElement {
+        return this._container;
+    }
 }
 
 /** Reusable layer option item for the dropdown */
@@ -67,11 +100,7 @@ const LayerOption: React.FC<{
     </p>
 );
 
-/**
- * Map controls panel rendered as a pure React component over the map.
- * Replaces the previous imperative MapLibre IControl implementation.
- */
-const MapControlsPanel: React.FC<MapControlsPanelProps> = ({
+const MapControlsMenu: React.FC<MapConfigurationPanelProps> = ({
     currentLayer,
     currentZoom,
     overlayOpacity,
@@ -83,7 +112,6 @@ const MapControlsPanel: React.FC<MapControlsPanelProps> = ({
 }) => {
     const { t } = useTranslation(['main', 'transit']);
     const [isOpen, setIsOpen] = React.useState(false);
-    const containerRef = React.useRef<HTMLDivElement>(null);
 
     const [localOpacity, setLocalOpacity] = React.useState(overlayOpacity);
     const [localColor, setLocalColor] = React.useState(overlayColor);
@@ -97,7 +125,7 @@ const MapControlsPanel: React.FC<MapControlsPanelProps> = ({
 
     React.useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            if (!(e.target instanceof Node) || !(e.target as HTMLElement).closest('.tr__map-controls')) {
                 setIsOpen(false);
             }
         };
@@ -111,10 +139,7 @@ const MapControlsPanel: React.FC<MapControlsPanelProps> = ({
     };
 
     return (
-        <div
-            ref={containerRef}
-            className="maplibregl-ctrl maplibregl-ctrl-group tr__map-controls tr__map-controls-panel"
-        >
+        <>
             <button
                 className="maplibregl-ctrl-icon tr__map-controls-button"
                 type="button"
@@ -222,8 +247,28 @@ const MapControlsPanel: React.FC<MapControlsPanelProps> = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
-export default MapControlsPanel;
+/**
+ * Map configuration control (basemap, overlay, reset view), registered as one MapLibre IControl.
+ * Other controls, such as the polygon tool, stay separate and stack in the same corner.
+ * Must be rendered as a child of `MapLibreMap`.
+ * @see https://maplibre.org/maplibre-gl-js/docs/API/type-aliases/ControlPosition/
+ */
+const MapConfigurationPanel: React.FC<MapConfigurationPanelProps> = (props) => {
+    const [isOnMap, setIsOnMap] = React.useState(false);
+    // Portal only after useControl's onAdd: map.addControl has already inserted the node.
+    // Portaling from IControl.onAdd targets a detached node and React renders the button in-flow.
+    const control = useControl(
+        () => new MapControlsControl(),
+        () => setIsOnMap(true),
+        () => setIsOnMap(false),
+        { position: 'top-right' }
+    );
+    if (!isOnMap) return null;
+    return createPortal(<MapControlsMenu {...props} />, control.getContainer());
+};
+
+export default MapConfigurationPanel;
