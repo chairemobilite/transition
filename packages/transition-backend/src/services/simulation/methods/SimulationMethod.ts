@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import { UserDefinedConfigSchema } from 'transition-common/lib/utils/userDefinedConfig';
 
 /**
  * Interface for simulation method implementations. A simulation method will be
@@ -36,5 +36,5 @@ export interface SimulationMethod {
 export interface SimulationMethodFactory<TOptionsType extends Record<string, unknown>> {
     create: (options: TOptionsType, simulationDataAttributes: SimulationRunDataAttributes) => SimulationMethod;
 
-    getDescriptor: () => SimulationAlgorithmDescriptor<TOptionsType>;
+    getDescriptor: () => UserDefinedConfigSchema<TOptionsType>;
 }
