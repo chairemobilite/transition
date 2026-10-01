@@ -14,6 +14,7 @@ import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faRoute } from '@fortawesome/free-solid-svg-icons/faRoute';
 import { faClock } from '@fortawesome/free-solid-svg-icons/faClock';
+import { faBezierCurve } from '@fortawesome/free-solid-svg-icons/faBezierCurve';
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -37,11 +38,11 @@ import lineModesConfig from 'transition-common/lib/config/lineModes';
 import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 import Path, { pathDirectionArray } from 'transition-common/lib/services/path/Path';
+import { chaikinSmoothPath } from '../../../services/path/chaikinSmoothing';
 import Line from 'transition-common/lib/services/line/Line';
 import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
     const lineMode = lineModesConfig[i];
@@ -324,6 +325,52 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.selectedObjectsManager.setSelection('path', [this.props.path]);
     };
 
+    // FIXME tahini: too much code for a form. Move with the other path actions when Path is refactored.
+    smoothPath = () => {
+        const path = this.props.path;
+        const coordinates = path.attributes?.geography?.coordinates;
+        const segments = path.attributes?.segments;
+        if (!coordinates || !segments || segments.length < 1) return;
+
+        serviceLocator.eventManager.emit('progress', { name: 'SmoothingPath', progress: 0.0 });
+
+        try {
+            const waypoints = chaikinSmoothPath(coordinates, segments, 2) as [number, number][][];
+            const nodeCount = path.attributes.nodes.length;
+
+            const fullWaypoints: [number, number][][] = [];
+            const fullWaypointTypes: string[][] = [];
+            for (let i = 0; i < nodeCount; i++) {
+                const segWps = waypoints[i] || [];
+                fullWaypoints.push(segWps);
+                fullWaypointTypes.push(segWps.map(() => 'manual'));
+            }
+
+            path.setData('waypoints', fullWaypoints);
+            path.setData('waypointTypes', fullWaypointTypes);
+
+            path.updateGeography()
+                .then(() => {
+                    serviceLocator.selectedObjectsManager.setSelection('path', [path]);
+                    this.updateLayers();
+                    serviceLocator.eventManager.emit('progress', {
+                        name: 'SmoothingPath',
+                        progress: 1.0
+                    });
+                })
+                .catch((error) => {
+                    console.error('Error updating geography after smoothing:', error);
+                    serviceLocator.eventManager.emit('progress', {
+                        name: 'SmoothingPath',
+                        progress: 1.0
+                    });
+                });
+        } catch (error) {
+            console.error('Error smoothing path', error);
+            serviceLocator.eventManager.emit('progress', { name: 'SmoothingPath', progress: 1.0 });
+        }
+    };
+
     onDeselect = () => {
         serviceLocator.collectionManager.refresh('paths');
         serviceLocator.eventManager.emit('map.updateLayers', {
@@ -465,6 +512,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         const routingModes: { value: string; disabled?: boolean }[] = [];
         // Check the path's routing mode if available
         const pathRoutingMode = pathData.routingMode;
+        const hasWaypoints = (pathData.waypoints || []).some((segment) => segment?.length > 0);
         const pathRoutingEngine =
             pathData.routingEngine ||
             Preferences.get(
@@ -884,6 +932,21 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                     label=""
                                     disabled={!path.canRoute().canRoute}
                                     onClick={this.onRecalculateRouteClick}
+                                />
+                            </span>
+                        )}
+                        {isFrozen !== true && pathRoutingEngine === 'manual' && hasWaypoints && (
+                            <span title={this.props.t('transit:transitPath:SmoothPath')}>
+                                <Button
+                                    color="blue"
+                                    icon={faBezierCurve}
+                                    iconClass="_icon-alone"
+                                    label=""
+                                    disabled={
+                                        !path.attributes?.geography?.coordinates ||
+                                        path.attributes.geography.coordinates.length < 3
+                                    }
+                                    onClick={this.smoothPath}
                                 />
                             </span>
                         )}
