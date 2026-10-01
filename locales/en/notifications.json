@@ -240,20 +240,5 @@
   "GeneticAlgorithmPreparingGeneration": "Genetic algorithm: preparing generation",
   "GeneticAlgorithmSimulatingGeneration": "Genetic algorithm: simulating generation",
 
-  "Osc2arAddProject"      : "Adding a new project",
-  "Osc2arRemoveProject"   : "Removing project",
-  "Osc2arDuplicateProject": "Duplicating project",
-  "Osc2arSectionChange"   : "Loading project",
-  "Osc2arChartPosition"   : "Switching charts positions",
-  "Osc2arAddChart"        : "Adding a new chart",
-  "Osc2arOpenMap"         : "Opening the map",
-  "Osc2arCloseMap"        : "Closing the map",
-  "Osc2arLoadCorridor"    : "Loading a corridor from preferences",
-  "Osc2arRemoveCorridor"  : "Deleting a corridor in preferences",
-  "Osc2arSaveCorridor"    : "Saving a corridor into preferences",
-  "Osc2arLoadPeriod"      : "Loading a period from preferences",
-  "Osc2arRemovePeriod"    : "Deleting a period in preferences",
-  "Osc2arSavePeriod"      : "Saving a period into preferences",
-
   "WaypointMinZoom": "Zoom in to level 12 or closer to add a waypoint"
 }
