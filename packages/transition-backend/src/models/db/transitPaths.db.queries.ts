@@ -111,7 +111,7 @@ const getGeojsonBaseQuery = (noNullGeo?: boolean): Knex.QueryBuilder => {
                   'is_enabled', p.is_enabled,
                   'created_at', p.created_at,
                   'updated_at', p.updated_at,
-                  'integer_id', integer_id,
+                  'integer_id', p.integer_id,
                   'nodes', COALESCE(p.nodes, '{}'),
                   'stops', COALESCE(p.stops, '{}'),
                   'segments', COALESCE(p.segments, '{}'),
@@ -219,7 +219,7 @@ const read = async (id: string) => {
       FROM ${tableName} p
       LEFT JOIN tr_transit_lines l ON l.id = p.line_id
       WHERE p.id = '${id}' AND p.is_enabled IS TRUE
-      ORDER BY integer_id;
+      ORDER BY p.integer_id;
     `
         );
         const rows = response.rows;
