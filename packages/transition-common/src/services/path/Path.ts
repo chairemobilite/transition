@@ -1344,6 +1344,16 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return line ? line.attributes.mode : this.attributes.mode;
     }
 
+    /**
+     * Whether this path's transit mode accepts waypoints between nodes.
+     * Gondola (aerial tram / ropeway) cables run straight between stations.
+     * @returns False when the mode config sets `allowsWaypoints` to false
+     */
+    allowsWaypoints(): boolean {
+        const modeConfig = lineModesConfigByMode[this.getMode()];
+        return !modeConfig || modeConfig.allowsWaypoints !== false;
+    }
+
     countStops() {
         const stopIds = this.attributes.stops;
 
