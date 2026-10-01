@@ -23,43 +23,46 @@
     }
 }
 
-// Map controls dropdown menu
+// MapLibre IControl chrome (size, corner, stack) comes from maplibregl-ctrl-group.
+// Each control is its own stacking context (maplibre sets transform on .maplibregl-ctrl),
+// so a later sibling such as the polygon tool paints over this menu unless we raise it.
 .tr__map-controls {
     position: relative;
-}
-
-// When rendered as a standalone React panel (not a MapLibre IControl),
-// position over the map in the top-right corner.
-.tr__map-controls.tr__map-controls-panel {
-    position: absolute;
-    top: 0.625rem;
-    right: 0.625rem;
-    z-index: 2;
+    overflow: visible;
+    z-index: 1;
 }
 
 .tr__map-controls-button,
 .maplibregl-control-container button {
-    background: #fff;
-    border: 0;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.875rem;
-    height: 1.875rem;
-    font-size: 2rem;
-    padding: 0.2rem;
+    font-size: 16px;
+    line-height: 1;
     color: rgba(0, 0, 0, 0.7);
 }
 
-.maplibregl-control-container button.active:hover,
-.maplibregl-control-container button.active {
-    background-color: rgba(0, 0, 0, 0.1);
+.maplibregl-control-container .maplibregl-ctrl button:not(:disabled):hover,
+.maplibregl-control-container .maplibregl-ctrl button.active,
+.maplibregl-control-container .maplibregl-ctrl button.active:hover {
+    background-color: rgb(184, 214, 255);
+    color: rgb(0, 40, 80);
+}
+
+// The hover fill is opaque. Clip it to the group's 4px corners.
+// The gear menu stays overflow:visible so its dropdown is not clipped.
+.maplibregl-ctrl-group:not(.tr__map-controls) {
+    overflow: hidden;
+}
+
+.maplibregl-ctrl-group.tr__map-controls > button:first-child,
+.maplibregl-ctrl-group.tr__map-controls > button:focus:first-child {
+    border-radius: 4px;
 }
 
 .tr__map-controls-dropdown {
     position: absolute;
-    top: 3.2rem;
+    top: 100%;
     right: 0;
     display: flex;
     flex-direction: column;
@@ -70,7 +73,8 @@
     z-index: 1;
     overflow: hidden;
     width: min(20rem, 95vw);
-    font-size: 80%;
+    // MapLibre sets a 12px font on the map. This is 80% of the app body font.
+    font-size: calc(#{settings.$font-size-medium-large} * 0.8);
 
     p {
         margin: 0;
