@@ -53,6 +53,23 @@ const PreferencesSectionFeatures: React.FunctionComponent<PreferencesSectionProp
                         preferences={props.preferences}
                     />
                 </InputWrapper>
+
+                <InputWrapper twoColumns={true} label={props.t('main:preferences:MapNavigationControl')}>
+                    <InputCheckboxBoolean
+                        id={'formFieldPreferencesFeatureMapNavigationControl'}
+                        isChecked={props.preferences.get('features.map.navigationControl')}
+                        defaultChecked={true}
+                        label={props.t('main:Yes')}
+                        onValueChange={(e) =>
+                            props.onValueChange('features.map.navigationControl', { value: e.target.value })
+                        }
+                    />
+                    <PreferencesResetToDefaultButton
+                        resetPrefToDefault={props.resetPrefToDefault}
+                        path="features.map.navigationControl"
+                        preferences={props.preferences}
+                    />
+                </InputWrapper>
             </div>
         </Collapsible>
     );

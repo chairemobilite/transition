@@ -295,7 +295,8 @@
         "DateTimeFormat12H": "12 heures ({{formatted}})",
         "Map": "Préférences de la carte",
         "MapOverlayOpacity": "Opacité de la couche de transparence de la carte (%)",
-        "MapOverlayColor": "Couleur de la couche de transparence de la carte"
+        "MapOverlayColor": "Couleur de la couche de transparence de la carte",
+        "MapNavigationControl": "Affichage des contrôles de navigation de la carte"
     },
     "ShowingNofX": "{{n}} de {{x}} résultats",
     "PageNofX": "Page {{n}} de {{x}}",
