@@ -12,6 +12,15 @@ use serde_json;
 use std::io::BufReader;
 use geojson::GeoJson;
 
+// Cherry-pick fields from the `data` path property.
+fn filter_path_data_for_cache(data: Option<&serde_json::Value>) -> serde_json::Value {
+    let segments = data
+        .and_then(|data| data.get("segments"))
+        .cloned()
+        .unwrap_or_else(|| json!([]));
+    json!({ "segments": segments })
+}
+
 pub fn write_collection(
     json: &serde_json::Value,
     file: &mut std::fs::File,
@@ -39,7 +48,9 @@ pub fn write_collection(
                 capnp_data.set_name(&crate::utils::json_null_to_empty_str(&properties.get("name").unwrap_or(&json!(null))));
                 capnp_data.set_internal_id(&crate::utils::json_null_to_empty_str(&properties.get("internal_id").unwrap_or(&json!(null))));
                 capnp_data.set_description(&crate::utils::json_null_to_empty_str(&properties.get("description").unwrap_or(&json!(null))));
-                capnp_data.set_data(&properties.get("data").unwrap_or(&json!({})).to_string().as_str());
+                let data = filter_path_data_for_cache(properties.get("data"));
+                let data_json = data.to_string();
+                capnp_data.set_data(&data_json);
                 capnp_data.set_is_frozen(crate::utils::json_boolean_to_i8(&properties.get("is_frozen").unwrap_or(&json!(null))));
                 capnp_data.set_is_enabled(crate::utils::json_boolean_to_i8(&properties.get("is_enabled").unwrap_or(&json!(null))));
 
@@ -172,3 +183,31 @@ pub fn read_collection(
 
 }
 
+#[cfg(test)]
+mod tests {
+    use super::filter_path_data_for_cache;
+    use serde_json::json;
+
+    #[test]
+    fn cache_path_data_keeps_only_segments() {
+        let data = json!({
+            "segments": [{ "travelTimeSeconds": 12, "distanceMeters": 34 }],
+            "segmentsByServiceAndPeriod": { "service": {} },
+            "routingMode": "bus"
+        });
+
+        assert_eq!(
+            filter_path_data_for_cache(Some(&data)),
+            json!({ "segments": [{ "travelTimeSeconds": 12, "distanceMeters": 34 }] })
+        );
+    }
+
+    #[test]
+    fn cache_path_data_defaults_missing_segments_to_empty_array() {
+        assert_eq!(
+            filter_path_data_for_cache(Some(&json!({ "routingMode": "bus" }))),
+            json!({ "segments": [] })
+        );
+        assert_eq!(filter_path_data_for_cache(None), json!({ "segments": [] }));
+    }
+}
