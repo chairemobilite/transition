@@ -39,7 +39,14 @@ pub fn write_collection(
                 capnp_data.set_name(&crate::utils::json_null_to_empty_str(&properties.get("name").unwrap_or(&json!(null))));
                 capnp_data.set_internal_id(&crate::utils::json_null_to_empty_str(&properties.get("internal_id").unwrap_or(&json!(null))));
                 capnp_data.set_description(&crate::utils::json_null_to_empty_str(&properties.get("description").unwrap_or(&json!(null))));
-                capnp_data.set_data(&properties.get("data").unwrap_or(&json!({})).to_string().as_str());
+                // Drop the segmentsByServiceAndPeriod as it is not required by cache readers
+                // TODO See if other fields should be left out, or should we rather pick those we need and drop everything by default?
+                let mut data = properties.get("data").cloned().unwrap_or_else(|| json!({}));
+                if let Some(data_object) = data.as_object_mut() {
+                    data_object.remove("segmentsByServiceAndPeriod");
+                }
+                let data_json = data.to_string();
+                capnp_data.set_data(&data_json);
                 capnp_data.set_is_frozen(crate::utils::json_boolean_to_i8(&properties.get("is_frozen").unwrap_or(&json!(null))));
                 capnp_data.set_is_enabled(crate::utils::json_boolean_to_i8(&properties.get("is_enabled").unwrap_or(&json!(null))));
 
