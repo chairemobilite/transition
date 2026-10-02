@@ -153,6 +153,7 @@ pub fn read_collection(
         properties_json["segments"] = json!(segments_vec);
 
         let mut geojson : serde_json::Value = json!({
+            "type": "Feature",
             "geometry": null
         });
 
