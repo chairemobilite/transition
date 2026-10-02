@@ -331,7 +331,8 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
             clickedSelectedPathIndex >= 0 &&
             clickedNodeIndex < 0
         ) {
-            if (rejectWaypointBelowMinZoom(map.getZoom())) {
+            const path = selectedPath;
+            if (!path.allowsWaypoints() || rejectWaypointBelowMinZoom(map.getZoom())) {
                 return;
             }
             // Skip if another path update is in progress to prevent race conditions
@@ -339,7 +340,6 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
                 return;
             }
             isPathUpdateInProgress = true;
-            const path = selectedPath;
             const waypointType = path.attributes.data.temporaryManualRouting
                 ? 'manual'
                 : path.getData('routingEngine', 'engine');
@@ -373,6 +373,8 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
                 } else if (nodeId) {
                     insertOrRemoveNodePromise = path.insertNodeId(nodeId, null, waypointType);
                 }
+            } else if (!path.allowsWaypoints()) {
+                return;
             } else {
                 // add waypoint
                 if (rejectWaypointBelowMinZoom(map.getZoom())) {
@@ -420,7 +422,8 @@ const onPathSectionMapClick = async (e: MapMouseEvent) => {
         } else if (
             // add waypoint to selected path or insert node
             clickedNodeIndex < 0 &&
-            clickedSelectedPathIndex >= 0
+            clickedSelectedPathIndex >= 0 &&
+            path.allowsWaypoints()
         ) {
             // TODO Can this be part of the previous if? And not use an emit, but call a path function?
             addDraggingClass();

@@ -189,7 +189,10 @@ export default [
             }
         },
         compatibleRoutingEngines: ['manual'],
-        compatibleRoutingModes: []
+        compatibleRoutingModes: [],
+        // Cable runs straight between stations; shape points are not used.
+        // See wiki: https://github.com/chairemobilite/transition/wiki/Can-a-ropeway-aerial-tram-gondola-change-direction-on-the-line-(outside-a-station)%3F
+        allowsWaypoints: false
     },
     {
         value: 'funicular' as TransitMode,
