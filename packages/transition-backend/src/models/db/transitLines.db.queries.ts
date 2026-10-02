@@ -5,8 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import { Knex } from 'knex';
 import _cloneDeep from 'lodash/cloneDeep';
 import { validate as uuidValidate } from 'uuid';
+import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import {
     exists,
     create,
@@ -24,6 +26,14 @@ import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
 import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 
 import scheduleQueries from './transitSchedules.db.queries';
+import {
+    createDuplicateQueryWithIdMapping,
+    getIdMappingQuery,
+    getIdSelectionQuery,
+    getQueryFilters,
+    joinWithClauses,
+    mapDuplicateIds
+} from './utils.db.queries';
 
 const tableName = 'tr_transit_lines';
 const joinedTable = 'tr_transit_paths';
@@ -34,6 +44,10 @@ const attributesCleaner = function (attributes: Partial<LineAttributes>): Partia
     delete _attributes.path_ids;
     delete _attributes.service_ids;
     delete _attributes.scheduleByServiceId;
+    // Let the db handle this field, it is used mostly for this purpose. We don't want to initialize to null if undefined
+    if (_attributes.integer_id === undefined) {
+        delete _attributes.integer_id;
+    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id, created_at, updated_at, ...rest } = _attributes;
     Object.keys(rest).forEach((key) => (_attributes[key] = attributes[key] !== undefined ? attributes[key] : null));
@@ -129,7 +143,7 @@ const read = async (id: string) => {
         }
         const response = await knex.raw(
             `
-      SELECT 
+      SELECT
         l.*,
         COALESCE(l.color, '${Preferences.current.transit.lines.defaultColor}') as color,
         array_remove(array_agg(p.id ORDER BY p.integer_id), NULL) AS path_ids
@@ -166,6 +180,99 @@ const read = async (id: string) => {
     }
 };
 
+/**
+ * Duplicate lines, possibly for a specific agency mapping for agencies.
+ * Either an array of lines, or an agencyMapping must be specified.
+ *
+ * @param param The parameter object
+ * @param param.lineIds The path IDs to duplicate
+ * @param param.agencyIdMapping The mapping of original line IDs to new line IDs
+ * @param newObjectsSuffix The suffix to append to the line's longname
+ * @param param.transaction The transaction to use for the duplication, if any
+ * @returns A mapping of the ID of the paths copied to the ID of the copy.
+ */
+const duplicate = async ({
+    lineIds: requestedLineIds = [],
+    agencyIdMapping = {},
+    newLineSuffix = '',
+    transaction
+}: {
+    lineIds?: string[];
+    agencyIdMapping?: { [originalAgencyId: string]: string };
+    newLineSuffix?: string;
+    transaction?: Knex.Transaction;
+}): Promise<{ [originalLineId: string]: string }> => {
+    const lineIds = [...new Set(requestedLineIds)];
+    try {
+        // Deduplicate line ids, in case a line is requested twice
+        if (lineIds.length === 0 && Object.keys(agencyIdMapping).length === 0) {
+            throw new Error('There needs to be either line IDs or an agency mapping to duplicate lines.');
+        }
+        // Validate that mappings and arrays are all uuids
+        lineIds.forEach((lineId) => {
+            if (!uuidValidate(lineId)) {
+                throw new Error('Line IDs must be valid uuids');
+            }
+        });
+        Object.entries(agencyIdMapping).forEach(([originalId, mappedId]) => {
+            if (!uuidValidate(originalId) || !uuidValidate(mappedId)) {
+                throw new Error('Agency mappings must be valid uuids');
+            }
+        });
+
+        const agencyMappingQuery = getIdMappingQuery(agencyIdMapping, 'agency', tableName);
+        const lineSelectionQuery = getIdSelectionQuery(lineIds, tableName);
+
+        // These queries are inspired by both
+        // https://stackoverflow.com/questions/29256888/insert-into-from-select-returning-id-mappings
+        // and
+        // https://dba.stackexchange.com/questions/46410/how-do-i-insert-a-row-which-contains-a-foreign-key
+        // so that a single query can copy for many agencies and lines ids
+
+        // Query to copy the requested lines for the requested agencies if any.
+        // Using raw as it is complex to put in knex
+        const lineName = _isBlank(newLineSuffix) ? 'longname' : 'longname || ?';
+        const withClauses = joinWithClauses([agencyMappingQuery, lineSelectionQuery]);
+        const duplicateLinesQuery = `${withClauses.query} \
+            insert into ${tableName}(internal_id, mode, category, agency_id, shortname, longname, color, is_autonomous, allow_same_line_transfers, is_enabled, description, data, is_frozen) \
+                select internal_id, mode, category, ${agencyMappingQuery.mappedField}, shortname, ${lineName}, color, is_autonomous, allow_same_line_transfers, is_enabled, description, data, is_frozen
+                from ${tableName} \
+                ${agencyMappingQuery.mappedJoin} \
+                ${lineSelectionQuery.mappedJoin} \
+                order by integer_id returning id, integer_id`;
+
+        // Put the where queries and bindings for lines and services in arrays to better join them if necessary in the query
+        const lineWhereQueries = getQueryFilters([agencyMappingQuery, lineSelectionQuery]);
+
+        const rawQuery = knex.raw(
+            createDuplicateQueryWithIdMapping(
+                tableName,
+                duplicateLinesQuery,
+                lineWhereQueries.whereClauses.join(' and '),
+                'integer_id'
+            ),
+            [...lineWhereQueries.bindings, ...withClauses.bindings, ...(_isBlank(newLineSuffix) ? [] : [newLineSuffix])]
+        );
+
+        if (transaction) {
+            rawQuery.transacting(transaction);
+        }
+        const lineIdMapping = await rawQuery;
+
+        if (lineIdMapping.rows.length === 0) {
+            return {};
+        }
+
+        return mapDuplicateIds<string>(lineIdMapping.rows);
+    } catch (error) {
+        throw new TrError(
+            `Cannot duplicate lines for agencies ${JSON.stringify(agencyIdMapping)} and line ids ${lineIds} in database (knex error: ${error})`,
+            'DBLINE0003',
+            'TransitLineCannotBeDuplicatedBecauseDatabaseError'
+        );
+    }
+};
+
 export default {
     exists: exists.bind(null, knex, tableName),
     read,
@@ -187,5 +294,6 @@ export default {
     destroy: destroy.bind(null, knex),
     // TODO Should collection also return the schedules?
     collection,
-    collectionWithSchedules
+    collectionWithSchedules,
+    duplicate
 };

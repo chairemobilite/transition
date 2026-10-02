@@ -11,6 +11,11 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
 import schedulesDbQueries from '../../../models/db/transitSchedules.db.queries';
 
+export const getServiceIdsForLines = async (
+    lineIds: string[],
+    { transaction }: WithTransaction = {}
+): Promise<string[]> => schedulesDbQueries.getServiceIdsForLines(lineIds, { transaction });
+
 export type DuplicateScheduleMappings = {
     /**
      * The mapping of original line IDs to new line IDs

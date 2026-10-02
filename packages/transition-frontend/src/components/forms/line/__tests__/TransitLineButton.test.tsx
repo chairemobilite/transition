@@ -13,15 +13,11 @@ import TransitLineButton from '../TransitLineButton';
 import Line from 'transition-common/lib/services/line/Line';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { duplicateLine } from 'transition-common/lib/services/line/LineDuplicator';
+import Agency from 'transition-common/lib/services/agency/Agency';
 
 
 jest.mock('react-markdown', () => 'Markdown');
 jest.mock('remark-gfm', () => 'remark-gfm');
-
-jest.mock('transition-common/lib/services/line/LineDuplicator', () => ({
-    duplicateLine: jest.fn(),
-}));
 
 jest.mock('chaire-lib-common/lib/utils/ServiceLocator', () => ({
     socketEventManager: {
@@ -51,6 +47,8 @@ beforeEach(() => {
 
 });
 
+const mockAgency = new Agency({ id: 'agencyId', acronym: 'agency' }, false);
+
 // Wrap tests in a describe block
 describe('TransitLineButton', () => {
 
@@ -59,6 +57,7 @@ describe('TransitLineButton', () => {
         const { container } = render(
             <TransitLineButton
                 line={mockLine}
+                agency={mockAgency}
                 lineIsHidden={false}
             />
 
@@ -73,6 +72,7 @@ describe('TransitLineButton', () => {
         const { container } = render(
             <TransitLineButton
                 line={mockLine}
+                agency={mockAgency}
                 selectedLine={mockLine}
                 lineIsHidden={false}
                 onObjectSelected={mockOnObjectSelected}
@@ -91,6 +91,7 @@ describe('TransitLineButton', () => {
         const { getByText } = render(
             <TransitLineButton
                 line={mockLine}
+                agency={mockAgency}
                 selectedLine={mockLine}
                 lineIsHidden={false}
                 onObjectSelected={mockOnObjectSelected}
@@ -160,6 +161,7 @@ describe('TransitLineButton', () => {
         const { container, getByText } = render(
             <TransitLineButton
                 line={mockLine}
+                agency={mockAgency}
                 selectedLine={mockLine2}
                 lineIsHidden={false}
                 onObjectSelected={jest.fn()}
@@ -187,7 +189,7 @@ describe('TransitLineButton', () => {
         });
     });
 
-    test('onDuplicate should call duplicateLine and refresh collections', async () => {
+    test('onDuplicate should call the backend and refresh collections', async () => {
         // Mocking a line
         const mockLine = new Line({ some: 'attributes', longname: 'Test Line' }, true);
         jest.spyOn(mockLine, 'get').mockImplementation((key) => {
@@ -207,26 +209,18 @@ describe('TransitLineButton', () => {
             }),
         });
 
-        // Mocking duplicateLine to return a new line instance
-        const duplicatedLine = new Line({ some: 'newAttributes', longname: 'Test Line (Copy)' }, true);
-        (duplicateLine as jest.Mock).mockResolvedValue(duplicatedLine);
-
         // Mock ServiceLocator functions
+        const collections = {
+            agencies: { getById: jest.fn().mockReturnValue({ id: 'fake_agency_id' }) },
+            paths: {
+                loadFromServer: jest.fn().mockResolvedValue(undefined),
+                toGeojsonSimplified: jest.fn().mockReturnValue({})
+            },
+            lines: { loadFromServer: jest.fn().mockResolvedValue(undefined) },
+            services: { loadFromServer: jest.fn().mockResolvedValue(undefined) }
+        };
         serviceLocator.collectionManager = {
-            get: jest.fn((collectionName) => {
-                if (collectionName === 'agencies') {
-                    return {
-                        getById: jest.fn().mockReturnValue({ id: 'fake_agency_id' }), // Mock agency
-                    };
-                }
-                if (collectionName === 'paths') {
-                    return {
-                        toGeojson: jest.fn().mockReturnValue({}),
-                        toGeojsonSimplified: jest.fn().mockReturnValue({})
-                    };
-                }
-                return { refresh: jest.fn() }; // Default return
-            }),
+            get: jest.fn((collectionName) => collections[collectionName]),
             refresh: jest.fn(),
         };
 
@@ -234,12 +228,15 @@ describe('TransitLineButton', () => {
             emit: jest.fn(),
             emitEvent: jest.fn(),
         };
-        serviceLocator.socketEventManager = {};
+        serviceLocator.socketEventManager = {
+            emit: jest.fn()
+        };
 
         // Render the component with hideActions set to false so the duplicate button is visible
         const { container } = render(
             <TransitLineButton
                 line={mockLine}
+                agency={mockAgency}
                 selectedLine={mockLine}
                 lineIsHidden={false}
                 onObjectSelected={jest.fn()}
@@ -248,10 +245,28 @@ describe('TransitLineButton', () => {
 
         // Find the duplicate button using querySelector (Adjust selector as needed)
         const duplicateButton = container.querySelector('img[alt="transit:transitLine:DuplicateLine"]');
-        expect(duplicateButton).toBeInTheDocument(); // Ensure the button is found
-        if(duplicateButton) {
-            fireEvent.click(duplicateButton); // Click the button
-        }
+        expect(duplicateButton).toBeInTheDocument();
+        fireEvent.click(duplicateButton as Element);
+
+        expect(serviceLocator.socketEventManager.emit).toHaveBeenCalledWith(
+            'transitLines.duplicate',
+            expect.objectContaining({
+                lineIds: [mockLine.getId()],
+                duplicateSchedules: true,
+                duplicateServices: true,
+                newObjectsSuffix: ' (main:Copy)'
+            }),
+            expect.any(Function)
+        );
+        const callback = (serviceLocator.socketEventManager.emit as jest.Mock).mock.calls[0][2];
+        await callback(Status.createOk({ [mockLine.getId()]: 'duplicated-line-id' }));
+
+        expect(collections.paths.loadFromServer).toHaveBeenCalled();
+        expect(collections.lines.loadFromServer).toHaveBeenCalled();
+        expect(collections.services.loadFromServer).toHaveBeenCalled();
+        expect(serviceLocator.collectionManager.refresh).toHaveBeenCalledWith('paths');
+        expect(serviceLocator.collectionManager.refresh).toHaveBeenCalledWith('lines');
+        expect(serviceLocator.collectionManager.refresh).toHaveBeenCalledWith('services');
 
     });
 });

@@ -153,6 +153,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
         <TransitLineButton
             key={line.id}
             line={line}
+            agency={props.agency}
             selectedLine={props.selectedLine}
             lineIsHidden={
                 serviceLocator.pathLayerManager ? serviceLocator.pathLayerManager.lineIsHidden(line.id) : false

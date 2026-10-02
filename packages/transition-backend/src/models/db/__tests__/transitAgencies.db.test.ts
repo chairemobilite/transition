@@ -15,12 +15,13 @@ import ObjectClass         from 'transition-common/lib/services/agency/Agency';
 const objectName   = 'agency';
 const simulationId = '373a583c-df49-440f-8f44-f39fb0033c56';
 
-const newObjectAttributes = {  
+const newObjectAttributes = {
   id           : uuidV4(),
   internal_id  : 'internalTestId',
   acronym      : 'ATEST',
   name         : 'Agency test',
-  is_frozen    : false,
+  is_frozen: false,
+  integer_id   : 1,
   is_enabled   : true,
   color        : '#ffffff',
   description  : null,
@@ -37,7 +38,8 @@ const newObjectAttributes2 = {
   acronym      : 'ATEST2',
   name         : 'Agency test 2',
   is_frozen    : false,
-  is_enabled   : true,
+  is_enabled: true,
+  integer_id   : 2,
   color        : '#000000',
   description  : 'description test',
   simulation_id: simulationId,
@@ -88,7 +90,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should read a new object in database', async() => {
-        
+
         const attributes = await dbQueries.read(newObjectAttributes.id) as any;
         delete attributes.updated_at;
         delete attributes.created_at;
@@ -97,7 +99,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should update an object in database', async() => {
-        
+
         const id = await dbQueries.update(newObjectAttributes.id, updatedAttributes);
         expect(id).toBe(newObjectAttributes.id);
 
@@ -114,7 +116,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should create a second new object indatabase', async() => {
-        
+
         const newObject = new ObjectClass(newObjectAttributes2, true);
         const id = await dbQueries.create(newObject.attributes)
         expect(id).toBe(newObjectAttributes2.id);
@@ -122,7 +124,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should read collection from database', async() => {
-        
+
         const _collection = await dbQueries.collection();
         const objectCollection = new Collection([], {});
         objectCollection.loadFromCollection(_collection);
@@ -142,11 +144,11 @@ describe(`${objectName}`, () => {
         expect(collection[0].attributes).toEqual(new ObjectClass(_newObjectAttributes, false).attributes);
         expect(collection[1].getId()).toBe(_newObjectAttributes2.id);
         expect(collection[1].attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
-        
+
     });
 
     test('update multiple objects, with error, none should be updated', async() => {
-        
+
         // Reset the first object to its original state
         const _updatedAttributes = Object.assign({}, newObjectAttributes);
         const updatedObject = new ObjectClass(_updatedAttributes, true);
@@ -173,7 +175,7 @@ describe(`${objectName}`, () => {
     });
 
     test('update multiple objects, with success', async() => {
-        
+
         // Reset the first object to its original state
         const _updatedAttributes = Object.assign({}, newObjectAttributes);
         const updatedObject = new ObjectClass(_updatedAttributes, true);
@@ -208,7 +210,7 @@ describe(`${objectName}`, () => {
     });
 
     test('should delete objects from database', async() => {
-        
+
         const id = await dbQueries.delete(newObjectAttributes.id)
         expect(id).toBe(newObjectAttributes.id);
 
@@ -232,7 +234,7 @@ describe(`${objectName}`, () => {
         expect(error).toBeDefined();
         const _collection = await dbQueries.collection();
         expect(_collection.length).toEqual(0);
-        
+
     });
 
     test('create multiple with success', async() => {
@@ -241,7 +243,7 @@ describe(`${objectName}`, () => {
         const newObject2 = new ObjectClass(newObjectAttributes2, true);
 
         const ids = await dbQueries.createMultiple([newObject.attributes, newObject2.attributes]);
-        
+
         expect(ids).toEqual([{ id: newObject.getId() }, { id: newObject2.getId() }]);
         const _collection = await dbQueries.collection();
         expect(_collection.length).toEqual(2);
