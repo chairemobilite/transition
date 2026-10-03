@@ -9714,10 +9714,10 @@ nodemailer-mock@^2.0.9:
   dependencies:
     debug "^4.4.0"
 
-nodemailer@^9.1.1:
-  version "9.1.1"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-9.1.1.tgz#fb991992723657f34dbe1d829139aa66be008e96"
-  integrity sha512-izw9mVKFix6YSnC9eLgV6g1opl9DUlRio9ZNcq+Wu9Ujn2UwF+8Nl0B8nz22kEC+CTZCvinkxwJ0DeFbb6NwcQ==
+nodemailer@^10.1.1:
+  version "10.1.1"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-10.1.1.tgz#c2cc02c3aef8a1697bae6501d362a594551fdd6b"
+  integrity sha512-pbqZRoeYUO+1E8TJ/11WeY4D2EVujj1hsYjz3qff/vUFDtGnmi7p3iqzTFslYOfQ6PnjVcWxx/CIUSHCSrO/QA==
 
 noms@0.0.0:
   version "0.0.0"
