@@ -207,6 +207,28 @@ describe('Deck.gl layer configurations', () => {
             expect(ids).toContain('selected-paths-animated');
             expect(ids).toContain('selected-nodes-spinner');
         });
+
+        test.each([true, false])('passes disableAnimation %s to animated path and node layers', (disableAnimation) => {
+            const getLayerData = jest.fn((name: string) => {
+                if (name === 'transitNodesSelected') {
+                    return mockPointData;
+                }
+                return mockPathData;
+            });
+
+            const layers = createDeckLayersFromMappings(
+                ['transitPathsSelected', 'transitNodesSelected'],
+                getLayerData,
+                15,
+                disableAnimation
+            );
+
+            expect(layers).toHaveLength(2);
+            for (const layer of layers) {
+                const props = (layer as unknown as { props: { disableAnimation: boolean } }).props;
+                expect(props.disableAnimation).toBe(disableAnimation);
+            }
+        });
     });
 
     describe('calculateNodeRadiusForZoom', () => {

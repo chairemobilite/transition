@@ -14,6 +14,7 @@ import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import PreferencesSectionGeneral from './sections/PreferencesSectionGeneral';
+import PreferencesSectionMap from './sections/PreferencesSectionMap';
 import PreferencesSectionTransitNodes from './sections/PreferencesSectionTransitNodes';
 import PreferencesSectionTransitAgencies from './sections/PreferencesSectionTransitAgencies';
 import PreferencesSectionTransitLines from './sections/PreferencesSectionTransitLines';
@@ -109,6 +110,13 @@ class PreferencesPanel extends SaveableObjectForm<PreferencesClass, PreferencesP
                     />
                 </div>
                 <PreferencesSectionGeneral
+                    preferences={this.state.object}
+                    onValueChange={this.onValueChange}
+                    resetChangesCount={this.resetChangesCount}
+                    resetPrefToDefault={this.resetPrefToDefault}
+                />
+
+                <PreferencesSectionMap
                     preferences={this.state.object}
                     onValueChange={this.onValueChange}
                     resetChangesCount={this.resetChangesCount}

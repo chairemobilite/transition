@@ -11,6 +11,11 @@ import type { LayersList } from '@deck.gl/core';
 
 export interface DeckGLControlProps {
     layers: LayersList;
+    /**
+     * When false, MapLibre is not forced to repaint. The shaders keep the last frame,
+     * which is how `map.enableAnimation` set to false freezes arrows and node spinners.
+     */
+    animate?: boolean;
 }
 
 /**
@@ -24,7 +29,7 @@ export interface DeckGLControlProps {
  * continuous redraws. The shader extensions use performance.now() internally for
  * time-based animation, so no separate RAF loop is needed.
  */
-const DeckGLControl: React.FC<DeckGLControlProps> = ({ layers }) => {
+const DeckGLControl: React.FC<DeckGLControlProps> = ({ layers, animate = true }) => {
     const overlayRef = useRef<DeckOverlay | null>(null);
 
     // Get the map instance to control repaint mode
@@ -53,14 +58,12 @@ const DeckGLControl: React.FC<DeckGLControlProps> = ({ layers }) => {
         }
     );
 
-    // Enable MapLibre repaint mode while this component is mounted
-    // This is required for deck.gl animations to render smoothly.
-    // The shader extensions use performance.now() in their draw() methods,
-    // so continuous repainting is sufficient for animation - no RAF loop needed.
+    // Continuous repaint keeps the shaders moving. It stays off when animations are disabled.
+    // The shader extensions read performance.now() in their draw() methods.
     useEffect(() => {
         const map = mapRef?.getMap();
         if (map) {
-            map.repaint = true;
+            map.repaint = animate;
         }
 
         return () => {
@@ -69,7 +72,7 @@ const DeckGLControl: React.FC<DeckGLControlProps> = ({ layers }) => {
                 mapInstance.repaint = false;
             }
         };
-    }, [mapRef]);
+    }, [mapRef, animate]);
 
     // Update layers when they change
     useEffect(() => {

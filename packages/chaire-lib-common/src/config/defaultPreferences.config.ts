@@ -44,6 +44,8 @@ export interface PreferencesModel {
         overlayOpacity: number;
         /** Overlay color: 'black' or 'white' */
         overlayColor: 'black' | 'white';
+        /** When true, deck.gl path arrows and selected-node spinners move. On unless the user turns it off. */
+        enableAnimation: boolean;
     };
     colorPicker: {
         /** Hexadecimal strings of the various colors that should be available */
@@ -73,7 +75,8 @@ const defaultPreferences: PreferencesModel = {
         zoom: 10,
         basemapShortname: 'osm',
         overlayOpacity: 50,
-        overlayColor: 'black'
+        overlayColor: 'black',
+        enableAnimation: true
     },
     socketUploadChunkSize: 10240000,
     defaultWalkingSpeedMetersPerSeconds: 5 / 3.6,
