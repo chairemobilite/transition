@@ -11,6 +11,7 @@ import dbQueries           from '../transitAgencies.db.queries';
 import simulationDbQueries from '../simulations.db.queries';
 import Collection          from 'transition-common/lib/services/agency/AgencyCollection';
 import ObjectClass         from 'transition-common/lib/services/agency/Agency';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const objectName   = 'agency';
 const simulationId = '373a583c-df49-440f-8f44-f39fb0033c56';
@@ -250,6 +251,177 @@ describe(`${objectName}`, () => {
 
     });
 
+});
+
+describe('isAcronymSuffixClash', () => {
+    beforeEach(async () => {
+        await dbQueries.truncate();
+        // Create 2 objects
+        await dbQueries.create(new ObjectClass(newObjectAttributes, true).attributes);
+        await dbQueries.create(new ObjectClass(newObjectAttributes2, true).attributes);
+    });
+
+    test('should not clash if suffix is available', async () => {
+        expect(await dbQueries.isAcronymSuffixClash({
+            agencyIds: [newObjectAttributes.id],
+            suffix: ' copy'
+        })).toEqual(false);
+    });
+
+    test('should not clash if suffix is available for the given interview', async () => {
+        const suffix = ' copy';
+        // Insert an agency with the suffix, but the original is not part of the of query
+        await dbQueries.create({
+            acronym: newObjectAttributes2.acronym + suffix,
+            data: {}
+        } as any);
+
+        // Validate suffix with the other agency, it should be available
+        expect(await dbQueries.isAcronymSuffixClash({
+            agencyIds: [newObjectAttributes.id],
+            suffix: ' copy'
+        })).toEqual(false);
+    });
+
+    test('should clash if suffix is not available for the given interview', async () => {
+        const suffix = ' copy';
+        // Insert an agency with the suffix, but the original is not part of the of query
+        await dbQueries.create({
+            acronym: newObjectAttributes2.acronym + suffix,
+            data: {}
+        } as any);
+
+        // Validate suffix with the other agency, it should be available
+        expect(await dbQueries.isAcronymSuffixClash({
+            agencyIds: [newObjectAttributes2.id],
+            suffix: ' copy'
+        })).toEqual(true);
+    });
+
+    test('should clash if suffix is not available for any interview', async () => {
+        const suffix = ' copy';
+        // Insert an agency with the suffix, but the original is not part of the of query
+        await dbQueries.create({
+            acronym: newObjectAttributes2.acronym + suffix,
+            data: {}
+        } as any);
+
+        // Validate suffix with the other agency, it should be available
+        expect(await dbQueries.isAcronymSuffixClash({
+            agencyIds: [newObjectAttributes2.id, newObjectAttributes.id],
+            suffix: ' copy'
+        })).toEqual(true);
+    });
+
+    test('should clash if suffix is not available for any interview and no interview is specified', async () => {
+        const suffix = ' copy';
+        // Insert an agency with the suffix, but the original is not part of the of query
+        await dbQueries.create({
+            acronym: newObjectAttributes2.acronym + suffix,
+            data: {}
+        } as any);
+
+        // Validate suffix with the other agency, it should be available
+        expect(await dbQueries.isAcronymSuffixClash({
+            agencyIds: [],
+            suffix: ' copy'
+        })).toEqual(true);
+    });
+
+    test('rejects empty or invalid agency IDs', async () => {
+        await expect(dbQueries.isAcronymSuffixClash({ agencyIds: ['not-a-uuid'], suffix: ' copy' })).rejects.toThrow(
+            TrError
+        );
+    });
+
+    test('rejects empty suffix string', async () => {
+        await expect(dbQueries.isAcronymSuffixClash({ agencyIds: [newObjectAttributes.id], suffix: '' })).rejects.toThrow(TrError);
+    });
+});
+
+describe('Agency duplication', () => {
+    beforeEach(async () => {
+        await dbQueries.truncate();
+        await dbQueries.create(new ObjectClass(newObjectAttributes, true).attributes);
+        await dbQueries.create(new ObjectClass(newObjectAttributes2, true).attributes);
+    });
+
+    test('duplicates selected agencies with a suffix and returns their ID mapping', async () => {
+        const agencyIdMapping = await dbQueries.duplicate({
+            agencyIds: [newObjectAttributes2.id, newObjectAttributes.id],
+            newAgencySuffix: ' copy'
+        });
+
+        expect(Object.keys(agencyIdMapping)).toEqual(
+            expect.arrayContaining([newObjectAttributes.id, newObjectAttributes2.id])
+        );
+        expect(Object.keys(agencyIdMapping)).toHaveLength(2);
+
+        const duplicatedAgency = await dbQueries.read(agencyIdMapping[newObjectAttributes2.id]);
+        expect(duplicatedAgency).toEqual(expect.objectContaining({
+            ...newObjectAttributes2,
+            id: agencyIdMapping[newObjectAttributes2.id],
+            acronym: `${newObjectAttributes2.acronym} copy`,
+            name: `${newObjectAttributes2.name} copy`,
+            integer_id: expect.any(Number)
+        }));
+    });
+
+    test('deduplicates requested agency IDs', async () => {
+        const agencyIdMapping = await dbQueries.duplicate({
+            agencyIds: [newObjectAttributes.id, newObjectAttributes.id],
+            newAgencySuffix: ' duplicate'
+        });
+
+        expect(Object.keys(agencyIdMapping)).toEqual([newObjectAttributes.id]);
+    });
+
+    test('rejects when agency acronym already exists', async () => {
+        const suffix = ' copy';
+        // Create an agency with an acronym that contains the suffix used in the duplicate query
+        await dbQueries.create({
+            acronym: newObjectAttributes.acronym + suffix,
+            data: {}
+        } as any);
+
+        await expect(dbQueries.duplicate({
+            agencyIds: [newObjectAttributes.id, newObjectAttributes.id],
+            newAgencySuffix: suffix
+        })).rejects.toThrow(TrError);
+    });
+
+    test('returns an empty mapping when no requested agency exists', async () => {
+        expect(await dbQueries.duplicate({ agencyIds: [uuidV4()], newAgencySuffix: ' copy' })).toEqual({});
+    });
+
+    test('rejects empty or invalid agency IDs', async () => {
+        await expect(dbQueries.duplicate({ agencyIds: [], newAgencySuffix: ' copy' })).rejects.toThrow(TrError);
+        await expect(dbQueries.duplicate({ agencyIds: ['not-a-uuid'], newAgencySuffix: ' copy' })).rejects.toThrow(
+            TrError
+        );
+    });
+
+    test('rejects empty suffix string', async () => {
+        await expect(dbQueries.duplicate({ agencyIds: [newObjectAttributes.id], newAgencySuffix: '' })).rejects.toThrow(TrError);
+    });
+
+    test('honors the provided transaction', async () => {
+        let rolledBackAgencyId: string | undefined;
+        await expect(
+            knex.transaction(async (trx) => {
+                const mapping = await dbQueries.duplicate({
+                    agencyIds: [newObjectAttributes.id],
+                    newAgencySuffix: ' rollback',
+                    transaction: trx
+                });
+                rolledBackAgencyId = mapping[newObjectAttributes.id];
+                throw new Error('rollback');
+            })
+        ).rejects.toThrow('rollback');
+
+        expect(rolledBackAgencyId).toBeDefined();
+        expect(await dbQueries.exists(rolledBackAgencyId as string)).toBe(false);
+    });
 });
 
 describe('Agency, with transactions', () => {

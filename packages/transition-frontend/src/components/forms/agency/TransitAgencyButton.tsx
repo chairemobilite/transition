@@ -13,7 +13,7 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
-import { duplicateAgency } from 'transition-common/lib/services/agency/AgencyDuplicator';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import ButtonList from '../../parts/ButtonList';
@@ -38,6 +38,27 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
     );
 
     const agencyIsSelected = (props.selectedAgency && props.selectedAgency.getId() === props.agency.getId()) || false;
+    // Keep name of the ongoing operation, in the state to trigger redraw so the
+    // interface can be updated by disabling the buttons
+    // FIXME Deactivate the delete and duplicate buttons when ongoing operation, when it is supported
+    const [, setOngoingOperation] = React.useState<'duplicate' | 'delete' | null>(null);
+    // Ref to whether an operation is in progress, updated synchronously when
+    // operation starts to avoid quick repetition of the click
+    const operationInProgress = React.useRef(false);
+
+    // Set operation in progress
+    const beginOperation = (operation: 'duplicate' | 'delete') => {
+        if (operationInProgress.current) return false;
+        operationInProgress.current = true;
+        setOngoingOperation(operation);
+        return true;
+    };
+
+    // End operation
+    const endOperation = () => {
+        operationInProgress.current = false;
+        setOngoingOperation(null);
+    };
 
     const onSelect: React.MouseEventHandler = async (e: React.MouseEvent) => {
         if (e) {
@@ -53,6 +74,11 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
     const onDelete: React.MouseEventHandler = async (e: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
+        }
+
+        // Guard the deletion execution
+        if (!beginOperation('delete')) {
+            return;
         }
 
         const agencyHasLines = props.agency.hasLines();
@@ -79,6 +105,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
         } finally {
             serviceLocator.eventManager.emit('progress', { name: 'DeletingAgency', progress: 1.0 });
             serviceLocator.collectionManager.refresh('agencies');
+            endOperation();
         }
     };
 
@@ -87,23 +114,52 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
             e.stopPropagation();
         }
 
-        serviceLocator.eventManager.emit('progress', { name: 'SavingAgency', progress: 0.0 });
-        await duplicateAgency(props.agency, {
-            socket: serviceLocator.socketEventManager,
-            duplicateSchedules: true,
-            duplicateServices: true,
-            newName: `${props.agency.get('name')} (${props.t('main:Copy')})`,
-            newServiceSuffix: props.t('main:Copy')
-        });
+        // Guard duplication operation
+        if (!beginOperation('duplicate')) {
+            return;
+        }
 
-        serviceLocator.collectionManager.refresh('paths');
-        serviceLocator.collectionManager.refresh('lines');
-        serviceLocator.collectionManager.refresh('agencies');
-        (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
-            layerName: 'transitPaths',
-            data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
-        });
-        serviceLocator.eventManager.emit('progress', { name: 'SavingAgency', progress: 1.0 });
+        serviceLocator.eventManager.emit('progress', { name: 'SavingAgency', progress: 0.0 });
+        try {
+            const response: Status.Status<{ [originalAgencyId: string]: string }> = await new Promise((resolve) => {
+                serviceLocator.socketEventManager.emit(
+                    'transitAgencies.duplicate',
+                    {
+                        agencyIds: [props.agency.getId()],
+                        duplicateSchedules: true,
+                        duplicateServices: true,
+                        newObjectsSuffix: ` (${props.t('main:Copy')})`
+                    },
+                    async (response: Status.Status<{ [originalAgencyId: string]: string }>) => resolve(response)
+                );
+            });
+
+            if (Status.isStatusOk(response)) {
+                // Fetch all collections from server again, to retrieve all new objects
+                // Order of fetch is important to have all objects ready to display
+                for (const collectionName of ['paths', 'services', 'lines', 'agencies']) {
+                    await serviceLocator.collectionManager
+                        .get(collectionName)
+                        .loadFromServer(serviceLocator.socketEventManager, serviceLocator.collectionManager);
+                }
+
+                serviceLocator.collectionManager.refresh('paths');
+                serviceLocator.collectionManager.refresh('lines');
+                serviceLocator.collectionManager.refresh('services');
+                serviceLocator.collectionManager.refresh('agencies');
+                (serviceLocator.eventManager as EventManager).emitEvent<MapUpdateLayerEventType>('map.updateLayer', {
+                    layerName: 'transitPaths',
+                    data: serviceLocator.collectionManager.get('paths').toGeojsonSimplified()
+                });
+            } else {
+                console.error(response.error); // todo: better error handling
+            }
+        } catch (error) {
+            console.error('Error duplicating agency: ', error);
+        } finally {
+            serviceLocator.eventManager.emit('progress', { name: 'SavingAgency', progress: 1.0 });
+            endOperation();
+        }
     };
 
     const newLineForAgency = (e: React.MouseEvent) => {

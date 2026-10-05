@@ -40,6 +40,7 @@ import { duplicateSchedules } from './transitSchedules/ScheduleUtils';
 import { duplicateServices } from './transitServices/ServiceDuplicator';
 import { duplicatePaths } from './transitPaths/PathDuplicator';
 import { duplicateLines } from './transitLines/LineDuplicator';
+import { duplicateAgencies } from './transitAgencies/AgencyDuplicator';
 
 type DuplicateFunction<TOptions> = (
     options: TOptions
@@ -95,7 +96,8 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         dbQueries: agenciesDbQueries,
         cacheQueries: agenciesCacheQueries,
         collection: new AgencyCollection([], {}),
-        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveAgenciesToCache
+        saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveAgenciesToCache,
+        duplicate: duplicateAgencies
     },
     lines: {
         lowerCaseName: 'line',
