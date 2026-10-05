@@ -9,16 +9,28 @@ import { DefaultProps, Layer, LayerContext, LayerExtension } from '@deck.gl/core
 import type { ShaderModule } from '@luma.gl/shadertools';
 import { vec3 } from 'gl-matrix';
 
+/**
+ * Deck.gl switches to its offset projection at zoom 12. Below that, distances along
+ * the path are wrong and the arrow pattern breaks, so the line stays a solid color.
+ *
+ * TODO: draw the arrows below this zoom again if that projection artifact is fixed.
+ * https://github.com/visgl/deck.gl/issues/9811
+ */
+const ARROW_MIN_ZOOM = 12;
+
 const uniformBlock = `\
 uniform animatedArrowPathUniforms {
   float time;
   float arrowSpacing;
+  float arrowsEnabled;
 } animatedArrowPath;
 `;
 
 type AnimatedArrowPathProps = {
     time: number;
     arrowSpacing: number;
+    /** 1 to draw moving arrows, 0 for a solid line */
+    arrowsEnabled: number;
 };
 
 const defaultProps: DefaultProps<_AnimatedArrowPathLayerProps> = {
@@ -143,11 +155,13 @@ export default class AnimatedArrowPathExtension extends LayerExtension {
         // Wrap time at the cycle duration to prevent overflow (performance.now() / 1000 gives seconds)
         const wrappedTime = (performance.now() / 1000) % cycleDuration;
 
-        // Calculate distance traveled in this cycle - this is the animation time value
-        const animationTime = this.props.disableAnimation ? 1 : wrappedTime * adjustedSpeed;
+        // No arrows, and no animation, below the offset-projection zoom.
+        const arrowsEnabled = zoom >= ARROW_MIN_ZOOM ? 1 : 0;
+        const animationTime = this.props.disableAnimation || arrowsEnabled === 0 ? 1 : wrappedTime * adjustedSpeed;
         const animatedArrowProps: AnimatedArrowPathProps = {
             time: animationTime,
-            arrowSpacing: arrowSpacing
+            arrowSpacing: arrowSpacing,
+            arrowsEnabled
         };
         const model = this.state.model as { shaderInputs?: { setProps: (props: Record<string, unknown>) => void } };
         model?.shaderInputs?.setProps({ animatedArrowPath: animatedArrowProps });
@@ -177,35 +191,37 @@ export default class AnimatedArrowPathExtension extends LayerExtension {
             `,
 
             'fs:#main-end': `
-                float percentFromCenter = abs(vPathPosition.x);
-                float offset = vArrowPathOffset;
-                // Guard against division by zero when vLengthRatio is 0
-                float safeLengthRatio = max(vLengthRatio, 1e-6);
-                float totalLength = vPathLength / safeLengthRatio;
-                float startDistance = vStartOffsetRatio * totalLength;
-                // percentFromCenter * 2.0 makes the arrow twice as pointy.
-                float distanceSoFar = startDistance + vPathPosition.y - offset + percentFromCenter * 2.0;
-                float arrowIndex = mod(distanceSoFar, animatedArrowPath.arrowSpacing);
-                float percentOfDistanceBetweenArrows = 1.0 - arrowIndex / animatedArrowPath.arrowSpacing;
-                
-                // Create white border effect on the edges
-                float borderWidth = 0.3; // Adjust this value to control border thickness
-                float borderFactor = smoothstep(1.0 - borderWidth, 1.0, percentFromCenter);
-                
-                vec3 finalColor;
-                if (percentOfDistanceBetweenArrows < 0.5) {
-                    float percentBlack = percentOfDistanceBetweenArrows / 0.5 * 0.5;
-                    finalColor = mix(vColor.rgb, vec3(0.0), percentBlack);
-                } else if (percentOfDistanceBetweenArrows < 0.75) {
-                    float percentWhite = (1.0 - (percentOfDistanceBetweenArrows - 0.5) * 4.0) * 0.75;
-                    finalColor = mix(vColor.rgb, vec3(1.0), percentWhite);
-                } else {
-                    finalColor = vColor.rgb;
+                vec3 finalColor = vColor.rgb;
+                // Skip the arrow math when arrows are off. Those distances are wrong below zoom 12.
+                // luma.gl uniform blocks have no bool, so this flag is a float (0 or 1). > 0.5 is the boolean test.
+                if (animatedArrowPath.arrowsEnabled > 0.5) {
+                    float percentFromCenter = abs(vPathPosition.x);
+                    float offset = vArrowPathOffset;
+                    // Guard against division by zero when vLengthRatio is 0
+                    float safeLengthRatio = max(vLengthRatio, 1e-6);
+                    float totalLength = vPathLength / safeLengthRatio;
+                    float startDistance = vStartOffsetRatio * totalLength;
+                    // percentFromCenter * 2.0 makes the arrow twice as pointy.
+                    float distanceSoFar = startDistance + vPathPosition.y - offset + percentFromCenter * 2.0;
+                    float arrowIndex = mod(distanceSoFar, animatedArrowPath.arrowSpacing);
+                    float percentOfDistanceBetweenArrows = 1.0 - arrowIndex / animatedArrowPath.arrowSpacing;
+
+                    // Create white border effect on the edges
+                    float borderWidth = 0.3; // Adjust this value to control border thickness
+                    float borderFactor = smoothstep(1.0 - borderWidth, 1.0, percentFromCenter);
+
+                    if (percentOfDistanceBetweenArrows < 0.5) {
+                        float percentBlack = percentOfDistanceBetweenArrows / 0.5 * 0.5;
+                        finalColor = mix(vColor.rgb, vec3(0.0), percentBlack);
+                    } else if (percentOfDistanceBetweenArrows < 0.75) {
+                        float percentWhite = (1.0 - (percentOfDistanceBetweenArrows - 0.5) * 4.0) * 0.75;
+                        finalColor = mix(vColor.rgb, vec3(1.0), percentWhite);
+                    }
+
+                    // Apply white border with antialiasing
+                    finalColor = mix(finalColor, vec3(1.0), borderFactor);
                 }
-                
-                // Apply white border with antialiasing
-                finalColor = mix(finalColor, vec3(1.0), borderFactor);
-                
+
                 // Required for events to work with picking: Apply deck.gl picking color filtering
                 // This ensures that clicking works properly by allowing deck.gl to render picking colors
                 // when in picking mode, and our custom colors when in normal rendering mode
@@ -220,7 +236,8 @@ export default class AnimatedArrowPathExtension extends LayerExtension {
                     fs: uniformBlock,
                     uniformTypes: {
                         time: 'f32',
-                        arrowSpacing: 'f32'
+                        arrowSpacing: 'f32',
+                        arrowsEnabled: 'f32'
                     },
                     inject
                 } as ShaderModule<AnimatedArrowPathProps>
