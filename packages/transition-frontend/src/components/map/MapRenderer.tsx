@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
+import { usePreference } from 'chaire-lib-frontend/lib/hooks/usePreference';
 import {
     isProjectBasemapStyleUrl,
     ProjectMapBasemapShortname
@@ -35,7 +36,7 @@ export interface MapRendererProps {
     defaultZoom: number;
     mapLoaded: boolean;
     getMapStyle: () => MapStyleSpec;
-    getDeckLayers: () => LayersList;
+    getDeckLayers: (disableAnimation: boolean) => LayersList;
     setupMapEvents: () => void;
     setMap: () => void;
     confirmModalDeleteIsOpen: boolean;
@@ -108,9 +109,13 @@ const MapRenderer: React.FC<MapRendererProps> = ({
 
     // Track zoom level and layer updates for deck.gl layer updates
     const [deckLayers, setDeckLayers] = useState<LayersList>([]);
+    const [enableAnimation] = usePreference('map.enableAnimation', true);
+    /** When true, path arrows and the selected-node spinner stay still. */
+    const disableAnimation = !enableAnimation;
     /** Incremented on `style.load` so DeckGL remounts after `setStyle` (MapLibre removes overlay controls). */
     const [deckOverlayRemountKey, setDeckOverlayRemountKey] = useState(0);
 
+    // disableAnimation is stored on the layer, so a preference change rebuilds the layers.
     // Listen for map layer updates from the event manager and update deck layers
     useEffect(() => {
         const updateDeckLayers = () => {
@@ -119,7 +124,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                 return;
             }
             // Immediately update deck layers
-            const layers = getDeckLayers();
+            const layers = getDeckLayers(disableAnimation);
             setDeckLayers(layers);
         };
 
@@ -144,7 +149,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
             eventManager.off('map.updatedEnabledLayers', updateDeckLayers);
             eventManager.off('selected.drag.node', updateDeckLayers);
         };
-    }, [mapLoaded, getDeckLayers]);
+    }, [mapLoaded, getDeckLayers, disableAnimation]);
 
     useEffect(() => {
         const map = mapRef.current?.getMap();
@@ -267,7 +272,9 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                 hash={true}
             >
                 {/* DeckGL overlay for animated selected paths and nodes - only render when there are layers */}
-                {shouldAnimate && <DeckGLControl key={deckOverlayRemountKey} layers={deckLayers} />}
+                {shouldAnimate && (
+                    <DeckGLControl key={deckOverlayRemountKey} layers={deckLayers} animate={!disableAnimation} />
+                )}
                 <ScaleControl position="bottom-right" />
             </MapLibreMap>
             {mapLoaded && (

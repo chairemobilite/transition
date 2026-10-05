@@ -588,8 +588,9 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     /**
      * Create deck.gl layers based on the mappings configuration.
      * Layers are dynamically created from deckLayerMappings in deckLayers.config.ts.
+     * @param disableAnimation - Freeze path arrows and node spinners
      */
-    getDeckLayers = (): LayersList => {
+    getDeckLayers = (disableAnimation: boolean): LayersList => {
         if (!this.state.mapLoaded) return [];
 
         const enabledLayers = this.layerManager.getEnabledLayers();
@@ -599,7 +600,8 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         return createDeckLayersFromMappings(
             enabledLayers,
             (layerName) => this.layerManager.getLayerConfig(layerName),
-            zoom
+            zoom,
+            disableAnimation
         );
     };
 

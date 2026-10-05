@@ -190,9 +190,15 @@ export const calculateNodeRadiusForZoom = (zoom: number): number => {
  * @param config - Layer configuration
  * @param data - GeoJSON features to render
  * @param beforeId - The validated beforeId (only passed if the target layer exists)
+ * @param disableAnimation - Freeze the arrow shader on a static frame
  */
-function createAnimatedPathLayer(config: DeckLayerConfig, data: Feature[], beforeId?: string): PathLayer {
-    return new PathLayer({
+function createAnimatedPathLayer(
+    config: DeckLayerConfig,
+    data: Feature[],
+    beforeId: string | undefined,
+    disableAnimation: boolean
+): PathLayer {
+    return new PathLayer<Feature, { disableAnimation: boolean }>({
         ...baseAnimatedPathConfig,
         ...config.layerConfig,
         id: config.deckLayerId,
@@ -200,6 +206,7 @@ function createAnimatedPathLayer(config: DeckLayerConfig, data: Feature[], befor
         data,
         getPath: getPathFromFeature,
         getColor: getColorFromFeature,
+        disableAnimation,
         extensions: [new AnimatedArrowPathExtension()],
         updateTriggers: {
             getPath: [data],
@@ -214,16 +221,18 @@ function createAnimatedPathLayer(config: DeckLayerConfig, data: Feature[], befor
  * @param data - GeoJSON features to render
  * @param zoom - Current map zoom level
  * @param beforeId - The validated beforeId (only passed if the target layer exists)
+ * @param disableAnimation - Freeze the node spinner
  */
 function createAnimatedNodesLayer(
     config: DeckLayerConfig,
     data: Feature[],
     zoom: number,
-    beforeId?: string
+    beforeId: string | undefined,
+    disableAnimation: boolean
 ): ScatterplotLayer {
     const radius = calculateNodeRadiusForZoom(zoom);
 
-    return new ScatterplotLayer({
+    return new ScatterplotLayer<Feature, { disableAnimation: boolean }>({
         ...baseAnimatedNodesConfig,
         ...config.layerConfig,
         id: config.deckLayerId,
@@ -232,6 +241,7 @@ function createAnimatedNodesLayer(
         getPosition: getPositionFromFeature,
         getRadius: radius,
         getFillColor: getColorFromFeature,
+        disableAnimation,
         extensions: [new CircleSpinnerExtension()],
         updateTriggers: {
             getPosition: [data],
@@ -252,12 +262,14 @@ function createAnimatedNodesLayer(
  * @param enabledLayers - Array of currently enabled MapLibre layer names
  * @param getLayerData - Function to get layer data from MapLayerManager
  * @param zoom - Current map zoom level (used for node radius calculation)
+ * @param disableAnimation - Freeze path arrows and node spinners. Defaults to false.
  * @returns Array of deck.gl Layer instances
  */
 export function createDeckLayersFromMappings(
     enabledLayers: string[],
     getLayerData: (layerName: string) => LayerData | undefined,
-    zoom: number
+    zoom: number,
+    disableAnimation = false
 ): Layer[] {
     const layers: Layer[] = [];
 
@@ -282,10 +294,10 @@ export function createDeckLayersFromMappings(
         // Create the deck.gl layer based on type
         switch (config.type) {
         case 'animatedPath':
-            layers.push(createAnimatedPathLayer(config, features, validBeforeId));
+            layers.push(createAnimatedPathLayer(config, features, validBeforeId, disableAnimation));
             break;
         case 'animatedNodes':
-            layers.push(createAnimatedNodesLayer(config, features, zoom, validBeforeId));
+            layers.push(createAnimatedNodesLayer(config, features, zoom, validBeforeId, disableAnimation));
             break;
         }
     }
