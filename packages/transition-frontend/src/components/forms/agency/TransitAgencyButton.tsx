@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -22,7 +22,7 @@ import TransitLineButton from '../line/TransitLineButton';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
-interface AgencyButtonProps extends WithTranslation {
+interface AgencyButtonProps {
     agency: Agency;
     selectedAgency?: Agency;
     selectedLine?: Line;
@@ -33,6 +33,7 @@ interface AgencyButtonProps extends WithTranslation {
 }
 
 const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: AgencyButtonProps) => {
+    const { t } = useTranslation(['transit', 'main', 'notifications']);
     const [agencyIsHidden, setAgencyIsHidden] = React.useState(
         serviceLocator.pathLayerManager.agencyIsHidden(props.agency.getId())
     );
@@ -128,7 +129,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                         agencyIds: [props.agency.getId()],
                         duplicateSchedules: true,
                         duplicateServices: true,
-                        newObjectsSuffix: ` (${props.t('main:Copy')})`
+                        newObjectsSuffix: ` (${t('main:Copy')})`
                     },
                     async (response: Status.Status<{ [originalAgencyId: string]: string }>) => resolve(response)
                 );
@@ -225,13 +226,13 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                 isSelected={agencyIsSelected}
                 flushActionButtons={false}
                 onSelect={{ handler: onSelect }}
-                onDuplicate={{ handler: onDuplicate, altText: props.t('transit:transitAgency:DuplicateAgency') }}
+                onDuplicate={{ handler: onDuplicate, altText: t('transit:transitAgency:DuplicateAgency') }}
                 onDelete={
                     !isFrozen && !agencyIsSelected
                         ? {
                             handler: onDelete,
-                            message: props.t('transit:transitAgency:ConfirmDelete'),
-                            altText: props.t('transit:transitAgency:Delete')
+                            message: t('transit:transitAgency:ConfirmDelete'),
+                            altText: t('transit:transitAgency:Delete')
                         }
                         : undefined
                 }
@@ -239,22 +240,22 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                 <ButtonCell alignment="left">
                     <span className="_circle-button" style={{ backgroundColor: props.agency.attributes.color }}></span>
                     {agencyIsHidden === true && (
-                        <span className="_list-element" onClick={showOnMap} title={props.t('main:Show')}>
+                        <span className="_list-element" onClick={showOnMap} title={t('main:Show')}>
                             <img
                                 className="_list-element _icon-alone"
                                 src={'/dist/images/icons/interface/hidden_white.svg'}
-                                alt={props.t('main:Show')}
-                                title={props.t('main:Show')}
+                                alt={t('main:Show')}
+                                title={t('main:Show')}
                             />
                         </span>
                     )}
                     {agencyIsHidden === false && (
-                        <span className="_list-element" onClick={hideOnMap} title={props.t('main:Hide')}>
+                        <span className="_list-element" onClick={hideOnMap} title={t('main:Hide')}>
                             <img
                                 className="_list-element _icon-alone"
                                 src={'/dist/images/icons/interface/visible_white.svg'}
-                                alt={props.t('main:Hide')}
-                                title={props.t('main:Hide')}
+                                alt={t('main:Hide')}
+                                title={t('main:Hide')}
                             />
                         </span>
                     )}
@@ -264,7 +265,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                         <img
                             className="_icon-alone"
                             src={'/dist/images/icons/interface/lock_white.svg'}
-                            alt={props.t('main:Locked')}
+                            alt={t('main:Locked')}
                         />
                     </ButtonCell>
                 )}
@@ -272,16 +273,16 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                 <ButtonCell alignment="left">{props.agency.attributes.name}</ButtonCell>
                 <ButtonCell alignment="flush">
                     {lines.length > 1
-                        ? props.t('transit:transitAgency:nLines', { n: lines.length })
-                        : props.t('transit:transitAgency:nLine', { n: lines.length })}
+                        ? t('transit:transitAgency:nLines', { n: lines.length })
+                        : t('transit:transitAgency:nLine', { n: lines.length })}
                 </ButtonCell>
                 {!isFrozen && !agencyIsSelected && (
-                    <ButtonCell alignment="right" onClick={newLineForAgency} title={props.t('transit:transitLine:New')}>
+                    <ButtonCell alignment="right" onClick={newLineForAgency} title={t('transit:transitLine:New')}>
                         <img
                             className="_list-element _icon-alone"
                             src={'/dist/images/icons/transit/line_add_white.svg'}
-                            alt={props.t('transit:transitLine:New')}
-                            title={props.t('transit:transitLine:New')}
+                            alt={t('transit:transitLine:New')}
+                            title={t('transit:transitLine:New')}
                         />
                     </ButtonCell>
                 )}
@@ -293,7 +294,7 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                         lazyRender={true}
                         trigger={
                             <MathJax.Provider>
-                                {props.t('transit:transitLine:List')}&nbsp;
+                                {t('transit:transitLine:List')}&nbsp;
                                 <span onClick={stopClick}>
                                     <MathJax.Node inline formula={'L'} data-tooltip-id="line-tooltip" />
                                 </span>
@@ -311,15 +312,15 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
                                     <ButtonCell
                                         alignment="left"
                                         onClick={newLineForAgency}
-                                        title={props.t('transit:transitLine:New')}
+                                        title={t('transit:transitLine:New')}
                                     >
                                         <img
                                             className="_list-element _icon-alone"
                                             src={'/dist/images/icons/transit/line_add_white.svg'}
-                                            alt={props.t('transit:transitLine:New')}
-                                            title={props.t('transit:transitLine:New')}
+                                            alt={t('transit:transitLine:New')}
+                                            title={t('transit:transitLine:New')}
                                         />
-                                        <span className="_list-element">{props.t('transit:transitLine:New')}</span>
+                                        <span className="_list-element">{t('transit:transitLine:New')}</span>
                                     </ButtonCell>
                                 </Button>
                             )}
@@ -331,4 +332,4 @@ const TransitAgencyButton: React.FunctionComponent<AgencyButtonProps> = (props: 
     );
 };
 
-export default withTranslation(['transit', 'main', 'notifications'])(TransitAgencyButton);
+export default TransitAgencyButton;
