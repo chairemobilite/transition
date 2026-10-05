@@ -185,11 +185,11 @@ const read = async (id: string) => {
  * Either an array of lines, or an agencyMapping must be specified.
  *
  * @param param The parameter object
- * @param param.lineIds The path IDs to duplicate
+ * @param param.lineIds The lines IDs to duplicate
  * @param param.agencyIdMapping The mapping of original line IDs to new line IDs
  * @param newObjectsSuffix The suffix to append to the line's longname
  * @param param.transaction The transaction to use for the duplication, if any
- * @returns A mapping of the ID of the paths copied to the ID of the copy.
+ * @returns A mapping of the ID of the lines copied to the ID of the copy.
  */
 const duplicate = async ({
     lineIds: requestedLineIds = [],
