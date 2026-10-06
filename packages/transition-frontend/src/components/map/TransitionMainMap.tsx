@@ -11,7 +11,7 @@ import React, { PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { MapRef, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import type { LayersList } from '@deck.gl/core';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
@@ -189,7 +189,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         map?.dragPan.disable();
     };
 
-    onMapError = (e: { error?: Error; message?: string }) => {
+    onMapError = (e: maplibregl.ErrorEvent) => {
         console.error('Map error:', e);
         if (!this.state.mapLoaded) {
             // Even if there was a map error, call the map.loaded event so the
@@ -613,7 +613,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         for (const eventName in this.mapEvents) {
             for (const layerName in this.mapEvents[eventName]) {
                 if (layerName === 'map') {
-                    map.on(eventName, this.getEventHandler(this.mapEvents[eventName][layerName]));
+                    map.on(eventName as any, this.getEventHandler(this.mapEvents[eventName][layerName]));
                 } else {
                     // The 'as any' cast is required because MapLibre GL's TypeScript definitions
                     // don't support dynamic strings for the layer-specific on(type, layerName, handler) overload.

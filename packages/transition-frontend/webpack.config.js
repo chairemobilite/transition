@@ -63,9 +63,18 @@ module.exports = (env) => {
     // TODO Custom styles and locales should be set in config (#419, #420)
     const customStylesFilePath = `${config.projectDir}/styles/styles.scss`;
     const customLocalesFilePath = `${config.projectDir}/locales`;
+    // Prepended so the MapLibre 6 worker URL is registered before any Map is constructed.
+    // This file stays outside tsc: the app compiles to CommonJS, which rejects import.meta.
+    const maplibreWorkerSetup = path.join(__dirname, 'maplibreWorkerUrl.js');
+    const maplibreDist = path.join(path.dirname(require.resolve('maplibre-gl/package.json')), 'dist');
+    const repoNodeModules = path.join(__dirname, '..', '..', 'node_modules');
+    // One ESM entry per package. tsc emits require(), which otherwise loads the CJS
+    // build while @deck.gl/maplibre loads the ESM build. Two ShaderAssemblers, and
+    // DECKGL_FILTER_COLOR is registered on the one the layer does not compile with.
+    const esmEntry = (pkg) => path.join(repoNodeModules, ...pkg.split('/'), 'dist/index.js');
     const entry = fs.existsSync('./' + customStylesFilePath)
-        ? [entryFileName, './' + customStylesFilePath]
-        : [entryFileName];
+        ? [maplibreWorkerSetup, entryFileName, './' + customStylesFilePath]
+        : [maplibreWorkerSetup, entryFileName];
     const includeDirectories = [
         path.join(__dirname, 'lib'),
 
@@ -190,7 +199,7 @@ module.exports = (env) => {
             new CompressionPlugin({
                 filename: '[path][base].gz[query]',
                 algorithm: 'gzip',
-                test: /\.js$|\.css$/,
+                test: /\.m?js$|\.css$/,
                 threshold: 0,
                 minRatio: 0.8
             }),
@@ -203,6 +212,12 @@ module.exports = (env) => {
                         from: '**/*',
                         to: '',
                         noErrorOnMissing: true
+                    },
+                    // The worker imports ./maplibre-gl-shared.mjs by that exact name.
+                    // Webpack emits the worker under a content hash and does not bundle this import.
+                    {
+                        from: path.join(maplibreDist, 'maplibre-gl-shared.mjs'),
+                        to: 'maplibre-gl-shared.mjs'
                     }
                 ]
             })
@@ -211,21 +226,35 @@ module.exports = (env) => {
             mainFields: ['browser', 'main', 'module'],
             modules: ['node_modules'],
             extensions: ['.json', '.js', '.ts', '.tsx'],
-            // In dev, read SCSS from chaire-lib-frontend and transition-frontend source so changes apply without running copy-files
-            alias: isProduction
-                ? {}
-                : {
-                    [path.join(chaireLibFrontendRoot, 'lib', 'styles')]: path.join(
-                        chaireLibFrontendRoot,
-                        'src',
-                        'styles'
-                    ),
-                    [path.join(transitionFrontendRoot, 'lib', 'styles')]: path.join(
-                        transitionFrontendRoot,
-                        'src',
-                        'styles'
-                    )
-                },
+            // MapLibre 6 and @deck.gl/maplibre publish an "import" condition only.
+            // tsc emits require(), which does not match that condition, so webpack
+            // cannot resolve them unless the exact package names point at the ESM files.
+            // The trailing $ keeps maplibre-gl/dist/* (CSS, worker) on the real package.
+            alias: {
+                'maplibre-gl$': path.join(maplibreDist, 'maplibre-gl.mjs'),
+                '@deck.gl/maplibre$': esmEntry('@deck.gl/maplibre'),
+                '@deck.gl/core$': esmEntry('@deck.gl/core'),
+                '@deck.gl/layers$': esmEntry('@deck.gl/layers'),
+                '@luma.gl/core$': esmEntry('@luma.gl/core'),
+                '@luma.gl/engine$': esmEntry('@luma.gl/engine'),
+                '@luma.gl/shadertools$': esmEntry('@luma.gl/shadertools'),
+                '@luma.gl/webgl$': esmEntry('@luma.gl/webgl'),
+                '@luma.gl/gpgpu$': esmEntry('@luma.gl/gpgpu'),
+                ...(isProduction
+                    ? {}
+                    : {
+                        [path.join(chaireLibFrontendRoot, 'lib', 'styles')]: path.join(
+                            chaireLibFrontendRoot,
+                            'src',
+                            'styles'
+                        ),
+                        [path.join(transitionFrontendRoot, 'lib', 'styles')]: path.join(
+                            transitionFrontendRoot,
+                            'src',
+                            'styles'
+                        )
+                    })
+            },
             fallback: { path: false }
         },
         devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',

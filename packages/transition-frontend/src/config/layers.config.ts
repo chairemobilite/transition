@@ -170,14 +170,8 @@ const layersConfig = {
         paint: {
             'line-color': 'rgba(255,255,255,1.0)',
             'line-opacity': 0.7,
-            'line-width': {
-                base: 6,
-                stops: [
-                    [6, 6],
-                    [12, 10],
-                    [13, 12]
-                ]
-            }
+            // Constant pixels, wider than the deck.gl line, so the halo stays around it at every zoom.
+            'line-width': 12
         }
     },
 
@@ -197,14 +191,7 @@ const layersConfig = {
             },
             // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
             'line-opacity': 0.01,
-            'line-width': {
-                base: 3,
-                stops: [
-                    [6, 3],
-                    [12, 5],
-                    [13, 7]
-                ]
-            }
+            'line-width': 8
         }
     },
 
@@ -219,14 +206,8 @@ const layersConfig = {
         paint: {
             'line-color': 'rgba(255,0,255,1.0)',
             'line-opacity': 0.7,
-            'line-width': {
-                base: 6,
-                stops: [
-                    [6, 6],
-                    [12, 10],
-                    [13, 12]
-                ]
-            }
+            // Same constant width as routingPathsStrokes.
+            'line-width': 12
         }
     },
 
@@ -248,14 +229,7 @@ const layersConfig = {
             },
             // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
             'line-opacity': 0.01,
-            'line-width': {
-                base: 3,
-                stops: [
-                    [6, 3],
-                    [12, 5],
-                    [13, 7]
-                ]
-            }
+            'line-width': 8
         }
     },
 

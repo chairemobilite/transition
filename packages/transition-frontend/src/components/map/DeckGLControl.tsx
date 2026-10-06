@@ -6,7 +6,7 @@
  */
 import React, { useRef, useEffect } from 'react';
 import { useControl, useMap } from 'react-map-gl/maplibre';
-import { MapboxOverlay as DeckOverlay } from '@deck.gl/mapbox';
+import { MapLibreOverlay as DeckOverlay } from '@deck.gl/maplibre';
 import type { LayersList } from '@deck.gl/core';
 
 export interface DeckGLControlProps {
@@ -15,7 +15,8 @@ export interface DeckGLControlProps {
 
 /**
  * DeckGL Overlay Control Component for Animated Selected Paths and Nodes (custom shaders).
- * This component integrates deck.gl layers with MapLibre GL using the MapboxOverlay.
+ * This component integrates deck.gl layers with MapLibre GL using MapLibreOverlay.
+ * MapboxOverlay cannot be used here: it reads map.transform, which MapLibre 6 removed.
  *
  * This component should only be rendered when there are active deck.gl layers that need
  * animation. When unmounted, the overlay is removed and GPU resources are freed.
@@ -53,10 +54,9 @@ const DeckGLControl: React.FC<DeckGLControlProps> = ({ layers }) => {
         }
     );
 
-    // Enable MapLibre repaint mode while this component is mounted
-    // This is required for deck.gl animations to render smoothly.
-    // The shader extensions use performance.now() in their draw() methods,
-    // so continuous repainting is sufficient for animation - no RAF loop needed.
+    // Enable MapLibre repaint mode while this component is mounted.
+    // The shader extensions read performance.now() in their draw() methods,
+    // so continuous repainting is sufficient for animation.
     useEffect(() => {
         const map = mapRef?.getMap();
         if (map) {

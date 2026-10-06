@@ -95,16 +95,17 @@ const MapRenderer: React.FC<MapRendererProps> = ({
         });
     }, [mapRef, defaultCenter, defaultZoom]);
 
-    const [viewState, setViewState] = useState({
-        longitude: defaultCenter[0],
-        latitude: defaultCenter[1],
-        zoom: defaultZoom
-    });
-
-    // Update zoom state when view changes and notify parent
-    useEffect(() => {
-        handleZoomChange(viewState.zoom);
-    }, [viewState.zoom, handleZoomChange]);
+    // Initial camera only. The map keeps it afterwards. Passing longitude/zoom back as props
+    // makes react-map-gl replace MapLibre's in-progress gesture with the previous React render,
+    // so the deck.gl path and the GeoJSON line are no longer drawn at the same zoom.
+    const initialViewState = useMemo(
+        () => ({
+            longitude: defaultCenter[0],
+            latitude: defaultCenter[1],
+            zoom: defaultZoom
+        }),
+        [defaultCenter, defaultZoom]
+    );
 
     // Track zoom level and layer updates for deck.gl layer updates
     const [deckLayers, setDeckLayers] = useState<LayersList>([]);
@@ -255,8 +256,13 @@ const MapRenderer: React.FC<MapRendererProps> = ({
             {children}
             <MapLibreMap
                 ref={mapRef}
-                {...viewState}
-                onMove={(evt) => setViewState(evt.viewState)}
+                initialViewState={initialViewState}
+                onMove={(evt) => {
+                    // Panning reports the same zoom. Updating state then re-renders the map for no basemap change.
+                    if (evt.viewState.zoom !== currentZoom) {
+                        handleZoomChange(evt.viewState.zoom);
+                    }
+                }}
                 onLoad={() => {
                     setMap();
                     setupMapEvents();

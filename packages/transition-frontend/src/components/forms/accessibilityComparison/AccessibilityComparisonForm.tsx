@@ -17,7 +17,7 @@ import _toString from 'lodash/toString';
 import moment from 'moment';
 import Loader from 'react-spinners/BeatLoader';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import { FeatureCollection } from 'geojson';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';

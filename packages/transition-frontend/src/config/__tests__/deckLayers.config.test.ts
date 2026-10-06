@@ -45,7 +45,8 @@ describe('Deck.gl layer configurations', () => {
             'transitPathsSelected',
             'transitNodesSelected',
             'routingPaths',
-            'routingPathsAlternate'
+            'routingPathsAlternate',
+            'routingPoints'
         ];
 
         test.each(expectedLayerNames)('should contain mapping for %s', (layerName) => {
@@ -57,7 +58,8 @@ describe('Deck.gl layer configurations', () => {
             ['transitPathsSelected', 'animatedPath', 'selected-paths-animated', 'transitNodes'],
             ['transitNodesSelected', 'animatedNodes', 'selected-nodes-spinner', undefined],
             ['routingPaths', 'animatedPath', 'routing-paths-animated', 'routingPoints'],
-            ['routingPathsAlternate', 'animatedPath', 'routing-paths-alternate-animated', 'routingPoints']
+            ['routingPathsAlternate', 'animatedPath', 'routing-paths-alternate-animated', 'routingPoints'],
+            ['routingPoints', 'points', 'routing-points', undefined]
         ];
 
         test.each(mappingConfigs)(

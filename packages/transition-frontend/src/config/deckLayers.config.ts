@@ -17,7 +17,7 @@ import CircleSpinnerExtension from '../components/map/CircleSpinnerExtension';
 // ============================================================================
 
 /** Type of deck.gl layer to create */
-export type DeckLayerType = 'animatedPath' | 'animatedNodes';
+export type DeckLayerType = 'animatedPath' | 'animatedNodes' | 'points';
 
 /** Configuration for a deck.gl overlay layer */
 export interface DeckLayerConfig {
@@ -53,6 +53,15 @@ export interface LayerData {
 /** Default fallback values for invalid geometry */
 const DEFAULT_PATH: Position[] = [];
 const DEFAULT_POSITION: Position = [0, 0];
+
+/**
+ * deck.gl Position is a 2- or 3-number tuple. GeoJSON positions are open arrays.
+ * @param coordinate A GeoJSON position, [lng, lat] or [lng, lat, elevation]
+ */
+const toDeckPosition = (coordinate: number[]): Position => {
+    const [lng, lat, elevation] = coordinate;
+    return elevation === undefined ? [lng, lat] : [lng, lat, elevation];
+};
 /** Default gray color as hex string for hexToRgbArray fallback */
 const DEFAULT_COLOR_HEX = '#808080';
 const DEFAULT_COLOR: [number, number, number, number] = [128, 128, 128, 255];
@@ -66,7 +75,7 @@ const getPathFromFeature = (feature: Feature): Position[] => {
         console.warn('getPathFromFeature: Expected LineString geometry, got:', feature?.geometry?.type);
         return DEFAULT_PATH;
     }
-    return (feature as Feature<LineString>).geometry.coordinates as Position[];
+    return (feature as Feature<LineString>).geometry.coordinates.map(toDeckPosition);
 };
 
 /**
@@ -90,7 +99,7 @@ const getPositionFromFeature = (feature: Feature): Position => {
         console.warn('getPositionFromFeature: Expected Point geometry, got:', feature?.geometry?.type);
         return DEFAULT_POSITION;
     }
-    return (feature as Feature<Point>).geometry.coordinates as Position;
+    return toDeckPosition((feature as Feature<Point>).geometry.coordinates);
 };
 
 // ============================================================================
@@ -143,11 +152,12 @@ export const deckLayerMappings: DeckLayerMappings = {
     routingPaths: {
         type: 'animatedPath',
         deckLayerId: 'routing-paths-animated',
+        // Same placement as transitPathsSelected: the line is drawn under the points.
         beforeId: 'routingPoints',
         layerConfig: {
-            getWidth: 8,
-            widthMinPixels: 3,
-            widthMaxPixels: 10
+            getWidth: 12,
+            widthMinPixels: 4,
+            widthMaxPixels: 12
         }
     },
     routingPathsAlternate: {
@@ -155,16 +165,42 @@ export const deckLayerMappings: DeckLayerMappings = {
         deckLayerId: 'routing-paths-alternate-animated',
         beforeId: 'routingPoints',
         layerConfig: {
-            getWidth: 8,
-            widthMinPixels: 3,
-            widthMaxPixels: 10
+            getWidth: 12,
+            widthMinPixels: 4,
+            widthMaxPixels: 12
         }
+    },
+    routingPoints: {
+        type: 'points',
+        deckLayerId: 'routing-points',
+        // No beforeId, like transitNodesSelected: this layer is drawn above the animated path.
+        // The MapLibre circles of the same name stay underneath that path.
+        layerConfig: {}
     }
 };
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+/**
+ * Pixel radius for origin and destination markers.
+ * Matches the routingPoints circle-radius stops: [5, 1], [10, 2], [15, 10].
+ * @param zoom - Current map zoom
+ * @returns Radius in pixels
+ */
+function routingPointRadiusForZoom(zoom: number): number {
+    if (zoom <= 5) {
+        return 1;
+    }
+    if (zoom <= 10) {
+        return 1 + (zoom - 5) / 5;
+    }
+    if (zoom <= 15) {
+        return 2 + (8 * (zoom - 10)) / 5;
+    }
+    return 10 + (zoom - 15) * 2;
+}
 
 /**
  * Calculate radius for selected nodes based on zoom level (exponential interpolation)
@@ -240,6 +276,40 @@ function createAnimatedNodesLayer(
     });
 }
 
+/**
+ * Origin and destination dots, drawn above the animated route.
+ * @param config - Layer configuration
+ * @param data - GeoJSON point features
+ * @param zoom - Current map zoom level
+ */
+function createPointLayer(config: DeckLayerConfig, data: Feature[], zoom: number): ScatterplotLayer {
+    return new ScatterplotLayer({
+        ...config.layerConfig,
+        id: config.deckLayerId,
+        data,
+        radiusUnits: 'pixels',
+        stroked: true,
+        filled: true,
+        pickable: false,
+        getPosition: getPositionFromFeature,
+        getRadius: routingPointRadiusForZoom(zoom),
+        getFillColor: getColorFromFeature,
+        getLineColor: [255, 255, 255, 255],
+        lineWidthUnits: 'pixels',
+        getLineWidth: 2,
+        // Always paint these dots. The animated path is a 3D custom layer and covers
+        // the MapLibre circles that use the same coordinates.
+        parameters: {
+            depthCompare: 'always',
+            depthWriteEnabled: false
+        },
+        updateTriggers: {
+            getPosition: [data],
+            getFillColor: [data]
+        }
+    });
+}
+
 // ============================================================================
 // Main Factory Function
 // ============================================================================
@@ -286,6 +356,9 @@ export function createDeckLayersFromMappings(
             break;
         case 'animatedNodes':
             layers.push(createAnimatedNodesLayer(config, features, zoom, validBeforeId));
+            break;
+        case 'points':
+            layers.push(createPointLayer(config, features, zoom));
             break;
         }
     }
