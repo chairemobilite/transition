@@ -10,7 +10,7 @@ import Agency, { AgencyAttributes } from 'transition-common/lib/services/agency/
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { AgencyImportData, GtfsImportData, GtfsAgency } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
-import { getUniqueAgencyAcronym } from 'transition-common/lib/services/agency/AgencyUtils';
+import { getUniqueAgencyAcronym } from '../transitObjects/transitAgencies/AgencyUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 // eslint-disable-next-line n/no-unpublished-import
 import type { Agency as GtfsAgencySpec } from 'gtfs-types';
@@ -190,8 +190,7 @@ export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agen
     }
 
     private async createNewAgency(agencyAttributes: Partial<AgencyAttributes>, newAcronym?: string) {
-        const uniqueAcronym = getUniqueAgencyAcronym(
-            this._existingAgencies,
+        const uniqueAcronym = await getUniqueAgencyAcronym(
             newAcronym || agencyAttributes.acronym || AgencyImporter.DEFAULT_AGENCY_ACRONYM
         );
         agencyAttributes.acronym = uniqueAcronym;

@@ -11,6 +11,7 @@ import each from 'jest-each';
 
 import { gtfsValidSimpleData, gtfsValidSingleAgencyData, defaultImportData, defaultInternalImportData, gtfsValidTransitionGeneratedData } from './GtfsImportData.test';
 import AgencyImporter from '../AgencyImporter';
+import { getUniqueAgencyAcronym } from '../../transitObjects/transitAgencies/AgencyUtils';
 
 let currentData: any = gtfsValidSimpleData;
 const agencySaveFct = Agency.prototype.save = jest.fn();
@@ -29,9 +30,13 @@ jest.mock('chaire-lib-backend/lib/services/files/CsvFile', () => {
     }
 });
 
+jest.mock('../../transitObjects/transitAgencies/AgencyUtils', () => ({
+    getUniqueAgencyAcronym: jest.fn().mockImplementation((acronym) => acronym)
+}));
+const mockGetUniqueAgencyAcronym = getUniqueAgencyAcronym as jest.MockedFunction<typeof getUniqueAgencyAcronym>;
+
 beforeEach(() => {
-    agencySaveFct.mockClear();
-    agencyDeleteFct.mockClear();
+    jest.clearAllMocks();
 })
 
 describe('GTFS Agency import preparation', () => {
@@ -83,10 +88,10 @@ describe('GTFS Agency import preparation', () => {
         const data = await agencyImporter.prepareImportData();
         expect(data.length).toEqual(1);
         // Match both on acronym and GTFS data
-        expect(data[0]).toEqual({ 
-            agency: gtfsValidSimpleData['agency.txt'][0], 
+        expect(data[0]).toEqual({
+            agency: gtfsValidSimpleData['agency.txt'][0],
             existingAgencies: [{ id: currentAgency1.id, acronym: currentAgency1.acronym }, { id: currentAgency2.id, acronym: currentAgency2.acronym }],
-            agencyAction: { action: 'replace', agencyId: currentAgency1.id } 
+            agencyAction: { action: 'replace', agencyId: currentAgency1.id }
         });
     });
 
@@ -118,9 +123,9 @@ describe('GTFS Agency import preparation', () => {
         const agencyImporter = new AgencyImporter({ directoryPath: '', agencies });
         const data = await agencyImporter.prepareImportData();
         expect(data.length).toEqual(1);
-        expect(data[0]).toEqual({ 
+        expect(data[0]).toEqual({
             agency: { agency_id: AgencyImporter.DEFAULT_AGENCY_ACRONYM, ...gtfsValidSingleAgencyData['agency.txt'][0] },
-            existingAgencies: [] 
+            existingAgencies: []
         });
 
         // Add an agency with a matching acronym
@@ -135,7 +140,7 @@ describe('GTFS Agency import preparation', () => {
 
         const data2 = await agencyImporter.prepareImportData();
         expect(data2.length).toEqual(1);
-        expect(data2[0]).toEqual({ 
+        expect(data2[0]).toEqual({
             agency: { agency_id: AgencyImporter.DEFAULT_AGENCY_ACRONYM, ...gtfsValidSingleAgencyData['agency.txt'][0] },
             existingAgencies: [{ id: currentAgencyWithMatchingAcronym.id, acronym: currentAgencyWithMatchingAcronym.acronym }],
             agencyAction: { action: 'replace', agencyId: currentAgencyWithMatchingAcronym.id }
@@ -238,8 +243,8 @@ describe('GTFS Agency import', () => {
         agencyDeleteFct.mockImplementationOnce(() => agencies.removeById(currentAgency1.id));
 
         const agencyImporter = new AgencyImporter({ directoryPath: '', agencies });
-        const importData = [ { 
-            agency: gtfsValidSimpleData['agency.txt'][0], 
+        const importData = [ {
+            agency: gtfsValidSimpleData['agency.txt'][0],
             existingAgencies: [{ id: currentAgency1.id, acronym: currentAgency1.acronym }],
             agencyAction: { action: 'replace', agencyId: currentAgency1.id },
             selected: true
@@ -294,8 +299,8 @@ describe('GTFS Agency import', () => {
         collectionManager.add('agencies', agencies );
 
         const agencyImporter = new AgencyImporter({ directoryPath: '', agencies });
-        const importData = [ { 
-            agency: gtfsValidSimpleData['agency.txt'][0], 
+        const importData = [ {
+            agency: gtfsValidSimpleData['agency.txt'][0],
             existingAgencies: [{ id: currentAgency1.id, acronym: currentAgency1.acronym }],
             agencyAction: { action, agencyId: currentAgency1.id },
             selected: true
@@ -339,14 +344,18 @@ describe('GTFS Agency import', () => {
         collectionManager.add('agencies', agencies );
 
         const agencyImporter = new AgencyImporter({ directoryPath: '', agencies });
-        const importData = [ { 
-            agency: gtfsValidSimpleData['agency.txt'][0], 
+        const importData = [ {
+            agency: gtfsValidSimpleData['agency.txt'][0],
             existingAgencies: [{ id: currentAgency1.id, acronym: currentAgency1.acronym }],
             agencyAction: { action: 'create', agencyId: newAcronym },
             selected: true
-        } ];
+        }];
 
-        const data = await agencyImporter.import(Object.assign({}, defaultImportData, { agencies: importData}), defaultInternalImportData);
+        // Have the getUniqueAgencyAcronym function return a different acronym
+        mockGetUniqueAgencyAcronym.mockResolvedValueOnce(expectedAcronym);
+
+        const data = await agencyImporter.import(Object.assign({}, defaultImportData, { agencies: importData }), defaultInternalImportData);
+        expect(mockGetUniqueAgencyAcronym).toHaveBeenCalledWith(newAcronym);
         expect(agencyDeleteFct).toHaveBeenCalledTimes(0);
         expect(agencySaveFct).toHaveBeenCalledTimes(1);
         const newAgency = data[gtfsValidSimpleData['agency.txt'][0].agency_id];
@@ -367,12 +376,12 @@ describe('GTFS Agency import', () => {
         currentData = gtfsValidSingleAgencyData
         const collectionManager = new CollectionManager(null);
         const { agency_name, ...rest } = gtfsValidSingleAgencyData['agency.txt'][0];
-        
+
         const agencies = new AgencyCollection([ ], {})
         collectionManager.add('agencies', agencies );
 
         const agencyImporter = new AgencyImporter({ directoryPath: '', agencies });
-        const importData = [ { 
+        const importData = [ {
             agency: { agency_id: AgencyImporter.DEFAULT_AGENCY_ACRONYM, ...gtfsValidSingleAgencyData['agency.txt'][0] },
             existingAgencies: [ ],
             agencyIdToOverwrite: undefined,
@@ -400,12 +409,12 @@ describe('GTFS Agency import', () => {
         currentData = gtfsValidTransitionGeneratedData
         const collectionManager = new CollectionManager(null);
         const { agency_name, ...rest } = gtfsValidTransitionGeneratedData['agency.txt'][0];
-        
+
         const agencies = new AgencyCollection([ ], {})
         collectionManager.add('agencies', agencies );
 
         const agencyImporter = new AgencyImporter({ directoryPath: '', agencies });
-        const importData = [ { 
+        const importData = [ {
             agency: gtfsValidTransitionGeneratedData['agency.txt'][0],
             existingAgencies: [ ],
             agencyAction: undefined,
