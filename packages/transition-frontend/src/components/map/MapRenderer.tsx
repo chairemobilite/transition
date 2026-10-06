@@ -261,6 +261,8 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                     setMap();
                     setupMapEvents();
                 }}
+                // Keep OSM and MapLibre credits expanded so map screenshots include them.
+                attributionControl={{ compact: false }}
                 style={{ width: '100%', height: '100%' }}
                 maxZoom={Math.max(20, maxRasterBasemapZoom)}
                 mapStyle={initialMapStyle}
