@@ -3,6 +3,8 @@
     "compilerOptions": {
         "outDir": "lib",
         "rootDir": "src",
+        "module": "nodenext",
+        "moduleResolution": "nodenext",
         "isolatedModules": false, // Should be removed to inherit the true eventually
         "noImplicitAny": false, // Should be removed to inherit the true eventually
     },

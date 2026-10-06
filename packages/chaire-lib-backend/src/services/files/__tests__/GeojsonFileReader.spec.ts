@@ -4,6 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { beforeEach, expect, test } from "vitest";
+
 import { parseGeojsonFileFeatures } from '../GeojsonFileReader';
 
 const filePath = `${__dirname}/testFiles/featureCollection.geojson`;

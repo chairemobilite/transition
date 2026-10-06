@@ -17,5 +17,5 @@ module.exports = {
         './jestSetup.ts'
     ],
     'testPathIgnorePatterns': ['(/__tests__/.*(db\\.test)\\.(jsx?|tsx?))$', '(/__tests__/.*(integration\\.test)\\.(jsx?|tsx?))$'],
+    transformIgnorePatterns: ['/node_modules/(?!(stream-json)/)'],
 };
-

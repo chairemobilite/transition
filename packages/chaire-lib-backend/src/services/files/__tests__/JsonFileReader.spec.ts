@@ -4,6 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import { beforeEach, expect, test } from "vitest";
+
 import { parseJsonFile } from '../JsonFileReader';
 
 const filePath = `${__dirname}/testFiles/test.json`;
@@ -42,11 +44,12 @@ test('Test reader', async () => {
 });
 
 test('Test reader, bad file format', async () => {
+    console.log('invalid input');
     // Third object has errors, the previous objects will have been parsed anyway, but none after
     await expect(parseJsonFile(`${__dirname}/testFiles/invalidJsonFormat.json`, rowCallback))
         .rejects
         .toThrow(expect.anything());
-    
+
     expect(rows.length).toEqual(2);
     expect(rows[0]).toEqual({
         title1: 'obj1.1',
