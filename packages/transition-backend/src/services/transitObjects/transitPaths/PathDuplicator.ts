@@ -33,9 +33,10 @@ export type DuplicatePathOptions = {
  * @param {DuplicatePathOptions} options The path duplication options. Either or
  * both pathIds and lineIdMapping must bet set.
  * @param {WithTransaction} arg.transaction The transaction this duplication
- * is part of, if any
+ * is part of, if any. The function returns a Status, so if an error occurs, it is
+ * the caller's responsibility to detect it and rollback if necessary.
  * @returns A status object a mapping of the previous path IDs to the new
- * ones
+ * ones, or an error if anything happened during the function execution.
  */
 export const duplicatePaths = async (
     options: DuplicatePathOptions,
