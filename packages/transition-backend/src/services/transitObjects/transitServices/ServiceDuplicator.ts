@@ -25,11 +25,13 @@ export type DuplicateServiceOptions = {
 /**
  * Duplicate services and save them in the database.
  *
- * @param options Duplication options
+ * @param {DuplicateServiceOptions} options Duplication options
  * @param options.serviceIds The IDs of the services to duplicate
- * @param arg.transaction The optional transaction to use for the database queries
+ * @param {WithTransaction} arg.transaction The optional transaction to use for the database queries.
+ * The function returns a Status, so if an error occurs, it is
+ * the caller's responsibility to detect it and rollback if necessary.
  * @returns A status object a mapping of the previous service IDs to the new
- * ones
+ * ones, or an error if anything happened during the function execution.
  */
 export const duplicateServices = async (
     { serviceIds, ...options }: DuplicateServiceOptions,

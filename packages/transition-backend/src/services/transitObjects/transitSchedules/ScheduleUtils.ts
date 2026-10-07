@@ -36,9 +36,11 @@ export type DuplicateScheduleMappings = {
  *
  * @param mappings The mapping of original objects to the new ones. There should
  * be at least a mapping of lines or services to allow duplication.
- * @param transaction The database transaction to use
+ * @param transaction The database transaction to use.  The function returns a Status,
+ * so if an error occurs, it is the caller's responsibility to detect it and rollback
+ * if necessary.
  * @returns A status object a mapping of the previous service IDs to the new
- * ones
+ * ones, or an error if anything happened during the function execution.
  */
 export const duplicateSchedules = async (
     mappings: DuplicateScheduleMappings,

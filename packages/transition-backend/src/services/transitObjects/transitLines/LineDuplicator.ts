@@ -46,9 +46,10 @@ export type DuplicateLineOptions = {
  * @param {DuplicateLineOptions} options The line duplication options. Either or
  * both lineIds and agencyIdMapping must bet set.
  * @param {WithTransaction} arg.transaction The transaction this duplication
- * is part of, if any
+ * is part of, if any. The function returns a Status, so if an error occurs, it is
+ * the caller's responsibility to detect it and rollback if necessary.
  * @returns A status object with the mapping of the previous line IDs to the new
- * ones
+ * ones, or an error if anything happened during the function execution
  */
 export const duplicateLines = async (
     options: DuplicateLineOptions,
