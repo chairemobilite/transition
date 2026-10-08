@@ -764,17 +764,8 @@ const duplicateSchedule = async ({
                     ${pathMappingQuery.mappedJoin} \
                     order by id returning id`;
 
-            await knex
-                .raw(
-                    createDuplicateQueryWithIdMapping(
-                        tripTable,
-                        duplicateTripsQuery,
-                        periodMappingQuery.whereClause ?? '',
-                        'id'
-                    ),
-                    [...periodMappingQuery.bindings, ...tripWithClauses.bindings]
-                )
-                .transacting(trx);
+            // No need to wrap the duplicate query with the id mapping for trips, as it is the final query
+            await knex.raw(duplicateTripsQuery, [...tripWithClauses.bindings]).transacting(trx);
             return mapDuplicateIds<number>(scheduleIdMapping.rows);
         };
         // Make sure the update is done in a transaction, use the one in the options if available
