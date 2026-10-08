@@ -140,6 +140,60 @@ describe('duplicateLines', () => {
         );
     });
 
+    it('chunks line and service mappings while reusing duplicated services', async () => {
+        // Size of the mappings to test and the expected chunk size (change if chunk size changes in the LineDuplicator code)
+        const mappingSize = 30;
+        const expectedChunkSize = 20;
+        const sourceLineIds = Array.from({ length: mappingSize }, (_, index) => `line-${index}`);
+        const largeLineIdMapping = Object.fromEntries(sourceLineIds.map(id => [id, `${id}-copy`]));
+        const sourceServiceIds = Array.from({ length: mappingSize }, (_, index) => `service-${index}`);
+        const largeServiceIdMapping = Object.fromEntries(sourceServiceIds.map(id => [id, `${id}-copy`]));
+        mockDuplicateLines.mockResolvedValue(largeLineIdMapping);
+        mockGetServiceIdsForLines.mockResolvedValue(sourceServiceIds);
+        mockDuplicatePaths.mockImplementation(async ({ lineIdMapping }) =>
+            Status.createOk(
+                Object.fromEntries(
+                    Object.keys(lineIdMapping ?? {}).map(lineId => [`path-${lineId}`, `path-${lineId}-copy`])
+                )
+            )
+        );
+        mockDuplicateServices.mockImplementation(async ({ serviceIds: ids }) =>
+            Status.createOk(Object.fromEntries(ids.map(id => [id, largeServiceIdMapping[id]])))
+        );
+
+        expect(await duplicateLines({ lineIds, duplicateSchedules: true, duplicateServices: true })).toEqual(
+            Status.createOk(largeLineIdMapping)
+        );
+
+        expect(mockDuplicatePaths).toHaveBeenCalledTimes(2);
+        expect(mockDuplicatePaths.mock.calls.map(([options]) => Object.keys(options.lineIdMapping ?? {}).length)).toEqual([
+            expectedChunkSize,
+            mappingSize - expectedChunkSize
+        ]);
+        for (const [options] of mockDuplicatePaths.mock.calls) {
+            const lineIdsInChunk = Object.keys(options.lineIdMapping ?? {});
+            expect(Object.keys(options.lineIdMapping ?? {}).every(id => sourceLineIds.includes(id))).toBe(true);
+            expect(Object.keys(options.lineIdMapping ?? {}).length).toBeLessThanOrEqual(expectedChunkSize);
+
+            const scheduleCalls = mockDuplicateSchedules.mock.calls.filter(
+                ([mappings]) => Object.keys(mappings.lineIdMapping ?? {}).join(',') === lineIdsInChunk.join(',')
+            );
+            expect(scheduleCalls.length).toBe(2);
+            for (const [mappings] of scheduleCalls) {
+                expect(Object.keys(mappings.pathIdMapping ?? {})).toEqual(lineIdsInChunk.map(id => `path-${id}`));
+                expect(Object.keys(mappings.serviceIdMapping ?? {}).length).toBeLessThanOrEqual(expectedChunkSize);
+            }
+        }
+
+        expect(mockDuplicateServices).toHaveBeenCalledTimes(2);
+        expect(mockDuplicateServices.mock.calls.map(([options]) => options.serviceIds.length)).toEqual([expectedChunkSize, mappingSize - expectedChunkSize]);
+        expect(mockDuplicateServices.mock.calls.flatMap(([options]) => options.serviceIds).sort()).toEqual(
+            [...sourceServiceIds].sort()
+        );
+        expect(mockGetServiceIdsForLines).toHaveBeenCalledTimes(2);
+        expect(mockDuplicateSchedules).toHaveBeenCalledTimes(4);
+    });
+
     it('does not duplicate paths or schedules when no lines were duplicated', async () => {
         mockDuplicateLines.mockResolvedValue({});
 
