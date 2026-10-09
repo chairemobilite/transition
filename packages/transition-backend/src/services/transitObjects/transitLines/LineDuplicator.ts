@@ -13,6 +13,21 @@ import { duplicatePaths } from '../transitPaths/PathDuplicator';
 import { duplicateServices } from '../transitServices/ServiceDuplicator';
 import { duplicateSchedules, getServiceIdsForLines } from '../transitSchedules/ScheduleUtils';
 
+// Arbitrary value, there was not much tests done for it, the impact on
+// performance was not significant no matter the value tried. Should be not too
+// low to not increase the number of queries by too much, nor too high to avoid
+// potential memory overhead if the chunks end up with too many trips to
+// duplicate.
+const MAPPING_CHUNK_SIZE = 20;
+
+const chunkIds = (ids: string[]): string[][] => {
+    const chunks: string[][] = [];
+    for (let index = 0; index < ids.length; index += MAPPING_CHUNK_SIZE) {
+        chunks.push(ids.slice(index, index + MAPPING_CHUNK_SIZE));
+    }
+    return chunks;
+};
+
 /**
  * Type of the options for the line duplication.
  */
@@ -68,40 +83,57 @@ export const duplicateLines = async (
             if (Object.keys(lineIdMapping).length === 0) {
                 return Status.createOk(lineIdMapping);
             }
-            // Duplicate the lines' paths, without suffix as they are in new lines, they will keep their former names
-            const pathIdMapping = Status.unwrap(
-                await duplicatePaths(
-                    {
-                        lineIdMapping
-                    },
-                    { transaction: trx }
-                )
-            );
 
-            if (options.duplicateSchedules) {
-                const serviceIdMapping = {};
-                const originalLineIds = Object.keys(lineIdMapping);
-                const serviceIds = await getServiceIdsForLines(originalLineIds, { transaction: trx });
-                if (options.duplicateServices && serviceIds.length > 0) {
-                    Object.assign(serviceIdMapping, {
-                        ...Status.unwrap(
-                            await duplicateServices(
-                                { serviceIds, newServiceSuffix: newObjectsSuffix },
+            const serviceIdMapping: { [originalServiceId: string]: string } = {};
+            for (const lineIdsChunk of chunkIds(Object.keys(lineIdMapping))) {
+                const lineMappingChunk = Object.fromEntries(
+                    lineIdsChunk.map((lineId) => [lineId, lineIdMapping[lineId]])
+                );
+                // Restrict path duplication to the current lines so schedule
+                // mappings only contain paths belonging to this line batch.
+                const pathIdMapping = Status.unwrap(
+                    await duplicatePaths({ lineIdMapping: lineMappingChunk }, { transaction: trx })
+                );
+
+                if (options.duplicateSchedules) {
+                    const serviceIds = await getServiceIdsForLines(lineIdsChunk, { transaction: trx });
+                    const serviceChunks = options.duplicateServices ? chunkIds(serviceIds) : [[]];
+
+                    for (const serviceIdsChunk of serviceChunks) {
+                        if (options.duplicateServices) {
+                            const newServiceIds = serviceIdsChunk.filter(
+                                (serviceId) => serviceIdMapping[serviceId] === undefined
+                            );
+                            if (newServiceIds.length > 0) {
+                                Object.assign(
+                                    serviceIdMapping,
+                                    Status.unwrap(
+                                        await duplicateServices(
+                                            { serviceIds: newServiceIds, newServiceSuffix: newObjectsSuffix },
+                                            { transaction: trx }
+                                        )
+                                    )
+                                );
+                            }
+                        }
+
+                        const serviceIdMappingChunk = Object.fromEntries(
+                            serviceIdsChunk
+                                .filter((serviceId) => serviceIdMapping[serviceId] !== undefined)
+                                .map((serviceId) => [serviceId, serviceIdMapping[serviceId]])
+                        );
+                        Status.unwrap(
+                            await duplicateSchedules(
+                                {
+                                    lineIdMapping: lineMappingChunk,
+                                    pathIdMapping,
+                                    serviceIdMapping: serviceIdMappingChunk
+                                },
                                 { transaction: trx }
                             )
-                        )
-                    });
+                        );
+                    }
                 }
-                Status.unwrap(
-                    await duplicateSchedules(
-                        {
-                            lineIdMapping,
-                            pathIdMapping,
-                            serviceIdMapping
-                        },
-                        { transaction: trx }
-                    )
-                );
             }
 
             return Status.createOk(lineIdMapping);
