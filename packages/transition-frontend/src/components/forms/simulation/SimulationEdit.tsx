@@ -111,7 +111,6 @@ class SimulationEdit extends SaveableObjectForm<Simulation, SimulationFormProps,
                                 this.onValueChange(`data.algorithmConfiguration.${path}`, value)
                             }
                             algorithmConfig={simulation.attributes.data.algorithmConfiguration}
-                            simulation={simulation}
                         />
                     </div>
                     <h4>{this.props.t('transit:simulation:routingParameters')}</h4>

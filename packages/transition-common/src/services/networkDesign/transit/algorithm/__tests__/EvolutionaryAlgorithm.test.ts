@@ -16,13 +16,13 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
 
     describe('getTranslatableName', () => {
         test('should return the correct translatable name', () => {
-            expect(descriptor.getTranslatableName()).toBe('transit:simulation:simulationClasses:LineAndNumberOfVehiclesGASimulation');
+            expect(descriptor.getTranslatableName()).toBe('transit:networkDesign.evolutionaryAlgorithm.LineAndNumberOfVehiclesGASimulation');
         });
     });
 
-    describe('getOptions', () => {
+    describe('getFields', () => {
         test('should return all required options', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
 
             const expectedKeys = [
                 'populationSizeMin',
@@ -40,24 +40,26 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 'keepCandidates'
             ];
 
-            expectedKeys.forEach(key => {
+            expectedKeys.forEach((key) => {
                 expect(options).toHaveProperty(key);
             });
         });
 
         describe('integer options', () => {
             const integerOptions = [
-                { key: 'populationSizeMin', default: 20, i18nName: 'transit:simulation:PopulationSizeMin' },
-                { key: 'populationSizeMax', default: 20, i18nName: 'transit:simulation:PopulationSizeMax' },
-                { key: 'numberOfElites', default: 2, i18nName: 'transit:simulation:NumberOfElites' },
-                { key: 'numberOfRandoms', default: 0, i18nName: 'transit:simulation:NumberOfRandoms' },
-                { key: 'crossoverNumberOfCuts', default: 1, i18nName: 'transit:simulation:CrossoverNumberOfCuts' },
-                { key: 'tournamentSize', default: 10, i18nName: 'transit:simulation:TournamentSize' }
+                { key: 'populationSizeMin', default: 20, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.PopulationSizeMin' },
+                { key: 'populationSizeMax', default: 20, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.PopulationSizeMax' },
+                { key: 'numberOfElites', default: 2, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.NumberOfElites' },
+                { key: 'numberOfRandoms', default: 0, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.NumberOfRandoms' },
+                { key: 'crossoverNumberOfCuts', default: 1, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.CrossoverNumberOfCuts' },
+                { key: 'tournamentSize', default: 10, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.TournamentSize' },
+                { key: 'keepGenerations', default: 1, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.KeepGenerations' },
+                { key: 'keepCandidates', default: 1, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.KeepCandidates' }
             ];
 
             integerOptions.forEach(({ key, default: defaultValue, i18nName }) => {
                 test(`should configure ${key} correctly`, () => {
-                    const options = descriptor.getOptions();
+                    const options = descriptor.getFields();
                     const option = options[key as keyof typeof options];
 
                     expect(option.type).toBe('integer');
@@ -70,17 +72,15 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
 
         describe('number options', () => {
             const numberOptions = [
-                { key: 'crossoverProbability', default: 0.8, i18nName: 'transit:simulation:CrossoverProbability' },
-                { key: 'mutationProbability', default: 0.08, i18nName: 'transit:simulation:MutationProbability' },
-                { key: 'tournamentProbability', default: 0.7, i18nName: 'transit:simulation:TournamentProbability' },
-                { key: 'numberOfGenerations', default: 100, i18nName: 'transit:simulation:NumberOfGenerations' },
-                { key: 'keepGenerations', default: 1, i18nName: 'transit:simulation:KeepGenerations' },
-                { key: 'keepCandidates', default: 1, i18nName: 'transit:simulation:KeepCandidates' }
+                { key: 'crossoverProbability', default: 0.8, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.CrossoverProbability' },
+                { key: 'mutationProbability', default: 0.08, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.MutationProbability' },
+                { key: 'tournamentProbability', default: 0.7, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.TournamentProbability' },
+                { key: 'numberOfGenerations', default: 100, i18nName: 'transit:networkDesign.evolutionaryAlgorithm.NumberOfGenerations' }
             ];
 
             numberOptions.forEach(({ key, default: defaultValue, i18nName }) => {
                 test(`should configure ${key} correctly`, () => {
-                    const options = descriptor.getOptions();
+                    const options = descriptor.getFields();
                     const option = options[key as keyof typeof options];
 
                     expect(option.type).toBe('number');
@@ -92,27 +92,30 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
         });
 
         test('should configure shuffleGenes as boolean', () => {
-            const options = descriptor.getOptions();
+            const options = descriptor.getFields();
             const shuffleGenes = options.shuffleGenes;
 
             expect(shuffleGenes.type).toBe('boolean');
             expect(shuffleGenes.default).toBe(true);
-            expect(shuffleGenes.i18nName).toBe('transit:simulation:ShuffleGenes');
+            expect(shuffleGenes.i18nName).toBe('transit:networkDesign.evolutionaryAlgorithm.ShuffleGenes');
             expect((shuffleGenes as any).validate).toBeUndefined();
         });
 
         describe('validation functions', () => {
             test('should validate positive values for population sizes and counts', () => {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 const positiveValidators = [
                     'populationSizeMin',
                     'populationSizeMax',
                     'numberOfElites',
                     'crossoverNumberOfCuts',
-                    'tournamentSize'
+                    'tournamentSize',
+                    'numberOfGenerations',
+                    'keepGenerations',
+                    'keepCandidates',
                 ];
 
-                positiveValidators.forEach(key => {
+                positiveValidators.forEach((key) => {
                     const validate = (options[key as keyof typeof options] as any).validate!;
                     expect(validate(1)).toBe(true);
                     expect(validate(10)).toBe(true);
@@ -122,7 +125,7 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
             });
 
             test('should validate non-negative values for numberOfRandoms', () => {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 const validate = options.numberOfRandoms.validate!;
 
                 expect(validate(0)).toBe(true);
@@ -132,14 +135,14 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
             });
 
             test('should validate probability ranges (0-1)', () => {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 const probabilityValidators = [
                     'crossoverProbability',
                     'mutationProbability',
                     'tournamentProbability'
                 ];
 
-                probabilityValidators.forEach(key => {
+                probabilityValidators.forEach((key) => {
                     const validate = (options[key as keyof typeof options] as any).validate!;
                     expect(validate(0)).toBe(true);
                     expect(validate(0.5)).toBe(true);
@@ -149,28 +152,12 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 });
             });
 
-            test('should validate non-negative values for generations and candidates', () => {
-                const options = descriptor.getOptions();
-                const nonNegativeValidators = [
-                    'numberOfGenerations',
-                    'keepGenerations',
-                    'keepCandidates'
-                ];
-
-                nonNegativeValidators.forEach(key => {
-                    const validate = (options[key as keyof typeof options] as any).validate!;
-                    expect(validate(0)).toBe(true);
-                    expect(validate(1)).toBe(true);
-                    expect(validate(100)).toBe(true);
-                    expect(validate(-1)).toBe(false);
-                });
-            });
         });
     });
 
-    describe('validateOptions', () => {
+    describe('validateFields', () => {
         test('should return valid for empty options', () => {
-            const result = descriptor.validateOptions({});
+            const result = descriptor.validateFields({});
 
             expect(result.valid).toBe(true);
             expect(result.errors).toEqual([]);
@@ -193,7 +180,7 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 keepCandidates: 3
             };
 
-            const result = descriptor.validateOptions(options);
+            const result = descriptor.validateFields(options);
 
             expect(result.valid).toBe(true);
             expect(result.errors).toEqual([]);
@@ -205,10 +192,10 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 populationSizeMax: 20
             };
 
-            const result = descriptor.validateOptions(options);
+            const result = descriptor.validateFields(options);
 
             expect(result.valid).toBe(false);
-            expect(result.errors).toContain('transit:simulation:errors:PopulationSizeMinGreaterThanMax');
+            expect(result.errors).toContain('transit:networkDesign.evolutionaryAlgorithm.errors.PopulationSizeMinGreaterThanMax');
         });
 
         test('should accept when populationSizeMin <= populationSizeMax', () => {
@@ -221,8 +208,8 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 populationSizeMax: 20
             };
 
-            const result1 = descriptor.validateOptions(options1);
-            const result2 = descriptor.validateOptions(options2);
+            const result1 = descriptor.validateFields(options1);
+            const result2 = descriptor.validateFields(options2);
 
             expect(result1.valid).toBe(true);
             expect(result2.valid).toBe(true);
@@ -234,10 +221,10 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 keepCandidates: 15
             };
 
-            const result = descriptor.validateOptions(options);
+            const result = descriptor.validateFields(options);
 
             expect(result.valid).toBe(false);
-            expect(result.errors).toContain('transit:simulation:errors:CandidatesToKeepGreaterThanPopulation');
+            expect(result.errors).toContain('transit:networkDesign.evolutionaryAlgorithm.errors.CandidatesToKeepGreaterThanPopulation');
         });
 
         test('should accept when keepCandidates <= populationSizeMin', () => {
@@ -250,8 +237,8 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 keepCandidates: 5
             };
 
-            const result1 = descriptor.validateOptions(options1);
-            const result2 = descriptor.validateOptions(options2);
+            const result1 = descriptor.validateFields(options1);
+            const result2 = descriptor.validateFields(options2);
 
             expect(result1.valid).toBe(true);
             expect(result2.valid).toBe(true);
@@ -263,10 +250,10 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 keepGenerations: 60
             };
 
-            const result = descriptor.validateOptions(options);
+            const result = descriptor.validateFields(options);
 
             expect(result.valid).toBe(false);
-            expect(result.errors).toContain('transit:simulation:errors:GenerationsToKeepGreaterThanGenerations');
+            expect(result.errors).toContain('transit:networkDesign.evolutionaryAlgorithm.errors.GenerationsToKeepGreaterThanGenerations');
         });
 
         test('should accept when keepGenerations <= numberOfGenerations', () => {
@@ -279,8 +266,8 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 keepGenerations: 25
             };
 
-            const result1 = descriptor.validateOptions(options1);
-            const result2 = descriptor.validateOptions(options2);
+            const result1 = descriptor.validateFields(options1);
+            const result2 = descriptor.validateFields(options2);
 
             expect(result1.valid).toBe(true);
             expect(result2.valid).toBe(true);
@@ -295,20 +282,20 @@ describe('EvolutionaryAlgorithmDescriptor', () => {
                 keepGenerations: 60
             };
 
-            const result = descriptor.validateOptions(options);
+            const result = descriptor.validateFields(options);
 
             expect(result.valid).toBe(false);
             expect(result.errors).toHaveLength(3);
-            expect(result.errors).toContain('transit:simulation:errors:PopulationSizeMinGreaterThanMax');
-            expect(result.errors).toContain('transit:simulation:errors:CandidatesToKeepGreaterThanPopulation');
-            expect(result.errors).toContain('transit:simulation:errors:GenerationsToKeepGreaterThanGenerations');
+            expect(result.errors).toContain('transit:networkDesign.evolutionaryAlgorithm.errors.PopulationSizeMinGreaterThanMax');
+            expect(result.errors).toContain('transit:networkDesign.evolutionaryAlgorithm.errors.CandidatesToKeepGreaterThanPopulation');
+            expect(result.errors).toContain('transit:networkDesign.evolutionaryAlgorithm.errors.GenerationsToKeepGreaterThanGenerations');
         });
 
         test('should not validate when only one of the paired values is provided', () => {
-            const result1 = descriptor.validateOptions({ populationSizeMin: 30 });
-            const result2 = descriptor.validateOptions({ populationSizeMax: 20 });
-            const result3 = descriptor.validateOptions({ keepCandidates: 15 });
-            const result4 = descriptor.validateOptions({ keepGenerations: 60 });
+            const result1 = descriptor.validateFields({ populationSizeMin: 30 });
+            const result2 = descriptor.validateFields({ populationSizeMax: 20 });
+            const result3 = descriptor.validateFields({ keepCandidates: 15 });
+            const result4 = descriptor.validateFields({ keepGenerations: 60 });
 
             expect(result1.valid).toBe(true);
             expect(result2.valid).toBe(true);
