@@ -88,7 +88,15 @@ const GtfsImportForm: React.FC = () => {
     useEffect(() => {
         const onZipFileUploadError = (error) => {
             console.log('GTFS file upload error!', error);
-            setErrors((prevErrors) => [...prevErrors, 'transit:gtfs:errors:ErrorUploadingFile']);
+            // The backend may emit either a legacy string payload or a
+            // TranslatableMessage object. Pass either through to setErrors;
+            // FormErrors knows how to render both shapes. Fall back to the
+            // generic upload error if the payload is missing or unusable.
+            const message =
+                typeof error === 'object' && error !== null && typeof error.text === 'string'
+                    ? error
+                    : 'transit:gtfs:errors:ErrorUploadingFile';
+            setErrors((prevErrors) => [...prevErrors, message]);
         };
 
         const onGtfsFilePrepared = (validatorAttributes: GtfsImportData) => {
