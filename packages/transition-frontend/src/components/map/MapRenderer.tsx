@@ -278,8 +278,6 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                     <DeckGLControl key={deckOverlayRemountKey} layers={deckLayers} animate={!disableAnimation} />
                 )}
                 <ScaleControl position="bottom-right" />
-            </MapLibreMap>
-            {mapLoaded && (
                 <MapControlsPanel
                     currentLayer={activeBasemapShortname}
                     currentZoom={currentZoom}
@@ -290,7 +288,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                     onOverlayColorChange={onOverlayColorChange}
                     onResetView={handleResetView}
                 />
-            )}
+            </MapLibreMap>
             {confirmModalDeleteIsOpen && (
                 <ConfirmModal
                     title={t('transit:transitNode:ConfirmMultipleDelete')}
