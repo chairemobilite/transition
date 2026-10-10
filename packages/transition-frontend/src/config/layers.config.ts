@@ -4,6 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+import AnimatedArrowPathLayer from 'chaire-lib-frontend/lib/services/map/customLayers/AnimatedArrowPathLayer';
+import CircleSpinnerLayer from 'chaire-lib-frontend/lib/services/map/customLayers/CircleSpinnerLayer';
 
 /**
  * Minimum zoom for waypoint visibility and insertion.
@@ -42,14 +44,8 @@ export const sectionLayers = {
     ],
     scenarios: ['transitPathsForServices'],
     services: ['transitPathsForServices'],
-    routing: ['routingPathsStrokes', 'routingPaths', 'routingPoints'],
-    comparison: [
-        'routingPathsStrokes',
-        'routingPaths',
-        'routingPathsStrokesAlternate',
-        'routingPathsAlternate',
-        'routingPoints'
-    ],
+    routing: ['routingPaths', 'routingPoints'],
+    comparison: ['routingPaths', 'routingPathsAlternate', 'routingPoints'],
     accessibilityMap: ['accessibilityMapPolygons', 'accessibilityMapPolygonStrokes', 'accessibilityMapPoints'],
     accessibilityComparison: ['accessibilityMapPolygons', 'accessibilityMapPolygonStrokes', 'accessibilityMapPoints'],
     gtfsImport: [
@@ -161,72 +157,23 @@ const layersConfig = {
         }
     },
 
-    routingPathsStrokes: {
-        type: 'line',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': 'rgba(255,255,255,1.0)',
-            'line-opacity': 0.7,
-            'line-width': {
-                base: 6,
-                stops: [
-                    [6, 6],
-                    [12, 10],
-                    [13, 12]
-                ]
-            }
-        }
-    },
-
     routingPaths: {
         type: 'line',
+        customLayer: () => new AnimatedArrowPathLayer({ id: 'routingPathsArrows' }),
         layout: {
             'line-join': 'round',
             'line-cap': 'round'
             // Note: Layer has near-zero opacity so it can receive mouse events and be queried
-            // by queryRenderedFeatures for click detection. deck.gl renders the visible animation.
+            // by queryRenderedFeatures for click detection. The custom layer renders the visible animation.
         },
-        'custom-shader': 'lineArrow',
         paint: {
             'line-color': {
                 property: 'color',
                 type: 'identity'
             },
-            // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
+            // Near-zero opacity to receive mouse events while a custom layer handles visual rendering
             'line-opacity': 0.01,
-            'line-width': {
-                base: 3,
-                stops: [
-                    [6, 3],
-                    [12, 5],
-                    [13, 7]
-                ]
-            }
-        }
-    },
-
-    // Identical to the routingPathsStrokes layers, but with purple instead of white path outlines
-    // Used to display 2 paths at once on the map
-    routingPathsStrokesAlternate: {
-        type: 'line',
-        layout: {
-            'line-join': 'round',
-            'line-cap': 'round'
-        },
-        paint: {
-            'line-color': 'rgba(255,0,255,1.0)',
-            'line-opacity': 0.7,
-            'line-width': {
-                base: 6,
-                stops: [
-                    [6, 6],
-                    [12, 10],
-                    [13, 12]
-                ]
-            }
+            'line-width': 8
         }
     },
 
@@ -234,28 +181,26 @@ const layersConfig = {
     // Used to display 2 paths at once on the map
     routingPathsAlternate: {
         type: 'line',
+        customLayer: () =>
+            new AnimatedArrowPathLayer({
+                id: 'routingPathsAlternateArrows',
+                // Purple halo, to tell the alternate path from the main one in comparisons
+                halo: { color: [1, 0, 1, 0.7], widthPx: 2 }
+            }),
         layout: {
             'line-join': 'round',
             'line-cap': 'round'
             // Note: Layer has near-zero opacity so it can receive mouse events and be queried
-            // by queryRenderedFeatures for click detection. deck.gl renders the visible animation.
+            // by queryRenderedFeatures for click detection. The custom layer renders the visible animation.
         },
-        'custom-shader': 'lineArrow',
         paint: {
             'line-color': {
                 property: 'color',
                 type: 'identity'
             },
-            // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
+            // Near-zero opacity to receive mouse events while a custom layer handles visual rendering
             'line-opacity': 0.01,
-            'line-width': {
-                base: 3,
-                stops: [
-                    [6, 3],
-                    [12, 5],
-                    [13, 7]
-                ]
-            }
+            'line-width': 8
         }
     },
 
@@ -316,23 +261,24 @@ const layersConfig = {
 
     transitPathsSelected: {
         type: 'line',
+        customLayer: () => new AnimatedArrowPathLayer({ id: 'transitPathsSelectedArrows' }),
         layout: {
             'line-join': 'round',
             'line-cap': 'round'
             // Note: Layer has near-zero opacity so it can receive mouse events and be queried
-            // by queryRenderedFeatures for click detection. deck.gl renders the visible animation.
+            // by queryRenderedFeatures for click detection. The custom layer renders the visible animation.
         },
         paint: {
-            // No line-offset so this layer perfectly overlaps with the deck.gl animated layer
+            // No line-offset so this layer perfectly overlaps with the animated custom layer
             // This ensures hover events fire when hovering anywhere on the animated path
             'line-color': {
                 property: 'color',
                 type: 'identity'
             },
-            // Near-zero opacity to receive mouse events while deck.gl handles visual rendering
+            // Near-zero opacity to receive mouse events while a custom layer handles visual rendering
             // Must be non-zero for MapLibre to fire mouseenter/mouseleave events
             'line-opacity': 0.01,
-            // Width matches the deck.gl animated layer (12px max) for accurate hover detection
+            // Width close to the animated custom layer (12px from zoom 12) for accurate hover detection
             'line-width': {
                 base: 1,
                 stops: [
@@ -734,7 +680,7 @@ const layersConfig = {
 
     transitNodesSelected: {
         type: 'circle',
-        'custom-shader': 'circleSpinner',
+        customLayer: () => new CircleSpinnerLayer({ id: 'transitNodesSelectedSpinner' }),
         paint: {
             'circle-radius': ['interpolate', ['exponential', 2], ['zoom'], 0, 0, 10, 1.5, 15, 6, 20, 12],
             'circle-color': {

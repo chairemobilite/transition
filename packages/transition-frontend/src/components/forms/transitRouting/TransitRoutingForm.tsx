@@ -111,8 +111,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     const resetResultsData = () => {
         setCurrentResult(undefined);
         serviceLocator.eventManager.emit('map.updateLayers', {
-            routingPaths: undefined,
-            routingPathsStrokes: undefined
+            routingPaths: undefined
         });
     };
 

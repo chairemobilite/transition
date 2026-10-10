@@ -10,6 +10,7 @@ import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import _uniq from 'lodash/uniq';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import type { AnimatedCustomLayer } from './customLayers/AnimatedCustomLayer';
 
 const defaultGeojson = turfFeatureCollection([]);
 
@@ -22,6 +23,13 @@ export type LayerInputConfig = Record<string, unknown> & {
     type: string;
     /** Default filter for the layer; accepts loose array types (validated by MapLibre at runtime) */
     defaultFilter?: FilterSpecification | readonly unknown[];
+    /**
+     * Create a custom layer drawing the features of this layer with WebGL shaders. It is called
+     * once, by the constructor. The custom layer is drawn right above this layer and receives the
+     * same data. Custom layers cannot be queried and do not receive mouse events, so this layer
+     * should stay on the map, nearly transparent, to receive them.
+     */
+    customLayer?: () => AnimatedCustomLayer;
 };
 
 /**
@@ -34,6 +42,8 @@ type LayerEntry = {
         /** Override data type to be FeatureCollection for runtime access */
         data: GeoJSON.FeatureCollection;
     };
+    /** Custom layer drawing the source data, see `LayerInputConfig.customLayer` */
+    customLayer?: AnimatedCustomLayer;
 };
 
 /** MapLibre filter type */
@@ -63,7 +73,7 @@ class MapLibreLayerManager {
             };
 
             const inputConfig = layersConfig[layerName];
-            const { defaultFilter, ...layerProps } = inputConfig;
+            const { defaultFilter, customLayer, ...layerProps } = inputConfig;
 
             // Build the layer specification with required id and source
             const layer = {
@@ -83,7 +93,8 @@ class MapLibreLayerManager {
 
             this._layersByName[layerName] = {
                 layer,
-                source
+                source,
+                customLayer: customLayer?.()
             };
         }
     }
@@ -139,6 +150,10 @@ class MapLibreLayerManager {
         previousEnabledLayers.forEach((previousEnabledLayer) => {
             // Try to remove layer if it exists (it might have been removed by style change)
             try {
+                const customLayerId = this._layersByName[previousEnabledLayer]?.customLayer?.id;
+                if (customLayerId && this._map?.getLayer(customLayerId)) {
+                    this._map?.removeLayer(customLayerId);
+                }
                 if (this._map?.getLayer(previousEnabledLayer)) {
                     this._map?.removeLayer(previousEnabledLayer);
                 }
@@ -173,6 +188,10 @@ class MapLibreLayerManager {
             if (!this._map?.getLayer(enabledLayer)) {
                 this._map?.addLayer(this._layersByName[enabledLayer].layer);
             }
+            const customLayer = this._layersByName[enabledLayer].customLayer;
+            if (customLayer && !this._map?.getLayer(customLayer.id)) {
+                this._map?.addLayer(customLayer);
+            }
             this._map?.setFilter(
                 enabledLayer,
                 (this._filtersByLayer[enabledLayer] ?? null) as FilterSpecification | null
@@ -180,7 +199,6 @@ class MapLibreLayerManager {
             enabledAndActiveLayers.push(enabledLayer);
         });
         this._enabledLayers = enabledAndActiveLayers;
-        // Note: map.repaint is now managed by DeckGLControl component
         serviceLocator.eventManager.emit('map.updatedEnabledLayers', enabledLayers);
     }
 
@@ -281,6 +299,7 @@ class MapLibreLayerManager {
                     ? geojson
                     : defaultGeojson;
         this._layersByName[layerName].source.data = newGeojson;
+        this._layersByName[layerName].customLayer?.setData(newGeojson.features);
 
         if (this._map && this.layerIsEnabled(layerName)) {
             const source = this._map.getSource(layerName) as GeoJSONSource | undefined;
@@ -299,12 +318,21 @@ class MapLibreLayerManager {
                         ? geojson
                         : defaultGeojson;
             this._layersByName[layerName].source.data = newGeojson;
+            this._layersByName[layerName].customLayer?.setData(newGeojson.features);
             if (this._map && this.layerIsEnabled(layerName)) {
                 const source = this._map.getSource(layerName) as GeoJSONSource | undefined;
                 source?.setData(this._layersByName[layerName].source.data);
             }
         }
         serviceLocator.eventManager.emit('map.updatedLayers', Object.keys(geojsonByLayerName));
+    }
+
+    /**
+     * Start or stop the animation of all custom layers.
+     * @param enabled Whether the custom layers are animated
+     */
+    setAnimationEnabled(enabled: boolean) {
+        Object.values(this._layersByName).forEach((entry) => entry.customLayer?.setAnimationEnabled(enabled));
     }
 
     layerIsEnabled(layerName: string) {
