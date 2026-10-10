@@ -64,7 +64,7 @@ transition-fork/
 - **Framework**: React with React Router
 - **State Management**: Redux with Redux Thunk
 - **Styling**: SCSS/SASS
-- **Maps**: MapLibre GL JS with deck.gl for animations (uses OpenStreetMap tiles by default). Note: deck.gl requires WebGL support in the browser; ensure GPU/driver support is available. Consider providing a fallback or disabling animations when WebGL is unavailable.
+- **Maps**: MapLibre GL JS (uses OpenStreetMap tiles by default), with MapLibre custom layers (WebGL2 shaders) for animations. See `packages/transition-frontend/src/components/map/customLayers/`.
 - **Build Tool**: Webpack
 - **UI Libraries**: React components (tabs, datepicker, modals, etc.)
 - **Internationalization**: i18next (react-i18next)
@@ -372,6 +372,7 @@ Can be run with `yarn workspace <package-name> run <command>`
 - **Linting**: ESLint with TypeScript plugin
 - **Base rules**: Google TypeScript Style (GTS) from `configs/` directory
 - **Run before commits**: `yarn format`
+- **Copyright**: Since 2026, new files do not include a year in the copyright header. When a file already has a year, leave that year in place if the change only edits the file.
 
 ### Testing
 Three types of tests:
@@ -553,7 +554,6 @@ Allows Python scripts to:
 - `react-redux`, `redux` - State management
 - `react-router` - Routing
 - `maplibre-gl` - Map rendering (OpenStreetMap tiles by default)
-- `@deck.gl/core`, `@deck.gl/layers`, `@deck.gl/mapbox` - WebGL-powered visualization layers
 - `i18next`, `react-i18next` - Internationalization
 
 ### External Services Required

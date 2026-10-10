@@ -44,7 +44,7 @@ const parseRgba = (color: string | undefined | null): [number, number, number, n
  * Convert a color string (hex or rgba) to an RGBA array.
  * @param color Color string (e.g., '#0088ff', 'rgba(160,160,160,1.0)')
  * @param defaultColor Fallback hex color if input is invalid (default: '#0088ff')
- * @returns [r, g, b, a] array suitable for deck.gl and similar libraries
+ * @returns [r, g, b, a] array, each from 0 to 255, e.g. for WebGL vertex attributes
  */
 export const hexToRgbArray = (
     color: string | undefined | null,

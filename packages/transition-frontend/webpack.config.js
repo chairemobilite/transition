@@ -63,6 +63,7 @@ module.exports = (env) => {
     // TODO Custom styles and locales should be set in config (#419, #420)
     const customStylesFilePath = `${config.projectDir}/styles/styles.scss`;
     const customLocalesFilePath = `${config.projectDir}/locales`;
+    const maplibreDist = path.join(path.dirname(require.resolve('maplibre-gl/package.json')), 'dist');
     const entry = fs.existsSync('./' + customStylesFilePath)
         ? [entryFileName, './' + customStylesFilePath]
         : [entryFileName];
@@ -203,6 +204,20 @@ module.exports = (env) => {
                         from: '**/*',
                         to: '',
                         noErrorOnMissing: true
+                    },
+                    // MapLibre 6 no longer embeds the tile worker in the main bundle.
+                    // https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/
+                    // It loads maplibre-gl-worker.mjs with `new Worker(url, { type: 'module' })`.
+                    // That file imports ./maplibre-gl-shared.mjs, so both must be served from /dist.
+                    // setWorkerUrl() only receives a URL, so webpack does not bundle that import.
+                    // Current browsers support module workers and do not fall back to a classic chunk.
+                    {
+                        from: path.join(maplibreDist, 'maplibre-gl-worker.mjs'),
+                        to: 'maplibre-gl-worker.mjs'
+                    },
+                    {
+                        from: path.join(maplibreDist, 'maplibre-gl-shared.mjs'),
+                        to: 'maplibre-gl-shared.mjs'
                     }
                 ]
             })
@@ -211,21 +226,28 @@ module.exports = (env) => {
             mainFields: ['browser', 'main', 'module'],
             modules: ['node_modules'],
             extensions: ['.json', '.js', '.ts', '.tsx'],
-            // In dev, read SCSS from chaire-lib-frontend and transition-frontend source so changes apply without running copy-files
-            alias: isProduction
-                ? {}
-                : {
-                    [path.join(chaireLibFrontendRoot, 'lib', 'styles')]: path.join(
-                        chaireLibFrontendRoot,
-                        'src',
-                        'styles'
-                    ),
-                    [path.join(transitionFrontendRoot, 'lib', 'styles')]: path.join(
-                        transitionFrontendRoot,
-                        'src',
-                        'styles'
-                    )
-                },
+            // In dev, read SCSS from chaire-lib-frontend and transition-frontend source so changes apply without running copy-files.
+            // maplibre-gl only publishes an "import" condition. tsc emits require(), which does not
+            // match it.
+            // Accepting "import" for every require() loads ESM helpers and breaks
+            // _interopRequireDefault in packages such as rc-menu.
+            alias: {
+                'maplibre-gl$': path.join(maplibreDist, 'maplibre-gl.mjs'),
+                ...(isProduction
+                    ? {}
+                    : {
+                        [path.join(chaireLibFrontendRoot, 'lib', 'styles')]: path.join(
+                            chaireLibFrontendRoot,
+                            'src',
+                            'styles'
+                        ),
+                        [path.join(transitionFrontendRoot, 'lib', 'styles')]: path.join(
+                            transitionFrontendRoot,
+                            'src',
+                            'styles'
+                        )
+                    })
+            },
             fallback: { path: false }
         },
         devtool: isProduction ? 'cheap-source-map' : 'eval-source-map',

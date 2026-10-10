@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import MapLibreMap, { MapRef, ScaleControl, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
 import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { LayersList } from '@deck.gl/core';
+import type { Feature } from 'geojson';
 import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -19,9 +19,13 @@ import {
     ProjectMapBasemapShortname
 } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 
-import DeckGLControl from './DeckGLControl';
+import CustomLayerControl from './customLayers/CustomLayerControl';
 import MapControlsPanel from './TransitionMapControlsMenu';
 import { composeMapStyleWithOverlay, getProjectBasemapByShortname } from '../../config/projectBaseMapLayers';
+import { customLayerMappings } from '../../config/customLayers.config';
+
+/** Stable empty array, so custom layers without features are not updated on every render */
+const NO_FEATURES: Feature[] = [];
 
 /** MapLibre style specification with sources and layers */
 export interface MapStyleSpec {
@@ -36,7 +40,8 @@ export interface MapRendererProps {
     defaultZoom: number;
     mapLoaded: boolean;
     getMapStyle: () => MapStyleSpec;
-    getDeckLayers: (disableAnimation: boolean) => LayersList;
+    /** Features drawn by each custom layer, by MapLibre layer name (see `customLayerMappings`) */
+    getCustomLayerFeatures: () => Record<string, Feature[]>;
     setupMapEvents: () => void;
     setMap: () => void;
     confirmModalDeleteIsOpen: boolean;
@@ -59,7 +64,7 @@ export interface MapRendererProps {
 
 /**
  * Functional component wrapper for MapLibreMap to handle hooks.
- * This component manages the map view state, deck.gl layers, and renders
+ * This component manages the map view state, custom layers, and renders
  * the MapLibre map with all necessary controls and overlays.
  */
 const MapRenderer: React.FC<MapRendererProps> = ({
@@ -68,7 +73,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
     defaultZoom,
     mapLoaded,
     getMapStyle,
-    getDeckLayers,
+    getCustomLayerFeatures,
     setupMapEvents,
     setMap,
     confirmModalDeleteIsOpen,
@@ -96,77 +101,51 @@ const MapRenderer: React.FC<MapRendererProps> = ({
         });
     }, [mapRef, defaultCenter, defaultZoom]);
 
-    const [viewState, setViewState] = useState({
-        longitude: defaultCenter[0],
-        latitude: defaultCenter[1],
-        zoom: defaultZoom
-    });
+    // Initial camera only. The map keeps it afterwards. Passing longitude/zoom back as props
+    // makes react-map-gl replace MapLibre's in-progress gesture with the previous React render,
+    // so the custom layers and the GeoJSON layers are no longer drawn at the same zoom.
+    const initialViewState = useMemo(
+        () => ({
+            longitude: defaultCenter[0],
+            latitude: defaultCenter[1],
+            zoom: defaultZoom
+        }),
+        [defaultCenter, defaultZoom]
+    );
 
-    // Update zoom state when view changes and notify parent
-    useEffect(() => {
-        handleZoomChange(viewState.zoom);
-    }, [viewState.zoom, handleZoomChange]);
-
-    // Track zoom level and layer updates for deck.gl layer updates
-    const [deckLayers, setDeckLayers] = useState<LayersList>([]);
+    const [customLayerFeatures, setCustomLayerFeatures] = useState<Record<string, Feature[]>>({});
     const [enableAnimation] = usePreference('map.enableAnimation', true);
     /** When true, path arrows and the selected-node spinner stay still. */
     const disableAnimation = !enableAnimation;
-    /** Incremented on `style.load` so DeckGL remounts after `setStyle` (MapLibre removes overlay controls). */
-    const [deckOverlayRemountKey, setDeckOverlayRemountKey] = useState(0);
 
-    // disableAnimation is stored on the layer, so a preference change rebuilds the layers.
-    // Listen for map layer updates from the event manager and update deck layers
+    // Listen for map layer updates from the event manager and update the custom layer features
     useEffect(() => {
-        const updateDeckLayers = () => {
-            if (!mapLoaded) {
-                setDeckLayers([]);
-                return;
-            }
-            // Immediately update deck layers
-            const layers = getDeckLayers(disableAnimation);
-            setDeckLayers(layers);
+        const updateCustomLayers = () => {
+            setCustomLayerFeatures(mapLoaded ? getCustomLayerFeatures() : {});
         };
 
         // Update on initial load
-        updateDeckLayers();
+        updateCustomLayers();
 
         // Subscribe to map layer update events
         // Note: MapLayerManager emits 'map.updatedLayer' and 'map.updatedLayers' AFTER data is updated
         const eventManager = serviceLocator.eventManager;
-        eventManager.on('map.updateLayers', updateDeckLayers);
-        eventManager.on('map.updatedLayers', updateDeckLayers); // After layer manager completes update
-        eventManager.on('map.updateLayer', updateDeckLayers);
-        eventManager.on('map.updatedLayer', updateDeckLayers); // After layer manager completes update
-        eventManager.on('map.updatedEnabledLayers', updateDeckLayers); // Update when section changes
-        eventManager.on('selected.drag.node', updateDeckLayers); // Update during node drag
+        eventManager.on('map.updateLayers', updateCustomLayers);
+        eventManager.on('map.updatedLayers', updateCustomLayers); // After layer manager completes update
+        eventManager.on('map.updateLayer', updateCustomLayers);
+        eventManager.on('map.updatedLayer', updateCustomLayers); // After layer manager completes update
+        eventManager.on('map.updatedEnabledLayers', updateCustomLayers); // Update when section changes
+        eventManager.on('selected.drag.node', updateCustomLayers); // Update during node drag
 
         return () => {
-            eventManager.off('map.updateLayers', updateDeckLayers);
-            eventManager.off('map.updatedLayers', updateDeckLayers);
-            eventManager.off('map.updateLayer', updateDeckLayers);
-            eventManager.off('map.updatedLayer', updateDeckLayers);
-            eventManager.off('map.updatedEnabledLayers', updateDeckLayers);
-            eventManager.off('selected.drag.node', updateDeckLayers);
+            eventManager.off('map.updateLayers', updateCustomLayers);
+            eventManager.off('map.updatedLayers', updateCustomLayers);
+            eventManager.off('map.updateLayer', updateCustomLayers);
+            eventManager.off('map.updatedLayer', updateCustomLayers);
+            eventManager.off('map.updatedEnabledLayers', updateCustomLayers);
+            eventManager.off('selected.drag.node', updateCustomLayers);
         };
-    }, [mapLoaded, getDeckLayers, disableAnimation]);
-
-    useEffect(() => {
-        const map = mapRef.current?.getMap();
-        if (!map || !mapLoaded) {
-            return;
-        }
-        const onStyleLoad = (): void => {
-            setDeckOverlayRemountKey((k) => k + 1);
-        };
-        map.on('style.load', onStyleLoad);
-        return () => {
-            map.off('style.load', onStyleLoad);
-        };
-    }, [mapLoaded, mapRef]);
-
-    // Determine if animation should run - only when there are active deck.gl layers
-    const shouldAnimate = useMemo(() => deckLayers.length > 0, [deckLayers]);
+    }, [mapLoaded, getCustomLayerFeatures]);
 
     // Initial style for <MapLibreMap>; subsequent changes go through setStyle imperatively.
     const [initialMapStyle] = useState<MapStyleSpec>(() => getMapStyle());
@@ -260,8 +239,13 @@ const MapRenderer: React.FC<MapRendererProps> = ({
             {children}
             <MapLibreMap
                 ref={mapRef}
-                {...viewState}
-                onMove={(evt) => setViewState(evt.viewState)}
+                initialViewState={initialViewState}
+                onMove={(evt) => {
+                    // Panning reports the same zoom. Updating state then re-renders the map for no basemap change.
+                    if (evt.viewState.zoom !== currentZoom) {
+                        handleZoomChange(evt.viewState.zoom);
+                    }
+                }}
                 onLoad={() => {
                     setMap();
                     setupMapEvents();
@@ -273,10 +257,16 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                 mapStyle={initialMapStyle}
                 hash={true}
             >
-                {/* DeckGL overlay for animated selected paths and nodes - only render when there are layers */}
-                {shouldAnimate && (
-                    <DeckGLControl key={deckOverlayRemountKey} layers={deckLayers} animate={!disableAnimation} />
-                )}
+                {mapLoaded &&
+                    Object.entries(customLayerMappings).map(([layerName, config]) => (
+                        <CustomLayerControl
+                            key={layerName}
+                            createLayer={config.createLayer}
+                            beforeId={config.beforeId}
+                            features={customLayerFeatures[layerName] ?? NO_FEATURES}
+                            disableAnimation={disableAnimation}
+                        />
+                    ))}
                 <ScaleControl position="bottom-right" />
             </MapLibreMap>
             {mapLoaded && (

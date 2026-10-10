@@ -48,8 +48,7 @@ const showCurrentAlternative = async (
         data: sortedResult.result.originDestinationToGeojson()
     });
     serviceLocator.eventManager.emit('map.updateLayers', {
-        routingPaths: pathGeojson,
-        routingPathsStrokes: pathGeojson
+        routingPaths: pathGeojson
     });
 
     // Fit map bounds to the routing path

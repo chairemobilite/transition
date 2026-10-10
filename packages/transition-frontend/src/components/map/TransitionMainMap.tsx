@@ -11,8 +11,8 @@ import React, { PropsWithChildren } from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { WithTranslation, withTranslation } from 'react-i18next';
 import { MapRef, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
-import maplibregl from 'maplibre-gl';
-import type { LayersList } from '@deck.gl/core';
+import * as maplibregl from 'maplibre-gl';
+import type { Feature } from 'geojson';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 // chaire-lib imports
@@ -34,7 +34,7 @@ import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
 import PathMapLayerManager from '../../services/map/PathMapLayerManager';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
 import MapRenderer, { MapStyleSpec } from './MapRenderer';
-import { createDeckLayersFromMappings } from '../../config/deckLayers.config';
+import { customLayerMappings } from '../../config/customLayers.config';
 import { resetClasses } from '../../services/map/MapCursorHelper';
 import type { ProjectMapBasemapShortname } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 import {
@@ -189,7 +189,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         map?.dragPan.disable();
     };
 
-    onMapError = (e: { error?: Error; message?: string }) => {
+    onMapError = (e: maplibregl.ErrorEvent) => {
         console.error('Map error:', e);
         if (!this.state.mapLoaded) {
             // Even if there was a map error, call the map.loaded event so the
@@ -586,23 +586,20 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
     };
 
     /**
-     * Create deck.gl layers based on the mappings configuration.
-     * Layers are dynamically created from deckLayerMappings in deckLayers.config.ts.
-     * @param disableAnimation - Freeze path arrows and node spinners
+     * Get the features drawn by the custom layers.
+     * @returns The features of each enabled layer of `customLayerMappings`, by layer name
      */
-    getDeckLayers = (disableAnimation: boolean): LayersList => {
-        if (!this.state.mapLoaded) return [];
-
-        const enabledLayers = this.layerManager.getEnabledLayers();
-        const map = this.mapRef.current?.getMap();
-        const zoom = map?.getZoom() ?? 15;
-
-        return createDeckLayersFromMappings(
-            enabledLayers,
-            (layerName) => this.layerManager.getLayerConfig(layerName),
-            zoom,
-            disableAnimation
-        );
+    getCustomLayerFeatures = (): Record<string, Feature[]> => {
+        const features: Record<string, Feature[]> = {};
+        if (!this.state.mapLoaded) {
+            return features;
+        }
+        for (const layerName of Object.keys(customLayerMappings)) {
+            if (this.layerManager.layerIsEnabled(layerName)) {
+                features[layerName] = this.layerManager.getLayerConfig(layerName)?.source.data.features ?? [];
+            }
+        }
+        return features;
     };
 
     /**
@@ -615,7 +612,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
         for (const eventName in this.mapEvents) {
             for (const layerName in this.mapEvents[eventName]) {
                 if (layerName === 'map') {
-                    map.on(eventName, this.getEventHandler(this.mapEvents[eventName][layerName]));
+                    map.on(eventName as any, this.getEventHandler(this.mapEvents[eventName][layerName]));
                 } else {
                     // The 'as any' cast is required because MapLibre GL's TypeScript definitions
                     // don't support dynamic strings for the layer-specific on(type, layerName, handler) overload.
@@ -692,7 +689,7 @@ class MainMap extends React.Component<MainMapProps & WithTranslation & PropsWith
                 defaultZoom={this.defaultZoomArray[0]}
                 mapLoaded={this.state.mapLoaded}
                 getMapStyle={this.getMapStyle}
-                getDeckLayers={this.getDeckLayers}
+                getCustomLayerFeatures={this.getCustomLayerFeatures}
                 setupMapEvents={this.setupMapEvents}
                 setMap={this.setMap}
                 confirmModalDeleteIsOpen={this.state.confirmModalDeleteIsOpen}

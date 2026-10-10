@@ -44,7 +44,7 @@ export interface PreferencesModel {
         overlayOpacity: number;
         /** Overlay color: 'black' or 'white' */
         overlayColor: 'black' | 'white';
-        /** When true, deck.gl path arrows and selected-node spinners move. On unless the user turns it off. */
+        /** When true, path arrows and selected-node spinners move. On unless the user turns it off. */
         enableAnimation: boolean;
     };
     colorPicker: {
