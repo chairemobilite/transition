@@ -57,13 +57,11 @@ const showCurrentAlternative = async (
     });
     if (useAlternateLayer) {
         serviceLocator.eventManager.emit('map.updateLayers', {
-            routingPathsAlternate: pathGeojson,
-            routingPathsStrokesAlternate: pathGeojson
+            routingPathsAlternate: pathGeojson
         });
     } else {
         serviceLocator.eventManager.emit('map.updateLayers', {
-            routingPaths: pathGeojson,
-            routingPathsStrokes: pathGeojson
+            routingPaths: pathGeojson
         });
     }
     return pathGeojson;

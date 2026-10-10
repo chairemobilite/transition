@@ -6,7 +6,7 @@
 // Classes are managed by MapCursorHelper.ts
 #tr__main-map {
 
-    // Target both MapLibre canvas and any deck.gl canvas overlays
+    // Target the MapLibre canvas, which also draws the custom layers
     &.hovering {
 
         canvas,
