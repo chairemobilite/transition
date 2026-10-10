@@ -4,6 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
+// maplibre-gl is ESM only and cannot be loaded by Jest. The custom layers import it.
+jest.mock('maplibre-gl', () => ({}), { virtual: true });
+
 import layersConfig, { sectionLayers } from '../layers.config';
 
 describe('Layers configuration', () => {

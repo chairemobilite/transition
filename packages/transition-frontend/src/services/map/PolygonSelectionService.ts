@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import maplibregl from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import _cloneDeep from 'lodash/cloneDeep';
 import * as turf from '@turf/turf';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
