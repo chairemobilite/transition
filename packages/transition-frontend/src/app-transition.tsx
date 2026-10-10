@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
+import { setWorkerUrl } from 'maplibre-gl';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { I18nextProvider } from 'react-i18next';
@@ -29,6 +30,12 @@ import { ThemeProvider } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 import 'chaire-lib-frontend/lib/styles/styles-transition.scss';
 import './styles/transition.scss';
 import { TFunction } from 'i18next';
+
+// MapLibre 6 loads the tile worker with `new Worker(url, { type: 'module' })`.
+// https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/
+// The worker file imports ./maplibre-gl-shared.mjs, and webpack copies both to /dist.
+// This must run before the first map.
+setWorkerUrl('/dist/maplibre-gl-worker.mjs');
 
 setApplicationConfiguration({
     homePage: '/dashboard',

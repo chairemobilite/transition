@@ -180,7 +180,6 @@ class MapLibreLayerManager {
             enabledAndActiveLayers.push(enabledLayer);
         });
         this._enabledLayers = enabledAndActiveLayers;
-        // Note: map.repaint is now managed by DeckGLControl component
         serviceLocator.eventManager.emit('map.updatedEnabledLayers', enabledLayers);
     }
 
