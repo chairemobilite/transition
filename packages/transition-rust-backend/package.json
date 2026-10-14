@@ -25,26 +25,26 @@
   },
   "license": "MIT",
   "devDependencies": {
-      "@napi-rs/cli": "^2.18.4",
-      "rimraf": "^6.1.2",
-      "vitest": "^4.1.11"
+    "@napi-rs/cli": "^2.18.4",
+    "rimraf": "^6.1.2",
+    "vitest": "^4.1.11"
   },
   "engines": {
     "node": ">= 24"
   },
   "scripts": {
-      "artifacts": "napi artifacts",
-      "compile": "napi build --platform --release",
-      "compile:dev": "napi build --platform",
-      "prepublishOnly": "napi prepublish -t npm",
-      "universal": "napi universal",
-      "version": "napi version",
-      "clean": "cargo clean && rimraf index.js index.d.ts *.node",
-      "test": "cargo test && vitest run",
-      "test:unit": "cargo test",
-      "test:sequential": "echo 'no tests to run for this workspace'",
-      "test:ui": "echo 'no tests to run for this workspace'",
-      "lint": "cargo clippy -- -D warnings",
-      "format": "cargo fmt --message-format short"
+    "artifacts": "napi artifacts",
+    "compile": "napi build --platform --release",
+    "compile:dev": "napi build --platform",
+    "prepublishOnly": "napi prepublish -t npm",
+    "universal": "napi universal",
+    "version": "napi version",
+    "clean": "cargo clean && rimraf index.js index.d.ts \"*.node\"",
+    "test": "cargo test && vitest run",
+    "test:unit": "cargo test",
+    "test:sequential": "echo 'no tests to run for this workspace'",
+    "test:ui": "echo 'no tests to run for this workspace'",
+    "lint": "cargo clippy -- -D warnings",
+    "format": "cargo fmt --message-format short"
   }
 }

@@ -2,10 +2,13 @@
 
 # Build Node app
 FROM node:24-trixie
+# Corepack runs the Yarn version set in the packageManager field of package.json, in place of the image's Yarn 1.
+# It is installed from npm since Node.js 25+ no longer bundles it.
+RUN npm install -g corepack
 WORKDIR /app
 # Install all the json package dependencies in an intermediary image. To do so, we copy each package.json files
 # and run yarn install which will download all the listed packages in the image.
-COPY package.json yarn.lock ./
+COPY package.json yarn.lock .yarnrc.yml ./
 COPY ./packages/chaire-lib-backend/package.json ./packages/chaire-lib-backend/package.json
 COPY ./packages/chaire-lib-common/package.json ./packages/chaire-lib-common/package.json
 COPY packages/chaire-lib-frontend packages/chaire-lib-frontend
@@ -13,9 +16,7 @@ COPY packages/transition-common packages/transition-common
 COPY packages/transition-backend packages/transition-backend
 COPY packages/transition-rust-backend packages/transition-rust-backend
 COPY packages/transition-frontend packages/transition-frontend
-# Add a 300 seconds timeout to avoid build failures in docker hub, which seems to be an acceptable workaround (see for example https://github.com/yarnpkg/yarn/issues/5540)
-RUN yarn config set network-timeout 300000
-RUN yarn install
+RUN yarn install --immutable
 
 # Setup the example as a default configuration for the image
 COPY .env.docker /app/.env
