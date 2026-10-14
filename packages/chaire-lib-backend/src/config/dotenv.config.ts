@@ -11,10 +11,12 @@ if (!process.env.NODE_ENV) {
     process.env.NODE_ENV = 'development';
 }
 
-// INIT_CWD is the directory from which the script was run (usually root of the
-// repo), while PWD would be the chaire-lib-backend directory if run with `yarn
-// start`
-const workingDir = process.env.INIT_CWD || process.env.PWD;
+// Directory where the .env file is expected, usually the root of the repo. Yarn
+// 2+ sets PROJECT_CWD to the project root, but its INIT_CWD is the workspace
+// directory for scripts run through `yarn workspace`. With Yarn 1, INIT_CWD is
+// the directory from which the first yarn command was run. PWD is the fallback
+// when not run through yarn.
+const workingDir = process.env.PROJECT_CWD || process.env.INIT_CWD || process.env.PWD;
 
 // Get the .env file. The return file path exists, the .env file can come from
 // the TRANSITION_DOTENV environment variable, or is expected to be at the root

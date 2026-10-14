@@ -55,6 +55,11 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+# Yarn 4 install state and cache (patches and plugins, if any, are committed)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+
 # dotenv environment variables file
 .env
 
