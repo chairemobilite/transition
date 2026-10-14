@@ -122,10 +122,10 @@ sudo make install
 ```bash
 curl -sL https://deb.nodesource.com/setup_24.x | sudo bash -
 sudo apt-get install -y nodejs
-curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt-get update && sudo apt-get install yarn
+sudo npm install -g corepack
 ```
+
+[Corepack](https://yarnpkg.com/corepack) provides the `yarn` command and runs the Yarn version set in the `packageManager` field of `package.json`. If Yarn 1 was previously installed from the Yarn apt repository, remove it first with `sudo apt-get remove yarn`.
 
 ## Install Transition
 

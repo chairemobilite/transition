@@ -19,7 +19,7 @@ For users only interested in running Transition, without manually installing all
 * [PostgreSQL](https://www.postgresql.org/) 10+ with [PostGIS](https://postgis.net/)
 * [OSRM](https://github.com/Project-OSRM/osrm-backend/): It is the routing engine used by Transition, to calculate the routes for various modes: for example walking, cycling, driving, bus in urban setting, suburban bus, etc.
 * [trRouting](https://github.com/chairemobilite/trRouting/): An open source routing engine to calculate the route between an origin and a destination, or to calculate accessibility from/to a point, using public transit network. It is the main engine used for public transit simulations.
-* yarn: [debian/ubuntu](https://classic.yarnpkg.com/en/docs/install/#debian-stable) or [macOS](https://classic.yarnpkg.com/en/docs/install/#mac-stable)
+* yarn, through [Corepack](https://yarnpkg.com/corepack): run `npm install -g corepack`. Corepack then runs the Yarn version set in the `packageManager` field of `package.json`. A previously installed Yarn 1 should be uninstalled first. If you need to use yarn 1 for other projets you should run `yarn set version 1.22.22` in that project directory.
 * [Rust](https://www.rust-lang.org/): Some of the backend is written in Rust, bound to TypeScript with napi-rs. This makes heavy part of the application much faster, in particular if there's a lot of transit data. With it we need rustfmt and clippy for formatting and linting.
 
 ## Installation

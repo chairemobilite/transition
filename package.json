@@ -18,9 +18,9 @@
         "setup-test": "PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace chaire-lib-backend run setup-test",
         "migrate": "yarn workspace chaire-lib-backend run migrate && yarn workspace transition-backend run migrate",
         "migrate-test": "PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace chaire-lib-backend run migrate-test && PROJECT_CONFIG=${PWD}/tests/config_test.js yarn workspace transition-backend run migrate-test",
-        "clean": "yarn workspaces run clean",
-        "compile": "yarn workspaces run compile",
-        "compile:dev": "yarn wsrun compile:dev",
+        "clean": "yarn workspaces foreach -Av run clean",
+        "compile": "yarn workspaces foreach -Av --topological run compile",
+        "compile:dev": "yarn workspaces foreach -Apiv -j unlimited run compile:dev",
         "create-user": "yarn workspace chaire-lib-backend run create-user",
         "build:dev": "yarn workspace transition-frontend run build:dev",
         "build:prod": "yarn workspace transition-frontend run build:prod",
@@ -28,18 +28,17 @@
         "start:demo": "PROJECT_CONFIG=${PWD}/examples/config.js yarn workspace transition-backend run start",
         "start:debug": "yarn workspace transition-backend run start:debug",
         "start:tracing": "yarn workspace transition-backend run start:tracing",
-        "test": "yarn workspaces run test",
-        "test:unit": "yarn workspaces run test:unit",
-        "test:sequential": "yarn workspaces run test:sequential",
-        "test:ui": "yarn workspaces run test:ui",
-        "lint": "yarn workspaces run lint",
-        "format": "yarn workspaces run format",
+        "test": "yarn workspaces foreach -Av run test",
+        "test:unit": "yarn workspaces foreach -Av run test:unit",
+        "test:sequential": "yarn workspaces foreach -Av run test:sequential",
+        "test:ui": "yarn workspaces foreach -Av run test:ui",
+        "lint": "yarn workspaces foreach -Av run lint",
+        "format": "yarn workspaces foreach -Av run format",
         "list-tasks": "yarn workspace transition-backend run list-tasks",
         "generate-migration": "knex migrate:make"
     },
-    "dependencies": {},
     "devDependencies": {
-        "wsrun": "^5.2.4"
-    }
+        "knex": "^3.1.0"
+    },
+    "packageManager": "yarn@4.18.1"
 }
-  
