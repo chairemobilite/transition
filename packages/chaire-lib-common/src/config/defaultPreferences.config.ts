@@ -94,9 +94,6 @@ const defaultPreferences: PreferencesModel = {
             cycling: 'bicycle'
         }
     },
-    btm: {
-        host: 'https://taximtl.ville.montreal.qc.ca'
-    },
     osrmRouting: {
         // directoryPrefix: used as a prefix, can be overridden in .env (OSRM_DIRECTORY_PREFIX).
         // Keep empty for none (will only use the mode name):
