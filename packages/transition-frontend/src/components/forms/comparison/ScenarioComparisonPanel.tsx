@@ -112,9 +112,7 @@ const ScenarioComparisonPanel: React.FC = () => {
         setCurrentResult(undefined);
         serviceLocator.eventManager.emit('map.updateLayers', {
             routingPaths: undefined,
-            routingPathsStrokes: undefined,
-            routingPathsAlternate: undefined,
-            routingPathsStrokesAlternate: undefined
+            routingPathsAlternate: undefined
         });
     };
 
