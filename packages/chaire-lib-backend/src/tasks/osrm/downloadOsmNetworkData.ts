@@ -10,6 +10,7 @@ import osmDownloader from '../../utils/osm/OsmOverpassDownloader';
 import { GenericTask } from '../genericTask';
 import { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
 import networksPolyForOsrm from '../../config/osm/overpassQueries/networksPolyForOsrm';
+import { createXmlOsmElementValidationTransform } from '../../utils/osm/OsmValidationTransform';
 
 /**
  * Task to download network data from OpenStreetMap for a polygon region.
@@ -83,7 +84,12 @@ export class DownloadOsmNetworkData implements GenericTask {
                 let nbRetry = 0;
                 const downloadData = async () => {
                     try {
-                        await osmDownloader.fetchAndWriteXml(osmRawDataFile, polygonGeojson, networksPolyForOsrm);
+                        await osmDownloader.fetchAndWriteXml(
+                            osmRawDataFile,
+                            polygonGeojson,
+                            networksPolyForOsrm,
+                            createXmlOsmElementValidationTransform
+                        );
                         resolve();
                     } catch (error) {
                         nbRetry++;
@@ -108,7 +114,7 @@ export class DownloadOsmNetworkData implements GenericTask {
                                 reject('Too many requests');
                             }
                         } else {
-                            console.error('Error download from API', error);
+                            console.error('Error fetching and writing OSM network data:', error);
                             reject(error);
                         }
                     }
