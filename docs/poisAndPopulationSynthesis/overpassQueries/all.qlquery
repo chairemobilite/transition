@@ -1,0 +1,64 @@
+
+[out:json][timeout:100];
+(
+
+{{polyboundary="BOUNDARY"}}
+
+node[~"^(craft|office|shop|tourism|healthcare)$"~"."](poly:{{polyboundary}});
+way[~"^(craft|office|shop|tourism|healthcare)$"~"."](poly:{{polyboundary}});
+relation[~"^(craft|office|shop|tourism|healthcare)$"~"."](poly:{{polyboundary}});
+
+(node["amenity"](poly:{{polyboundary}}); - node["amenity"~"^(parking|bicycle_parking|bicycle_repair_station|charging_station|grit_bin|motorcycle_parking|parking_entrance|parking_space|bench|clock|firepit|grave_yard|hunting_stand|post_box|sanitary_dump_station|telephone|shower|toilets|vending_machine|waste_disposal|waste_basket|watering_place|water_point|drinking_water|fountain|bbq)$"](poly:{{polyboundary}}););
+(way["amenity"](poly:{{polyboundary}}); - way["amenity"~"^(parking|bicycle_parking|bicycle_repair_station|charging_station|grit_bin|motorcycle_parking|parking_entrance|parking_space|bench|clock|firepit|grave_yard|hunting_stand|post_box|sanitary_dump_station|telephone|shower|toilets|vending_machine|waste_disposal|waste_basket|watering_place|water_point|drinking_water|fountain|bbq)$"](poly:{{polyboundary}}););
+(relation["amenity"](poly:{{polyboundary}}); - relation["amenity"~"^(parking|bicycle_parking|bicycle_repair_station|charging_station|grit_bin|motorcycle_parking|parking_entrance|parking_space|bench|clock|firepit|grave_yard|hunting_stand|post_box|sanitary_dump_station|telephone|shower|toilets|vending_machine|waste_disposal|waste_basket|watering_place|water_point|drinking_water|fountain|bbq)$"](poly:{{polyboundary}}););
+
+(node["building"](poly:{{polyboundary}}); - node["building"~"^(yes|residential|house|apartments|bungalow|cabin|detached|dormitory|ger|houseboat|semidetached_house|terrace|farm|static_caravan|toilets|hut|shed|carport|garage|parking|service|transformer_tower|water_tower|bridge|roof|ruins)$"](poly:{{polyboundary}}););
+(way["building"](poly:{{polyboundary}}); - way["building"~"^(yes|residential|house|apartments|bungalow|cabin|detached|dormitory|ger|houseboat|semidetached_house|terrace|farm|static_caravan|toilets|hut|shed|carport|garage|parking|service|transformer_tower|water_tower|bridge|roof|ruins)$"](poly:{{polyboundary}}););
+(relation["building"](poly:{{polyboundary}}); - relation["building"~"^(yes|residential|house|apartments|bungalow|cabin|detached|dormitory|ger|houseboat|semidetached_house|terrace|farm|static_caravan|toilets|hut|shed|carport|garage|parking|service|transformer_tower|water_tower|bridge|roof|ruins)$"](poly:{{polyboundary}}););
+
+node["camping"~"^(reception)$"](poly:{{polyboundary}});
+way["camping"~"^(reception)$"](poly:{{polyboundary}});
+relation["camping"~"^(reception)$"](poly:{{polyboundary}});
+
+node["emergency"~"^(ambulance_station)$"](poly:{{polyboundary}});
+way["emergency"~"^(ambulance_station)$"](poly:{{polyboundary}});
+relation["emergency"~"^(ambulance_station)$"](poly:{{polyboundary}});
+
+node["historic"~"^(archaeological_site|building|castle|church|farm|fort|manor|monastery|monument|tower)$"](poly:{{polyboundary}});
+way["historic"~"^(archaeological_site|building|castle|church|farm|fort|manor|monastery|monument|tower)$"](poly:{{polyboundary}});
+relation["historic"~"^(archaeological_site|building|castle|church|farm|fort|manor|monastery|monument|tower)$"](poly:{{polyboundary}});
+
+((node["leisure"](poly:{{polyboundary}}); - node["leisure"~"^(bird_hide|common|firepit|nature_reserve|picnic_table)$"](poly:{{polyboundary}});); - node["access"="private"](poly:{{polyboundary}}););
+((way["leisure"](poly:{{polyboundary}}); - way["leisure"~"^(bird_hide|common|firepit|nature_reserve|picnic_table)$"](poly:{{polyboundary}});); - way["access"="private"](poly:{{polyboundary}}););
+((relation["leisure"](poly:{{polyboundary}}); - relation["leisure"~"^(bird_hide|common|firepit|nature_reserve|picnic_table)$"](poly:{{polyboundary}});); - relation["access"="private"](poly:{{polyboundary}}););
+
+node["man_made"~"^(lighthouse|observatory|pumping_station|telescope|watermill|wastewater_plant|water_works|windmill|works)$"](poly:{{polyboundary}});
+way["man_made"~"^(lighthouse|observatory|pumping_station|telescope|watermill|wastewater_plant|water_works|windmill|works)$"](poly:{{polyboundary}});
+relation["man_made"~"^(lighthouse|observatory|pumping_station|telescope|watermill|wastewater_plant|water_works|windmill|works)$"](poly:{{polyboundary}});
+
+node["military"~"^(barracks|office)$"](poly:{{polyboundary}});
+way["military"~"^(barracks|office)$"](poly:{{polyboundary}});
+relation["military"~"^(barracks|office)$"](poly:{{polyboundary}});
+
+node["power"~"^(plant|substation)$"](poly:{{polyboundary}});
+way["power"~"^(plant|substation)$"](poly:{{polyboundary}});
+relation["power"~"^(plant|substation)$"](poly:{{polyboundary}});
+
+node["public_transport"~"^(station)$"](poly:{{polyboundary}});
+way["public_transport"~"^(station)$"](poly:{{polyboundary}});
+relation["public_transport"~"^(station)$"](poly:{{polyboundary}});
+
+node["railway"~"^(station|roundhouse|wash|subway_entrance|vehicle_depot)$"](poly:{{polyboundary}});
+way["railway"~"^(station|roundhouse|wash|subway_entrance|vehicle_depot)$"](poly:{{polyboundary}});
+relation["railway"~"^(station|roundhouse|wash|subway_entrance|vehicle_depot)$"](poly:{{polyboundary}});
+
+node["telecom"~"^(data_center)$"](poly:{{polyboundary}});
+way["telecom"~"^(data_center)$"](poly:{{polyboundary}});
+relation["telecom"~"^(data_center)$"](poly:{{polyboundary}});
+
+node["waterway"~"^(dock|boatyard|fuel)$"](poly:{{polyboundary}});
+way["waterway"~"^(plant|substation|)$"](poly:{{polyboundary}});
+relation["waterway"~"^(plant|substation|)$"](poly:{{polyboundary}});
+  
+);
+out center body;
