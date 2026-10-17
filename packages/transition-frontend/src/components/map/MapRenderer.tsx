@@ -5,13 +5,20 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import MapLibreMap, { MapRef, ScaleControl, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
+import MapLibreMap, {
+    MapRef,
+    ScaleControl,
+    NavigationControl,
+    SourceSpecification,
+    LayerSpecification
+} from 'react-map-gl/maplibre';
 import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { LayersList } from '@deck.gl/core';
 import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import { usePreference } from 'chaire-lib-frontend/lib/hooks/usePreference';
 import {
@@ -278,6 +285,15 @@ const MapRenderer: React.FC<MapRendererProps> = ({
                     <DeckGLControl key={deckOverlayRemountKey} layers={deckLayers} animate={!disableAnimation} />
                 )}
                 <ScaleControl position="bottom-right" />
+                {Preferences.get('features.map.navigationControl', true) && (
+                    <NavigationControl
+                        position="top-left"
+                        showCompass={true}
+                        showZoom={true}
+                        visualizePitch={true}
+                        visualizeRoll={true}
+                    />
+                )}
             </MapLibreMap>
             {mapLoaded && (
                 <MapControlsPanel
