@@ -14,6 +14,7 @@ import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollec
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 import AgencyImporter from './AgencyImporter';
 import ServiceImporter from './ServiceImporter';
 import LineImporter from './LineImporter';
@@ -32,6 +33,19 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 
 // Number of steps for the import, to track progress at every step
 const nbImportSteps = 6;
+
+/**
+ * Map an error caught during a GTFS import step to a user-facing
+ * `TranslatableMessage`. If the error is a `TrError`, surface its
+ * `localizedMessage` so the user gets a specific, actionable description
+ * (e.g. naming the file that failed). Otherwise fall back to the step's
+ * generic message. This keeps the importer agnostic of any specific
+ * exception type: any code in the import chain that wants to surface a
+ * tailored UI message just needs to throw a `TrError` with a
+ * `localizedMessage` set.
+ */
+const errorToImportMessage = (error: unknown, fallback: TranslatableMessage): TranslatableMessage =>
+    TrError.getLocalizedMessage(error) ?? fallback;
 
 /**
  * Import GTFS data from an unzipped gtfs directory
@@ -108,7 +122,11 @@ const importGtfsData = async (
         await nodeCollection.loadFromServer(serviceLocator.socketEventManager);
     } catch (error) {
         console.error(`error importing stops: ${error}`);
-        return { status: 'failed', errors: [GtfsMessages.NodesImportError], nodesDirty };
+        return {
+            status: 'failed',
+            errors: [errorToImportMessage(error, GtfsMessages.NodesImportError)],
+            nodesDirty
+        };
     } finally {
         progressEmitter?.emit('progress', { name: 'ImportingStops', progress: 1.0 });
         currentStepCompleted++;
@@ -130,7 +148,11 @@ const importGtfsData = async (
         await agencies.loadFromServer(serviceLocator.socketEventManager, collectionManager);
     } catch (error) {
         console.error(`error importing agencies: ${error}`);
-        return { status: 'failed', errors: [GtfsMessages.AgenciesImportError], nodesDirty };
+        return {
+            status: 'failed',
+            errors: [errorToImportMessage(error, GtfsMessages.AgenciesImportError)],
+            nodesDirty
+        };
     } finally {
         progressEmitter?.emit('progress', { name: 'ImportingAgencies', progress: 1.0 });
         currentStepCompleted++;
@@ -152,7 +174,11 @@ const importGtfsData = async (
         await lineCollection.loadFromServer(serviceLocator.socketEventManager, collectionManager);
     } catch (error) {
         console.error(`error importing lines: ${error}`);
-        return { status: 'failed', errors: [GtfsMessages.LinesImportError], nodesDirty };
+        return {
+            status: 'failed',
+            errors: [errorToImportMessage(error, GtfsMessages.LinesImportError)],
+            nodesDirty
+        };
     } finally {
         progressEmitter?.emit('progress', { name: 'ImportingLines', progress: 1.0 });
         currentStepCompleted++;
@@ -178,7 +204,11 @@ const importGtfsData = async (
         await services.loadFromServer(serviceLocator.socketEventManager, collectionManager);
     } catch (error) {
         console.error(`error importing lines: ${error}`);
-        return { status: 'failed', errors: [GtfsMessages.ServicesImportError], nodesDirty };
+        return {
+            status: 'failed',
+            errors: [errorToImportMessage(error, GtfsMessages.ServicesImportError)],
+            nodesDirty
+        };
     } finally {
         progressEmitter?.emit('progress', { name: 'ImportingServices', progress: 1.0 });
         currentStepCompleted++;

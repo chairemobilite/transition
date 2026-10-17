@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { gtfsCsvOptions } from './gtfsCsvOptions';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import Agency, { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
@@ -79,7 +80,7 @@ export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agen
                             }
                 });
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         return agencies;
     }
