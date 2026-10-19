@@ -40,12 +40,19 @@ for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
 }
 
 interface PathStatistics {
+    /** Total distance meters  */
     d_p?: number | null;
+    /** node count */
     n_q_p?: number | null;
+    /** Minimum distance between nodes */
     d_l_min?: number | null;
+    /** Maximum distance between nodes */
     d_l_max?: number | null;
+    /** Average distance between nodes */
     d_l_avg?: number | null;
+    /** Median distance between nodes */
     d_l_med?: number | null;
+    /** Operating time without layover time, in seconds */
     T_o_p?: number | null;
 }
 
@@ -64,58 +71,87 @@ export type PeriodSegmentData = {
     operatingSpeedMetersPerSecond: number;
 };
 
-export interface PathAttributesData {
-    defaultLayoverRatioOverTotalTravelTime?: number;
-    defaultMinLayoverTimeSeconds?: number;
-    defaultRoutingEngine?: 'manual' | 'engine' | 'engineCustom';
-    defaultRoutingMode?: string;
-    defaultAcceleration?: number;
-    defaultDeceleration?: number;
+export type PathAttributesData = {
+    // ***** Fields defined by the user, used in calculation
+    routingEngine?: 'manual' | 'engine' | 'engineCustom';
+    routingMode?: string;
     defaultDwellTimeSeconds?: number;
     ignoreNodesDefaultDwellTimeSeconds?: boolean; // if true, will ignore defaultDwellTimeSeconds from nodes and line mode
+    // default values for speed and calculation, initialized to the mode's, but can be edited by the user. They are used for manual routing, otherwise the engine's values have precedence
     defaultRunningSpeedKmH?: number;
-    variables?: PathStatistics;
-    routingFailed?: boolean;
-    routingMode?: string;
-    routingEngine?: 'manual' | 'engine' | 'engineCustom';
-    geographyErrors?: {
-        error: string;
-        nodes?: GeoJSON.Feature<GeoJSON.Point>[];
-        waypoints?: GeoJSON.Feature<GeoJSON.Point>[];
-    };
-    minMatchingTimestamp?: number; // timestamp used for map matching routing, in seconds
-    // The following properties contain array of data per node.
+    defaultAcceleration?: number;
+    defaultDeceleration?: number;
+    customLayoverMinutes?: number;
+    increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
+    minMatchingTimestamp?: number; // timestamp used for map matching routing, in seconds, set in advanced fields
+
+    // ***** Fields defined by the user per segment (through map interactions)
     nodeTypes: string[];
     waypoints: [number, number][][];
     waypointTypes: string[][];
+
+    // ***** Fields calculated when geography changes
+    // FIXME Currently calculated only from the global stats, distances won't
+    // change, but times will vary according to travel times. This may need to
+    // be split, in per-path and per-period statistics. Also rename this field.
+    variables?: PathStatistics;
+    // The distance part changes globally
     segments?: TimeAndDistance[];
+    // Used for euclidiant tortuosity calculations
+    birdDistanceBetweenTerminals?: number;
+    // used for spatial tortuosity calculations
+    directRouteBetweenTerminalsDistanceMeters?: number;
+    // Used for temporal tortuosity calculation.
+    // FIXME Does this value depend on period?
+    directRouteBetweenTerminalsTravelTimeSeconds?: number;
+    totalDistanceMeters?: number;
+
+    // ***** Fields defined by the user, but may vary per period
     dwellTimeSeconds?: number[];
-    gtfs?: {
-        shape_id: string;
-    };
+
+    // ***** Fields calculated by period
+    // FIXME: Consider putting all those calculated path data in a single object where each is not optional
+    operatingTimeWithLayoverTimeSeconds?: number;
+    travelTimeWithoutDwellTimesSeconds?: number;
+    operatingTimeWithoutLayoverTimeSeconds?: number;
+    operatingSpeedWithLayoverMetersPerSecond?: number | null;
+    layoverTimeSeconds?: number;
+    averageSpeedWithoutDwellTimesMetersPerSecond?: number | null;
+    operatingSpeedMetersPerSecond?: number | null;
+    totalDwellTimeSeconds?: number;
+    // segments?: TimeAndDistance[]; The travel time part depends on period
     segmentsByServiceAndPeriod?: {
         [serviceId: string]: {
             [periodShortname: string]: PeriodSegmentData;
         };
     };
-    increaseRoutingRadiiToIncludeExistingPathShape?: boolean;
-    // FIXME: Consider putting all those calculated path data in a single object where each is not optional
-    operatingTimeWithoutLayoverTimeSeconds?: number;
-    birdDistanceBetweenTerminals?: number;
-    directRouteBetweenTerminalsDistanceMeters?: number;
-    travelTimeWithoutDwellTimesSeconds?: number;
-    directRouteBetweenTerminalsTravelTimeSeconds?: number;
-    operatingSpeedMetersPerSecond?: number | null;
-    operatingTimeWithLayoverTimeSeconds?: number;
-    maxRunningSpeedKmH?: number;
     totalTravelTimeWithReturnBackSeconds?: number;
-    averageSpeedWithoutDwellTimesMetersPerSecond?: number | null;
-    customLayoverMinutes?: number;
-    totalDistanceMeters?: number;
+
+    // ***** Volatile fields (status of edition, routing failures, etc)
     temporaryManualRouting?: boolean;
-    [key: string]: unknown;
-}
+    // forcRecalculate is a class field, but similar to the temporaryManualRouting in semantics
+    routingFailed?: boolean;
+    geographyErrors?: {
+        error: string;
+        nodes?: GeoJSON.Feature<GeoJSON.Point>[];
+        waypoints?: GeoJSON.Feature<GeoJSON.Point>[];
+    };
+
+    // ***** Other
+    gtfs?: {
+        shape_id: string;
+    };
+    from_gtfs?: boolean;
+
+    // ***** Unclassified, some come from the line mode's configuration
+    defaultLayoverRatioOverTotalTravelTime?: number; // Never assigned, not used. Actually taken from preferences when required
+    defaultMinLayoverTimeSeconds?: number; // Never assigned, not used. Actually taken from preferences when required
+    defaultRoutingEngine?: 'manual' | 'engine' | 'engineCustom'; // Used in `setDefaultValues` to set the node types at initialization. Probably set from the default data's preferences
+    defaultRoutingMode?: string; // Never assigned, not used. Actually taken from preferences when required
+    maxRunningSpeedKmH?: number; // Never really assigned, probably comes from the mode's configuration
+};
 export interface PathAttributes extends MapObjectAttributes<GeoJSON.LineString> {
+    // ***** Fields defined by the user
     direction: PathDirection;
     line_id: string;
     is_enabled?: boolean;
@@ -123,12 +159,15 @@ export interface PathAttributes extends MapObjectAttributes<GeoJSON.LineString> 
     nodes: string[];
     /** TODO what's the difference with nodes? */
     stops?: string[];
+    mode?: string;
+    color?: string;
+
+    // ***** Fields that will change with the geography
     /** An array containing the index in the geography's coordinates of the node
      * starting this segment. This array should have the same size as the nodes
      * array. */
     segments: number[];
-    mode?: string;
-    color?: string;
+
     data: PathAttributesData;
 }
 
