@@ -4,20 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import snakeCase from 'lodash/snakeCase';
-import camelCase from 'lodash/camelCase';
-
 import { Node, NodeAttributes } from './Node';
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
 import GenericPlaceCollection from 'chaire-lib-common/lib/utils/objects/GenericPlaceCollection';
 import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 /**
  * A collection of transit nodes
@@ -84,104 +77,6 @@ export class NodeCollection extends GenericPlaceCollection<NodeAttributes, Node>
 
     nodesInBirdRadiusMetersAround(geometry, birdRadiusMeters = 1000) {
         return this.pointsInBirdRadiusMetersAround(geometry, birdRadiusMeters);
-    }
-
-    setNetworkTravelTimesForBirdDistanceAccessibleNodes(object, geojson, prefix, mode: RoutingMode = 'walking') {
-        // geojson: origin or destination geojson
-        return new Promise((resolve, reject) => {
-            if (_isBlank(geojson) && typeof object.toGeojson === 'function') {
-                geojson = object.toGeojson();
-            }
-
-            if (_isBlank(geojson)) {
-                console.log(`no geojson provided for object ${object.get('id')}`);
-                resolve(0);
-            }
-
-            if (this.size() === 0) {
-                console.log('no node in nodeCollection');
-                resolve(0);
-            }
-
-            const maxAccessEgressBirdDistanceMeters =
-                Preferences.get('transit.nodes.defaultWalkingSpeedMps') *
-                Preferences.get('transit.nodes.maxAccessEgressWalkingTravelTimeSeconds');
-            const birdDistanceAccessibleNodes = this.nodesInBirdRadiusMetersAround(
-                geojson.geometry ? geojson.geometry : geojson, // TODO: fix the callers everywhere to be able to accept only a point.
-                maxAccessEgressBirdDistanceMeters
-            );
-            const nodesPrefix = `${!_isBlank(prefix) ? camelCase(prefix) + 'Nodes' : 'nodes'}`;
-            const attributePrefix = !_isBlank(prefix) ? snakeCase(prefix) + '_' : '';
-            const routingService = routingServiceManager.getRoutingServiceForEngine('engine');
-
-            if (birdDistanceAccessibleNodes.length === 0) {
-                console.log(`no accessible node for object ${object.get('id')}`);
-                resolve(0);
-            }
-
-            if (birdDistanceAccessibleNodes.length > 0) {
-                routingService
-                    .tableTo({ mode, origins: birdDistanceAccessibleNodes, destination: geojson })
-                    .then((jsonResult) => {
-                        const travelTimesSeconds = jsonResult.durations;
-                        const distancesMeters = jsonResult.distances;
-                        let accessibleNodesCount = 0;
-                        object.attributes.data[`${nodesPrefix}`] = [];
-                        object.attributes.data[`${nodesPrefix}TravelTimes`] = [];
-                        object.attributes.data[`${nodesPrefix}Distances`] = [];
-                        object.attributes[`walking_20min_${attributePrefix}accessible_nodes_count`] = 0;
-                        object.attributes[`walking_15min_${attributePrefix}accessible_nodes_count`] = 0;
-                        object.attributes[`walking_10min_${attributePrefix}accessible_nodes_count`] = 0;
-                        object.attributes[`walking_5min_${attributePrefix}accessible_nodes_count`] = 0;
-
-                        for (let i = 0, count = birdDistanceAccessibleNodes.length; i < count; i++) {
-                            const travelTimeSeconds = Number(travelTimesSeconds[i]);
-                            const distanceMeters = Number(distancesMeters[i]);
-                            if (
-                                !Number.isFinite(travelTimeSeconds) ||
-                                travelTimeSeconds < 0 ||
-                                !Number.isFinite(distanceMeters) ||
-                                distanceMeters < 0
-                            ) {
-                                console.log(
-                                    `ERROR: OSRM mode ${mode}: duration or distance is invalid for object ${object.get(
-                                        'id'
-                                    )}`
-                                );
-                            } else if (
-                                travelTimeSeconds <=
-                                Preferences.current.transit.nodes.maxAccessEgressWalkingTravelTimeSeconds
-                            ) {
-                                const node = birdDistanceAccessibleNodes[i];
-                                object.attributes.data[`${nodesPrefix}`].push(node.properties.id);
-                                object.attributes.data[`${nodesPrefix}TravelTimes`].push(
-                                    ceilToPositiveInteger(travelTimeSeconds)
-                                );
-                                object.attributes.data[`${nodesPrefix}Distances`].push(
-                                    ceilToPositiveInteger(distanceMeters)
-                                );
-                                if (travelTimeSeconds <= 1200) {
-                                    object.attributes[`walking_20min_${attributePrefix}accessible_nodes_count`]++;
-                                }
-                                if (travelTimeSeconds <= 900) {
-                                    object.attributes[`walking_15min_${attributePrefix}accessible_nodes_count`]++;
-                                }
-                                if (travelTimeSeconds <= 600) {
-                                    object.attributes[`walking_10min_${attributePrefix}accessible_nodes_count`]++;
-                                }
-                                if (travelTimeSeconds <= 300) {
-                                    object.attributes[`walking_5min_${attributePrefix}accessible_nodes_count`]++;
-                                }
-                            }
-                            accessibleNodesCount++;
-                        }
-                        resolve(accessibleNodesCount);
-                    })
-                    .catch(reject);
-            } else {
-                resolve(0);
-            }
-        });
     }
 
     async nodesInWalkingTravelTimeRadiusSecondsAround(
