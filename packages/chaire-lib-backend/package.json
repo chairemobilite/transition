@@ -23,7 +23,7 @@
         "test:sequential": "cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand",
         "test:ui": "echo 'no tests to run for this workspace'",
         "lint": "eslint .",
-        "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
+        "format": "prettier --write --log-level warn \"./src/**/*.{ts,tsx}\" && eslint --fix --quiet \"./src/**/*.{ts,tsx}\""
     },
     "dependencies": {
         "@cap.js/server": "^4.0.5",
@@ -90,7 +90,7 @@
         "mock-spawn": "^0.2.6",
         "mockdate": "^3.0.5",
         "nodemailer-mock": "^2.0.9",
-        "prettier-eslint-cli": "^8.0.1",
+        "prettier": "^3.9.10",
         "rimraf": "^6.1.2",
         "supertest": "^7.1.4",
         "supertest-session": "^5.0.1",
