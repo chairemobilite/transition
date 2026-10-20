@@ -1,2 +1,4 @@
 lib/
 node_modules/
+# Tests are not linted, so they are not formatted either
+**/__tests__/

@@ -16,7 +16,7 @@
     "test:sequential": "echo 'no tests to run for this workspace'",
     "test:ui": "echo 'no tests to run for this workspace'",
     "lint": "eslint .",
-    "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
+    "format": "prettier --write --log-level warn \"./src/**/*.{ts,tsx}\" && eslint --fix --quiet \"./src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@turf/turf": "^7.3.5",
@@ -42,7 +42,7 @@
     "gtfs-types": "^4.0.0",
     "jest": "^30.2.0",
     "jest-each": "^30.2.0",
-    "prettier-eslint-cli": "^8.0.1",
+    "prettier": "^3.9.10",
     "rimraf": "^6.1.2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",

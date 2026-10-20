@@ -8,10 +8,9 @@ import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import gtsConfig from './gts.eslint.config.mjs';
 
-// Base eslint configuration for all typescript packages. Formatting is done
-// with prettier-eslint, which runs prettier then `eslint --fix`, that's the way
-// to go to have allman braces AND prettier formatting, so the prettier plugin
-// is not used here.
+// Base eslint configuration for all typescript packages. The `format` scripts
+// run prettier then `eslint --fix`, that's the way to go to have allman braces
+// AND prettier formatting, so the prettier plugin is not used here.
 export default defineConfig([
     // Dotfiles (like .prettierrc.js) were ignored by default by eslint before the flat config
     globalIgnores(['**/.*'], 'transition/dotfiles'),

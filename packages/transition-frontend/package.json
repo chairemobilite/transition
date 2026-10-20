@@ -20,7 +20,7 @@
     "test:sequential": "echo 'cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand'",
     "test:ui": "LOCALE_DIR=$(pwd)/locales npx playwright test",
     "lint": "eslint .",
-    "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
+    "format": "prettier --write --log-level warn \"./src/**/*.{ts,tsx}\" && eslint --fix --quiet \"./src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^7.1.0",
@@ -86,7 +86,7 @@
     "jest": "^30.2.0",
     "json-loader": "^0.5.7",
     "mini-css-extract-plugin": "^2.9.4",
-    "prettier-eslint-cli": "^8.0.1",
+    "prettier": "^3.9.10",
     "rimraf": "^6.1.2",
     "sass": "^1.94.2",
     "sass-loader": "^16.0.6",

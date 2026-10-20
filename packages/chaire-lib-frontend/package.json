@@ -17,7 +17,7 @@
     "test:sequential": "echo 'cross-env NODE_ENV=test jest --config=jest.sequential.config.js --runInBand'",
     "test:ui": "echo 'cross-env NODE_ENV=test jest --config=jest.ui.config.js'",
     "lint": "eslint .",
-    "format": "prettier-eslint \"./src/**/*.{ts,tsx}\" --write"
+    "format": "prettier --write --log-level warn \"./src/**/*.{ts,tsx}\" && eslint --fix --quiet \"./src/**/*.{ts,tsx}\""
   },
   "dependencies": {
     "@casl/ability": "^6.8.1",
@@ -82,7 +82,7 @@
     "jest-each": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "mockdate": "^3.0.5",
-    "prettier-eslint-cli": "^8.0.1",
+    "prettier": "^3.9.10",
     "rimraf": "^6.1.2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
