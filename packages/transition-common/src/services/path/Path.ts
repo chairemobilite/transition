@@ -47,7 +47,6 @@ interface PathStatistics {
     d_l_avg?: number | null;
     d_l_med?: number | null;
     T_o_p?: number | null;
-    n_s_p?: number | null;
 }
 
 import type { TimeAndDistance } from './PathTypes';
@@ -949,19 +948,18 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             d_l_med: null,
             T_o_p: this.attributes.data.operatingTimeWithoutLayoverTimeSeconds
         };
-        variables.n_s_p = variables.n_q_p;
 
-        const segmentDistances: number[] = (this.attributes.data.segments || [])
+        const segmentLengths: number[] = (this.attributes.data.segments || [])
             .map((segment) => {
                 return segment.distanceMeters;
             })
             .filter((distance) => distance !== null) as number[];
 
-        if (segmentDistances.length > 0) {
-            variables.d_l_min = ceilToPositiveInteger(Math.min(...segmentDistances));
-            variables.d_l_max = ceilToPositiveInteger(Math.max(...segmentDistances));
-            variables.d_l_avg = roundToDecimals(_mean(segmentDistances), 0);
-            variables.d_l_med = roundToDecimals(median(segmentDistances), 0);
+        if (segmentLengths.length > 0) {
+            variables.d_l_min = ceilToPositiveInteger(Math.min(...segmentLengths));
+            variables.d_l_max = ceilToPositiveInteger(Math.max(...segmentLengths));
+            variables.d_l_avg = roundToDecimals(_mean(segmentLengths), 0);
+            variables.d_l_med = roundToDecimals(median(segmentLengths), 0);
         }
 
         this.attributes.data.variables = variables;
@@ -1296,26 +1294,26 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return this.attributes.nodes.length;
     }
 
-    averageInterNodesDistanceMeters() {
+    averageSegmentLengthMeters() {
         if (this.isComplete()) {
             return ceilToPositiveInteger((this.attributes.data.totalDistanceMeters || 0) / (this.countNodes() - 1));
         }
         return null;
     }
 
-    medianInterNodesDistanceMeters() {
-        return median(this.getInterNodesDistances());
+    medianSegmentLengthMeters() {
+        return median(this.getSegmentLengths());
     }
 
-    getInterNodesDistances() {
-        const interNodesDistances: number[] = [];
+    getSegmentLengths() {
+        const SegmentLengths: number[] = [];
         if (this.isComplete()) {
             this.attributes.data.segments?.forEach((segment) => {
                 if (segment && segment.distanceMeters) {
-                    interNodesDistances.push(segment.distanceMeters);
+                    SegmentLengths.push(segment.distanceMeters);
                 }
             });
-            return interNodesDistances;
+            return SegmentLengths;
         }
         return [];
     }
@@ -1324,15 +1322,15 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         return (this.attributes.nodes || []).includes(nodeId);
     }
 
-    getInterNodesTravelTimes() {
-        const interNodesTravelTimes: number[] = [];
+    getSegmentsTravelTimes() {
+        const segmentsTravelTimes: number[] = [];
         if (this.isComplete()) {
             (this.attributes.data.segments || []).forEach((segment) => {
                 if (segment && segment.travelTimeSeconds) {
-                    interNodesTravelTimes.push(segment.travelTimeSeconds);
+                    segmentsTravelTimes.push(segment.travelTimeSeconds);
                 }
             });
-            return interNodesTravelTimes;
+            return segmentsTravelTimes;
         }
         return null;
     }

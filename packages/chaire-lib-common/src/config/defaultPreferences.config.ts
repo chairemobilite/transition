@@ -337,8 +337,8 @@ const defaultPreferences: PreferencesModel = {
             },
             generator: {
                 defaultMinDistanceBetweenTerminalsKm: 3,
-                defaultAvgInterNodesDistanceMeters: 400,
-                defaultMedianInterNodesDistanceMeters: 400,
+                defaultAvgSegmentLengthMeters: 400,
+                defaultMedianSegmentLengthMeters: 400,
                 defaultMaxTemporalTortuosity: 1.5
             }
         },

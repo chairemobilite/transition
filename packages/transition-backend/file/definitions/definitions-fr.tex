@@ -352,32 +352,32 @@
 \label{distance_at_programmed_speed}
 \makecell[r]{Distance à vitesse programmée \\ \textit{Distance at programmed speed}} & \[d_{v_p}\] & \[m\] & \[d_l - d_a - d_b\] (catégorie A ou B seulement) & Distance entre la fin de l'accélération et le début de la décélération entre arrêts. \\
 \hline
-\label{interstop_distance}
-\makecell[r]{Distance inter-arrêt (longueur de segment) \\ \textit{Interstop distance (segment length)}} & \[d_l\] & \[m\] & - & Distance totale parcourue entre deux arrêts consécutifs sur le parcours. \\
+\label{segment_length}
+\makecell[r]{Longueur de segment (distance inter-arrêt) \\ \textit{Segment length (interstop distance)}} & \[d_l\] & \[m\] & - & Distance totale parcourue entre deux arrêts consécutifs sur le parcours. \\
 \hline
-\label{average_interstop_distance}
-\makecell[r]{Distance inter-arrêt moyenne de parcours \\ \textit{Average path interstop distance}} & \[\overline{d_l}\] & \[m\] & \[\frac{\sum_{i=1}^{n_l} {d_l}_i} {n_l}\] & Moyenne des distances inter-arrêts du parcours. \\
+\label{average_segment_length}
+\makecell[r]{Longueur de segment moyenne de parcours \\ \textit{Average path segment length}} & \[\overline{d_l}\] & \[m\] & \[\frac{\sum_{i=1}^{n_l} {d_l}_i} {n_l}\] & Moyenne des longueurs de segments du parcours. \\
 \hline
-\label{median_interstop_distance}
-\makecell[r]{Distance inter-arrêt médiane de parcours \\ \textit{Median path interstop distance}} & \[\widetilde{d_l}\] & \[m\] & - & Médiane des distances inter-arrêts du parcours. \\
+\label{median_segment_length}
+\makecell[r]{Longueur de segment médiane de parcours \\ \textit{Median path segment length}} & \[\widetilde{d_l}\] & \[m\] & - & Médiane des longueurs de segments du parcours. \\
 \hline
-\label{minimum_interstop_distance}
-\makecell[r]{Distance inter-arrêt minimale de parcours \\ \textit{Minimum path interstop distance}} & \[{d_l}_{min}\] & \[m\] & - & Longueur du segment inter-arrêts le plus court du parcours. \\
+\label{minimum_segment_length}
+\makecell[r]{Longueur de segment minimale de parcours \\ \textit{Minimum path segment length}} & \[{d_l}_{min}\] & \[m\] & - & Longueur du segment le plus court du parcours. \\
 \hline
-\label{maximum_interstop_distance}
-\makecell[r]{Distance inter-arrêt maximale de parcours \\ \textit{Maximum path interstop distance}} & \[{d_l}_{max}\] & \[m\] & - & Longueur du segment inter-arrêts le plus long du parcours. \\
+\label{maximum_segment_length}
+\makecell[r]{Longueur de segment maximale de parcours \\ \textit{Maximum path segment length}} & \[{d_l}_{max}\] & \[m\] & - & Longueur du segment le plus long du parcours. \\
 \hline
-\label{average_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt moyenne de ligne \\ \textit{Average line interstop distance}} & \[\overline{{d_l}_L}\] & \[m\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_l}_j} {d_l}_i})} {\sum_{j=1}^{n_p} {{n_l}_j}}\] & Distance moyenne des segments inter-arrêts d'une ligne dans les deux directions. \\
+\label{average_line_segment_length}
+\makecell[r]{Longueur de segment moyenne de ligne \\ \textit{Average line segment length}} & \[\overline{{d_l}_L}\] & \[m\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_l}_j} {d_l}_i})} {\sum_{j=1}^{n_p} {{n_l}_j}}\] & Distance moyenne des segments d'une ligne dans les deux directions. \\
 \hline
-\label{median_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt médiane de ligne \\ \textit{Median path interstop distance}} & \[\widetilde{{d_l}_L}\] & \[m\] & - & Médiane des distances inter-arrêts de la ligne. \\
+\label{median_line_segment_length}
+\makecell[r]{Longueur de segment médiane de ligne \\ \textit{Median line segment length}} & \[\widetilde{{d_l}_L}\] & \[m\] & - & Médiane des longueurs de segments de la ligne. \\
 \hline
-\label{minimum_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt minimale de ligne \\ \textit{Minimum path interstop distance}} & \[{{d_l}_L}_{min}\] & \[m\] & - & Longueur du segment inter-arrêts le plus court de la ligne. \\
+\label{minimum_line_segment_length}
+\makecell[r]{Longueur de segment minimale de ligne \\ \textit{Minimum line segment length}} & \[{{d_l}_L}_{min}\] & \[m\] & - & Longueur du segment le plus court de la ligne. \\
 \hline
-\label{maximum_line_interstop_distance}
-\makecell[r]{Distance inter-arrêt maximale de ligne \\ \textit{Maximum path interstop distance}} & \[{{d_l}_L}_{max}\] & \[m\] & - & Longueur du segment inter-arrêts le plus long de la ligne. \\
+\label{maximum_line_segment_length}
+\makecell[r]{Longueur de segment maximale de ligne \\ \textit{Maximum line segment length}} & \[{{d_l}_L}_{max}\] & \[m\] & - & Longueur du segment le plus long de la ligne. \\
 \hline
 \label{path_length}
 \makecell[r]{Longueur de parcours \\ \textit{Path length}} & \[d_p\] & \[m\] & \[\sum_{i=1}^{n_l} {d_l}_i\] & Longueur totale du parcours. \\
@@ -490,14 +490,14 @@
 \label{travel_time_at_programmed_speed}
 \makecell[r]{Temps à vitesse programmée \\ \textit{Travel time at programmed speed}} & \[t_{v_p}\] & \[s\] & \[\frac{d_{v_p}}{v_p}\] (catégorie A ou B seulement) & Temps entre la fin de l'accélération et le début de la décélération d'un segment entre arrêts. \\
 \hline
-\label{segment_interstop_travel_time}
-\makecell[r]{Temps de parcours de segment/inter-arrêts \\ \textit{Segment/Interstop travel time}} & \[t_l\] & \[s\] & \[t_a + t_{v_p} + t_b\] ou \[\sqrt[]{\frac{2(a + b){d}_l}{a b}}\] si la distance inter-arrêt ne permet pas d'atteindre la vitesse programmée & Temps de parcours entre deux arrêts consécutifs qui n'inclut pas les temps d'arrêt, mais qui inclut les temps d'accélération et de décélération, ainsi que les temps d'arrêt aux feux de circulation ou en congestion. Les expressions ne sont valables que pour les catégories A ou B (aucune congestion ou feux de circulation). \\
+\label{segment_travel_time}
+\makecell[r]{Temps de parcours de segment \\ \textit{Segment travel time}} & \[t_l\] & \[s\] & \[t_a + t_{v_p} + t_b\] ou \[\sqrt[]{\frac{2(a + b){d}_l}{a b}}\] si la longueur de segment ne permet pas d'atteindre la vitesse programmée & Temps de parcours entre deux arrêts consécutifs qui n'inclut pas les temps d'arrêt, mais qui inclut les temps d'accélération et de décélération, ainsi que les temps d'arrêt aux feux de circulation ou en congestion. Les expressions ne sont valables que pour les catégories A ou B (aucune congestion ou feux de circulation). \\
 \hline
-\label{average_interstop_travel_time}
-\makecell[r]{Temps de parcours de segment moyen \\ \textit{Average interstop travel time}} & \[\overline{t_l}\] & \[s\] & \[\frac{\sum_{i=1}^{n_l} {t_l}_i}{n_l}\] & Moyenne des temps de parcours inter-arrêt d'un parcours ou des parcours aller et retour d'une ligne bidirectionnelle. \\
+\label{average_segment_travel_time}
+\makecell[r]{Temps de parcours de segment moyen \\ \textit{Average segment travel time}} & \[\overline{t_l}\] & \[s\] & \[\frac{\sum_{i=1}^{n_l} {t_l}_i}{n_l}\] & Moyenne des temps de parcours de segment d'un parcours ou des parcours aller et retour d'une ligne bidirectionnelle. \\
 \hline
-\label{median_interstop_travel_time}
-\makecell[r]{Temps de parcours de segment médian \\ \textit{Median interstop travel time}} & \[\widetilde{t_l}\] & \[s\] & & Médiane des temps de parcours inter-arrêt d'un parcours ou des parcours aller et retour d'une ligne bidirectionnelle. \\
+\label{median_segment_travel_time}
+\makecell[r]{Temps de parcours de segment médian \\ \textit{Median segment travel time}} & \[\widetilde{t_l}\] & \[s\] & & Médiane des temps de parcours de segment d'un parcours ou des parcours aller et retour d'une ligne bidirectionnelle. \\
 \hline
 \label{door_opening_time}
 \makecell[r]{Temps d'ouverture des portes \\ \textit{Door opening time}} & \[t_{do}\] & \[s\] & - & Temps requis pour l'ouverture de toutes les portes d'une unité pour le débarquement et/ou l'embarquement des passagers. \\
@@ -515,7 +515,7 @@
 \makecell[r]{Temps d'arrêt median \\ \textit{Median dwell time}} & \[\widetilde{t_q}\] & \[s\] & & Médiane des temps d'arrêt d'un parcours. \\
 \hline
 \label{stop_to_stop_time}
-\makecell[r]{Temps arrêt à arrêt \\ \textit{Stop to stop time}} & \[t_{\Delta s}\] & \[s\] & \[t_q + t_l\] & Temps total entre le départ de l'arrêt précédent et le départ de l'arrêt suivant. Comprend le temps de parcours inter-arrêts et le temps d'arrêt. \\
+\makecell[r]{Temps arrêt à arrêt \\ \textit{Stop to stop time}} & \[t_{\Delta s}\] & \[s\] & \[t_q + t_l\] & Temps total entre le départ de l'arrêt précédent et le départ de l'arrêt suivant. Comprend le temps de parcours du segment et le temps d'arrêt. \\
 \hline
 \label{line_average_dwell_time}
 \makecell[r]{Temps d'arrêt moyen de ligne \\ \textit{Line average dwell time }} & \[\overline{t_q}_L\] & \[s\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_q}_j} {{t_q}_j}_i})} {\sum_{j=1}^{n_p} {n_q}_j}\] & Moyenne des temps d'arrêt d'une ligne. Attention aux ambiguïtés lorsque la ligne possède plusieurs parcours, notamment des parcours bidirectionnels non symétriques avec des temps d'arrêt non semblables. \\
@@ -614,10 +614,10 @@
 \makecell[r]{Temps d'accès \\ \textit{Access/egress time}} & \[t_{e}\] & \[s\] & - & Temps de parcours à pied, à vélo ou en voiture permettant d'atteindre un arrêt. \\
 \hline
 \label{access_time}
-\makecell[r]{Temps d'accès à l'origine \\ \textit{Access time}} & \[{t_e}_O\] & \[s\] & \[v_e {d_e}_O\] & Temps d'accès de l'usager entre l'origine du déplacement et le premier arrêt de son parcours de transport collectif. Un calculateur de chemin réseau pour le mode d'accès (marche, vélo, voiture ou autre) peut permettre d'obtenir un temps d'accès calibré et tenant compte des obstacles et des feux de circulation. \\
+\makecell[r]{Temps d'accès à l'origine \\ \textit{Access time}} & \[{t_e}_O\] & \[s\] & \[\frac{3.6 {d_e}_O}{v_e}\] & Temps d'accès de l'usager entre l'origine du déplacement et le premier arrêt de son parcours de transport collectif. Un calculateur de chemin réseau pour le mode d'accès (marche, vélo, voiture ou autre) peut permettre d'obtenir un temps d'accès calibré et tenant compte des obstacles et des feux de circulation. \\
 \hline
 \label{egress_time}
-\makecell[r]{Temps d'accès à destination \\ \textit{Egress time}} & \[{t_e}_D\] & \[s\] & \[v_e {d_e}_D\] & Temps d'accès de l'usager entre le dernier arrêt de son parcours de transport collectif et la destination du déplacement. \\
+\makecell[r]{Temps d'accès à destination \\ \textit{Egress time}} & \[{t_e}_D\] & \[s\] & \[\frac{3.6 {d_e}_D}{v_e}\] & Temps d'accès de l'usager entre le dernier arrêt de son parcours de transport collectif et la destination du déplacement. \\
 \hline
 \label{access_egress_time_od}
 \makecell[r]{Temps total d'accès à l'origine et à destination \\ \textit{Access/egress time}} & \[{t_e}_{OD}\] & \[s\] & \[{t_e}_O + {t_e}_D\]& Temps total d'accès de l'usager de l'origine du déplacement au premier arrêt et du dernier arrêt de son parcours de transport collectif à la destination du déplacement. N'inclut pas le temps total d'accès de transfert. \\
@@ -626,7 +626,7 @@
 \makecell[r]{Temps de transfert \\ \textit{Transfer time}} & \[t_{tr}\] & \[s\] & - & Temps de parcours permettant de passer d'un arrêt à l'autre lors d'un transfer. N'inclut pas le temps d'attente lors du transfert. \\
 \hline
 \label{total_transfer_time}
-\makecell[r]{Temps total de transfert \\ \textit{Total transfer time}} & \[{t_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} d_{tr}\] & Temps total de parcours permettant de passer d'un arrêt à l'autre lors de tous les transferts effectués pendant le parcours. N'inclut pas les temps d'accès à l'origine et à destination ni le temps d'attente lors du transfert. \\
+\makecell[r]{Temps total de transfert \\ \textit{Total transfer time}} & \[{t_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} {t_{tr}}_i\] & Temps total de parcours permettant de passer d'un arrêt à l'autre lors de tous les transferts effectués pendant le parcours. N'inclut pas les temps d'accès à l'origine et à destination ni le temps d'attente lors du transfert. \\
 \hline
 \label{total_access_egress_transfer_time}
 \makecell[r]{Temps total d'accès et de transfert \\ \textit{Total access/egress and transfer time}} & \[{t_e}_{tot}\] & \[s\] & \[{t_e}_{OD} + {t_{tr}}_{tot}\] & Somme des temps d'accès de l'usager de l'origine du déplacement au premier arrêt et du dernier arrêt de son parcours de transport collectif à la destination du déplacement, et du temps total d'accès de transfert. Ce temps représente le total du temps de parcours effectué à pied, à vélo ou en voiture pour accéder au service de transport collectif à l'origine et à destination et pour se déplacer entre les arrêts de transfert. \\
@@ -736,7 +736,7 @@
 \makecell[r]{Vitesse légale \\ \textit{Legal speed}} & \[v_{reg}\] & \[{km}/h\] & - & Vitesse légale permise sur le tronçon. \\
 \hline
 \label{programmed_speed}
-\makecell[r]{Vitesse programmée \\ \textit{Programmed speed}} & \[v_p\] & \[{km}/h\] & - & Vitesse programmée en service sur un tronçon ou un segment. Habituellement, cette vitesse est déterminée de manière à optimiser, dans le meilleur équilibre, l'efficacité énergétique et la minimisation des temps de parcours inter-arrêts. \(v_p \leq v_{reg} \leq v_d\) \\
+\makecell[r]{Vitesse programmée \\ \textit{Programmed speed}} & \[v_p\] & \[{km}/h\] & - & Vitesse programmée en service sur un tronçon ou un segment. Habituellement, cette vitesse est déterminée de manière à optimiser, dans le meilleur équilibre, l'efficacité énergétique et la minimisation des temps de segment. \(v_p \leq v_{reg} \leq v_d\) \\
 \hline
 \label{operating_speed}
 \makecell[r]{Vitesse d'opération \\ \textit{Operating speed}} & \[V_o\] & \[{km}/h\] & \[\frac{d_p}{T_o}\] & Vitesse commerciale perçue par l'usager sur un parcours, qui inclut les temps d'arrêt. \\
@@ -766,13 +766,13 @@
 \makecell[r]{Vitesse plateforme \\ \textit{Platform speed}} & \[V_p\] & \[{km}/h\] & \[\frac{k(d^{\prime} + d^{\prime\prime})}{T_p}\] où \[k\] est le nombre de voyages aller-retour effectués pendant la tournée & Vitesse moyenne pendant le temps pour lequel une unité est en opération sur une tournée complète, en service productif et en haut-le-pied. Attention aux ambiguïtés lorsque les tournées comprennent des parcours d'interlignage. \\
 \hline
 \label{segment_speed}
-\makecell[r]{Vitesse de segment/inter-arrêt \\ \textit{Segment/interstop speed}} & \[v_l\] & \[{km}/h\] & \[\frac{d_l}{t_l}\] & Vitesse moyenne entre le départ de l'arrêt précédent et l'arrivée à l'arrêt suivant (segment). N'inclut pas le temps d'arrêt. \\
+\makecell[r]{Vitesse de segment \\ \textit{Segment speed}} & \[v_l\] & \[{km}/h\] & \[\frac{d_l}{t_l}\] & Vitesse moyenne entre le départ de l'arrêt précédent et l'arrivée à l'arrêt suivant (segment). N'inclut pas le temps d'arrêt. \\
 \hline
 \label{stop_to_stop_speed}
 \makecell[r]{Vitesse arrêt à arrêt \\ \textit{Stop to stop speed}} & \[v_{\Delta s}\] ou \[v_{\Delta q}\] & \[{km}/h\] & \[\frac{d_l}{t_l + t_q}\] & Vitesse moyenne entre le départ de l'arrêt précédent et le départ de l'arrêt suivant. Inclut le temps d'arrêt. \\
 \hline
 \label{average_segment_speed}
-\makecell[r]{Vitesse moyenne de segment/inter-arrêt \\ \textit{Average segment/interstop speed}} & \[\overline{v_l}\] & \[{km}/h\] & \[\frac{ \sum_{i=1}^{n_l} {\frac{{d_l}_i}{{t_l}_i}}} {n_l} \] & Moyenne des vitesses inter-arrêt des segments d'un parcours ou d'une ligne. \\
+\makecell[r]{Vitesse moyenne de segment \\ \textit{Average segment speed}} & \[\overline{v_l}\] & \[{km}/h\] & \[\frac{ \sum_{i=1}^{n_l} {\frac{{d_l}_i}{{t_l}_i}}} {n_l} \] & Moyenne des vitesses de segment d'un parcours ou d'une ligne. \\
 \hline
 \label{average_in_vehicle_speed}
 \makecell[r]{Vitesse moyenne en véhicule \\ \textit{Average in-vehicle speed}} & \[v_{veh}\] & \[{km}/h\] & - & Vitesse moyenne d'opération des segments de la ligne ou des lignes utilisées lors du déplacement. \\
@@ -1317,8 +1317,8 @@
 \label{number_of_depots}
 \makecell[r]{Nombre de garages \\ \textit{Number of depots}} & \[N_G\] & garages & - & Nombre de garages et dépôts dans le réseau. Attention de bien spécifier le type de garage et les types d'unités (modes) qui y sont entreposés. \\
 \hline
-\label{network_average_inter_stop_distance}
-\makecell[r]{Distance inter-arrêt moyenne de réseau \\ \textit{Network average inter-stop distance}} & \[\overline{d_{l_{net}}}\] & \[m\] & \[\frac{d_{net}}{N_l}\] & - \\
+\label{network_average_segment_length}
+\makecell[r]{Longueur de segment moyenne de réseau \\ \textit{Network average segment length}} & \[\overline{d_{l_{net}}}\] & \[m\] & \[\frac{d_{net}}{N_l}\] & - \\
 \hline
 \label{number_of_possible_user_paths}
 \makecell[r]{Nombre de parcours possibles \\ \textit{Number of possible user paths}} & \[N_{\Delta q}\] & parcours & \[\frac{1}{2} N_q (N_q-1)\] & Nombre total de paires de noeuds d'arrêts uniques dans le réseau. \\

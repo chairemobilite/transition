@@ -88,8 +88,7 @@ const arbitraryData = {
         d_l_max: null,
         d_l_avg: null,
         d_l_med: null,
-        T_o_p: null,
-        n_s_p: null,
+        T_o_p: null
     },
     gtfs: {
         shape_id: 'SHAPE1'
@@ -171,8 +170,7 @@ test('New path default data', () => {
                 d_l_max: null,
                 d_l_avg: null,
                 d_l_med: null,
-                T_o_p: undefined,
-                n_s_p: 2,
+                T_o_p: undefined
             }
         }
     });

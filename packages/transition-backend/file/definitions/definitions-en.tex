@@ -349,32 +349,32 @@
 \label{distance_at_programmed_speed}
 \makecell[r]{Distance at programmed speed} & \[d_{v_p}\] & \[m\] & \[d_l - d_a - d_b\] (category A or B only) & Distance between the end of acceleration and the beginning of deceleration between stop nodes. \\
 \hline
-\label{interstop_distance}
-\makecell[r]{Interstop distance (segment length)} & \[d_l\] & \[m\] & - & Total distance traveled between two consecutive stop nodes on the path. \\
+\label{segment_length}
+\makecell[r]{Segment length} & \[d_l\] & \[m\] & - & Total distance traveled between two consecutive stop nodes on the path. \\
 \hline
-\label{average_interstop_distance}
-\makecell[r]{Average path interstop distance} & \[\overline{d_l}\] & \[m\] & \[\frac{\sum_{i=1}^{n_l} {d_l}_i} {n_l}\] & Average of interstop distances on the path. \\
+\label{average_segment_length}
+\makecell[r]{Average path segment length} & \[\overline{d_l}\] & \[m\] & \[\frac{\sum_{i=1}^{n_l} {d_l}_i} {n_l}\] & Average of segment lengths on the path. \\
 \hline
-\label{median_interstop_distance}
-\makecell[r]{Median path interstop distance} & \[\widetilde{d_l}\] & \[m\] & - & Median of interstop distances on the path. \\
+\label{median_segment_length}
+\makecell[r]{Median path segment length} & \[\widetilde{d_l}\] & \[m\] & - & Median of segment lengths on the path. \\
 \hline
-\label{minimum_interstop_distance}
-\makecell[r]{Minimum path interstop distance} & \[{d_l}_{min}\] & \[m\] & - & Length of the shortest interstop segment on the path. \\
+\label{minimum_segment_length}
+\makecell[r]{Minimum path segment length} & \[{d_l}_{min}\] & \[m\] & - & Length of the shortest segment on the path. \\
 \hline
-\label{maximum_interstop_distance}
-\makecell[r]{Maximum path interstop distance} & \[{d_l}_{max}\] & \[m\] & - & Length of the longest interstop segment on the path. \\
+\label{maximum_segment_length}
+\makecell[r]{Maximum path segment length} & \[{d_l}_{max}\] & \[m\] & - & Length of the longest segment on the path. \\
 \hline
-\label{average_line_interstop_distance}
-\makecell[r]{Average line interstop distance} & \[\overline{{d_l}_L}\] & \[m\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_l}_j} {d_l}_i})} {\sum_{j=1}^{n_p} {{n_l}_j}}\] & Average distance of interstop segments of a line in both directions. \\
+\label{average_line_segment_length}
+\makecell[r]{Average line segment length} & \[\overline{{d_l}_L}\] & \[m\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_l}_j} {d_l}_i})} {\sum_{j=1}^{n_p} {{n_l}_j}}\] & Average lengths of segments of a line in both directions. \\
 \hline
-\label{median_line_interstop_distance}
-\makecell[r]{Median line interstop distance} & \[\widetilde{{d_l}_L}\] & \[m\] & - & Median of interstop distances on the line. \\
+\label{median_line_segment_length}
+\makecell[r]{Median line segment length} & \[\widetilde{{d_l}_L}\] & \[m\] & - & Median of segment lengths on the line. \\
 \hline
-\label{minimum_line_interstop_distance}
-\makecell[r]{Minimum line interstop distance} & \[{{d_l}_L}_{min}\] & \[m\] & - & Length of the shortest interstop segment on the line. \\
+\label{minimum_line_segment_length}
+\makecell[r]{Minimum line segment length} & \[{{d_l}_L}_{min}\] & \[m\] & - & Length of the shortest segment on the line. \\
 \hline
-\label{maximum_line_interstop_distance}
-\makecell[r]{Maximum line interstop distance} & \[{{d_l}_L}_{max}\] & \[m\] & - & Length of the longest interstop segment on the line. \\
+\label{maximum_line_segment_length}
+\makecell[r]{Maximum line segment length} & \[{{d_l}_L}_{max}\] & \[m\] & - & Length of the longest segment on the line. \\
 \hline
 \label{path_length}
 \makecell[r]{Path length} & \[d_p\] & \[m\] & \[\sum_{i=1}^{n_l} {d_l}_i\] & Total length of the path. \\
@@ -486,14 +486,14 @@
 \label{travel_time_at_programmed_speed}
 \makecell[r]{Travel time at programmed speed} & \[t_{v_p}\] & \[s\] & \[\frac{d_{v_p}}{v_p}\] (category A or B only) & Time between the end of acceleration and the beginning of deceleration of a segment between stops. \\
 \hline
-\label{segment_interstop_travel_time}
-\makecell[r]{Segment/Interstop travel time} & \[t_l\] & \[s\] & \[t_a + t_{v_p} + t_b\] or \[\sqrt[]{\frac{2(a + b){d}l}{a b}}\] if the interstop distance doesn't allow reaching programmed speed & Travel time between two consecutive stops that doesn't include dwell times, but includes acceleration and deceleration times, as well as traffic light or congestion stop and go times. The expressions are only valid for categories A or B (no congestion or traffic lights). \\
+\label{segment_travel_time}
+\makecell[r]{Segment travel time} & \[t_l\] & \[s\] & \[t_a + t_{v_p} + t_b\] or \[\sqrt[]{\frac{2(a + b){d_l}}{a b}}\] if the segment length doesn't allow reaching programmed speed & Travel time between two consecutive stops that doesn't include dwell times, but includes acceleration and deceleration times, as well as traffic light or congestion stop and go times. The expressions are only valid for categories A or B (no congestion or traffic lights). \\
 \hline
-\label{average_interstop_travel_time}
-\makecell[r]{Average interstop travel time} & \[\overline{t_l}\] & \[s\] & \[\frac{\sum{i=1}^{n_l} {t_l}i}{n_l}\] & Average of interstop travel times of a path or outbound and inbound paths of a bidirectional line. \\
+\label{average_segment_travel_time}
+\makecell[r]{Average segment travel time} & \[\overline{t_l}\] & \[s\] & \[\frac{\sum_{i=1}^{n_l} {t_l}_i}{n_l}\] & Average of segment travel times of a path or outbound and inbound paths of a bidirectional line. \\
 \hline
-\label{median_interstop_travel_time}
-\makecell[r]{Median interstop travel time} & \[{\widetilde{t_l}}\] & \[s\] & & Median of interstop travel times of a path or outbound and inbound paths of a bidirectional line. \\
+\label{median_segment_travel_time}
+\makecell[r]{Median segment travel time} & \[{\widetilde{t_l}}\] & \[s\] & & Median of segment travel times of a path or outbound and inbound paths of a bidirectional line. \\
 \hline
 \label{door_opening_time}
 \makecell[r]{Door opening time} & \[t_{do}\] & \[s\] & - & Time required for opening all doors of a unit for passenger boarding and/or alighting. \\
@@ -511,7 +511,7 @@
 \makecell[r]{Median dwell time} & \[\widetilde{t_q}\] & \[s\] & & Median of dwell times on a path. \\
 \hline
 \label{stop_to_stop_time}
-\makecell[r]{Stop-to-stop time} & \[t_{\Delta s}\] & \[s\] & \[t_q + t_l\] & Total time between departure from the previous stop and departure from the next stop. Includes interstop travel time and dwell time. \\
+\makecell[r]{Stop-to-stop time} & \[t_{\Delta s}\] & \[s\] & \[t_q + t_l\] & Total time between departure from the previous stop and departure from the next stop. Includes segment travel time and dwell time. \\
 \hline
 \label{line_average_dwell_time}
 \makecell[r]{Line average dwell time} & \[\overline{t_q}_L\] & \[s\] & \[\frac{\sum_{j=1}^{n_p} {(\sum_{i=1}^{{n_q}_j} {{t_q}_j}_i})} {\sum_{j=1}^{n_p} {n_q}_j}\] & Average of dwell times on a line. Care must be taken with ambiguities when the line has multiple paths, particularly bidirectional asymmetric paths with dissimilar dwell times. \\
@@ -610,10 +610,10 @@
 \makecell[r]{Access/egress time} & \[t_{e}\] & \[s\] & - & Travel time by walking, cycling, or driving to reach a stop. \\
 \hline
 \label{access_time}
-\makecell[r]{Access time} & \[{t_e}_O\] & \[s\] & \[v_e {d_e}_O\] & User access time between trip origin and the first stop of their transit trip. A routing engine for the access mode (walking, cycling, driving, or other) can provide a calibrated access time accounting for road, pedestrian or cycling networks and traffic signals. \\
+\makecell[r]{Access time} & \[{t_e}_O\] & \[s\] & \[\frac{3.6 {d_e}_O}{v_e}\] & User access time between trip origin and the first stop of their transit trip. A routing engine for the access mode (walking, cycling, driving, or other) can provide a calibrated access time accounting for road, pedestrian or cycling networks and traffic signals. \\
 \hline
 \label{egress_time}
-\makecell[r]{Egress time} & \[{t_e}_D\] & \[s\] & \[v_e {d_e}_D\] & User access time between the last stop of their transit trip and the trip destination. \\
+\makecell[r]{Egress time} & \[{t_e}_D\] & \[s\] & \[\frac{3.6 {d_e}_D}{v_e}\] & User access time between the last stop of their transit trip and the trip destination. \\
 \hline
 \label{access_egress_time_od}
 \makecell[r]{Access/egress time} & \[{t_e}_{OD}\] & \[s\] & \[{t_e}_O + {t_e}_D\]& Total user access time from trip origin to first stop and from last stop to destination of their transit trip. Does not include total transfer access time. \\
@@ -622,7 +622,7 @@
 \makecell[r]{Transfer time} & \[t_{tr}\] & \[s\] & - & Travel time to move from one stop to another during a transfer. Does not include waiting time during transfer. \\
 \hline
 \label{total_transfer_time}
-\makecell[r]{Total transfer time} & \[{t_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} d_{tr}\] & Total travel time to move between stops during all transfers made during the transit trip. Does not include access times at origin and destination or waiting time during transfer. \\
+\makecell[r]{Total transfer time} & \[{t_{tr}}_{tot}\] & \[s\] & \[\sum_{i=1}^{n_{tr}} {t_{tr}}_i\] & Total travel time to move between stops during all transfers made during the transit trip. Does not include access times at origin and destination or waiting time during transfer. \\
 \hline
 \label{total_access_egress_transfer_time}
 \makecell[r]{Total access/egress and transfer time} & \[{t_e}_{tot}\] & \[s\] & \[{t_e}_{OD} + {t_{tr}}_{tot}\] & Sum of user access times from trip origin to first stop and from last stop to trip destination, plus total transfer access time. This time represents the total travel time spent walking, cycling, or driving to access transit service at origin and destination and to travel between transfer stops. \\
@@ -731,7 +731,7 @@
 \makecell[r]{Legal speed} & \[v_{reg}\] & \[{km}/h\] & - & Legal speed allowed on the network section. \\
 \hline
 \label{programmed_speed}
-\makecell[r]{Programmed speed} & \[v_p\] & \[{km}/h\] & - & Programmed service speed on a network section. Usually, this speed is determined to optimize, in the best balance, energy efficiency and minimization of interstop travel times. \(v_p \leq v_{reg} \leq v_d\) \\
+\makecell[r]{Programmed speed} & \[v_p\] & \[{km}/h\] & - & Programmed service speed on a network section. Usually, this speed is determined to optimize, in the best balance, energy efficiency and minimization of segment travel times. \(v_p \leq v_{reg} \leq v_d\) \\
 \hline
 \label{operating_speed}
 \makecell[r]{Operating speed} & \[V_o\] & \[{km}/h\] & \[\frac{d_p}{T_o}\] & Commercial speed perceived by the user on a path, which includes stop dwell times. \\
@@ -761,13 +761,13 @@
 \makecell[r]{Platform speed} & \[V_p\] & \[{km}/h\] & \[\frac{k(d^{\prime} + d^{\prime\prime})}{T_p}\] where \[k\] is the number of round trips during the run & Average speed during the time for which a unit is in operation on a complete run, in productive service and deadheading. Care must be taken with ambiguities when runs include interlining paths. \\
 \hline
 \label{segment_speed}
-\makecell[r]{Segment/interstop speed} & \[v_l\] & \[{km}/h\] & \[\frac{d_l}{t_l}\] & Average speed between departure from the previous stop and arrival at the next stop (segment). Does not include dwell time. \\
+\makecell[r]{Segment speed} & \[v_l\] & \[{km}/h\] & \[\frac{d_l}{t_l}\] & Average speed between departure from the previous stop and arrival at the next stop (segment). Does not include dwell time. \\
 \hline
 \label{stop_to_stop_speed}
 \makecell[r]{Stop-to-stop speed} & \[v_{\Delta s}\] or \[v_{\Delta q}\] & \[{km}/h\] & \[\frac{d_l}{t_l + t_q}\] & Average speed between departure from the previous stop and departure from the next stop. Includes dwell time. \\
 \hline
 \label{average_segment_speed}
-\makecell[r]{Average segment/interstop speed} & \[\overline{v_l}\] & \[{km}/h\] & \[\frac{ \sum_{i=1}^{n_l} {\frac{{d_l}_i}{{t_l}_i}}} {n_l} \] & Average of interstop speeds of segments on a path or line. \\
+\makecell[r]{Average segment speed} & \[\overline{v_l}\] & \[{km}/h\] & \[\frac{ \sum_{i=1}^{n_l} {\frac{{d_l}_i}{{t_l}_i}}} {n_l} \] & Average of segment speeds on a path or line. \\
 \hline
 \label{average_in_vehicle_speed}
 \makecell[r]{Average in-vehicle speed} & \[v_{veh}\] & \[{km}/h\] & - & Average operating speed of line segments or lines used during the trip. \\
@@ -1312,8 +1312,8 @@
 \label{number_of_depots}
 \makecell[r]{Number of depots} & \[N_G\] & depots & - & Number of garages and depots in the network. Be sure to specify the type of depot and the types of units (modes) stored there. \\
 \hline
-\label{network_average_inter_stop_distance}
-\makecell[r]{Network average inter-stop distance} & \[\overline{d_{l_{net}}}\] & \[m\] & \[\frac{d_{net}}{N_l}\] & - \\
+\label{network_average_segment_length}
+\makecell[r]{Network average segment length} & \[\overline{d_{l_{net}}}\] & \[m\] & \[\frac{d_{net}}{N_l}\] & - \\
 \hline
 \label{number_of_possible_user_paths}
 \makecell[r]{Number of possible user paths} & \[N_{\Delta q}\] & paths & \[\frac{1}{2} N_q (N_q-1)\] & Total number of unique stop node pairs in the network. \\

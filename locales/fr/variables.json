@@ -63,14 +63,12 @@
   "n_p": "Nombre de parcours",
   "n_l_q": "Nombre de segments",
   "n_q_p"  : "Nombre de noeuds",
-  "n_s_p"  : "Nombre d'arrêts",
-
 
   "d_p"    : "Longueur de parcours",
-  "d_l_min": "Distance inter-arrêts minimale",
-  "d_l_max": "Distance inter-arrêts maximale",
-  "d_l_avg": "Distance inter-arrêts moyenne",
-  "d_l_med": "Distance inter-arrêts médiane",
+  "d_l_min": "Longueur de segment minimale",
+  "d_l_max": "Longueur de segment maximale",
+  "d_l_avg": "Longueur de segment moyenne",
+  "d_l_med": "Longueur de segment médiane",
   "T_o_p"  : "Temps d'opération de parcours"
 
 }

@@ -58,12 +58,12 @@ const calculateLayoverTimeSeconds = (
 /**
  * Computes average per-segment travel and dwell times across multiple trips sharing the same path.
  * @param allTripsStopTimes - Stop times for each trip on this path
- * @param segmentDistancesMeters - Distance in meters per segment, or null if unavailable
+ * @param segmentLengthsMeters - Distance in meters per segment, or null if unavailable
  * @returns Averaged per-segment travel times, dwell times, and totals
  */
 export const computeSegmentTimesFromStopTimes = (
     allTripsStopTimes: StopTime[][],
-    segmentDistancesMeters: (number | null)[]
+    segmentLengthsMeters: (number | null)[]
 ): SegmentTimeResults => {
     const numTrips = allTripsStopTimes.length;
     const numStops = allTripsStopTimes[0].length;
@@ -88,7 +88,7 @@ export const computeSegmentTimesFromStopTimes = (
     // calculate trip averages
     const segmentsData: TimeAndDistance[] = segmentTravelTimeTotals.map((total, i) => ({
         travelTimeSeconds: ceilToPositiveInteger(total / numTrips),
-        distanceMeters: segmentDistancesMeters[i]
+        distanceMeters: segmentLengthsMeters[i]
     }));
 
     const dwellTimeSecondsData = dwellTimeTotals.map((total) => Math.round(total / numTrips));
@@ -111,18 +111,18 @@ export const computeSegmentTimesFromStopTimes = (
  * Groups trips by (period, service) and computes averaged segment travel times per bucket.
  *
  * @param params.tripsWithService - Stop times and service ID for each trip on this path
- * @param params.segmentDistancesMeters - Distance in meters per segment, or null if unavailable
+ * @param params.segmentLengthsMeters - Distance in meters per segment, or null if unavailable
  * @param params.periods - TransitSchedulePeriod definitions
  * @param params.totalDistanceMeters - Total path distance in meters (for speed calculations)
  * @returns Nested map: service ID → period shortname → PeriodSegmentData
  */
 export const computeSegmentTimesByServiceAndPeriod = (params: {
     tripsWithService: TripStopTimesWithService[];
-    segmentDistancesMeters: (number | null)[];
+    segmentLengthsMeters: (number | null)[];
     periods: TransitSchedulePeriod[];
     totalDistanceMeters: number;
 }): { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } => {
-    const { tripsWithService, segmentDistancesMeters, periods, totalDistanceMeters } = params;
+    const { tripsWithService, segmentLengthsMeters, periods, totalDistanceMeters } = params;
     if (periods.length === 0) {
         return {};
     }
@@ -155,7 +155,7 @@ export const computeSegmentTimesByServiceAndPeriod = (params: {
     const result: { [serviceId: string]: { [periodShortname: string]: PeriodSegmentData } } = {};
     for (const [key, bucketTrips] of tripsByBucket) {
         const { period, serviceId } = bucketMeta.get(key)!;
-        const segmentTimes = computeSegmentTimesFromStopTimes(bucketTrips, segmentDistancesMeters);
+        const segmentTimes = computeSegmentTimesFromStopTimes(bucketTrips, segmentLengthsMeters);
         const { segmentsData, dwellTimeSecondsData } = segmentTimes;
 
         if (!result[serviceId]) {
@@ -212,14 +212,14 @@ const sliceShapeIntoSegments = (
     completeShape: GeoJSON.Feature<GeoJSON.LineString>,
     stopTimeDistances: StopTimeDistances[],
     stopTimesCount: number
-): { pathCoordinates: number[][]; segments: number[]; segmentDistancesMeters: number[] } => {
+): { pathCoordinates: number[][]; segments: number[]; segmentLengthsMeters: number[] } => {
     // concatenated coordinates for the entire path LineString built by
     // appending each segment's coordinates as we slice the shape
     let pathCoordinates: number[][] = [];
     // index into pathCoordinates where each segment starts
     const segments: number[] = [];
     // measured length of each segment in meters
-    const segmentDistancesMeters: number[] = [];
+    const segmentLengthsMeters: number[] = [];
 
     for (let i = 0; i < stopTimesCount - 1; i++) {
         const distanceSoFarMeters = stopTimeDistances[i].distanceTraveled;
@@ -246,10 +246,10 @@ const sliceShapeIntoSegments = (
             segments.push(pathCoordinates.length - 1);
         }
         pathCoordinates = pathCoordinates.concat(segmentCoordinates);
-        segmentDistancesMeters.push(ceilToPositiveInteger(segmentLengthMeters));
+        segmentLengthsMeters.push(ceilToPositiveInteger(segmentLengthMeters));
     }
 
-    return { pathCoordinates, segments, segmentDistancesMeters };
+    return { pathCoordinates, segments, segmentLengthsMeters };
 };
 
 /**
@@ -589,7 +589,7 @@ export const generateGeographyAndSegmentsFromGtfs = (params: {
 
         const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
             tripsWithService,
-            segmentDistancesMeters: nullDistances,
+            segmentLengthsMeters: nullDistances,
             periods,
             totalDistanceMeters: totalDistanceInMeters
         });
@@ -603,7 +603,7 @@ export const generateGeographyAndSegmentsFromGtfs = (params: {
         }
 
         const sliceResult = sliceShapeIntoSegments(completeShape, stopTimeDistances, stopTimes.length);
-        const segmentTimes = computeSegmentTimesFromStopTimes(allTripsStopTimes, sliceResult.segmentDistancesMeters);
+        const segmentTimes = computeSegmentTimesFromStopTimes(allTripsStopTimes, sliceResult.segmentLengthsMeters);
         const layoverTimeSeconds = calculateLayoverTimeSeconds(
             path.attributes.data.customLayoverMinutes,
             segmentTimes.totalTravelTimeWithDwellTimesSeconds,
@@ -618,7 +618,7 @@ export const generateGeographyAndSegmentsFromGtfs = (params: {
 
         const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
             tripsWithService,
-            segmentDistancesMeters: sliceResult.segmentDistancesMeters,
+            segmentLengthsMeters: sliceResult.segmentLengthsMeters,
             periods,
             totalDistanceMeters: totalDistanceInMeters
         });
@@ -729,7 +729,7 @@ export const generateGeographyAndSegmentsFromStopTimes = (params: {
     const pathData = buildPathData({ segmentTimes, layoverTimeSeconds, totalDistanceMeters: totalDistanceInMeters });
     const segmentsByServiceAndPeriod = computeSegmentTimesByServiceAndPeriod({
         tripsWithService,
-        segmentDistancesMeters: nullDistances,
+        segmentLengthsMeters: nullDistances,
         periods,
         totalDistanceMeters: totalDistanceInMeters
     });

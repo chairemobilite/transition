@@ -607,7 +607,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
 
     test('should return empty object when periods array is empty', () => {
         const trip = makeTrip([[36000, 36000], [36100, 36100]], 'svc1');
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip], segmentDistancesMeters: [null], periods: [], totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip], segmentLengthsMeters: [null], periods: [], totalDistanceMeters: 1000 });
         expect(result).toEqual({});
     });
 
@@ -619,7 +619,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         // 10:00 AM trip, service A — 80s segment
         const middayTripA = makeTrip([[36000, 36000], [36080, 36080]], 'svcA');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [amTripA, amTripB, middayTripA], segmentDistancesMeters: [500], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [amTripA, amTripB, middayTripA], segmentLengthsMeters: [500], periods, totalDistanceMeters: 1000 });
 
         expect(Object.keys(result)).toEqual(['svcA', 'svcB']);
         expect(Object.keys(result['svcA'])).toEqual(['am_peak', 'midday']);
@@ -635,7 +635,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         // 7:30 AM trip, service A — 120s segment (27120 - 27000)
         const trip2 = makeTrip([[27000, 27000], [27120, 27130]], 'svcA');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip1, trip2], segmentDistancesMeters: [500], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip1, trip2], segmentLengthsMeters: [500], periods, totalDistanceMeters: 1000 });
 
         // average of the two segment durations: (100 + 120) / 2 = 110
         expect(result['svcA']['am_peak'].segments[0].travelTimeSeconds).toEqual(110);
@@ -646,7 +646,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         const earlyTrip = makeTrip([[10800, 10800], [10900, 10900]], 'svc1');
         const amTrip = makeTrip([[25200, 25200], [25300, 25300]], 'svc1');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [earlyTrip, amTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [earlyTrip, amTrip], segmentLengthsMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(Object.keys(result)).toEqual(['svc1']);
     });
@@ -655,7 +655,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         // 20:00 is 2h past pm_peak end (18:00), within 6h overflow
         const lateTrip = makeTrip([[72000, 72000], [72100, 72100]], 'svc1');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [lateTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [lateTrip], segmentLengthsMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(Object.keys(result)).toEqual(['svc1']);
     });
@@ -664,7 +664,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         // 01:00 next day = 90000s, which is 7h past pm_peak end (18:00), beyond 6h overflow
         const veryLateTrip = makeTrip([[90000, 90000], [90100, 90100]], 'svc1');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [veryLateTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [veryLateTrip], segmentLengthsMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(result).toEqual({});
     });
@@ -676,7 +676,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
             [25410, 25410]
         ], 'svc1');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip], segmentDistancesMeters: [500, 500], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip], segmentLengthsMeters: [500, 500], periods, totalDistanceMeters: 1000 });
 
         const periodData = result['svc1']['am_peak'];
         expect(periodData.travelTimeWithoutDwellTimesSeconds).toEqual(200);
@@ -688,7 +688,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
     test('should set speeds to 0 when travel time is zero', () => {
         const trip = makeTrip([[25200, 25200], [25200, 25200]], 'svc1');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [trip], segmentLengthsMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(result['svc1']['am_peak'].averageSpeedWithoutDwellTimesMetersPerSecond).toEqual(0);
         expect(result['svc1']['am_peak'].operatingSpeedMetersPerSecond).toEqual(0);
@@ -699,7 +699,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
         const weekdayTrip = makeTrip([[25200, 25200], [25400, 25400]], 'weekday_svc');
         const weekendTrip = makeTrip([[25200, 25200], [25300, 25300]], 'weekend_svc');
 
-        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [weekdayTrip, weekendTrip], segmentDistancesMeters: [null], periods, totalDistanceMeters: 1000 });
+        const result = computeSegmentTimesByServiceAndPeriod({ tripsWithService: [weekdayTrip, weekendTrip], segmentLengthsMeters: [null], periods, totalDistanceMeters: 1000 });
 
         expect(result['weekday_svc']['am_peak'].segments[0].travelTimeSeconds).toEqual(200);
         expect(result['weekend_svc']['am_peak'].segments[0].travelTimeSeconds).toEqual(100);
@@ -712,7 +712,7 @@ describe('computeSegmentTimesByServiceAndPeriod', () => {
 
         const result = computeSegmentTimesByServiceAndPeriod({
             tripsWithService: [emptyTrip, validTrip],
-            segmentDistancesMeters: [500],
+            segmentLengthsMeters: [500],
             periods,
             totalDistanceMeters: 1000
         });
