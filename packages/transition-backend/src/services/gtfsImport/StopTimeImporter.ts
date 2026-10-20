@@ -26,8 +26,9 @@ import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
  */
 const estimateStopTimeRows = (tripCount: number): number => Math.max(1, tripCount * 30);
 
-export class StopTimeImporter
-implements GtfsObjectPreparator<StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>> {
+export class StopTimeImporter implements GtfsObjectPreparator<
+    StopTime | Omit<StopTime, 'arrivalTimeSeconds' | 'departureTimeSeconds'>
+> {
     private _filePath: string;
 
     constructor(options: { directoryPath: string }) {

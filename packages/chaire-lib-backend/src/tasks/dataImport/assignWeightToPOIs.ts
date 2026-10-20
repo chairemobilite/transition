@@ -66,14 +66,11 @@ export default class assignWeightToPOIs extends GenericDataImportTask {
     }
 
     private assertDataPrepared(dataSourceDirectory: string): void {
-        if (
-            !(
-                this.fileManager.fileExistsAbsolute(
-                    dataSourceDirectory + GenericDataImportTask.POLYGON_ENHANCED_GEOJSON_FILE
-                ) &&
-                this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.POINT_OF_INTEREST_FILE)
-            )
-        ) {
+        if (!(
+            this.fileManager.fileExistsAbsolute(
+                dataSourceDirectory + GenericDataImportTask.POLYGON_ENHANCED_GEOJSON_FILE
+            ) && this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.POINT_OF_INTEREST_FILE)
+        )) {
             throw new Error(
                 'OSM geojson data not available for data source. Please run the required tasks to prepare the geojson files ' +
                     GenericDataImportTask.POLYGON_ENHANCED_GEOJSON_FILE +

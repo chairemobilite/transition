@@ -26,14 +26,12 @@ export function getEntrancesForBuilding(
     const includeInside = options.includeInside || false;
     const findRoutingEntrance = options.findRoutingEntrance !== undefined ? options.findRoutingEntrance : true;
 
-    if (
-        !(
-            building.geometry.type === 'Polygon' ||
-            building.geometry.type === 'MultiPolygon' ||
-            building.geometry.type === 'LineString' ||
-            building.geometry.type === 'MultiLineString'
-        )
-    ) {
+    if (!(
+        building.geometry.type === 'Polygon' ||
+        building.geometry.type === 'MultiPolygon' ||
+        building.geometry.type === 'LineString' ||
+        building.geometry.type === 'MultiLineString'
+    )) {
         return [];
     }
     const buildingPolygon = building as

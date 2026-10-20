@@ -25,12 +25,10 @@ export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask 
     }
 
     private assertDataDownloaded(dataSourceDirectory: string): void {
-        if (
-            !(
-                this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.OSM_RAW_DATA_FILE) &&
-                this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.OSM_GEOJSON_FILE)
-            )
-        ) {
+        if (!(
+            this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.OSM_RAW_DATA_FILE) &&
+            this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.OSM_GEOJSON_FILE)
+        )) {
             throw new Error(
                 'OSM data not available for data source. Please run the task to download the OSM data or put the ' +
                     GenericDataImportTask.OSM_RAW_DATA_FILE +

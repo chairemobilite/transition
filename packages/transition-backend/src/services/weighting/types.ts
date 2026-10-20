@@ -52,8 +52,7 @@ export type AccessibilityWeights = Record<string, number>;
  * One of the values can be undefined, but not both, and the value used in the calculation must be defined
  */
 export type DecayInputValue =
-    | { distanceMeters: number; travelTimeSeconds?: number }
-    | { travelTimeSeconds: number; distanceMeters?: number };
+    { distanceMeters: number; travelTimeSeconds?: number } | { travelTimeSeconds: number; distanceMeters?: number };
 
 /**
  * Minimum value for distance and time to prevent numerical instability in power-law decay functions.

@@ -89,14 +89,11 @@ export default class ImportAndValidatePlaces extends GenericDataImportTask {
     }
 
     private assertDataPrepared(dataSourceDirectory: string): void {
-        if (
-            !(
-                this.fileManager.fileExistsAbsolute(
-                    dataSourceDirectory + GenericDataImportTask.RESIDENTIAL_ENTRANCES_FILE
-                ) &&
-                this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.RESIDENTIAL_ZONES_FILE)
-            )
-        ) {
+        if (!(
+            this.fileManager.fileExistsAbsolute(
+                dataSourceDirectory + GenericDataImportTask.RESIDENTIAL_ENTRANCES_FILE
+            ) && this.fileManager.fileExistsAbsolute(dataSourceDirectory + GenericDataImportTask.RESIDENTIAL_ZONES_FILE)
+        )) {
             throw new Error(
                 'Entrances and zones data not prepared for data source. Please run the task to prepare the OSM data or put the ' +
                     GenericDataImportTask.RESIDENTIAL_ENTRANCES_FILE +

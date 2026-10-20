@@ -21,13 +21,7 @@ export const householdCategories = [
     'unknown'
 ];
 export type HouseholdCategories =
-    | 'none'
-    | 'singlePerson'
-    | 'couple'
-    | 'monoparentalFamily'
-    | 'biparentalFamily'
-    | 'other'
-    | 'unknown';
+    'none' | 'singlePerson' | 'couple' | 'monoparentalFamily' | 'biparentalFamily' | 'other' | 'unknown';
 
 export const householdIncomeLevelGroups = [
     'none', // !!! none means no value, not no income !!!

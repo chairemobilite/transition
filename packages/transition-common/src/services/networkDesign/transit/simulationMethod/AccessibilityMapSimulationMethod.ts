@@ -22,8 +22,7 @@ export type AccessibilityMapSimulationOptions = {
  * the number of places accessible within certain parameters from various points
  * in the network.
  */
-export class AccessibilityMapSimulationDescriptor
-implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
+export class AccessibilityMapSimulationDescriptor implements SimulationAlgorithmDescriptor<AccessibilityMapSimulationOptions> {
     getTranslatableName = (): string => 'transit:simulation:simulationMethods:AccessibilityMap';
 
     // TODO Add help texts

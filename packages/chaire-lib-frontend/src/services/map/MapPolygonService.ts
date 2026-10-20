@@ -298,9 +298,7 @@ const getTerraDraw = (
     };
 
     const getAggregateFeature = ():
-        | GeoJson.Feature<GeoJson.Polygon | GeoJson.MultiPolygon>
-        | GeoJson.FeatureCollection
-        | null => {
+        GeoJson.Feature<GeoJson.Polygon | GeoJson.MultiPolygon> | GeoJson.FeatureCollection | null => {
         const snapshot = draw.getSnapshot() as GeoJson.Feature<GeoJson.Polygon>[];
 
         // Filter out invalid/incomplete polygons (e.g. drawing in progress or glitch)
