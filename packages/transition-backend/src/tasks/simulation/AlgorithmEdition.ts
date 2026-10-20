@@ -109,7 +109,7 @@ const getSimulationFunctions = async (options: {
     let remainingMethodWeight = 1;
 
     for (const [methodIndex, methodId] of selectedMethods.entries()) {
-        let currentWeight = 0;
+        let currentWeight: number;
         if (selectedMethods.length === 1) {
             currentWeight = 1;
         } else if (selectedMethods.length - 1 === methodIndex) {

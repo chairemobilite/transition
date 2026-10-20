@@ -26,9 +26,7 @@ const TransitServiceFilterableList: React.FunctionComponent<TransitServiceFilter
     props: TransitServiceFilterableProps
 ) => {
     const [currentFilter, setCurrentFilter] = useState<TransitServiceFilterFields>({});
-    let servicesChoices: { value: string; label: string }[] = [];
-
-    servicesChoices = props.services
+    const servicesChoices = props.services
         .filter((service) => serviceMatches(service, currentFilter))
         .map((service) => {
             return {

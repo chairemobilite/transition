@@ -385,7 +385,6 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         const cycleTimeSeconds = outboundTotalTimeSeconds + inboundTotalTimeSeconds;
         let tripsIntervalSeconds: number = 0;
         let tripsNumberOfUnits: number = 0;
-        let totalPeriod = -1;
 
         // Scenario 1: Fixed number of units specified
         if (_isNumber(period.number_of_units)) {
@@ -400,7 +399,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             period.calculated_number_of_units = period.numberOfUnits;
         } else if (_isNumber(period.interval_seconds) && _isNumber(period.inbound_interval_seconds)) {
             // Scenario 2: Specified intervals for outbound and inbound trips
-            totalPeriod = endAtSecondsSinceMidnight - startAtSecondsSinceMidnight;
+            const totalPeriod = endAtSecondsSinceMidnight - startAtSecondsSinceMidnight;
 
             // Precise calculation of unit requirements for each direction
 
@@ -617,7 +616,6 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
         const hasInboundPath = !!options.inboundPath;
 
         // Precise calculation of unit distribution
-        let outboundUnits = options.units.length;
         let inboundUnits = 0;
 
         if (hasInboundPath) {
@@ -637,7 +635,7 @@ export class AsymmetricScheduleStrategy extends BaseScheduleStrategy {
             const inboundRatio = inboundDepartures / totalDepartures;
 
             // Distribute units based on ratios, with a minimum of 1 unit per direction
-            outboundUnits = Math.max(1, Math.floor(options.units.length * outboundRatio));
+            let outboundUnits = Math.max(1, Math.floor(options.units.length * outboundRatio));
             inboundUnits = Math.max(1, options.units.length - outboundUnits);
 
             // Ensure at least one unit on each side
@@ -850,7 +848,6 @@ export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
 
         let tripsIntervalSeconds = -1;
         let tripsNumberOfUnits: number = 0;
-        let tripsNumberOfUnitsFloat: number = 0;
 
         delete period.calculated_interval_seconds;
         delete period.calculated_number_of_units;
@@ -858,7 +855,7 @@ export class SymmetricScheduleStrategy extends BaseScheduleStrategy {
         if (_isNumber(period.interval_seconds)) {
             // ignore number of units if interval is set
             tripsIntervalSeconds = period.interval_seconds;
-            tripsNumberOfUnitsFloat = cycleTimeSeconds / period.interval_seconds;
+            const tripsNumberOfUnitsFloat = cycleTimeSeconds / period.interval_seconds;
             tripsNumberOfUnits = ceilToPositiveInteger(cycleTimeSeconds / period.interval_seconds);
             period.calculated_interval_seconds = tripsIntervalSeconds;
             period.calculated_number_of_units = tripsNumberOfUnitsFloat;

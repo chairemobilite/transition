@@ -39,7 +39,7 @@ const generateRandomCandidate = (
     },
     currentChromosomes: boolean[][]
 ): boolean[] => {
-    let linesChromosome: boolean[] = [];
+    let linesChromosome: boolean[];
     const nbLines =
         options.randomGenerator.integer(options.numberOfLinesMin, options.numberOfLinesMax) - options.numberOfKeptLines;
 
@@ -191,8 +191,8 @@ export const reproduceCandidates = (
     }
 
     for (let i = elitesToKeep + randomToCreate; i < options.populationSize; i++) {
-        let linesChromosome: boolean[] = [];
-        let activeLineCount = 0;
+        let linesChromosome: boolean[];
+        let activeLineCount: number;
 
         do {
             const firstParentIndex = selection.selectCandidateIdx();

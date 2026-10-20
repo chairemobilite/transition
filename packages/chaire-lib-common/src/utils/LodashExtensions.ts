@@ -71,7 +71,7 @@ const _chunkify = function (a: unknown[], n = 2, balanced = true): unknown[][] {
 
     const out: unknown[][] = [];
     let i = 0;
-    let size = 0;
+    let size: number;
 
     if (len % n === 0) {
         size = Math.floor(len / n);

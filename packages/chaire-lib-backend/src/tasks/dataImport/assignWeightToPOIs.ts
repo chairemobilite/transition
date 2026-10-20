@@ -115,7 +115,7 @@ export default class assignWeightToPOIs extends GenericDataImportTask {
                 poi.properties = {};
             }
 
-            let buildingId = poi.properties.building_part_id || poi.properties.building_id;
+            const buildingId = poi.properties.building_part_id || poi.properties.building_id;
             if (buildingId) {
                 if (!this._buildingCache[buildingId]) {
                     const buildingProperties = osmPolygonGeojsonData.find({ id: buildingId })?.properties || {};
@@ -143,7 +143,8 @@ export default class assignWeightToPOIs extends GenericDataImportTask {
                     poi.properties['polygon:area'] = polygonProperties['polygon:area'];
                 } else if (polygonProperties && polygonProperties.building) {
                     // the poi itself is a building (farm building or other without node poi inside building)
-                    buildingId = poi.id;
+                    // FIXME This case does nothing, the poi's building is not added to the building cache,
+                    // see https://github.com/chairemobilite/transition/issues/2131
                 } else {
                     //console.log('no building or area found for poi', poi);
                 }
@@ -173,7 +174,7 @@ export default class assignWeightToPOIs extends GenericDataImportTask {
                 poi.properties = {};
             }
 
-            let poiFloorArea: number | undefined = undefined;
+            let poiFloorArea: number | undefined;
             const buildingId = poi.properties.building_part_id || poi.properties.building_id;
             if (buildingId) {
                 if (this._buildingCache[buildingId]) {

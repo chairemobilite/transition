@@ -225,7 +225,8 @@ class AccessibilityMapBatchForm extends ChangeEventsForm<
             <Collapsible trigger={this.props.t('transit:transitRouting:BatchAccessibilityMapCsv')} transitionTime={100}>
                 <div className="tr__form-section">
                     {
-                        /* not yet implemented */ false && this.state.csvAttributes && (
+                        // eslint-disable-next-line no-constant-binary-expression -- Not yet implemented
+                        false && this.state.csvAttributes && (
                             <div className="apptr__form-input-container _two-columns _small-inputs">
                                 <label>{this.props.t('transit:transitRouting:WithGeometry')}</label>
                                 <InputRadio

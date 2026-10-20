@@ -23,9 +23,8 @@ implements
     }
 
     private prepareResultData = async (): Promise<void> => {
-        let pathCollection: PathCollection | undefined = undefined;
         if (this.job.attributes.data.parameters.transitRoutingAttributes.withGeometries) {
-            pathCollection = new PathCollection([], {});
+            const pathCollection = new PathCollection([], {});
             if (this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId) {
                 const pathGeojson = await pathDbQueries.geojsonCollection({
                     scenarioId: this.job.attributes.data.parameters.transitRoutingAttributes.scenarioId

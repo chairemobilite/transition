@@ -137,7 +137,6 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
         // higher than 1
         let currentTotalAverage = 0;
         let currentPlaceCount = 0;
-        let currentVariability = 100;
         let lowVariabilityCount = 0;
         // TODO Parameterize this?
         const lowVariabilityThreshold = 0.01;
@@ -196,7 +195,7 @@ export default class AccessibilityMapSimulation implements SimulationMethod {
             const totalAverage =
                 (currentTotalAverage * currentPlaceCount + currentTotal) / (currentPlaceCount + costs.length);
             currentPlaceCount += costs.length;
-            currentVariability = (totalAverage - currentTotalAverage) / currentTotalAverage;
+            const currentVariability = (totalAverage - currentTotalAverage) / currentTotalAverage;
             lowVariabilityCount = Math.abs(currentVariability) <= lowVariabilityThreshold ? lowVariabilityCount + 1 : 0;
             currentTotalAverage = totalAverage;
         }

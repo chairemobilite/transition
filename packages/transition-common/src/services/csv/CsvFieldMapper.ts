@@ -275,13 +275,11 @@ export class CsvFileAndFieldMapper<
     }
 
     protected _validate(): { isValid: boolean; errors: TranslatableMessage[] } {
-        let isValid = true;
         const errors: TranslatableMessage[] = [];
 
         if (!this._csvFile) {
-            isValid = false;
             errors.push('main:errors:csv:NoFileSelected');
-            return { isValid, errors };
+            return { isValid: false, errors };
         }
 
         // Call parent validation

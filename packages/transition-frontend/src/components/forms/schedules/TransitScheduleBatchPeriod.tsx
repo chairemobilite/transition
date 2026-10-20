@@ -66,8 +66,6 @@ const TransitScheduleBatchPeriod: React.FC<TransitScheduleBatchPeriodProps> = (p
             const paths = line.paths;
             let chosenOutboundPath;
             let chosenInboundPath;
-            let chosenInboundPathId = '';
-            let chosenOutboundPathId = '';
             paths.forEach((path) => {
                 if (['outbound', 'loop', 'other'].includes(path.attributes.direction)) {
                     chosenOutboundPath = chosenOutboundPath
@@ -83,8 +81,8 @@ const TransitScheduleBatchPeriod: React.FC<TransitScheduleBatchPeriodProps> = (p
                         : path;
                 }
             });
-            chosenOutboundPathId = chosenOutboundPath ? chosenOutboundPath.getId() : '';
-            chosenInboundPathId = chosenInboundPath ? chosenInboundPath.getId() : '';
+            const chosenOutboundPathId = chosenOutboundPath ? chosenOutboundPath.getId() : '';
+            const chosenInboundPathId = chosenInboundPath ? chosenInboundPath.getId() : '';
             const schedule = schedules.find((schedule) => schedule.attributes.line_id === line.getId());
             if (schedule && chosenOutboundPath) {
                 const scheduleIdx = schedules.indexOf(schedule);

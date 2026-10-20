@@ -215,7 +215,6 @@ const importGtfsData = async (
             emitProgress
         );
         progressEmitter?.emit('progress', { name: 'ImportingSchedules', progress: 1.0 });
-        currentStepCompleted++;
         if (scheduleResponse.status === 'success') {
             return {
                 status: 'success',
