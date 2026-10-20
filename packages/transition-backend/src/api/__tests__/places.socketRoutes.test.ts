@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { EventEmitter } from 'events';
-import geobuf from 'geobuf';
-import Pbf from 'pbf';
+import { encode } from 'geobuf';
+import { PbfWriter } from 'pbf';
 import { v4 as uuidV4 } from 'uuid';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -245,9 +245,8 @@ describe('Places: geojson collection', () => {
             expect(mockedGeojsonCollection).toHaveBeenCalledWith([placeAttributes1.data_source_id], 2);
             expect(Status.isStatusOk(responseStatus)).toBeTruthy();
             const response = Status.unwrap(responseStatus) as any;
-            expect(response.geobuf).toBeDefined();
-            const geojson = geobuf.decode(new Pbf(response.geobuf));
-            expect(geojson).toEqual(geojsonCollection);
+            expect(encode).toHaveBeenCalledWith(geojsonCollection, expect.any(PbfWriter));
+            expect(response.geobuf).toEqual(Buffer.from(JSON.stringify(geojsonCollection)));
             done();
         });
     });
