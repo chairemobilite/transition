@@ -68,6 +68,7 @@
         "yargs": "^18.0.0"
     },
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
         "@types/express": "^5.0.6",
         "@types/geojson": "^7946.0.16",
         "@types/jest": "^30.0.0",
@@ -80,12 +81,10 @@
         "@types/stream-chain": "^2.1.0",
         "@types/stream-json": "^1.7.8",
         "@types/validator": "^13.15.10",
-        "@typescript-eslint/eslint-plugin": "^8.50.0",
-        "@typescript-eslint/parser": "^8.50.0",
         "copyfiles": "^2.4.1",
         "cross-env": "^10.1.0",
-        "eslint": "^8.57.1",
-        "eslint-plugin-n": "^15.7.0",
+        "eslint": "^10.13.0",
+        "eslint-plugin-n": "^18.5.0",
         "jest": "^30.2.0",
         "jest-each": "^30.2.0",
         "mock-spawn": "^0.2.6",
@@ -96,6 +95,7 @@
         "supertest": "^7.1.4",
         "supertest-session": "^5.0.1",
         "ts-jest": "^29.4.6",
-        "typescript": "^5.9.3"
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.72.0"
     }
 }

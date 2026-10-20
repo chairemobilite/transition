@@ -60,6 +60,7 @@
     "terra-draw-maplibre-gl-adapter": "^1.5.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
@@ -71,13 +72,12 @@
     "@types/osrm": "^5.25.5",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.50.0",
-    "@typescript-eslint/parser": "^8.50.0",
     "copyfiles": "^2.4.1",
     "cross-env": "^10.1.0",
-    "eslint": "^8.57.1",
-    "eslint-plugin-n": "^15.7.0",
-    "eslint-plugin-react": "^7.37.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-n": "^18.5.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.13.0",
     "jest": "^30.2.0",
     "jest-each": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
@@ -85,6 +85,7 @@
     "prettier-eslint-cli": "^8.0.1",
     "rimraf": "^6.1.2",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
   }
 }
