@@ -14,11 +14,9 @@ to generate weight (number of generated trip destinations per weekday)
 */
 taskWrapper(new assignWeightToPOIs(fileManager))
     .then(() => {
-        // eslint-disable-next-line no-process-exit
         process.exit();
     })
     .catch((err) => {
         console.error('Error executing task', err);
-        // eslint-disable-next-line no-process-exit
         process.exit();
     });

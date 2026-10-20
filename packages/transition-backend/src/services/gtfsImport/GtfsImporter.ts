@@ -19,7 +19,6 @@ import ServiceImporter from './ServiceImporter';
 import LineImporter from './LineImporter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import FrequencyImporter from './FrequencyImporter';
-// eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
 import { GtfsInternalData, ProgressEmitFn, StopTime } from './GtfsImportTypes';
 import ShapeImporter from './ShapeImporter';
