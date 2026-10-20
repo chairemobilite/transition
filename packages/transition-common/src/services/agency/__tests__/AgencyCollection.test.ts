@@ -6,7 +6,6 @@
  */
 
 import { v4 as uuidV4 } from 'uuid';
-import _cloneDeep from 'lodash/cloneDeep';
 
 import EventManagerMock from 'chaire-lib-common/lib/test/services/events/EventManagerMock';
 import Agency from '../Agency';
@@ -75,7 +74,7 @@ beforeEach(() => {
     EventManagerMock.mockClear();
 });
 
-test('should construct agency collection with or without features', function() {
+test('should construct agency collection with or without features', () => {
 
     const agency1 = new Agency(agencyAttributes1, true);
     const agency2 = new Agency(agencyAttributes2, false);
@@ -117,7 +116,7 @@ test('should construct agency collection with or without features', function() {
 });
 
 test('Load from server', async () => {
-    EventManagerMock.emitResponseReturnOnce({collection: [agencyAttributes1, agencyAttributes2]});
+    EventManagerMock.emitResponseReturnOnce({ collection: [agencyAttributes1, agencyAttributes2] });
 
     // Test loading a simple collection
     const collection = new AgencyCollection([], {}, eventManager);
