@@ -69,8 +69,7 @@ const TransitPathNodeList: React.FunctionComponent<PathListProps> = (props: Path
 
     // get layover data:
     const layoverTimeSeconds: number | undefined = props.selectedPath.attributes?.data?.layoverTimeSeconds as
-        | number
-        | undefined;
+        number | undefined;
 
     return (
         <div

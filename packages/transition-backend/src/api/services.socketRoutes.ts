@@ -204,8 +204,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     socket.emit('progress', { name: 'BatchRouting', progress: null });
                     const inputFiles: {
                         [Property in keyof BatchRouteJobType[fileKey]]?:
-                            | string
-                            | { filepath: string; renameTo: string };
+                            string | { filepath: string; renameTo: string };
                     } = {};
                     inputFiles.input = await ExecutableJobUtils.prepareJobFiles(
                         parameters.fileAndMapping.csvFile,

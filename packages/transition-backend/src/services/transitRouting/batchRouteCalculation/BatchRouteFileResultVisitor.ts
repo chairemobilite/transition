@@ -12,9 +12,9 @@ import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import pathDbQueries from '../../../models/db/transitPaths.db.queries';
 
 // Example concrete visitor for file generation
-export class BatchRouteFileResultVisitor
-implements
-        BatchRouteResultVisitor<{ files: { input: string; csv?: string; detailedCsv?: string; geojson?: string } }> {
+export class BatchRouteFileResultVisitor implements BatchRouteResultVisitor<{
+    files: { input: string; csv?: string; detailedCsv?: string; geojson?: string };
+}> {
     private resultHandler = createRoutingFileResultProcessor(this.job);
     private pathCollection: PathCollection | undefined | false = false;
 

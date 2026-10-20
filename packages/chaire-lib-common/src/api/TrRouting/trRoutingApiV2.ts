@@ -177,10 +177,7 @@ export type AccessibilityMapQueryResponse = {
 };
 
 export type AccessibilityMapResponse =
-    | AccessibilityMapSuccessResult
-    | NoRoutingAccessibilityResult
-    | DataError
-    | AccessibilityMapQueryError;
+    AccessibilityMapSuccessResult | NoRoutingAccessibilityResult | DataError | AccessibilityMapQueryError;
 
 export type NoRoutingAccessibilityReason = 'NO_ROUTING_FOUND' | 'NO_ACCESS_AT_PLACE' | 'NO_SERVICE_AT_PLACE';
 
