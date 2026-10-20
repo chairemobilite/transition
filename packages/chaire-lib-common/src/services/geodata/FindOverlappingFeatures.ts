@@ -178,7 +178,6 @@ const getOverlappingOnBuffer = (
     let bestApproximation: number[] = options.overlappingIndices;
     let bestCount = options.bestCount;
     let lastCount = bestCount;
-    let lastIndices: number[] = bestApproximation;
     while (i < 7 && bestCount !== options.expectedApproximateCount) {
         diff = diff / 2;
         buffer = lastCount < options.expectedApproximateCount ? buffer + diff : buffer - diff;
@@ -186,7 +185,7 @@ const getOverlappingOnBuffer = (
         if (!bufferedFeature || bufferedFeature.geometry === null) {
             break;
         }
-        lastIndices = getOverlappingIndices(bufferedFeature, featuresToSplit);
+        const lastIndices = getOverlappingIndices(bufferedFeature, featuresToSplit);
         lastCount =
             lastIndices.length > bestApproximation.length
                 ? getFeatureCount(featuresToSplit, lastIndices, options.featureCount)

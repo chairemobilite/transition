@@ -113,30 +113,27 @@ class TransitScenarioEdit extends SaveableObjectForm<Scenario, ScenarioFormProps
         const selectedServices = scenario.attributes.services;
         const onlyAgencies = scenario.attributes.only_agencies;
         const exceptAgencies = scenario.attributes.except_agencies;
-        let agenciesChoices: { value: string; label: string }[] = [];
         const onlyLines = scenario.attributes.only_lines;
         const exceptLines = scenario.attributes.except_lines;
-        let linesChoices: { value: string; label: string }[] = [];
         const onlyModes = scenario.attributes.only_modes;
         const exceptModes = scenario.attributes.except_modes;
-        let modesChoices: { value: string; label: string }[] = [];
 
         const allAgencies = serviceLocator.collectionManager.get('agencies');
-        agenciesChoices = allAgencies.features.map((agency) => {
+        const agenciesChoices = allAgencies.features.map((agency) => {
             return {
                 value: agency.id,
                 label: agency.toString()
             };
         });
 
-        linesChoices = serviceLocator.collectionManager.get('lines').features.map((line: Line) => {
+        const linesChoices = serviceLocator.collectionManager.get('lines').features.map((line: Line) => {
             return {
                 value: line.id,
                 label: `${line.toString()} (${allAgencies.getById(line.attributes.agency_id)?.attributes.acronym})`
             };
         });
 
-        modesChoices = lineModes.map((mode) => {
+        const modesChoices = lineModes.map((mode) => {
             return {
                 value: mode.value,
                 label: this.props.t(`transit:transitLine:modes:${mode.value}`)

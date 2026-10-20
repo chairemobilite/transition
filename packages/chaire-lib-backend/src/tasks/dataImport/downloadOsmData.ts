@@ -44,7 +44,9 @@ export default class DownloadOsmData extends GenericDataImportTask {
                 await osmDownloader.fetchAndWriteGeojson(osmGeojson, polygonGeojson);
             }
         } catch (error) {
-            throw new Error('Error retrieving Open Street Map data from server:' + JSON.stringify(error));
+            throw new Error('Error retrieving Open Street Map data from server:' + JSON.stringify(error), {
+                cause: error
+            });
         }
     }
 }

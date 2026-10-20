@@ -494,8 +494,8 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         }
         const nodeIds = this.attributes.nodes;
         //console.log('inserting waypoint', waypointCoordinates, 'after node index: ' + afterNodeIndex + ' at insert index: ' + insertIndex);
-        let afterNodeWaypoints: [number, number][] = [];
-        let afterNodeWaypointTypes: string[] = [];
+        let afterNodeWaypoints: [number, number][];
+        let afterNodeWaypointTypes: string[];
         if (_isBlank(insertIndex) && !_isBlank(afterNodeIndex)) {
             afterNodeWaypoints = this.attributes.data.waypoints[afterNodeIndex as number] || [];
             afterNodeWaypointTypes = this.attributes.data.waypointTypes[afterNodeIndex as number] || [];
@@ -912,7 +912,7 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
         const pathCoordinates = this.attributes.geography.coordinates;
         const pathSegments = this.attributes.segments;
         const pathCoordinatesStartIndex = pathSegments[nodeStartIndex];
-        let pathCoordinatesEndIndex = 0;
+        let pathCoordinatesEndIndex: number;
         if (!_isBlank(pathSegments[nodeEndIndex])) {
             // last coordinate
             pathCoordinatesEndIndex = pathSegments[nodeEndIndex];

@@ -55,7 +55,7 @@ const extractLocation = (
             : turfPoint(proj4(projection.value, constants.geographicCoordinateSystem.value, [locationLon, locationLat]))
                 .geometry;
 
-    let time: number | null | undefined = undefined;
+    let time: number | null | undefined;
     if (options.timeFormat === 'HH:MM') {
         time = timeStrToSecondsSinceMidnight(line[options.timeAttribute]);
     } else if (options.timeFormat === 'HMM') {

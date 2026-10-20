@@ -204,7 +204,7 @@ class MapLibreLayerManager {
 
     showLayerObjectByAttribute(layerName: string, attribute: string, value: string | number) {
         const existingFilter = this.getFilter(layerName);
-        let values: (string | number)[] = [];
+        let values: (string | number)[];
         let newFilter: FilterSpecification;
 
         if (

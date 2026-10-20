@@ -101,13 +101,13 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
     hasOrigin = (
         state: ODCoordinatesComponentState
     ): state is { originLat: number; originLon: number; externalUpdate: number } => {
-        return this.state.originLat !== undefined && this.state.originLon !== undefined;
+        return state.originLat !== undefined && state.originLon !== undefined;
     };
 
     hasDestination = (
         state: ODCoordinatesComponentState
     ): state is { destinationLat: number; destinationLon: number; externalUpdate: number } => {
-        return this.state.destinationLat !== undefined && this.state.destinationLon !== undefined;
+        return state.destinationLat !== undefined && state.destinationLon !== undefined;
     };
 
     reverseOD = () => {

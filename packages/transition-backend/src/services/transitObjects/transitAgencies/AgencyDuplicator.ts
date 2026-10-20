@@ -93,10 +93,9 @@ const getCommonSuffix = async (
     { transaction }: WithTransaction = {}
 ): Promise<string> => {
     let iteration = 0;
-    let hasClash = false;
     do {
         const suffix = iteration === 0 ? options.newObjectsSuffix : `${options.newObjectsSuffix}-${iteration}`;
-        hasClash = await transitAgenciesDbQueries.isAcronymSuffixClash({
+        const hasClash = await transitAgenciesDbQueries.isAcronymSuffixClash({
             agencyIds: options.agencyIds,
             suffix,
             transaction
