@@ -11,8 +11,9 @@ export default defineConfig([
     globalIgnores(['**/lib/', '**/__tests__/']),
     baseConfig,
     {
+        // Tasks need to use process.exit(): throwing, as the rule suggests, keeps the process running
+        files: ['src/scripts/**/*.task.ts'],
         rules: {
-            // Tasks need to use process.exit(): throwing, as the rule suggests, keeps the process running
             'n/no-process-exit': 'off'
         }
     }
