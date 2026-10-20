@@ -13,6 +13,9 @@ on:
       - '**/*.lua'
       - '**/workflows/osrmprofile.yml'
 
+permissions:
+  contents: read
+
 jobs:
   compile-lua:
     runs-on: ubuntu-latest  # Specify the runner

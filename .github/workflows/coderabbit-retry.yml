@@ -80,6 +80,9 @@ concurrency:
   group: coderabbit-retry
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   retry:
     name: Process rate-limited reviews

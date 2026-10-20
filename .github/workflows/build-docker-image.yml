@@ -19,6 +19,9 @@ env:
   DOCKERHUB_IMAGE: chairemobilite/${{ github.event.repository.name }}
   GITHUB_IMAGE: ${{ github.repository }}
 
+permissions:
+  contents: read
+
 jobs:
   # Branch push job - builds and pushes to both registries
   branch-push:
