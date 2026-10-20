@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import geobuf from 'geobuf';
-import Pbf from 'pbf';
+import { decode } from 'geobuf';
+import { PbfReader } from 'pbf';
 
 import GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
 import GenericMapObjectCollection from '../../utils/objects/GenericMapObjectCollection';
@@ -169,7 +169,7 @@ const loadGeojsonFromServer = function (
                     const geojsonResponse = Status.unwrap(responseStatus);
                     const geojson =
                         geojsonResponse.type === 'geobuf'
-                            ? geobuf.decode(new Pbf(geojsonResponse.geobuf))
+                            ? decode(new PbfReader(geojsonResponse.geobuf))
                             : geojsonResponse.geojson;
                     if (
                         geojson &&
