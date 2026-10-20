@@ -37,6 +37,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/geojson": "^7946.0.16",
     "@types/geokdbush": "^1.1.5",
     "@types/jest": "^30.0.0",
@@ -44,11 +45,9 @@
     "@types/lodash": "^4.17.21",
     "@types/node": "^24.10.4",
     "@types/osrm": "^5.25.5",
-    "@typescript-eslint/eslint-plugin": "^8.50.0",
-    "@typescript-eslint/parser": "^8.50.0",
     "cross-env": "^10.1.0",
-    "eslint": "^8.57.1",
-    "eslint-plugin-n": "^15.7.0",
+    "eslint": "^10.13.0",
+    "eslint-plugin-n": "^18.5.0",
     "jest": "^30.2.0",
     "jest-each": "^30.2.0",
     "jest-fetch-mock": "^3.0.3",
@@ -56,6 +55,7 @@
     "rimraf": "^6.1.2",
     "seedrandom": "^3.0.5",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0"
   }
 }

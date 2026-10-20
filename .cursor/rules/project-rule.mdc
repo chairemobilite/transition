@@ -475,7 +475,7 @@ Three types of tests:
 
 ### `configs/`
 Shared configuration files:
-- `base.eslintrc.json`, `react.eslintrc.json`, `gts.eslintrc.json` - ESLint configs
+- `base.eslint.config.mjs`, `react.eslint.config.mjs`, `gts.eslint.config.mjs` - ESLint flat configs, used by each package's `eslint.config.mjs`
 - `base.tsconfig.json`, `react.tsconfig.json`, `gts.tsconfig.json` - TypeScript configs
 - `base.prettierrc.js`, `gts.prettierrc.json` - Prettier configs
 Notes: 
