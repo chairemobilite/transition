@@ -1,6 +1,6 @@
 // These dependencies are only published as ES modules, they need to be
 // compiled to CommonJS for jest
-const esmOnlyPackages = ['kdbush', 'geokdbush', 'tinyqueue', 'uuid'].join('|');
+const esmOnlyPackages = ['kdbush', 'geokdbush', 'tinyqueue', 'uuid', 'geobuf', 'pbf'].join('|');
 
 module.exports = {
     transform: {
