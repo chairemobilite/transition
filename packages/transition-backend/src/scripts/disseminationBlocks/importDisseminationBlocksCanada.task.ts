@@ -10,11 +10,9 @@ import taskWrapper from 'chaire-lib-backend/lib/tasks/taskWrapper';
 
 taskWrapper(new ImportDisseminationBlocksCanada())
     .then(() => {
-        // eslint-disable-next-line no-process-exit
         process.exit();
     })
     .catch((err) => {
         console.error('Error executing task', err);
-        // eslint-disable-next-line no-process-exit
         process.exit();
     });

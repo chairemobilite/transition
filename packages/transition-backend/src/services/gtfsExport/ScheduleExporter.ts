@@ -6,7 +6,6 @@
  */
 import fs from 'fs';
 import { unparse } from 'papaparse';
-// eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
 
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';

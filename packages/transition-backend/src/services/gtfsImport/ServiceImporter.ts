@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import moment from 'moment';
-// eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
 import _uniq from 'lodash/uniq';
 import _isEqual from 'lodash/isEqual';

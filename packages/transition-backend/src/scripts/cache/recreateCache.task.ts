@@ -25,11 +25,9 @@ const run = async () => {
 run()
     .then(() => {
         console.log('Cache recreated successfully');
-        // eslint-disable-next-line no-process-exit
         process.exit();
     })
     .catch((error) => {
         console.error('Recreating the cache did not complete correctly', error);
-        // eslint-disable-next-line no-process-exit
         process.exit();
     });

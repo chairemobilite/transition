@@ -39,10 +39,8 @@ const run = async function () {
 
 run()
     .then(() => {
-        // eslint-disable-next-line no-process-exit
         process.exit();
     })
     .catch(() => {
-        // eslint-disable-next-line no-process-exit
         process.exit();
     });

@@ -60,7 +60,6 @@ knexRoot('pg_catalog.pg_database')
             knexPublic.destroy();
         } catch (error) {
             console.log('An error occurred when creating the database or the schema:', error);
-            // eslint-disable-next-line no-process-exit
             process.exit(1);
         }
     });

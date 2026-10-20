@@ -11,11 +11,9 @@ import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager
 
 taskWrapper(new ImportPlacesToDb(fileManager))
     .then(() => {
-        // eslint-disable-next-line no-process-exit
         process.exit();
     })
     .catch((err) => {
         console.error('Error executing task', err);
-        // eslint-disable-next-line no-process-exit
         process.exit();
     });

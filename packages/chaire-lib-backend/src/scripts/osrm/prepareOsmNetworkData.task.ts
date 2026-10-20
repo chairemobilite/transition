@@ -9,11 +9,9 @@ import taskWrapper from '../../tasks/taskWrapper';
 
 taskWrapper(new PrepareOsmNetworkData())
     .then(() => {
-        // eslint-disable-next-line no-process-exit
         process.exit();
     })
     .catch((err) => {
         console.error('Error executing task', err);
-        // eslint-disable-next-line no-process-exit
         process.exit();
     });
