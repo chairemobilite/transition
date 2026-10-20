@@ -61,13 +61,12 @@
   "p_out": "Outbound path",
   "p_in": "Inbound path",
   "n_q_p"  : "Number of nodes",
-  "n_s_p"  : "Number of stops",
 
   "d_p"    : "Path length",
-  "d_l_min": "Minimum interstop distance",
-  "d_l_max": "Maximum interstop distance",
-  "d_l_avg": "Average interstop distance",
-  "d_l_med": "Median interstop distance",
+  "d_l_min": "Minimum segment length",
+  "d_l_max": "Maximum segment length",
+  "d_l_avg": "Average segment length",
+  "d_l_med": "Median segment length",
   "T_o_p"  : "Path operating time"
 
 }

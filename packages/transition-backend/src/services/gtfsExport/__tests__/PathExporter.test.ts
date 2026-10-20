@@ -55,8 +55,7 @@ const arbitraryData = {
         d_l_max: null,
         d_l_avg: null,
         d_l_med: null,
-        T_o_p: null,
-        n_s_p: null,
+        T_o_p: null
     }
 };
 

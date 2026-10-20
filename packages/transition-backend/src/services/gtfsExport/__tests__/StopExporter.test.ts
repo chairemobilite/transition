@@ -14,17 +14,17 @@ jest.mock('fs', () => {
     // Require the original module to not be mocked...
     const originalModule =
       jest.requireActual<typeof import('fs')>('fs');
-  
+
     return {
-      ...originalModule,
-      createWriteStream: jest.fn()
+        ...originalModule,
+        createWriteStream: jest.fn()
     };
 });
 
 const quoteFct = (val: unknown) => typeof val === 'string';
 const mockWriteStream = {
     write: jest.fn().mockImplementation((chunk) => {
-      
+
     }),
     end: jest.fn()
 };
@@ -54,8 +54,7 @@ const arbitraryData = {
         d_l_max: null,
         d_l_avg: null,
         d_l_med: null,
-        T_o_p: null,
-        n_s_p: null,
+        T_o_p: null
     }
 };
 
@@ -96,13 +95,13 @@ jest.mock('../../../models/db/transitNodes.db.queries', () => {
         geojsonCollection: jest.fn().mockImplementation(async () => {
             return { type: 'FeatureCollection', features: [node1.toGeojson(), node2.toGeojson()] };
         })
-    }
+    };
 });
 
 beforeEach(() => {
     mockWriteStream.write.mockClear();
     mockWriteStream.end.mockClear();
-})
+});
 
 test('Test exporting one node', async () => {
     const response = await exportStop([nodeAttributes1.id], { directoryPath: 'test', quotesFct: quoteFct });

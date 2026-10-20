@@ -143,14 +143,14 @@ const appendLegCoordinates = (leg: MapLeg, globalCoordinates: Geojson.Position[]
  * used for comparison metrics (e.g. `travelTimeWithoutDwellTimesSeconds`).
  *
  * @param path - The path object (provides acceleration, deceleration, routing engine, and speed config)
- * @param segmentDistanceMeters - Segment distance in meters (from routing engine)
+ * @param segmentLengthMeters - Segment distance in meters (from routing engine)
  * @param routedDurationSeconds - Segment duration in seconds (from routing engine)
  * @returns `calculatedSegmentDurationSeconds` (with accel/decel) and `noDwellTimeDurationSeconds` (without)
  * @throws TrError if the calculated duration is zero or negative
  */
 const calculateSegmentDuration = (
     path: Path,
-    segmentDistanceMeters: number,
+    segmentLengthMeters: number,
     routedDurationSeconds: number
 ): SegmentDuration => {
     const acceleration = path.getData('defaultAcceleration') as number;
@@ -172,17 +172,17 @@ const calculateSegmentDuration = (
     }
 
     const runningSpeedMps = usesRoutedDuration
-        ? segmentDistanceMeters / routedDurationSeconds
+        ? segmentLengthMeters / routedDurationSeconds
         : kphToMps(defaultRunningSpeedKmH);
 
     const noDwellTimeDurationSeconds = usesRoutedDuration
         ? routedDurationSeconds
-        : segmentDistanceMeters / runningSpeedMps;
+        : segmentLengthMeters / runningSpeedMps;
 
     const calculatedSegmentDurationSeconds = durationFromAccelerationDecelerationDistanceAndRunningSpeed(
         acceleration,
         deceleration,
-        segmentDistanceMeters,
+        segmentLengthMeters,
         runningSpeedMps
     );
 
@@ -744,13 +744,13 @@ const buildSegmentsAndGeometry = (
             continue;
         }
 
-        const segmentDistanceMeters = distanceMeters;
+        const segmentLengthMeters = distanceMeters;
         const segmentIndex = segments.length;
         const result = computeSegmentData({
             path,
             segmentIndex,
             routedDurationSeconds,
-            distanceMeters: segmentDistanceMeters,
+            distanceMeters: segmentLengthMeters,
             nodeId: nodeIds[nextNodeIndex - 1],
             initial,
             changesInfo
@@ -759,7 +759,7 @@ const buildSegmentsAndGeometry = (
         segments.push(segmentCoordinatesStartIndex);
         segmentsData.push({
             travelTimeSeconds: result.duration.calculatedSegmentDurationSeconds,
-            distanceMeters: segmentDistanceMeters
+            distanceMeters: segmentLengthMeters
         });
         noDwellTimeDurationsSeconds.push(result.duration.noDwellTimeDurationSeconds);
         dwellTimeDurationsSeconds.push(result.dwellTimeSeconds);

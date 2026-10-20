@@ -62,7 +62,6 @@ const pathStatsFormula: { [key: string]: string | expressionType } = {
 
     d_p: { latexExpression: 'd_p', translatableString: 'variables:d_p', unit: 'm' },
     n_q_p: { latexExpression: 'n_{q_p}', translatableString: 'variables:n_q_p' },
-    n_s_p: 'n_{s_p}',
     d_l_min: { latexExpression: 'd_{l_{min}}', translatableString: 'variables:d_l_min', unit: 'm' },
     d_l_max: { latexExpression: 'd_{l_{max}}', translatableString: 'variables:d_l_max', unit: 'm' },
     d_l_avg: { latexExpression: '\\overline{d_l}', translatableString: 'variables:d_l_avg', unit: 'm' },
