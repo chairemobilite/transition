@@ -12,6 +12,9 @@ on:
       - '**/*.tex'
       - '**/workflows/latex.yml'
 
+permissions:
+  contents: read
+
 jobs:
   latex-compile:
     runs-on: ubuntu-latest

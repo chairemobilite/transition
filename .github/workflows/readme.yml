@@ -18,6 +18,9 @@ on:
       - 'pyTransition/readme-examples-config.yaml'
       - 'pyTransition/code-to-readme.py'
 
+permissions:
+  contents: read
+
 jobs:
   check-readme:
     runs-on: ubuntu-latest
