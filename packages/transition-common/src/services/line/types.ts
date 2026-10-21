@@ -27,6 +27,7 @@ export const transitModes = [
     'tram',
     'tramTrain',
     'water',
+    'airplane',
     'gondola',
     'funicular',
     'taxi',

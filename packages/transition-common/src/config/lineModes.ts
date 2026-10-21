@@ -173,6 +173,35 @@ export default [
         compatibleRoutingModes: []
     },
     {
+        value: 'airplane' as TransitMode,
+        // 1100 is Air Service in the GTFS extended route types. It is not part of the
+        // base GTFS route_type list (0–7, 11, 12). The extension is valid and supported:
+        // https://developers.google.com/transit/gtfs/reference/extended-route-types
+        // There is no base code for air, so import and export both use 1100.
+        extendedGtfsId: 1100,
+        gtfsId: 1100,
+        defaultValues: {
+            data: {
+                routingMode: null,
+                routingEngine: 'manual',
+                // As-the-crow-flies: the path ignores wind, altitude and aircraft type.
+                // Propeller aircraft cruise around 300-700 km/h, so 500 is a plausible average.
+                defaultRunningSpeedKmH: 500,
+                defaultAcceleration: 0.5,
+                defaultDeceleration: 0.5,
+                // Two hours: airport dwell, including the average early arrival. Transfers can be shorter.
+                defaultDwellTimeSeconds: 2 * 60 * 60,
+                // Ceiling above the two-hour default.
+                maxDwellTimeSeconds: 4 * 60 * 60,
+                // Commercial jets cruise around 800-1000 km/h, about the speed of sound.
+                // Anything faster is supersonic and is a separate mode.
+                maxRunningSpeedKmH: 1000
+            }
+        },
+        compatibleRoutingEngines: ['manual'],
+        compatibleRoutingModes: []
+    },
+    {
         value: 'gondola' as TransitMode,
         extendedGtfsId: 1300,
         gtfsId: 6,
