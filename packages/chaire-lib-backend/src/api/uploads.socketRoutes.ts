@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import SocketIO from 'socket.io';
+import type SocketIO from 'socket.io';
 import _merge from 'lodash/merge';
 
 import { fileManager } from '../utils/filesystem/fileManager';
