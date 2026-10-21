@@ -2,7 +2,7 @@ This folder contains an example configuration file, as well as necessary files t
 
 # Running the demo
 
-1. Make sure all the pre-requisites are installed. For complete installation instructions of all dependencies, see the [instructions for Ubuntu](../../docs/setupDevEnvironmentUbuntu20.04.md).
+1. Make sure all the pre-requisites are installed. For complete installation instructions of all dependencies, see the [instructions for Ubuntu](../docs/setupDevEnvironmentUbuntu.md).
 
 2. Update the .env file and set the `PROJECT_CONFIG` to point to the config file in this directory
 
