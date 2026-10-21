@@ -39,7 +39,7 @@
     "prepublishOnly": "napi prepublish -t npm",
     "universal": "napi universal",
     "version": "napi version",
-    "clean": "cargo clean && rimraf index.js index.d.ts \"*.node\"",
+    "clean": "cargo clean && rimraf --glob index.js index.d.ts \"*.node\"",
     "test": "cargo test && vitest run",
     "test:unit": "cargo test",
     "test:sequential": "echo 'no tests to run for this workspace'",
