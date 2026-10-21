@@ -89,7 +89,7 @@ const createHttpServer = function (port: number, useSSL: boolean) {
 
 /* Main setup function for the server. Will init all parts as necessary */
 const setupAll = async function () {
-    const argv = yargs(hideBin(process.argv)).parseSync();
+    const argv = yargs(hideBin(process.argv)).alias('p', 'port').parseSync();
 
     const useSSL = typeof argv.ssl === 'boolean' ? argv.ssl : false;
     const port = argv.port ? parseInt(argv.port as string) : useSSL ? 8443 : 8080;
