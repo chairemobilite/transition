@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { select, confirm } from '@inquirer/prompts';
-import { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import i18n from 'chaire-lib-backend/lib/config/i18next';

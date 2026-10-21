@@ -12,7 +12,7 @@ import _isEqual from 'lodash/isEqual';
 import _camelCase from 'lodash/camelCase';
 import _upperFirst from 'lodash/upperFirst';
 import _merge from 'lodash/merge';
-import { PartialDeep } from 'type-fest';
+import type { PartialDeep } from 'type-fest';
 
 /**
  * Type for objects that have an id, either a string (uuid) or a number (integer id).
