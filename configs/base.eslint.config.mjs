@@ -34,7 +34,10 @@ export default defineConfig([
             'n/no-unpublished-import': [
                 'error',
                 {
-                    allowModules: ['@playwright/test']
+                    allowModules: ['@playwright/test'],
+                    // Packages imported only with `import type` are not
+                    // needed at runtime, so they can be devDependencies
+                    ignoreTypeImport: true
                 }
             ],
             indent: ['error', 4, { VariableDeclarator: 0 }],

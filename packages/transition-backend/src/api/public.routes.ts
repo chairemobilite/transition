@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import express from 'express';
-import { PassportStatic } from 'passport';
+import type { PassportStatic } from 'passport';
 import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries';
 import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
 import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';

@@ -29,7 +29,7 @@ import { ThemeProvider } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 
 import 'chaire-lib-frontend/lib/styles/styles-transition.scss';
 import './styles/transition.scss';
-import { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
 
 // MapLibre 6 loads the tile worker with `new Worker(url, { type: 'module' })`.
 // https://maplibre.org/maplibre-gl-js/docs/guides/v5-to-v6-migration-guide/
