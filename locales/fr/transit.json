@@ -345,6 +345,7 @@
             "nationalCoach": "Autocar inter-régional/national",
             "internationalCoach": "Autocar longue distance/international",
             "water": "Traversier/bateau",
+            "airplane": "Avion",
             "gondola": "Téléphérique",
             "funicular": "Funiculaire",
             "taxi": "Taxi collectif",
