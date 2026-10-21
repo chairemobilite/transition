@@ -85,8 +85,8 @@
         "cross-env": "^10.1.0",
         "eslint": "^10.13.0",
         "eslint-plugin-n": "^18.5.0",
-        "jest": "^30.2.0",
-        "jest-each": "^30.2.0",
+        "jest": "^30.5.2",
+        "jest-each": "^30.5.2",
         "mock-spawn": "^0.2.6",
         "mockdate": "^3.0.5",
         "nodemailer-mock": "^2.0.9",
@@ -94,7 +94,7 @@
         "rimraf": "^6.1.3",
         "supertest": "^7.1.4",
         "supertest-session": "^5.0.1",
-        "ts-jest": "^29.4.6",
+        "ts-jest": "^29.4.15",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.72.0"
     }

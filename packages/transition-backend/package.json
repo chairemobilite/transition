@@ -85,15 +85,15 @@
         "cross-env": "^10.1.0",
         "eslint": "^10.13.0",
         "eslint-plugin-n": "^18.5.0",
-        "jest": "^30.2.0",
-        "jest-each": "^30.2.0",
+        "jest": "^30.5.2",
+        "jest-each": "^30.5.2",
         "jest-fetch-mock": "^3.0.3",
         "prettier": "^3.9.10",
         "rimraf": "^6.1.3",
         "socket.io-client": "^4.8.1",
         "stream-mock": "^2.0.5",
         "supertest": "^7.1.4",
-        "ts-jest": "^29.4.6",
+        "ts-jest": "^29.4.15",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.72.0"
     }
