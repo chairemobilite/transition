@@ -20,7 +20,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
 import type { SegmentChangeInfo } from './PathTypes';
-import Preferences from 'chaire-lib-common/lib/config/Preferences';
+import Preferences, { MAX_DWELL_TIME_SECONDS, MAX_RUNNING_SPEED_KMH } from 'chaire-lib-common/lib/config/Preferences';
 import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { roundToDecimals, median, ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
@@ -1048,16 +1048,19 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             canRoute = false;
             errors.push('transit:transitPath:errors:RoutingModeIsRequired');
         }
+        const modeData = lineModesConfigByMode[this.getMode()]?.defaultValues?.data;
+        const maxRunningSpeedKmH = modeData?.maxRunningSpeedKmH ?? MAX_RUNNING_SPEED_KMH;
         if (
             _isNumber(pathData.defaultRunningSpeedKmH) &&
-            (pathData.defaultRunningSpeedKmH <= 0 || pathData.defaultRunningSpeedKmH > 500)
+            (pathData.defaultRunningSpeedKmH <= 0 || pathData.defaultRunningSpeedKmH > maxRunningSpeedKmH)
         ) {
             canRoute = false;
             errors.push('transit:transitPath:errors:DefaultRunningSpeedIsInvalid');
         }
+        const maxDwellTimeSeconds = modeData?.maxDwellTimeSeconds ?? MAX_DWELL_TIME_SECONDS;
         if (
             _isNumber(pathData.defaultDwellTimeSeconds) &&
-            (pathData.defaultDwellTimeSeconds <= 0 || pathData.defaultDwellTimeSeconds > 600)
+            (pathData.defaultDwellTimeSeconds <= 0 || pathData.defaultDwellTimeSeconds > maxDwellTimeSeconds)
         ) {
             if (
                 this.getMode() !== 'transferable' ||

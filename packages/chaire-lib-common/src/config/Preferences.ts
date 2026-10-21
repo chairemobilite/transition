@@ -17,13 +17,16 @@ import { Saveable } from '../utils/objects/Saveable';
 import { default as defaultPreferences, PreferencesModel } from './defaultPreferences.config';
 import config from './shared/project.config';
 import { _isBlank } from '../utils/LodashExtensions';
-import { lineModesArray } from './lineModesDefaultValues';
+import lineModesDefaultValues, { lineModesArray } from './lineModesDefaultValues';
 
 // Boundaries for the default values of various path parameters. Changing these does not affect the bounds of the parameters themselves, only those of the default param you can configure in the preferences.
+// Running speed and dwell fall back to the constants below when a mode does not set its own ceiling. Path validation uses the same constants.
 export const MIN_DEFAULT_WALKING_SPEED_KPH = 2.0;
 export const MAX_DEFAULT_WALKING_SPEED_KPH = 7.0;
-const MAX_DEFAULT_RUNNING_SPEED_KMH = 500;
-const MAX_DEFAULT_DWELL_TIME_SECONDS = 600;
+/** Running-speed ceiling, in km/h, when a mode does not set `maxRunningSpeedKmH`. Airplane sets 1000 km/h. */
+export const MAX_RUNNING_SPEED_KMH = 100;
+/** Dwell ceiling, in seconds, when a mode does not set `maxDwellTimeSeconds`. Ten minutes. Airplane sets four hours. */
+export const MAX_DWELL_TIME_SECONDS = 10 * 60;
 const MIN_DEFAULT_ACCELERATION = 0.3;
 const MAX_DEFAULT_ACCELERATION = 1.5;
 const MIN_DEFAULT_DECELERATION = 0.3;
@@ -134,16 +137,23 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
             const defaultDwellTimeSeconds =
                 this.attributes.transit.lines.lineModesDefaultValues[mode].defaultDwellTimeSeconds;
             const maxRunningSpeedKmH = this.attributes.transit.lines.lineModesDefaultValues[mode].maxRunningSpeedKmH;
+            // Static mode config, not the preference being validated.
+            const maxRunningSpeedLimitKmH = lineModesDefaultValues[mode].maxRunningSpeedKmH ?? MAX_RUNNING_SPEED_KMH;
             if (
                 _isNumber(defaultRunningSpeedKmH) &&
-                (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > MAX_DEFAULT_RUNNING_SPEED_KMH)
+                (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > maxRunningSpeedLimitKmH)
             ) {
                 this.errors.push('transit:transitPath:errors:DefaultRunningSpeedIsInvalid');
                 this._isValid = false;
             }
+            // Static mode config, not the preference being validated. Only airplane sets this field.
+            const modeDefaults = lineModesDefaultValues[mode];
+            const maxDwellTimeSeconds =
+                ('maxDwellTimeSeconds' in modeDefaults ? modeDefaults.maxDwellTimeSeconds : undefined) ??
+                MAX_DWELL_TIME_SECONDS;
             if (
                 _isNumber(defaultDwellTimeSeconds) &&
-                (defaultDwellTimeSeconds <= 0 || defaultDwellTimeSeconds > MAX_DEFAULT_DWELL_TIME_SECONDS)
+                (defaultDwellTimeSeconds <= 0 || defaultDwellTimeSeconds > maxDwellTimeSeconds)
             ) {
                 if (mode !== 'transferable' || (mode === 'transferable' && defaultDwellTimeSeconds < 0)) {
                     this.errors.push('transit:transitPath:errors:DefaultDwellTimeIsInvalid');
