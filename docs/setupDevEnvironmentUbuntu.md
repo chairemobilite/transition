@@ -117,15 +117,48 @@ make
 sudo make install
 ```
 
-## Install and setup node and yarn
+## Install Node.js and Yarn
+
+Transition needs Node.js 24 or later. The `nodejs` package from the Ubuntu archive is too old (18 on Ubuntu 24.04, 22 on Ubuntu 26.04), so install Node.js with one of the two options below. Use only one: with two installations, which `node` runs depends on the `PATH`.
+
+Yarn itself is not installed: [Corepack](https://yarnpkg.com/corepack), installed last in both options, provides the `yarn` command and runs the Yarn version set in the `packageManager` field of `package.json`. If Yarn 1 was previously installed from the Yarn apt repository, remove it first with `sudo apt-get remove yarn` and delete `/etc/apt/sources.list.d/yarn.list`.
+
+### Option 1: NodeSource apt repository
+
+[NodeSource](https://github.com/nodesource/distributions) packages Node.js for Ubuntu, so it is updated with the rest of the system by `apt`. Instead of piping NodeSource's setup script to `sudo bash`, add the repository directly, as in [NodeSource's manual installation guide](https://github.com/nodesource/distributions/wiki/Repository-Manual-Installation). The `Signed-By` field restricts NodeSource's key to this one repository.
 
 ```bash
-curl -sL https://deb.nodesource.com/setup_24.x | sudo bash -
+sudo apt-get install -y ca-certificates curl gnupg
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | sudo gpg --dearmor --yes -o /etc/apt/keyrings/nodesource.gpg
+sudo tee /etc/apt/sources.list.d/nodesource.sources > /dev/null <<'EOF'
+Types: deb
+URIs: https://deb.nodesource.com/node_24.x
+Suites: nodistro
+Components: main
+Signed-By: /etc/apt/keyrings/nodesource.gpg
+EOF
+sudo apt-get update
 sudo apt-get install -y nodejs
 sudo npm install -g corepack
 ```
 
-[Corepack](https://yarnpkg.com/corepack) provides the `yarn` command and runs the Yarn version set in the `packageManager` field of `package.json`. If Yarn 1 was previously installed from the Yarn apt repository, remove it first with `sudo apt-get remove yarn`.
+To move to another Node.js major version later, change `node_24.x` in `/etc/apt/sources.list.d/nodesource.sources`, then run `sudo apt-get update && sudo apt-get upgrade`.
+
+If NodeSource's setup script was run on this machine before, delete the `/etc/apt/sources.list.d/nodesource.list` file it may have left: apt refuses two entries for the same repository signed by different key files.
+
+### Option 2: nvm
+
+[nvm](https://github.com/nvm-sh/nvm) installs Node.js in your home directory and switches versions per shell, which helps when other projects need another Node.js version. Install nvm by following the [instructions in its README](https://github.com/nvm-sh/nvm#installing-and-updating), open a new terminal, then run:
+
+```bash
+nvm install 24
+npm install -g corepack
+```
+
+No `sudo` is needed with nvm. Global packages such as Corepack belong to one Node.js version, so after installing another version, either install Corepack again or install that version with `nvm install <version> --reinstall-packages-from=24`.
+
+Other version managers, such as [fnm](https://github.com/Schniz/fnm) or [mise](https://mise.jdx.dev/), work too: install Node.js 24 with them, then run `npm install -g corepack`.
 
 ## Install Transition
 
