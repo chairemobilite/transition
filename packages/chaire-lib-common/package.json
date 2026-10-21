@@ -23,7 +23,6 @@
     "@mapbox/polyline": "^1.2.1",
     "@turf/turf": "^7.3.5",
     "geobuf": "^3.0.2",
-    "geojson": "^0.5.0",
     "geojson-validation": "^1.0.2",
     "geokdbush": "^1.1.0",
     "i18next": "^26.0.6",
