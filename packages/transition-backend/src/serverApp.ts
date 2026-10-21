@@ -144,6 +144,8 @@ export const setupServer = (app: Express) => {
 
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
+    // Fallback to 404 if missing translation file, otherwise, it returns the index.html file
+    app.use('/locales/', (_req, res) => res.sendStatus(404));
 
     app.get(/.*/, (req: Request, res: Response): void => {
         res.sendFile(indexPath);
