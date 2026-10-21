@@ -20,12 +20,13 @@ import {
     TransitNetworkDesignParameters,
     validateTransitNetworkDesignParameters
 } from '../networkDesign/transit/TransitNetworkDesignParameters';
-import { SimulationAlgorithmDescriptor } from '../networkDesign/transit/TransitNetworkDesignAlgorithm';
 import {
     AlgorithmConfiguration,
     getAlgorithmDescriptor,
     getAllAlgorithmTypes
 } from '../networkDesign/transit/algorithm';
+import { getDefaultFieldsFromSchema, UserDefinedConfigSchema } from '../../utils/userDefinedConfig';
+import { EvolutionaryAlgorithmOptions } from '../networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 
 /**
  * Algorithm implementation should provide their own type, with a fixed value
@@ -79,7 +80,7 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         if (algoConfig && algoConfig.type) {
             const descriptor = getAlgorithmDescriptor(algoConfig.type);
             if (descriptor !== undefined) {
-                const options = descriptor.getOptions();
+                const options = descriptor.getFields();
                 Object.keys(options).forEach((key) => {
                     if (algoConfig.config[key] === undefined) {
                         algoConfig.config[key] = undefined;
@@ -126,11 +127,15 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
                 const algorithmDescriptor = getAlgorithmDescriptor(algorithmId);
                 if (algorithmDescriptor) {
                     // TODO Add a method to set the type of the algorithm and initialize the data
-                    const options = algorithmDescriptor.getOptions();
+                    const options = algorithmDescriptor.getFields();
                     if (algoConfig.config === undefined) {
-                        // FIXME: Temporary any to avoid typing issues, but this
-                        // whole class will be replaced by an ExecutableJob
-                        algoConfig.config = {} as any;
+                        // FIXME Movign away from this class, to use jobs
+                        // instead, so not worth doing a proper refactor, but
+                        // the casting may not really give the complete type.
+                        algoConfig.config = getDefaultFieldsFromSchema(
+                            {},
+                            algorithmDescriptor
+                        ) as EvolutionaryAlgorithmOptions;
                     }
                     const erroneousFields = Object.keys(options).filter(
                         (option) =>
@@ -142,11 +147,12 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
                         this._isValid = false;
                         this._errors.push('main:InvalidFormFields');
                     }
-                    const { valid: algoValid, errors: algoErrors } = algorithmDescriptor.validateOptions(
+                    const { valid: algoValid, errors: algoErrors } = algorithmDescriptor.validateFields(
                         algoConfig.config
                     );
                     this._isValid = this._isValid && algoValid;
-                    this._errors.push(...algoErrors);
+                    // FIXME This is a TranslatableMessage[], while this._errors is a string[], but this class is being replaced by network design jobs, so don't bother with it for now.
+                    this._errors.push(...(algoErrors as any));
                 }
             }
         }
@@ -179,7 +185,7 @@ class Simulation extends ObjectWithHistory<SimulationAttributes> implements Save
         return showId ? slugify(this.id, { replacement: '_', remove: /[/^*=;:#$%?&|[\]{}+~.()'"!\\@]/g }) : undefined; // regex for valid filenames
     }
 
-    getAlgorithmDescriptor(): SimulationAlgorithmDescriptor<any> | undefined {
+    getAlgorithmDescriptor(): UserDefinedConfigSchema<any> | undefined {
         const algoType = this.attributes.data.algorithmConfiguration?.type;
         return algoType !== undefined ? getAlgorithmDescriptor(algoType) : undefined;
     }

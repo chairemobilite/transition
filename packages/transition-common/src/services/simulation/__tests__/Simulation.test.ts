@@ -10,6 +10,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 
 import Simulation, { SimulationAttributes } from '../Simulation';
 import { SimulationAlgorithmDescriptorStub, AlgorithmStubOptions } from './TransitNetworkDesignAlgorithmStub';
+import { getDefaultFieldsFromSchema } from '../../../utils/userDefinedConfig';
 
 // Mock the algorithm registry
 jest.mock('../../networkDesign/transit/algorithm', () => ({
@@ -165,9 +166,9 @@ test('should construct new simulations and set default algorithm values', functi
     attributes.data.algorithmConfiguration = {
         // Using 'mockAlgorithm' as mock algorithm type, cast to any for test to compile
         type: 'mockAlgorithm' as any,
-        config: {} as any
+        config: getDefaultFieldsFromSchema({}, new SimulationAlgorithmDescriptorStub()) as any
     }
     const simulation1 = new Simulation(attributes, true);
-    expect(Object.keys(simulation1.attributes.data.algorithmConfiguration?.config || {}).length).toEqual(Object.keys(stubAlgorithm.getOptions()).length);
+    expect(Object.keys(simulation1.attributes.data.algorithmConfiguration?.config || {}).length).toEqual(Object.keys(stubAlgorithm.getFields()).length);
     
 });
