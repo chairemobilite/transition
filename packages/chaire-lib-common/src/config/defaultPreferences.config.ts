@@ -8,7 +8,7 @@ import config from './shared/project.config';
 import lineModesDefaultValues from './lineModesDefaultValues';
 import constants from './constants';
 import type { ProjectMapBasemapShortname } from './mapBaseLayersProject.types';
-import { Get, IsAny } from 'type-fest';
+import type { Get, IsAny } from 'type-fest';
 
 // @deprecated This type has moved to chaire-lib's project configuration
 interface SectionDescription {

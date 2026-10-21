@@ -6,7 +6,7 @@
  */
 import { input, number, confirm, select, checkbox } from '@inquirer/prompts';
 import _cloneDeep from 'lodash/cloneDeep';
-import { TFunction } from 'i18next';
+import type { TFunction } from 'i18next';
 
 import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import { SimulationRuntimeOptions } from 'transition-common/lib/services/simulation/SimulationRun';

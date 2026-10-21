@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { PackRule } from '@casl/ability/extra';
+import type { PackRule } from '@casl/ability/extra';
 
 export interface BaseUser {
     id: number;
