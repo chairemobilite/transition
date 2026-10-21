@@ -32,8 +32,6 @@ const { trRoutingCacheAllScenarios, routing, ...config } = configuration.default
 // Public directory from which files are served
 const publicDirectory = path.join(__dirname, '..', '..', 'public');
 const bundleOutputPath = path.join(publicDirectory, 'dist', config.projectShortname);
-// Local path where locales are stored
-const localeDirectory = path.join(__dirname, '..', '..', 'locales');
 const entryFileName = './lib/app-transition.js';
 
 module.exports = (env) => {
@@ -62,16 +60,13 @@ module.exports = (env) => {
 
     // TODO Custom styles and locales should be set in config (#419, #420)
     const customStylesFilePath = `${config.projectDir}/styles/styles.scss`;
-    const customLocalesFilePath = `${config.projectDir}/locales`;
     const maplibreDist = path.join(path.dirname(require.resolve('maplibre-gl/package.json')), 'dist');
     const entry = fs.existsSync('./' + customStylesFilePath)
         ? [entryFileName, './' + customStylesFilePath]
         : [entryFileName];
     const includeDirectories = [
         path.join(__dirname, 'lib'),
-
-        path.join(__dirname, 'lib', entryFileName),
-        localeDirectory
+        path.join(__dirname, 'lib', entryFileName)
     ];
 
     return {
@@ -151,14 +146,6 @@ module.exports = (env) => {
                             }
                         }
                     ]
-                },
-                {
-                    test: /locales/,
-                    loader: '@alienfast/i18next-loader',
-                    options: {
-                        basenameAsNamespace: true,
-                        overrides: fs.existsSync('./' + customLocalesFilePath) ? ['../' + customLocalesFilePath] : []
-                    }
                 }
             ]
         },
