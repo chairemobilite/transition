@@ -60,7 +60,6 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@alienfast/i18next-loader": "^2.0.2",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.61.0",
     "@testing-library/jest-dom": "^6.9.1",
