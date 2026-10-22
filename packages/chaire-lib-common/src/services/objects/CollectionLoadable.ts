@@ -4,9 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import geobuf from 'geobuf';
-import Pbf from 'pbf';
-
 import GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
 import GenericMapObjectCollection from '../../utils/objects/GenericMapObjectCollection';
 import { GenericAttributes, GenericObject } from '../../utils/objects/GenericObject';
@@ -159,18 +156,15 @@ const loadGeojsonFromServer = function (
 
         socket.emit(
             socketEventName ? socketEventName : `${socketPrefix}.geojsonCollection`,
-            { dataSourceIds, sampleSize, format: 'geobuf' },
+            { dataSourceIds, sampleSize },
             (
                 responseStatus: Status.Status<
-                    { type: 'geojson'; geojson: GeoJSON.FeatureCollection } | { type: 'geobuf'; geobuf: Buffer }
+                    { type: 'geojson'; geojson: GeoJSON.FeatureCollection }
                 >
             ) => {
                 if (Status.isStatusOk(responseStatus)) {
                     const geojsonResponse = Status.unwrap(responseStatus);
-                    const geojson =
-                        geojsonResponse.type === 'geobuf'
-                            ? geobuf.decode(new Pbf(geojsonResponse.geobuf))
-                            : geojsonResponse.geojson;
+                    const geojson = geojsonResponse.geojson;
                     if (
                         geojson &&
                         geojson.features &&

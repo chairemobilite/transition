@@ -5,8 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import EventEmitter from 'events';
-import geobuf from 'geobuf';
-import Pbf from 'pbf';
 
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
@@ -367,12 +365,7 @@ function createDataHandlers(): Record<string, TransitObjectDataHandler> {
             dataHandler.geojsonCollection = async (params = { format: 'geojson' }) => {
                 try {
                     const geojson = await transitClassConfig.dbQueries.geojsonCollection(params);
-                    if (params.format === 'geobuf') {
-                        const geobufjson = Buffer.from(geobuf.encode(geojson, new Pbf()));
-                        return Status.createOk({ type: 'geobuf', geobuf: geobufjson });
-                    } else {
-                        return Status.createOk({ type: 'geojson', geojson });
-                    }
+                    return Status.createOk({ type: 'geojson', geojson });
                 } catch (error) {
                     console.error(error);
                     return Status.createError(TrError.isTrError(error) ? error.export() : { error });
