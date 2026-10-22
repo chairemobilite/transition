@@ -22,7 +22,23 @@ const setupSocketServerApp = async function (server, sessionMiddleware) {
     const io = new SocketIOServer(server, {
         pingTimeout: 60000,
         transports: ['websocket'],
-        maxHttpBufferSize: 1e8 // 100MB
+        maxHttpBufferSize: 1e8, // 100MB
+        // Compression has important performance and memory cost and it is not
+        // advised to use it across the board. We should make sure to use
+        // parameters that are a good balance between server performance and
+        // network usage
+        perMessageDeflate: {
+            // Make it large enough that most messages won't need to be
+            // compressed. Only larger colletions or calculations results will
+            // be compressed
+            threshold: 2048 * 1024, // in bytes
+            // Threshold only applies when context takeover is disabled, so we disable it
+            serverNoContextTakeover: true,
+            clientNoContextTakeover: true,
+            zlibDeflateOptions: {
+                level: 1
+            }
+        }
     });
 
     io.use(

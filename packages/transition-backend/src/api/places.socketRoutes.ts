@@ -4,8 +4,6 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import geobuf from 'geobuf';
-import Pbf from 'pbf';
 import { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -55,12 +53,7 @@ export default function (socket: EventEmitter) {
         ) => {
             try {
                 const geojson = await placesDbQueries.geojsonCollection(params.dataSourceIds, params.sampleSize);
-                if (params.format === 'geobuf') {
-                    const geobufjson = Buffer.from(geobuf.encode(geojson, new Pbf()));
-                    callback(Status.createOk({ type: 'geobuf', geobuf: geobufjson }));
-                } else {
-                    callback(Status.createOk({ type: 'geojson', geojson }));
-                }
+                callback(Status.createOk({ type: 'geojson', geojson }));
             } catch (error) {
                 console.error(error);
                 callback(
