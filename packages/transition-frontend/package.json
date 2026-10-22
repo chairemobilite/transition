@@ -91,7 +91,7 @@
     "sass-loader": "^16.0.6",
     "style-loader": "^4.0.0",
     "ts-jest": "^29.4.15",
-    "ts-loader": "^9.5.4",
+    "ts-loader": "^9.6.2",
     "ts-shader-loader": "^2.0.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.0",
