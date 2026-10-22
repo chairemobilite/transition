@@ -4502,13 +4502,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/socket.io-client@npm:1.4.36":
-  version: 1.4.36
-  resolution: "@types/socket.io-client@npm:1.4.36"
-  checksum: 10c0/8aa36200164bdd5735e91816e33d85af4902ce437e51821dccae594df2ff23f1bf169e25719ffa74ac97b35d9be9bfd25e67c7bc5c91c3e28eb4454b4f8207f0
-  languageName: node
-  linkType: hard
-
 "@types/socket.io-parser@npm:*":
   version: 3.0.0
   resolution: "@types/socket.io-parser@npm:3.0.0"
@@ -4526,16 +4519,6 @@ __metadata:
     "@types/node": "npm:*"
     "@types/socket.io-parser": "npm:*"
   checksum: 10c0/19f25e7247eaaee748ce4a41a1295c491329d9224665dc73ce842ff5c7b0cc71461bfbd8c117517fc10521f7725f5fcf75e3eef35108311471c8377aa9478101
-  languageName: node
-  linkType: hard
-
-"@types/socketio-wildcard@npm:^2.0.7":
-  version: 2.0.7
-  resolution: "@types/socketio-wildcard@npm:2.0.7"
-  dependencies:
-    "@types/socket.io": "npm:2.1.13"
-    "@types/socket.io-client": "npm:1.4.36"
-  checksum: 10c0/4af686660c72fa2516975f5128f0f8f76a38e31bbbf9dc14fcb9544aead52070064ec5095ab811fcb56699cd078136e637b8a730545145a20017239ef72733f8
   languageName: node
   linkType: hard
 
@@ -14841,13 +14824,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"socketio-wildcard@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "socketio-wildcard@npm:2.0.0"
-  checksum: 10c0/15361811f0e71c7198479f2c957b821372da20c0da1fe04a8145d2e74ce1049b133f5d2de70fd7b8a01c59de38d1c1eb8a703f0f40c3776b3b265fcdc1202c44
-  languageName: node
-  linkType: hard
-
 "sort-asc@npm:^0.2.0":
   version: 0.2.0
   resolution: "sort-asc@npm:0.2.0"
@@ -15712,7 +15688,6 @@ __metadata:
     "@types/lodash": "npm:^4.17.21"
     "@types/node": "npm:^24.10.4"
     "@types/proj4": "npm:^2.5.5"
-    "@types/socketio-wildcard": "npm:^2.0.7"
     "@unified-latex/unified-latex-util-align": "npm:^1.8.1"
     "@unified-latex/unified-latex-util-parse": "npm:^1.8.1"
     "@unified-latex/unified-latex-util-to-string": "npm:^1.8.1"
@@ -15755,7 +15730,6 @@ __metadata:
     slugify: "npm:^1.6.6"
     socket.io: "npm:^4.8.1"
     socket.io-client: "npm:^4.8.1"
-    socketio-wildcard: "npm:^2.0.0"
     stream-mock: "npm:^2.0.5"
     supertest: "npm:^7.1.4"
     transition-common: "workspace:^"
