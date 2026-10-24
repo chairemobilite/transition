@@ -1,0 +1,31 @@
+
+[out:json][timeout:25][bbox:{{bbox}}];
+(
+
+// amenities:
+node["amenity"~"^(bar|fast_food|food_court|ice_cream|pub|restaurant|cafe|driving_school|language_school|library|toy_library|music_school|art_school|bicycle_rental|boat_rental|boat_sharing|car_rental|car_sharing|bicycle_repair_station|car_wash|vehicle_inspection|fuel|atm|bank|bureau_de_change|pharmacy|arts_centre|brothel|casino|cinema|gambling|planetarium|stripclub|studio|swingerclub|animal_boarding|animal_shelter|dive_centre|internet_cafe|kitchen|marketplace|photo_booth|post_office)$"];
+way["amenity"~"^(bar|fast_food|food_court|ice_cream|pub|restaurant|cafe|driving_school|language_school|library|toy_library|music_school|art_school|bicycle_rental|boat_rental|boat_sharing|car_rental|car_sharing|bicycle_repair_station|car_wash|vehicle_inspection|fuel|atm|bank|bureau_de_change|pharmacy|arts_centre|brothel|casino|cinema|gambling|planetarium|stripclub|studio|swingerclub|animal_boarding|animal_shelter|dive_centre|internet_cafe|kitchen|marketplace|photo_booth|post_office)$"];
+relation["amenity"~"^(bar|fast_food|food_court|ice_cream|pub|restaurant|cafe|driving_school|language_school|library|toy_library|music_school|art_school|bicycle_rental|boat_rental|boat_sharing|car_rental|car_sharing|bicycle_repair_station|car_wash|vehicle_inspection|fuel|atm|bank|bureau_de_change|pharmacy|arts_centre|brothel|casino|cinema|gambling|planetarium|stripclub|studio|swingerclub|animal_boarding|animal_shelter|dive_centre|internet_cafe|kitchen|marketplace|photo_booth|post_office)$"];
+
+// buildings:
+
+node["building"~"^(commercial|retail|office|supermarket|warehouse|kiosk|industrial|bakehouse|pavillon)$"];
+way["building"~"^(commercial|retail|office|supermarket|warehouse|kiosk|industrial|bakehouse|pavillon)$"];
+relation["building"~"^(commercial|retail|office|supermarket|warehouse|kiosk|industrial|bakehouse|pavillon)$"];
+
+node["camping"~"^(reception)$"];
+way["camping"~"^(reception)$"];
+relation["camping"~"^(reception)$"];
+
+node[~"^(shop|craft|office|industrial)$"~"."];
+way[~"^(shop|craft|office|industrial)$"~"."];
+relation[~"^(shop|craft|office|industrial)$"~"."];
+
+node["tourism"~"^(gallery|museum|theme_park|zoo)$"];
+way["tourism"~"^(gallery|museum|theme_park|zoo)$"];
+relation["tourism"~"^(gallery|museum|theme_park|zoo)$"];
+
+  
+);
+out center body;
+
