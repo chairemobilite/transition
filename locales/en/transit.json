@@ -345,6 +345,7 @@
             "nationalCoach": "Inter-regional/national coach",
             "internationalCoach": "Long distance/international coach",
             "water": "Ferry/Boat",
+            "airplane": "Airplane",
             "gondola": "Gondola/Aerial tram",
             "funicular": "Funicular",
             "taxi": "Shared taxibus/Collective taxi",

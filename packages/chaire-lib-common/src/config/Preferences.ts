@@ -23,7 +23,10 @@ import { lineModesArray } from './lineModesDefaultValues';
 export const MIN_DEFAULT_WALKING_SPEED_KPH = 2.0;
 export const MAX_DEFAULT_WALKING_SPEED_KPH = 7.0;
 const MAX_DEFAULT_RUNNING_SPEED_KMH = 500;
+const AIRPLANE_MAX_DEFAULT_RUNNING_SPEED_KMH = 1000;
 const MAX_DEFAULT_DWELL_TIME_SECONDS = 600;
+// Airplane stops include the average early arrival at the airport.
+const AIRPLANE_MAX_DEFAULT_DWELL_TIME_SECONDS = 2 * 60 * 60;
 const MIN_DEFAULT_ACCELERATION = 0.3;
 const MAX_DEFAULT_ACCELERATION = 1.5;
 const MIN_DEFAULT_DECELERATION = 0.3;
@@ -134,16 +137,20 @@ export class PreferencesClass extends ObjectWithHistory<PreferencesModelWithIdAn
             const defaultDwellTimeSeconds =
                 this.attributes.transit.lines.lineModesDefaultValues[mode].defaultDwellTimeSeconds;
             const maxRunningSpeedKmH = this.attributes.transit.lines.lineModesDefaultValues[mode].maxRunningSpeedKmH;
+            const maxRunningSpeedLimitKmH =
+                mode === 'airplane' ? AIRPLANE_MAX_DEFAULT_RUNNING_SPEED_KMH : MAX_DEFAULT_RUNNING_SPEED_KMH;
             if (
                 _isNumber(defaultRunningSpeedKmH) &&
-                (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > MAX_DEFAULT_RUNNING_SPEED_KMH)
+                (defaultRunningSpeedKmH <= 0 || defaultRunningSpeedKmH > maxRunningSpeedLimitKmH)
             ) {
                 this.errors.push('transit:transitPath:errors:DefaultRunningSpeedIsInvalid');
                 this._isValid = false;
             }
+            const maxDwellTimeSeconds =
+                mode === 'airplane' ? AIRPLANE_MAX_DEFAULT_DWELL_TIME_SECONDS : MAX_DEFAULT_DWELL_TIME_SECONDS;
             if (
                 _isNumber(defaultDwellTimeSeconds) &&
-                (defaultDwellTimeSeconds <= 0 || defaultDwellTimeSeconds > MAX_DEFAULT_DWELL_TIME_SECONDS)
+                (defaultDwellTimeSeconds <= 0 || defaultDwellTimeSeconds > maxDwellTimeSeconds)
             ) {
                 if (mode !== 'transferable' || (mode === 'transferable' && defaultDwellTimeSeconds < 0)) {
                     this.errors.push('transit:transitPath:errors:DefaultDwellTimeIsInvalid');

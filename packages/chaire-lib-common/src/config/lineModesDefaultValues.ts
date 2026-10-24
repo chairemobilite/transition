@@ -17,6 +17,7 @@ export const lineModesArray = [
     'tram',
     'tramTrain',
     'water',
+    'airplane',
     'gondola',
     'funicular',
     'taxi',
@@ -107,6 +108,16 @@ export default {
         defaultDeceleration: 0.5,
         defaultDwellTimeSeconds: 60,
         maxRunningSpeedKmH: 100
+    },
+    airplane: {
+        routingMode: null,
+        routingEngine: 'manual',
+        defaultRunningSpeedKmH: 500,
+        defaultAcceleration: 0.5,
+        defaultDeceleration: 0.5,
+        // Two hours: airport dwell, including the average early arrival.
+        defaultDwellTimeSeconds: 2 * 60 * 60,
+        maxRunningSpeedKmH: 1000
     },
     gondola: {
         routingMode: null,

@@ -1048,16 +1048,19 @@ export class Path extends MapObject<GeoJSON.LineString, PathAttributes> implemen
             canRoute = false;
             errors.push('transit:transitPath:errors:RoutingModeIsRequired');
         }
+        const maxRunningSpeedKmH = this.getMode() === 'airplane' ? 1000 : 500;
         if (
             _isNumber(pathData.defaultRunningSpeedKmH) &&
-            (pathData.defaultRunningSpeedKmH <= 0 || pathData.defaultRunningSpeedKmH > 500)
+            (pathData.defaultRunningSpeedKmH <= 0 || pathData.defaultRunningSpeedKmH > maxRunningSpeedKmH)
         ) {
             canRoute = false;
             errors.push('transit:transitPath:errors:DefaultRunningSpeedIsInvalid');
         }
+        // Other modes stay at 10 minutes. An airplane stop includes the average early arrival.
+        const maxDwellTimeSeconds = this.getMode() === 'airplane' ? 2 * 60 * 60 : 600;
         if (
             _isNumber(pathData.defaultDwellTimeSeconds) &&
-            (pathData.defaultDwellTimeSeconds <= 0 || pathData.defaultDwellTimeSeconds > 600)
+            (pathData.defaultDwellTimeSeconds <= 0 || pathData.defaultDwellTimeSeconds > maxDwellTimeSeconds)
         ) {
             if (
                 this.getMode() !== 'transferable' ||
