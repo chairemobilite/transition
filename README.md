@@ -72,6 +72,8 @@ yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm
 yarn node --max-old-space-size=4096 packages/chaire-lib-backend/lib/scripts/osrm/prepareOsmNetworkData.task.js
 ```
 
+The default walking and cycling OSRM profiles ignore ferry crossings (`route=ferry`). A ferry must be added in Transition as a transit mode, with its lines and schedules. It is not part of the walking or cycling network.
+
 ### Prepare the environment file
 
 Transition relies on a few environment variables, that can either be set on the system, or contained in a .env file. First, copy the example .env file and edit the variables.
