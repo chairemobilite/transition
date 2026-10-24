@@ -10,6 +10,7 @@ import _uniq from 'lodash/uniq';
 import _isEqual from 'lodash/isEqual';
 
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { gtfsCsvOptions } from './gtfsCsvOptions';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import Service, { ServiceAttributes, serviceDays } from 'transition-common/lib/services/service/Service';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
@@ -105,7 +106,7 @@ export class ServiceImporter implements GtfsObjectImporter<ServiceImportData, Se
                 }
                 calendarServices[data.service_id] = { service: gtfsToObjectAttributes(service) };
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         return calendarServices;
     }
@@ -163,7 +164,7 @@ export class ServiceImporter implements GtfsObjectImporter<ServiceImportData, Se
                 }
                 calendarDateServices[data.service_id] = calendarDateService;
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         Object.keys(calendarDateServices).forEach((key) => this.processService(calendarDateServices[key]));
         return calendarDateServices;
