@@ -6493,7 +6493,6 @@ __metadata:
     eslint: "npm:^10.13.0"
     eslint-plugin-n: "npm:^18.5.0"
     eslint-plugin-react: "npm:^7.37.5"
-    font-awesome: "npm:^4.7.0"
     geojson: "npm:^0.5.0"
     geojson-validation: "npm:^1.0.2"
     gl-matrix: "npm:^3.4.3"
@@ -8550,13 +8549,6 @@ __metadata:
   version: 1.1.0
   resolution: "fn.name@npm:1.1.0"
   checksum: 10c0/8ad62aa2d4f0b2a76d09dba36cfec61c540c13a0fd72e5d94164e430f987a7ce6a743112bbeb14877c810ef500d1f73d7f56e76d029d2e3413f20d79e3460a9a
-  languageName: node
-  linkType: hard
-
-"font-awesome@npm:^4.7.0":
-  version: 4.7.0
-  resolution: "font-awesome@npm:4.7.0"
-  checksum: 10c0/1c456e2939c55192eed67db9c0efb8db3e92fd357ca189ca00030eb44acffa1e9f835288d2204c14b9a9c490a7b14b7090dfaff80ded6b2473f50a923dfb41e7
   languageName: node
   linkType: hard
 
