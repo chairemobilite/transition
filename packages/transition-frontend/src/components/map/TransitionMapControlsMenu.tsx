@@ -10,6 +10,8 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useControl } from 'react-map-gl/maplibre';
 import type { ControlPosition, IControl, Map as MaplibreMap } from 'maplibre-gl';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGear } from '@fortawesome/free-solid-svg-icons/faGear';
 
 import type { ProjectMapBasemapShortname } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 import {
@@ -147,7 +149,7 @@ const MapControlsMenu: React.FC<MapConfigurationPanelProps> = ({
                 aria-label={t('main:map.controls.title')}
                 onClick={() => setIsOpen((prev) => !prev)}
             >
-                <i className="fa fa-cog" aria-hidden="true"></i>
+                <FontAwesomeIcon icon={faGear} />
             </button>
 
             <div className="tr__map-controls-dropdown" style={{ display: isOpen ? 'flex' : 'none' }}>

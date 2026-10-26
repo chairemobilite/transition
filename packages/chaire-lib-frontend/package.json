@@ -28,7 +28,6 @@
     "@turf/turf": "^7.3.5",
     "chaire-lib-common": "workspace:^",
     "date-fns": "^4.1.0",
-    "font-awesome": "^4.7.0",
     "geojson": "^0.5.0",
     "geojson-validation": "^1.0.2",
     "gl-matrix": "^3.4.3",
