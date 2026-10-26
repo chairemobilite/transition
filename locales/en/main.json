@@ -140,6 +140,8 @@
         "RoutingModeNotEnabled": "Routing mode '{{mode}}' is not enabled",
         "InvalidFormFields": "Some fields are invalid",
         "ErrorCalculatingAccessibilityMap": "Error calculating accessibility map. Try to reduce the maximum total travel time.",
+        "ErrorImportingFile": "An error occurred while importing the file.",
+        "ErrorImportingFileWithDetails": "An error occurred while importing the file: {{error}}",
         "csv": {
             "MissingRequiredCsvFieldMapping": "Missing required CSV field mapping: {{field}}",
             "FieldNotInCsvFile": "Field '{{field}}' not found in CSV file",
