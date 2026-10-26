@@ -7,7 +7,6 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
@@ -50,8 +49,6 @@ module.exports = (env) => {
     // HTML main file name
     const htmlFileName = path.join(`index-${config.projectShortname}.html`);
 
-    // In dev, style-loader injects CSS via <style> so SCSS changes apply after reload without a separate .css file
-    const styleLoader = isProduction ? MiniCssExtractPlugin.loader : 'style-loader';
     const chaireLibFrontendRoot = path.dirname(require.resolve('chaire-lib-frontend/package.json'));
     const transitionFrontendRoot = __dirname;
 
@@ -84,7 +81,13 @@ module.exports = (env) => {
         output: {
             path: bundleOutputPath,
             filename: bundleFileName,
+            cssFilename: styleFileName,
             publicPath: '/dist/'
+        },
+        experiments: {
+            // Webpack's built-in CSS support resolves @import and url() and emits the .css file,
+            // replacing css-loader, style-loader and mini-css-extract-plugin
+            css: true
         },
         watchOptions: {
             // In dev, watch chaire-lib-frontend so CSS/TS changes trigger rebuild
@@ -130,15 +133,14 @@ module.exports = (env) => {
                     use: 'ts-shader-loader'
                 },
                 {
-                    test: /\.s?css$/,
+                    // Plain CSS (including files @imported from SCSS) is handled natively by webpack
+                    test: /\.css$/,
+                    type: 'css'
+                },
+                {
+                    test: /\.scss$/,
+                    type: 'css',
                     use: [
-                        styleLoader, // In dev, style-loader injects CSS via <style> so SCSS changes apply after reload without a separate .css file
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                sourceMap: true
-                            }
-                        },
                         {
                             loader: 'sass-loader',
                             options: {
@@ -158,9 +160,6 @@ module.exports = (env) => {
             new HtmlWebpackPlugin({
                 filename: htmlFileName,
                 template: path.join(publicDirectory, 'index.html')
-            }),
-            new MiniCssExtractPlugin({
-                filename: styleFileName
             }),
             new webpack.DefinePlugin({
                 'process.env': {
@@ -218,6 +217,9 @@ module.exports = (env) => {
                 ...(isProduction
                     ? {}
                     : {
+                        // The app imports chaire-lib-frontend styles by package name, so alias the
+                        // package path as well as the resolved directory below
+                        'chaire-lib-frontend/lib/styles': path.join(chaireLibFrontendRoot, 'src', 'styles'),
                         [path.join(chaireLibFrontendRoot, 'lib', 'styles')]: path.join(
                             chaireLibFrontendRoot,
                             'src',
