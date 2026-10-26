@@ -12,7 +12,6 @@
 @include meta.load-css('form');
 @include meta.load-css('modal');
 @import 'maplibre-gl/dist/maplibre-gl.css';
-@import 'font-awesome/css/font-awesome.min.css';
 @include meta.load-css('maplibre-gl-custom');
 @include meta.load-css('collapsible');
 @include meta.load-css('dashboard');
