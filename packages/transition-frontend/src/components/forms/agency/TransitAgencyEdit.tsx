@@ -7,7 +7,6 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import _get from 'lodash/get';
-import timezones from 'timezone/zones';
 import { withTranslation, WithTranslation } from 'react-i18next';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -25,22 +24,7 @@ import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pagePa
 import Agency from 'transition-common/lib/services/agency/Agency';
 import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-
-const timezoneZoneChoices: { label: string; value: string }[] = [];
-for (let i = 0, countI = timezones.length; i < countI; i++) {
-    const zones = timezones[i];
-    for (let j = 0, countJ = zones.length; j < countJ; j++) {
-        const zone = zones[j];
-        if (zone.zones) {
-            for (const zoneName in zone.zones) {
-                timezoneZoneChoices.push({
-                    label: zoneName,
-                    value: zoneName
-                });
-            }
-        }
-    }
-}
+import { timezoneChoices } from './timezoneChoices';
 
 interface AgencyFormProps extends WithTranslation {
     agency: Agency;
@@ -183,7 +167,7 @@ class TransitAgencyEdit extends SaveableObjectForm<Agency, AgencyFormProps, Agen
                                             ? [agency.attributes.data.gtfs?.agency_timezone]
                                             : []
                                     }
-                                    choices={timezoneZoneChoices}
+                                    choices={timezoneChoices}
                                     disabled={isFrozen}
                                     multiple={false}
                                     onValueChange={(e) =>

@@ -29,6 +29,7 @@
     "@turf/turf": "^7.3.5",
     "chaire-lib-common": "workspace:^",
     "chaire-lib-frontend": "workspace:^",
+    "countries-and-timezones": "^3.11.0",
     "date-fns": "^4.1.0",
     "element-resize-event": "^3.0.6",
     "geojson": "^0.5.0",
@@ -55,7 +56,6 @@
     "redux": "^5.0.1",
     "slugify": "^1.6.6",
     "socket.io-client": "^4.8.4",
-    "timezone": "^1.0.23",
     "transition-common": "workspace:^",
     "uuid": "^11.1.0"
   },
