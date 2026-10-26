@@ -182,3 +182,36 @@ test('Object with no valid data', async () => {
     expect(result.result).toEqual('error');
     expect((result as any).error).toEqual(`Error validating data for object at position 1: No valid fields`);
 });
+
+test('Valid with nested json data', async () => {
+    const data = {
+        str: 'a',
+        num: 1.5,
+        bool: false,
+        nul: null,
+        arr: [1, 'b', null, [true, { inArray: 'value' }]],
+        obj: { nested: { deeper: [{ key: 'value' }], empty: {} } }
+    };
+    currentData = [
+        { field1: 2, field4: ['a', 'b'], data }
+    ];
+    const result = await collectionImporter.import('arbitraryFilePath');
+    expect(result.result).toEqual('success');
+    expect(createMultiple).toHaveBeenCalledTimes(1);
+    // The whole data structure should be kept as is
+    expect(createMultiple.mock.calls[0][0][0].data).toEqual(data);
+});
+
+test.each([
+    ['a string', 'not an object'],
+    ['an array', ['an', 'array']],
+    ['a number', 3]
+])('Invalid data field: %s', async (_description, data) => {
+    currentData = [
+        { field1: 2, field4: ['a', 'b'], data }
+    ];
+    const result = await collectionImporter.import('arbitraryFilePath');
+    expect(result.result).toEqual('error');
+    expect((result as any).error).toEqual(expect.stringContaining(`Error validating data for object at position 0:`));
+    expect(createMultiple).not.toHaveBeenCalled();
+});
