@@ -10,14 +10,10 @@ import * as z from 'zod';
 import { GenericObject, GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import { parseJsonFile, FileReaderCallback } from 'chaire-lib-backend/lib/services/files/JsonFileReader';
 
-type Literal = boolean | null | number | string;
-type Json = Literal | { [key: string]: Json } | Json[];
-const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
-const jsonSchema: z.ZodSchema<Json> = z.lazy(() => z.union([literalSchema, z.array(jsonSchema), z.record(jsonSchema)]));
 // TODO Should we remove null choices or keep their values when exporting?
 export const genericAttributesSchema = z.object({
     id: z.string(),
-    data: z.object({}).catchall(jsonSchema),
+    data: z.object({}).catchall(z.json()),
     is_frozen: z.boolean().optional(),
     integer_id: z.union([z.number(), z.null()]).optional(),
     internal_id: z.union([z.string(), z.null()]).optional(),
@@ -34,7 +30,7 @@ interface ValidatorAttributes<T extends GenericAttributes> {
     dbQueries: any;
     objectsToCache?: any;
     newObjectMethod: (args: Partial<T>) => GenericObject<T>;
-    schema: z.AnyZodObject;
+    schema: z.ZodObject;
 }
 
 class CollectionImporter<T extends GenericAttributes> {
