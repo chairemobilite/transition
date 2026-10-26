@@ -4140,15 +4140,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geokdbush@npm:^1.1.5":
-  version: 1.1.5
-  resolution: "@types/geokdbush@npm:1.1.5"
-  dependencies:
-    "@types/kdbush": "npm:^1"
-  checksum: 10c0/53822643a569f98d78daf4c2d0f2e323b45cee36cfcb71d3177e5ebfa308b83cfe7837887ea2c46b0592d8db22c14051d2f454e58c5c740a8cc6436d368d907c
-  languageName: node
-  linkType: hard
-
 "@types/glob@npm:^7.1.1":
   version: 7.1.2
   resolution: "@types/glob@npm:7.1.2"
@@ -4239,13 +4230,6 @@ __metadata:
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: 10c0/a996a745e6c5d60292f36731dd41341339d4eeed8180bb09226e5c8d23759067692b1d88e5d91d72ee83dfc00d3aca8e7bd43ea120516c17922cbcb7c3e252db
-  languageName: node
-  linkType: hard
-
-"@types/kdbush@npm:^1":
-  version: 1.0.3
-  resolution: "@types/kdbush@npm:1.0.3"
-  checksum: 10c0/951b0cf8e8d51b5377432748ffd9c5032b52771ef6aae5597d6b4c56ad1def7f107a2156954444a42ba92353e954f120ff3df3d741adf86c7ee1ffa0aca520cf
   languageName: node
   linkType: hard
 
@@ -6429,9 +6413,7 @@ __metadata:
     "@mapbox/polyline": "npm:^1.2.1"
     "@turf/turf": "npm:^7.3.5"
     "@types/geojson": "npm:^7946.0.16"
-    "@types/geokdbush": "npm:^1.1.5"
     "@types/jest": "npm:^30.0.0"
-    "@types/kdbush": "npm:^3.0.5"
     "@types/lodash": "npm:^4.17.21"
     "@types/node": "npm:^24.10.4"
     "@types/osrm": "npm:^5.25.5"
@@ -6440,13 +6422,13 @@ __metadata:
     eslint-plugin-n: "npm:^18.5.0"
     geobuf: "npm:^3.0.2"
     geojson-validation: "npm:^1.0.2"
-    geokdbush: "npm:^1.1.0"
+    geokdbush: "npm:^2.1.0"
     i18next: "npm:^26.0.6"
     iso-3166-ts: "npm:^2.2.0"
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
     jest-fetch-mock: "npm:^3.0.3"
-    kdbush: "npm:^3.0.0"
+    kdbush: "npm:^4.1.0"
     lodash: "npm:^4.18.1"
     papaparse: "npm:^5.5.3"
     pbf: "npm:^3.3.0"
@@ -8753,12 +8735,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"geokdbush@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "geokdbush@npm:1.1.0"
+"geokdbush@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "geokdbush@npm:2.1.0"
   dependencies:
-    tinyqueue: "npm:^1.2.2"
-  checksum: 10c0/1de2b9601f99682c8e22b2adaa77e73f96442064e6ff9a7ec753ee9d8a6e295d8f28c6159a5c32abba245fabafabe0e86ad0ceb2bcfffdec571235aa81c169ae
+    tinyqueue: "npm:^3.0.0"
+  checksum: 10c0/a051bbc4f3f230e24f25bd2a46bbfce539747e812ecf59afbc2b3246be798d5880bddc4ee0bbeb5297b23ca4c4962afef375f73eb68fa12e40159bfe0d132663
   languageName: node
   linkType: hard
 
@@ -10673,10 +10655,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kdbush@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "kdbush@npm:3.0.0"
-  checksum: 10c0/3fc8795870bd04f60627e7345b26fd0644beb91bc4164912c9d9378b39c674ba01c31db68ecaf6266d51c9ad81bf5b770b7effa51eeee37553d38293a094a686
+"kdbush@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "kdbush@npm:4.1.0"
+  checksum: 10c0/b47c8a27de438df1e60080f73e3793217b4542a62bed7f07c8c29b0bf53359bbdba1e97305e396f7f4d28f98e31ce3fd21500dc3de03a44d8cda71a3d70ff7bb
   languageName: node
   linkType: hard
 
@@ -15340,13 +15322,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyqueue@npm:^1.2.2":
-  version: 1.2.3
-  resolution: "tinyqueue@npm:1.2.3"
-  checksum: 10c0/413b1ad64f700ef9d8d07242190ceb6ff921d0ab5b47f5b67ff7d3d2a394260914363b0e2c18039b900df793b26763fabc93da61e1b489f910795af6643b0355
-  languageName: node
-  linkType: hard
-
 "tinyqueue@npm:^2.0.0, tinyqueue@npm:^2.0.3":
   version: 2.0.3
   resolution: "tinyqueue@npm:2.0.3"
@@ -15519,7 +15494,6 @@ __metadata:
     "@eslint/js": "npm:^10.0.1"
     "@turf/turf": "npm:^7.3.5"
     "@types/geojson": "npm:^7946.0.16"
-    "@types/geokdbush": "npm:^1.1.5"
     "@types/jest": "npm:^30.0.0"
     "@types/lodash": "npm:^4.17.23"
     "@types/node": "npm:^24.10.4"
@@ -15527,7 +15501,7 @@ __metadata:
     cross-env: "npm:^10.1.0"
     eslint: "npm:^10.13.0"
     eslint-plugin-n: "npm:^18.5.0"
-    geokdbush: "npm:^1.1.0"
+    geokdbush: "npm:^2.1.0"
     gtfs-types: "npm:^4.0.0"
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
