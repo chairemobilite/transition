@@ -19,7 +19,6 @@ jest.mock('util', () => {
     };
 });
 const pipelineAsync = promisify(jest.fn());
-jest.mock('JSONStream');
 jest.mock('../../../models/db/places.db.queries');
 jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries');
 jest.mock('chaire-lib-common/lib/services/dataSource/DataSource');
@@ -70,7 +69,7 @@ describe('ImportPlacesFromGeojson', () => {
         const mockReadStream = jest.fn();
         const mockJsonStream = jest.fn();
         (fs.createReadStream as any).mockReturnValue(mockReadStream);
-        JSONStream.parse.mockReturnValue(mockJsonStream);
+        (createJsonArrayStream as jest.Mock).mockReturnValue(mockJsonStream);
 
         const mockFeatureStream = (async function* () {
             yield { geometry: { type: 'Point', coordinates: [0, 1] }, properties: { name: 'Place 1' } };

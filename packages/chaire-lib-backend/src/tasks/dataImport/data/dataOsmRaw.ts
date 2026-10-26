@@ -7,7 +7,7 @@
 import { DataBase } from './dataBase';
 import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
-import JSONStream from 'JSONStream';
+import { createJsonArrayStream } from '../../../services/files/JsonFileReader';
 
 export interface OsmRawDataTypeIncoming {
     type: 'way' | 'relation' | 'node';
@@ -282,7 +282,7 @@ export class DataStreamOsmRaw extends DataOsmRaw {
     private async readRawJsonData(): Promise<OsmRawDataTypeIncoming[]> {
         console.log('Start streaming raw OSM data.');
         const readStream = fs.createReadStream(this._filename);
-        const jsonParser = JSONStream.parse('elements.*');
+        const jsonParser = createJsonArrayStream('elements');
         const elements: OsmRawDataTypeIncoming[] = [];
 
         return new Promise((resolve, reject) => {

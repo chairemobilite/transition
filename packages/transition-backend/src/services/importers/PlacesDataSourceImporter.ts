@@ -7,7 +7,7 @@
 import fs from 'fs';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
-import JSONStream from 'JSONStream';
+import { createJsonArrayStream } from 'chaire-lib-backend/lib/services/files/JsonFileReader';
 import { v4 as uuidv4 } from 'uuid';
 import { confirm } from '@inquirer/prompts';
 
@@ -69,7 +69,7 @@ export default async function importGeojsonPlaces(geojsonFilePath: string, dataS
         }
 
         const readStream = fs.createReadStream(geojsonFilePath);
-        const jsonStream = JSONStream.parse('features.*');
+        const jsonStream = createJsonArrayStream('features');
         let placeCount = 0;
 
         await pipelineAsync(readStream, jsonStream, async (featureStream) => {

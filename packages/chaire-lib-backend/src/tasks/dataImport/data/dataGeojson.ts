@@ -8,7 +8,7 @@ import { DataBase } from './dataBase';
 import GeoJSON from 'geojson';
 import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
-import JSONStream from 'JSONStream';
+import { createJsonArrayStream } from '../../../services/files/JsonFileReader';
 
 export class DataGeojson extends DataBase<GeoJSON.Feature> {
     private _data: GeoJSON.Feature[];
@@ -114,7 +114,7 @@ export class DataStreamGeojson extends DataGeojson {
     private async readGeojsonData(): Promise<GeoJSON.Feature[]> {
         console.log('Start streaming GeoJSON data.');
         const readStream = fs.createReadStream(this._filename);
-        const jsonParser = JSONStream.parse('features.*');
+        const jsonParser = createJsonArrayStream('features');
         const features: GeoJSON.Feature[] = [];
 
         return new Promise((resolve, reject) => {
