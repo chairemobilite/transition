@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import geokdbush from 'geokdbush';
+import { distance as birdDistanceKm } from 'geokdbush';
 import { lineIntersect as turfLineIntersect, distance as turfDistance, point as turfPoint } from '@turf/turf';
 import type { EventEmitter } from 'events';
 
@@ -25,16 +25,11 @@ import type {
 import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
-// TODO: test
 const placesInBirdRadiusMeters = (node: Node, placeCollection: PlaceCollection, birdRadiusMeters = 1000) => {
-    const placesInBirdRadius = geokdbush.around(
-        placeCollection.getSpatialIndex(),
-        node.lon(),
-        node.lat(),
-        undefined,
-        birdRadiusMeters / 1000
+    return placeCollection.pointsInBirdRadiusMetersAround(
+        { type: 'Point', coordinates: [node.lon(), node.lat()] },
+        birdRadiusMeters
     );
-    return placesInBirdRadius;
 };
 
 /**
@@ -85,7 +80,6 @@ const findTouchingPoint = (
  * This function does not change the node.
  *
  * TODO: This may not be just for walking
- * TODO: test
  */
 export const placesInWalkingTravelTimeRadiusSeconds = async (
     node: Node,
@@ -128,7 +122,7 @@ export const placesInWalkingTravelTimeRadiusSeconds = async (
         const placeInBirdRadius = placesInBirdRadius[i];
 
         const birdDistanceMeters =
-            geokdbush.distance(
+            birdDistanceKm(
                 node.lon(),
                 node.lat(),
                 placeInBirdRadius.geometry.coordinates[0],

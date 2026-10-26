@@ -21,7 +21,7 @@
   "dependencies": {
     "@turf/turf": "^7.3.5",
     "chaire-lib-common": "workspace:^",
-    "geokdbush": "^1.1.0",
+    "geokdbush": "^2.1.0",
     "lodash": "^4.18.1",
     "moment": "^2.31.0",
     "random": "^5.4.1",
@@ -31,7 +31,6 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/geojson": "^7946.0.16",
-    "@types/geokdbush": "^1.1.5",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.23",
     "@types/node": "^24.10.4",
