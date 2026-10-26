@@ -149,6 +149,35 @@ test('Invalid uuid', async () => {
     expect((result as any).error).toEqual(expect.stringContaining(`Error validating data for object at position 0: Invalid ID format`));
 });
 
+test('Invalid direction', async () => {
+    currentData = [
+        {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: [[-1, 1], [-1, 0]] },
+            properties: { id: uuidV4(), name: "Foo path", line_id: uuidV4(), direction: 'sideways', data: { defaultAcceleration: 1, routingEngine: 'engine', travelTimeWithoutDwellTimesSeconds: 300, operatingSpeedMetersPerSecond: 10, operatingTimeWithoutLayoverTimeSeconds: 350 }, mode: 'bus', nodes: [uuidV4(), uuidV4()] }
+        }
+    ];
+    const result = await pathsImporter.import('arbitraryFilePath');
+    expect(result.result).toEqual('error');
+    expect((result as any).error).toEqual(expect.stringContaining(`Error validating data for object at position 0:`));
+    expect(createMultiple).not.toHaveBeenCalled();
+});
+
+test('Null direction', async () => {
+    // The schema accepts a null direction, but the path validation requires one
+    currentData = [
+        {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: [[-1, 1], [-1, 0]] },
+            properties: { id: uuidV4(), name: "Foo path", line_id: uuidV4(), direction: null, data: { defaultAcceleration: 1, routingEngine: 'engine', travelTimeWithoutDwellTimesSeconds: 300, operatingSpeedMetersPerSecond: 10, operatingTimeWithoutLayoverTimeSeconds: 350 }, mode: 'bus', nodes: [uuidV4(), uuidV4()] }
+        }
+    ];
+    const result = await pathsImporter.import('arbitraryFilePath');
+    expect(result.result).toEqual('error');
+    expect((result as any).error).toEqual(`Error validating data for object at position 0: transit:transitPath:errors:DirectionIsRequired`);
+    expect(createMultiple).not.toHaveBeenCalled();
+});
+
 test('Wrong geometry type', async () => {
     currentData = [
         { 
