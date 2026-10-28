@@ -22,6 +22,20 @@ export default defineConfig([
             '@typescript-eslint/no-var-requires': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-require-imports': 'warn',
+            // Imports used only as types must use `import type`, or the
+            // inline `type` modifier when mixed with values. This makes it
+            // explicit that the module is not needed at runtime, which lets
+            // `n/no-unpublished-import` accept type-only devDependencies.
+            '@typescript-eslint/consistent-type-imports': [
+                'error',
+                {
+                    fixStyle: 'inline-type-imports'
+                }
+            ],
+            // `import { type A, type B }` must be `import type { A, B }`:
+            // `n/no-unpublished-import` only ignores the latter, and the
+            // former is kept as a side-effect import by `verbatimModuleSyntax`
+            '@typescript-eslint/no-import-type-side-effects': 'error',
             'arrow-parens': ['error', 'always'],
             'brace-style': ['error', '1tbs', { allowSingleLine: true }],
             'constructor-super': 'error',
