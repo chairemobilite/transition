@@ -4,7 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Map as MapLibreMap, FilterSpecification, LayerSpecification, GeoJSONSourceSpecification } from 'maplibre-gl';
+import type {
+    Map as MapLibreMap,
+    FilterSpecification,
+    LayerSpecification,
+    GeoJSONSourceSpecification
+} from 'maplibre-gl';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 import _uniq from 'lodash/uniq';

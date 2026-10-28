@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { RoutingMode } from '../../config/routingModes';
+import type { RoutingMode } from '../../config/routingModes';
 import { default as routingServiceManager, DEFAULT_ROUTING_ENGINE } from './RoutingServiceManager';
-import { RouteResults } from './RoutingService';
-import { TripRoutingQueryAttributes } from './types';
+import type { RouteResults } from './RoutingService';
+import type { TripRoutingQueryAttributes } from './types';
 
 /**
  * Calls the routing service to get a route between two points for a single mode

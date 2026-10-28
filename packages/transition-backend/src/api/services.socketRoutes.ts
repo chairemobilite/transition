@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
-import osrm from 'osrm';
+import type { EventEmitter } from 'events';
+import type osrm from 'osrm';
 import fs from 'fs';
 
 import { isSocketIo } from './socketUtils';
@@ -14,9 +14,9 @@ import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManager
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
-import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
-import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import {
+import type { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import type { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type {
     BatchRoutingOdDemandFromCsvAttributes,
     TransitDemandFromCsvAccessMapAttributes
 } from 'transition-common/lib/services/transitDemand/types';
@@ -26,15 +26,15 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { fileKey } from 'transition-common/lib/services/jobs/Job';
-import {
+import type { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
+import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import type { fileKey } from 'transition-common/lib/services/jobs/Job';
+import type {
     TransitMapCalculationOptions,
     TransitMapColorOptions
 } from 'transition-common/lib/services/accessibilityMap/types';
 import { TransitAccessibilityMapCalculator } from '../services/accessibilityMap/TransitAccessibilityMapCalculator';
-import {
+import type {
     TransitAccessibilityMapWithPolygonResult,
     TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';

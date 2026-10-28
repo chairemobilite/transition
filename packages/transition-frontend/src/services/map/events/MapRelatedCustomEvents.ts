@@ -13,8 +13,8 @@
 import * as maplibregl from 'maplibre-gl';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { EventEmitter } from 'events';
-import Node from 'transition-common/lib/services/nodes/Node';
+import type { EventEmitter } from 'events';
+import type Node from 'transition-common/lib/services/nodes/Node';
 
 const events = function (eventManager: EventEmitter) {
     return {

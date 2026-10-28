@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons/faExclamationTriangle';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export type FormErrorsProps = {
     errors: TranslatableMessage[];

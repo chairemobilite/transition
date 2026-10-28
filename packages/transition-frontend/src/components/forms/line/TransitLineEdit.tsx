@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import Collapsible from 'react-collapsible';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
@@ -20,19 +20,22 @@ import { getAutocompleteListFromObjectCollection } from 'chaire-lib-frontend/lib
 import lineModes from 'transition-common/lib/config/lineModes';
 import { rightOfWayCategories } from 'transition-common/lib/services/line/types';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import Path from 'transition-common/lib/services/path/Path';
-import Line from 'transition-common/lib/services/line/Line';
+import type Path from 'transition-common/lib/services/path/Path';
+import type Line from 'transition-common/lib/services/line/Line';
 import TransitPathsList from '../path/TransitPathList';
 import TransitPathEdit from '../path/TransitPathEdit';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface LineFormProps extends WithTranslation {
     line: Line;

@@ -6,14 +6,14 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Column } from 'react-table';
+import type { Column } from 'react-table';
 import moment from 'moment';
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faStopCircle } from '@fortawesome/free-solid-svg-icons/faStopCircle';
 import { faPauseCircle } from '@fortawesome/free-solid-svg-icons/faPauseCircle';
 import { faPlayCircle } from '@fortawesome/free-solid-svg-icons/faPlayCircle';
 
-import ExecutableJobList, { ReturnedJobAttributes } from './ExecutableJobList';
+import ExecutableJobList, { type ReturnedJobAttributes } from './ExecutableJobList';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { JobsConstants } from 'transition-common/lib/api/jobs';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

@@ -6,11 +6,11 @@
  */
 import type { MapLayerMouseEvent, MapMouseEvent, MapGeoJSONFeature } from 'maplibre-gl';
 
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
+import type { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import type { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from 'transition-common/lib/services/path/Path';
-import TransitLine from 'transition-common/lib/services/line/Line';
+import type TransitLine from 'transition-common/lib/services/line/Line';
 import { unhoverPath } from './PathLayerMapEvents';
 import { WAYPOINT_MIN_ZOOM } from '../../../config/layers.config';
 import { addDraggingClass, removeDraggingClass, removeHoverClass } from '../MapCursorHelper';

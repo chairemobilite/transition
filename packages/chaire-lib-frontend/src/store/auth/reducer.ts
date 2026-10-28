@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Reducer } from 'redux';
-import { AuthState, AuthActionTypes, AuthAction } from './types';
+import type { Reducer } from 'redux';
+import { type AuthState, AuthActionTypes, type AuthAction } from './types';
 
 // Type-safe initialState!
 export const initialState: AuthState = {

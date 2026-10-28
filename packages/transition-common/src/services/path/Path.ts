@@ -17,20 +17,20 @@ import {
 } from '@turf/turf';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
+import { MapObject, type MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 import updatePathGeography from './PathGeographyUtils';
 import type { SegmentChangeInfo } from './PathTypes';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { roundToDecimals, median, ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 // TODO Should not be needed
 // import ODProximityLineGenerator from './generators/ODProximityLineGenerator';
 import lineModesConfig from '../../config/lineModes';
-import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import { EventEmitter } from 'events';
-import NodeCollection from '../nodes/NodeCollection';
+import type { EventEmitter } from 'events';
+import type NodeCollection from '../nodes/NodeCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 const lineModesConfigByMode = {};

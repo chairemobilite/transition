@@ -7,7 +7,7 @@
 import * as z from 'zod';
 
 import CollectionImporter, { genericAttributesSchema } from './CollectionImporter';
-import Scenario, { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
+import Scenario, { type ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
 import dbQueries from '../../models/db/transitScenarios.db.queries';
 
 const schema = genericAttributesSchema.extend({

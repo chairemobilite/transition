@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import moment from 'moment';
+import type moment from 'moment';
 
 export type UserAttributesBase = {
     id: number;

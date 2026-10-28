@@ -7,8 +7,8 @@
 import _cloneDeep from 'lodash/cloneDeep';
 
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import { CsvFieldMappingDescriptor, CsvFileAndMapping, FileConfig } from './types';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { CsvFieldMappingDescriptor, CsvFileAndMapping, FileConfig } from './types';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * A class to manage CSV field mapping from CSV fields to application fields

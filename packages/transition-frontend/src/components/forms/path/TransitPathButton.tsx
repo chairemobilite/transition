@@ -5,17 +5,17 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import Path, { PathAttributesData } from 'transition-common/lib/services/path/Path';
-import Line from 'transition-common/lib/services/line/Line';
+import Path, { type PathAttributesData } from 'transition-common/lib/services/path/Path';
+import type Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface PathButtonProps extends WithTranslation {
     line: Line;

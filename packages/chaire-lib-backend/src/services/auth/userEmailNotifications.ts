@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import i18n from '../../config/i18next';
-import { IUserModel } from './authModel';
+import type { IUserModel } from './authModel';
 import Users from '../users/users';
 import mailTransport from '../mailer/transport';
 import UserModel from './userAuthModel';

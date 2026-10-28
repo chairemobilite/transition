@@ -7,7 +7,7 @@
 import * as z from 'zod';
 
 import CollectionImporter, { genericAttributesSchema } from './CollectionImporter';
-import Service, { ServiceAttributes } from 'transition-common/lib/services/service/Service';
+import Service, { type ServiceAttributes } from 'transition-common/lib/services/service/Service';
 import dbQueries from '../../models/db/transitServices.db.queries';
 
 const serviceSchema = genericAttributesSchema.extend({

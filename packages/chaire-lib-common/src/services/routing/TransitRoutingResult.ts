@@ -7,14 +7,14 @@
 import _get from 'lodash/get';
 
 import Preferences from '../../config/Preferences';
-import { TrRoutingV2 } from '../../api/TrRouting';
-import { TrRoutingRoute } from '../transitRouting/types';
-import { Route, RouteResults } from './RoutingService';
+import type { TrRoutingV2 } from '../../api/TrRouting';
+import type { TrRoutingRoute } from '../transitRouting/types';
+import type { Route, RouteResults } from './RoutingService';
 import { getRouteByMode } from './RoutingUtils';
 import TrError from '../../utils/TrError';
-import { TranslatableMessage } from '../../utils/TranslatableMessage';
-import { RoutingResult } from './RoutingResult';
-import { RoutingOrTransitMode } from '../../config/routingModes';
+import type { TranslatableMessage } from '../../utils/TranslatableMessage';
+import type { RoutingResult } from './RoutingResult';
+import type { RoutingOrTransitMode } from '../../config/routingModes';
 
 export interface StepGeojsonProperties {
     distanceMeters: number;

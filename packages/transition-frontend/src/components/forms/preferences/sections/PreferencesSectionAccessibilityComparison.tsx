@@ -7,7 +7,7 @@
 import React from 'react';
 import Collapsible from 'react-collapsible';
 import { useTranslation } from 'react-i18next';
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 import PreferencesColorComponent from '../PreferencesColorComponent';
 
 const PreferencesSectionAccessibilityComparison: React.FunctionComponent<PreferencesSectionProps> = (

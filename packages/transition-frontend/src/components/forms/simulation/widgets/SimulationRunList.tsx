@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
-import SimulationRun, { SimulationRunAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
+import SimulationRun, { type SimulationRunAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 import ButtonList from '../../../parts/ButtonList';
 import SimulationRunButton from './SimulationRunButton';
 import SimulationRunDetail from './SimulationRunDetail';

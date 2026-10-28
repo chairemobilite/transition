@@ -6,7 +6,7 @@
  */
 import { getOsrmDirectoryPathForMode } from './OSRMServicePath';
 import ProcessManager from './ProcessManager';
-import { RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
+import { type RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import osrmService from '../osrm/OSRMService';
 import OSRMMode from '../osrm/OSRMMode';
 import ServerConfig from '../../config/ServerConfig';

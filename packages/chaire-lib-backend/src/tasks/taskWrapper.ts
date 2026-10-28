@@ -14,7 +14,7 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { fileManager } from '../utils/filesystem/fileManager';
 
-import { GenericTask } from './genericTask';
+import type { GenericTask } from './genericTask';
 
 // INIT_CWD is the directory from which the script was run (usually root of the
 // repo), while PWD would be the chaire-lib-backend directory if run with `yarn

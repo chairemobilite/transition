@@ -7,7 +7,7 @@
 
 import { ParamsValidatorUtils } from '../../utils/ParamsValidatorUtils';
 import TrError from '../../utils/TrError';
-import { TripRoutingQueryAttributes } from './types';
+import type { TripRoutingQueryAttributes } from './types';
 
 // This file contains functions related to the routing attributes
 

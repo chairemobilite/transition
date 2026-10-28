@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
-import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';

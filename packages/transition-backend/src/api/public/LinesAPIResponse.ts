@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import APIResponseBase from './APIResponseBase';
-import { LineAttributes } from 'transition-common/lib/services/line/Line';
+import type { LineAttributes } from 'transition-common/lib/services/line/Line';
 
 export type LinesAPIResponseFormat = Array<{
     id: string;

@@ -8,8 +8,8 @@ import React from 'react';
 
 import {
     DashboardContribution,
-    Contribution,
-    LayoutSectionProps
+    type Contribution,
+    type LayoutSectionProps
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import BatchCalculationPanel from '../../forms/batchCalculation/BatchCalculationPanel';
 

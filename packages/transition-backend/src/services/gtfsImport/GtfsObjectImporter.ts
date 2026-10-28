@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
-import { GtfsInternalData } from './GtfsImportTypes';
-import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+import type { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsInternalData } from './GtfsImportTypes';
+import type { GtfsObjectPreparator } from './GtfsObjectPreparator';
 
 /**
  * Base class to import GTFS objects. The import is done in 2 phases, one

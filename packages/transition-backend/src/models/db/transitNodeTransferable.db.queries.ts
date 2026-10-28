@@ -9,7 +9,7 @@ import { validate as uuidValidate } from 'uuid';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
+import type { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
 
 const tableName = 'tr_transit_node_transferable';
 

@@ -6,7 +6,7 @@
  */
 
 import ServerConfig from '../../config/ServerConfig';
-import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
+import type * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
 
 /**
  * A class that wraps the calls to the trRouting service API

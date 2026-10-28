@@ -68,8 +68,8 @@ import shopSupermarket from './osmPoiWeightCategories/shopSupermarket';
 import shopStationery from './osmPoiWeightCategories/shopStationery';
 import socialFacility from './osmPoiWeightCategories/socialFacility';
 import utility from './osmPoiWeightCategories/utility';
-import { OsmRawQueryOr } from './OsmRawQueryType';
-import { POIWeightCategory } from './POIWeightCategoryType';
+import type { OsmRawQueryOr } from './OsmRawQueryType';
+import type { POIWeightCategory } from './POIWeightCategoryType';
 
 /*
 aeroway=terminal

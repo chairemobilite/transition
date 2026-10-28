@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import moment from 'moment';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
@@ -18,20 +18,24 @@ import DayRange from 'chaire-lib-frontend/lib/components/input/DayRange';
 import Calendar from 'chaire-lib-frontend/lib/components/input/Calendar';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import * as ServiceUtils from '../../../services/transitService/TransitServiceUtils';
-import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
+import type Service from 'transition-common/lib/services/service/Service';
+import { serviceDays } from 'transition-common/lib/services/service/Service';
 import MathJax from 'react-mathjax';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TransitServiceFilterableList from './TransitServiceFilterableList';
 import TransitServiceLinesDetail from '../service/TransitServiceLinesDetail';
-import { PathAttributes } from 'transition-common/lib/services/path/Path';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { PathAttributes } from 'transition-common/lib/services/path/Path';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 interface ServiceFormProps extends WithTranslation {
     service: Service;

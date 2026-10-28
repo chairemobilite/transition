@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import { SimulationAttributes } from 'transition-common/lib/services/simulation/Simulation';
+import type { SimulationAttributes } from 'transition-common/lib/services/simulation/Simulation';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 

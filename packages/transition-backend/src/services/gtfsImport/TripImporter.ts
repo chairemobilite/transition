@@ -9,9 +9,9 @@ import type * as GtfsTypes from 'gtfs-types';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { GtfsInternalData } from './GtfsImportTypes';
+import type { GtfsInternalData } from './GtfsImportTypes';
 
-import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+import type { GtfsObjectPreparator } from './GtfsObjectPreparator';
 
 export class TripImporter implements GtfsObjectPreparator<GtfsTypes.Trip> {
     private _filePath: string;

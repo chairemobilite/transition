@@ -7,8 +7,9 @@
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import TransitNode, { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import type { TransferableNodes } from 'transition-common/lib/services/nodes/Node';
+import type TransitNode from 'transition-common/lib/services/nodes/Node';
+import type NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { getNodesInBirdDistance } from './NodeCollectionUtils';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 

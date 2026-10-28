@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import * as maplibregl from 'maplibre-gl';
+import type * as maplibregl from 'maplibre-gl';
 import _cloneDeep from 'lodash/cloneDeep';
 import * as turf from '@turf/turf';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -16,7 +16,7 @@ import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/
 import {
     getTerraDraw,
     removeTerraDraw,
-    TerraDrawAdapter
+    type TerraDrawAdapter
 } from 'chaire-lib-frontend/lib/services/map/MapPolygonService';
 
 import Node from 'transition-common/lib/services/nodes/Node';

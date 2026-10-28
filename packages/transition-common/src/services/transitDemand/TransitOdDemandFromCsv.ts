@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { CsvFieldMappingDescriptor, CsvFileAndFieldMapper } from '../csv';
-import { BatchRoutingOdDemandFromCsvAttributes, TransitDemandFromCsvRoutingAttributes } from './types';
+import { type CsvFieldMappingDescriptor, CsvFileAndFieldMapper } from '../csv';
+import type { BatchRoutingOdDemandFromCsvAttributes, TransitDemandFromCsvRoutingAttributes } from './types';
 
 export const demandFieldDescriptors: CsvFieldMappingDescriptor[] = [
     {

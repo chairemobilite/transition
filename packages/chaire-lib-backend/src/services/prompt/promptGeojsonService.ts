@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 
 export interface GeojsonServiceOptions {
     interactive?: boolean;

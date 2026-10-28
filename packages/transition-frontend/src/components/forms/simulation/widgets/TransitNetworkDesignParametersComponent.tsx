@@ -5,22 +5,22 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import {
-    TransitNetworkDesignParameters,
+    type TransitNetworkDesignParameters,
     MAX_TIME_BETWEEN_PASSAGES,
     MIN_TIME_BETWEEN_PASSAGES
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Service from 'transition-common/lib/services/service/Service';
+import type Service from 'transition-common/lib/services/service/Service';
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
-import Agency from 'transition-common/lib/services/agency/Agency';
-import Line from 'transition-common/lib/services/line/Line';
+import type Agency from 'transition-common/lib/services/agency/Agency';
+import type Line from 'transition-common/lib/services/line/Line';
 
 export interface TransitNetworkDesignParametersComponentProps extends WithTranslation {
     attributes: TransitNetworkDesignParameters;

@@ -26,10 +26,10 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import {
     categories,
     detailedCategories,
-    PlaceCategory,
-    PlaceDetailedCategory
+    type PlaceCategory,
+    type PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
-import { PlaceAttributes } from 'transition-common/lib/services/places/Place';
+import type { PlaceAttributes } from 'transition-common/lib/services/places/Place';
 
 const tableName = 'tr_places';
 const st = knexPostgis(knex);

@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { sampleSizeWithOptionalSeed } from 'chaire-lib-common/lib/utils/RandomUtils';
-import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
+import type NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 import { sequentialArray } from 'chaire-lib-common/lib/utils/MathUtils';
-import * as AlgoTypes from '../internalTypes';
+import type * as AlgoTypes from '../internalTypes';
 
 /**
  * Implementation of the tournament selection algorithm for genetic algorithm:

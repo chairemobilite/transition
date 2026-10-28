@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { centroid as turfCentroid } from '@turf/turf';
-import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import type { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 
 export class GeojsonOutputter {
     private _idUrl: string | undefined;

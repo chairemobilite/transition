@@ -8,7 +8,7 @@ import * as z from 'zod';
 
 import { genericAttributesSchema } from './CollectionImporter';
 import CollectionImporter from './GeojsonCollectionImporter';
-import Node, { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import Node, { type NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import dbQueries from '../../models/db/transitNodes.db.queries';
 import { objectsToCache } from '../../models/capnpCache/transitNodes.cache.queries';
 

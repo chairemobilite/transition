@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import APIResponseBase from './APIResponseBase';
-import { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
+import type { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
 
 export type AgenciesAPIResponseFormat = Array<{
     id: string;

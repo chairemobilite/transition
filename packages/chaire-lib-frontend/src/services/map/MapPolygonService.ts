@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJson from 'geojson';
-import { IControl, Map as MapLibreGLMap } from 'maplibre-gl';
-import { TerraDraw, TerraDrawSelectMode, TerraDrawPolygonMode, GeoJSONStoreFeatures } from 'terra-draw';
+import type GeoJson from 'geojson';
+import type { IControl, Map as MapLibreGLMap } from 'maplibre-gl';
+import { TerraDraw, TerraDrawSelectMode, TerraDrawPolygonMode, type GeoJSONStoreFeatures } from 'terra-draw';
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter';
 import React from 'react';
 import { createRoot } from 'react-dom/client';

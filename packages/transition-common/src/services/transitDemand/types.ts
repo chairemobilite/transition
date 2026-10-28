@@ -1,4 +1,4 @@
-import { CsvFileAndMapping } from '../csv';
+import type { CsvFileAndMapping } from '../csv';
 
 /*
  * Copyright 2023, Polytechnique Montreal and contributors

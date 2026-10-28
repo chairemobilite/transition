@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
@@ -25,7 +25,7 @@ import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors'
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import Node from 'transition-common/lib/services/nodes/Node';
+import type Node from 'transition-common/lib/services/nodes/Node';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 interface TransitNodeCollectionEditProps extends WithTranslation {

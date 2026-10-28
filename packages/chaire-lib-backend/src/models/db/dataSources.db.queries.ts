@@ -20,7 +20,7 @@ import {
 } from './default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import { DataSourceAttributes, DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
+import type { DataSourceAttributes, DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
 
 const tableName = 'tr_data_sources';
 

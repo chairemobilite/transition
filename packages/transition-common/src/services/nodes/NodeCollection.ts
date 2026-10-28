@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Node, NodeAttributes } from './Node';
+import { Node, type NodeAttributes } from './Node';
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
 import GenericPlaceCollection from 'chaire-lib-common/lib/utils/objects/GenericPlaceCollection';
-import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 /**

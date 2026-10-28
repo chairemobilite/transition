@@ -6,7 +6,7 @@
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import _cloneDeep from 'lodash/cloneDeep';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { validate as uuidValidate } from 'uuid';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
@@ -32,7 +32,7 @@ import {
     mapDuplicateIds
 } from './utils.db.queries';
 
-import { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
+import type { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
 
 const tableName = 'tr_transit_agencies';
 

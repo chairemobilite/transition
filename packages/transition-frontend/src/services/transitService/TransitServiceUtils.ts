@@ -5,10 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as ScheduleUtils from '../schedule/TransitScheduleUtils';
-import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
-import Line from 'transition-common/lib/services/line/Line';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
+import type Service from 'transition-common/lib/services/service/Service';
+import { serviceDays } from 'transition-common/lib/services/service/Service';
+import type Line from 'transition-common/lib/services/line/Line';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
 
 export const getServiceLabel = (service: Service, t: (arg0: string) => string): string => {
     let label = service.toString();

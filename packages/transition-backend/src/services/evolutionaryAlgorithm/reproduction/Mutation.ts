@@ -6,7 +6,7 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 
-import * as AlgoTypes from '../internalTypes';
+import type * as AlgoTypes from '../internalTypes';
 
 const mutate = (oldGene: boolean) => !oldGene;
 

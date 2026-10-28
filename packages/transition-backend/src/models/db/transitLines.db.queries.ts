@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import _cloneDeep from 'lodash/cloneDeep';
 import { validate as uuidValidate } from 'uuid';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -22,8 +22,9 @@ import {
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
-import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
+import type { LineAttributes } from 'transition-common/lib/services/line/Line';
+import type Line from 'transition-common/lib/services/line/Line';
+import type { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 
 import scheduleQueries from './transitSchedules.db.queries';
 import {

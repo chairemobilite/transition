@@ -8,13 +8,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Line from 'transition-common/lib/services/line/Line';
+import type Line from 'transition-common/lib/services/line/Line';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-import Agency from 'transition-common/lib/services/agency/Agency';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type Agency from 'transition-common/lib/services/agency/Agency';
 
 interface LineButtonProps {
     line: Line;

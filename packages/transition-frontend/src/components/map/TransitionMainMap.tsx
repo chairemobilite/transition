@@ -7,23 +7,23 @@
 
 // External packages
 import _debounce from 'lodash/debounce';
-import React, { PropsWithChildren } from 'react';
-import { createRoot, Root } from 'react-dom/client';
-import { WithTranslation, withTranslation } from 'react-i18next';
-import { MapRef, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
-import * as maplibregl from 'maplibre-gl';
+import React, { type PropsWithChildren } from 'react';
+import { createRoot, type Root } from 'react-dom/client';
+import { type WithTranslation, withTranslation } from 'react-i18next';
+import type { MapRef, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
+import type * as maplibregl from 'maplibre-gl';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 // chaire-lib imports
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import globalMapEvents from 'chaire-lib-frontend/lib/services/map/events/GlobalMapEvents';
 import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
 import MapPopupManager from 'chaire-lib-frontend/lib/services/map/MapPopupManager';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 // Local workspace imports
 import layersConfig, { sectionLayers, overlaySource } from '../../config/layers.config';
@@ -32,7 +32,7 @@ import transitionMapEvents from '../../services/map/events';
 import mapCustomEvents from '../../services/map/events/MapRelatedCustomEvents';
 import PathMapLayerManager from '../../services/map/PathMapLayerManager';
 import { deleteUnusedNodes } from '../../services/transitNodes/transitNodesUtils';
-import MapRenderer, { MapStyleSpec } from './MapRenderer';
+import MapRenderer, { type MapStyleSpec } from './MapRenderer';
 import { resetClasses } from '../../services/map/MapCursorHelper';
 import type { ProjectMapBasemapShortname } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 import {

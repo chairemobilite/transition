@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import { onUpdateTrigger } from '../../../config/knexfile';
 
 const tableName = 'tr_data_sources';

@@ -10,7 +10,7 @@ import Modal from 'react-modal';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons/faTimes';
-import Path from 'transition-common/lib/services/path/Path';
+import type Path from 'transition-common/lib/services/path/Path';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
 import useSegmentTimesByPeriod from './useSegmentTimesByPeriod';

@@ -8,21 +8,21 @@ import express from 'express';
 import type { PassportStatic } from 'passport';
 import tokensDbQueries from 'chaire-lib-backend/lib/models/db/tokens.db.queries';
 import transitObjectDataHandlers from '../services/transitObjects/TransitObjectsDataHandler';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import TransitAccessibilityMapRouting, {
-    AccessibilityMapAttributes
+    type AccessibilityMapAttributes
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
 import {
-    AccessibilityMapCalculationResult,
-    RouteCalculationResultParamsByMode,
+    type AccessibilityMapCalculationResult,
+    type RouteCalculationResultParamsByMode,
     calculateAccessibilityMap,
     calculateRoute
 } from '../services/routingCalculation/RoutingCalculator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { getAttributesOrDefault } from '../services/accessibilityMap/TransitAccessibilityMapCalculator';
-import { FeatureCollection, LineString, Point } from 'geojson';
+import type { FeatureCollection, LineString, Point } from 'geojson';
 import PathsAPIResponse from './public/PathsAPIResponse';
 import NodesAPIResponse from './public/NodesAPIResponse';
 import ScenariosAPIResponse from './public/ScenariosAPIResponse';
@@ -32,11 +32,11 @@ import AccessibilityMapAPIResponse from './public/AccessibilityMapAPIResponse';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
 import {
     validateAndCreateSummaryAttributes,
-    SummaryQueryAttributes
+    type SummaryQueryAttributes
 } from 'chaire-lib-common/lib/services/routing/SummaryAttributes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
-import { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
+import type { SummaryResponse } from 'chaire-lib-common/lib/api/TrRouting/trRoutingApiV2';
 import AgenciesAPIResponse from './public/AgenciesAPIResponse';
 import ServicesAPIResponse from './public/ServicesAPIResponse';
 import LinesAPIResponse from './public/LinesAPIResponse';

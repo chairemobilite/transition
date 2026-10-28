@@ -14,7 +14,7 @@ import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import { CsvFileAndFieldMapper } from 'transition-common/lib/services/csv';
+import type { CsvFileAndFieldMapper } from 'transition-common/lib/services/csv';
 import FieldMappingsSelection from './widgets/FieldMappingsSelection';
 
 type GenericCsvImportAndMappingFormProps<T extends Record<string, string> = Record<string, string>> = {

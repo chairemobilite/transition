@@ -5,13 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import RoutingResultComponent from './RoutingResultComponent';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 
 export interface TransitRoutingResultsProps extends WithTranslation {

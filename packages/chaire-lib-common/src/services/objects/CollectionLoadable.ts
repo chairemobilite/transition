@@ -7,9 +7,9 @@
 import geobuf from 'geobuf';
 import Pbf from 'pbf';
 
-import GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
-import GenericMapObjectCollection from '../../utils/objects/GenericMapObjectCollection';
-import { GenericAttributes, GenericObject } from '../../utils/objects/GenericObject';
+import type GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
+import type GenericMapObjectCollection from '../../utils/objects/GenericMapObjectCollection';
+import type { GenericAttributes, GenericObject } from '../../utils/objects/GenericObject';
 import { isProgressable } from '../../utils/objects/Progressable';
 import TrError from '../../utils/TrError';
 import * as Status from '../../utils/Status';

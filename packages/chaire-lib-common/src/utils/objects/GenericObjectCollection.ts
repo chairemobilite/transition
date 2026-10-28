@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import GenericCollection from './GenericCollection';
-import { GenericObject, GenericAttributes } from './GenericObject';
+import type { GenericObject, GenericAttributes } from './GenericObject';
 import { _isBlank } from '../LodashExtensions';
-import CollectionManager from './CollectionManager';
+import type CollectionManager from './CollectionManager';
 
 export default abstract class GenericObjectCollection<
     T extends GenericObject<GenericAttributes>

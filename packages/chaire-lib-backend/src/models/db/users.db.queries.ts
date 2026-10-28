@@ -9,7 +9,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import { UserAttributes } from '../../services/users/user';
+import type { UserAttributes } from '../../services/users/user';
 
 const tableName = 'users';
 

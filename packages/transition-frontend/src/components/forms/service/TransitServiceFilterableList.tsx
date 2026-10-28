@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import TransitServiceFilter, { TransitServiceFilterFields } from './TransitServiceFilter';
-import Service from 'transition-common/lib/services/service/Service';
+import { withTranslation, type WithTranslation } from 'react-i18next';
+import TransitServiceFilter, { type TransitServiceFilterFields } from './TransitServiceFilter';
+import type Service from 'transition-common/lib/services/service/Service';
 import { InputCheckbox } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import { getServiceLabel, serviceMatches } from '../../../services/transitService/TransitServiceUtils';
 

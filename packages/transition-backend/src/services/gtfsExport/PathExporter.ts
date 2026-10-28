@@ -9,7 +9,7 @@ import type * as GtfsTypes from 'gtfs-types';
 import { unparse } from 'papaparse';
 
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Path from 'transition-common/lib/services/path/Path';
+import type Path from 'transition-common/lib/services/path/Path';
 import dbQueries from '../../models/db/transitPaths.db.queries';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

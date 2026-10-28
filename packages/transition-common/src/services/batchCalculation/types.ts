@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { validateTrQueryAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
-import { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 /**
  * Verify that batch parameters are valid

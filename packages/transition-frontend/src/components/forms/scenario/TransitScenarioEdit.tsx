@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -19,16 +19,19 @@ import lineModes from 'transition-common/lib/config/lineModes';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
-import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import type Scenario from 'transition-common/lib/services/scenario/Scenario';
 import TransitServiceFilterableList from '../service/TransitServiceFilterableList';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import ScenarioLinesDetail from './TransitScenarioLinesDetail';
-import { PathAttributes } from 'transition-common/lib/services/path/Path';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
-import Line from 'transition-common/lib/services/line/Line';
+import type { PathAttributes } from 'transition-common/lib/services/path/Path';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type Line from 'transition-common/lib/services/line/Line';
 
 interface ScenarioFormProps extends WithTranslation {
     scenario: Scenario;

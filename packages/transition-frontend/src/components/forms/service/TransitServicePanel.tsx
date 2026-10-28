@@ -5,14 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import Service from 'transition-common/lib/services/service/Service';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type Service from 'transition-common/lib/services/service/Service';
 import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButtons';
 import ServiceEdit from './TransitServiceEdit';
 import ServicesList from './TransitServiceList';

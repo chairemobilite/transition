@@ -8,7 +8,7 @@
 // calls for some functionalities.
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import type { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
 import schedulesDbQueries from '../../../models/db/transitSchedules.db.queries';
 
 export const getServiceIdsForLines = async (

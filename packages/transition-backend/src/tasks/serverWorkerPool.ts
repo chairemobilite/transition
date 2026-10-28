@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import workerpool, { Pool } from 'workerpool';
+import workerpool, { type Pool } from 'workerpool';
 
 let pool: Pool | undefined = undefined;
 

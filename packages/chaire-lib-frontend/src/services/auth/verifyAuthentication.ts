@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 import { login, logout } from '../../actions/Auth';
 
 export default async (dispatch: Dispatch) => {

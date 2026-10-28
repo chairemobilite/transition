@@ -6,11 +6,11 @@
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import TransitBatchAccessibilityMap from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
-import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
-import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
+import type TransitBatchAccessibilityMap from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
+import type { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
-import AccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type AccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 export interface TransitMapCalculationOptions {

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 
 /** Full documentation on the weighting methodology is available in the docs/weighting directory. */
 

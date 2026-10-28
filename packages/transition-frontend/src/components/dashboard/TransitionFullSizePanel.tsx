@@ -7,9 +7,9 @@
 import React from 'react';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
-import Line from 'transition-common/lib/services/line/Line';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
+import type { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type Line from 'transition-common/lib/services/line/Line';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
 import TransitSchedulesList from '../forms/schedules/TransitScheduleList';
 import TransitScheduleBatchList from '../forms/schedules/TransitScheduleBatchList';
 

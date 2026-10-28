@@ -7,7 +7,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import InputSelect, { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import InputSelect, { type choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 export type FieldMappingWidgetProps = {

@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { createMongoAbility, MongoAbility } from '@casl/ability';
+import { createMongoAbility, type MongoAbility } from '@casl/ability';
 import { unpackRules } from '@casl/ability/extra';
-import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
+import type { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
 
 export const deserializeRules = (user: BaseUser) => {
     if (!user.serializedPermissions) {

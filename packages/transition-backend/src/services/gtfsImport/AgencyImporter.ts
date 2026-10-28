@@ -6,15 +6,15 @@
  */
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Agency, { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import Agency, { type AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { AgencyImportData, GtfsImportData, GtfsAgency } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { AgencyImportData, GtfsImportData, GtfsAgency } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { getUniqueAgencyAcronym } from '../transitObjects/transitAgencies/AgencyUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import type { Agency as GtfsAgencySpec } from 'gtfs-types';
-import { GtfsObjectImporter } from './GtfsObjectImporter';
-import { formatColor, GtfsInternalData } from './GtfsImportTypes';
+import type { GtfsObjectImporter } from './GtfsObjectImporter';
+import { formatColor, type GtfsInternalData } from './GtfsImportTypes';
 
 export class AgencyImporter implements GtfsObjectImporter<AgencyImportData, Agency> {
     public static DEFAULT_AGENCY_ACRONYM = 'single';

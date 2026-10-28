@@ -12,7 +12,7 @@
  * TODO Put it somewhere else when we use more tables?
  */
 
-import {
+import type {
     UseColumnOrderInstanceProps,
     UseColumnOrderState,
     UseExpandedHooks,

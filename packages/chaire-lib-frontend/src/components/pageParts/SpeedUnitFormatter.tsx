@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState, useEffect } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { mpsToKph, mpsToMph, mpsToFtps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 

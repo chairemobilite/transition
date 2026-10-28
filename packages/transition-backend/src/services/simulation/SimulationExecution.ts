@@ -6,19 +6,19 @@
  */
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 
-import { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import type { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import { evolutionaryAlgorithmFactory } from '../evolutionaryAlgorithm';
-import SimulationRun from './SimulationRun';
+import type SimulationRun from './SimulationRun';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import config from 'chaire-lib-backend/lib/config/server.config';
-import { AlgorithmType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
+import type { AlgorithmType } from 'transition-common/lib/services/networkDesign/transit/algorithm';
 
 /**
  * A factory to create a simulation algorithm object with the given parameters.

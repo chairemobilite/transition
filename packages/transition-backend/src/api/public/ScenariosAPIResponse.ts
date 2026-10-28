@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
+import type { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
 import APIResponseBase from './APIResponseBase';
 
 export type ScenariosAPIResponseFormat = Array<{

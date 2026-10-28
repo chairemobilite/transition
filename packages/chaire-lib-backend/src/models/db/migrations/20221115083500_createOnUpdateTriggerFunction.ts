@@ -1,4 +1,4 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 const onUpdateTimestampFunction = `
   CREATE OR REPLACE FUNCTION on_update_timestamp()

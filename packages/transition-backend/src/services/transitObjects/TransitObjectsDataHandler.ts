@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import EventEmitter from 'events';
+import type EventEmitter from 'events';
 import geobuf from 'geobuf';
 import Pbf from 'pbf';
 
@@ -32,7 +32,7 @@ import * as servicesCacheQueries from '../../models/capnpCache/transitServices.c
 
 import * as dbToCacheQueries from '../capnpCache/dbToCache';
 
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { isSocketIo } from '../../api/socketUtils';

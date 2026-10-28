@@ -7,7 +7,7 @@
 import React, { useEffect, useRef } from 'react';
 import { CapWidget, type CapWidgetElement } from '@pitininja/cap-react-widget';
 import { useTranslation } from 'react-i18next';
-import { CaptchaProps } from './CaptchaProps';
+import type { CaptchaProps } from './CaptchaProps';
 
 const ENDPOINT = '/captcha/';
 

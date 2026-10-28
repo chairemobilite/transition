@@ -11,7 +11,7 @@ import PQueue from 'p-queue';
 
 import zonesQueries from 'chaire-lib-backend/lib/models/db/zones.db.queries';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
+import type { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
 
 // Depending on the language selected when downloading the source GML file, the tag used to indicate the dissemination block ID will be different.
 // We use the includes() function on this array to ensure the import works with both english and french files.

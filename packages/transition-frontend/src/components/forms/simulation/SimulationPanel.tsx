@@ -7,8 +7,8 @@
 import React from 'react';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
+import type SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
 import SimulationEdit from './SimulationEdit';
 import SimulationsList from './SimulationList';
 

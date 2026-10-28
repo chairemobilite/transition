@@ -18,9 +18,11 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import TransitRouting, { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import TransitRouting, {
+    type TransitRoutingAttributes
+} from 'transition-common/lib/services/transitRouting/TransitRouting';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
@@ -30,10 +32,10 @@ import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateT
 import TransitRoutingBaseComponent from '../transitRouting/widgets/TransitRoutingBaseComponent';
 import ODCoordinatesComponent from '../transitRouting/widgets/ODCoordinatesComponent';
 import TimeOfTripComponent from '../transitRouting/widgets/TimeOfTripComponent';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { calculateRouting } from '../../../services/routing/RoutingUtils';
-import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 
 const ScenarioComparisonPanel: React.FC = () => {
     // State hooks

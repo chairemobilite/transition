@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { PreferencesClass } from 'chaire-lib-common/lib/config/Preferences';
+import type { PreferencesClass } from 'chaire-lib-common/lib/config/Preferences';
 
 interface PreferencesResetToDefaultButtonProps extends WithTranslation {
     path: string;

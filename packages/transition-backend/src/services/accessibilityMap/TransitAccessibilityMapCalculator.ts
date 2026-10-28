@@ -10,27 +10,27 @@ import {
     intersect as turfIntersect,
     difference as turfDifference
 } from '@turf/turf';
-import { Feature, FeatureCollection, Point, MultiPolygon } from 'geojson';
+import type { Feature, FeatureCollection, Point, MultiPolygon } from 'geojson';
 
 import _cloneDeep from 'lodash/cloneDeep';
 import _sum from 'lodash/sum';
 import { randomUUID } from 'crypto'; //TODO Only for console.time id, to me removed
 
-import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
-import { AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
+import type { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
 import {
     TransitAccessibilityMapResultByNode,
-    TransitAccessibilityMapWithPolygonResult,
-    TransitAccessibilityMapResult,
-    TransitAccessibilityMapComparisonResult
+    type TransitAccessibilityMapWithPolygonResult,
+    type TransitAccessibilityMapResult,
+    type TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import {
+import type {
     TransitMapCalculationOptions,
     TransitMapColorOptions
 } from 'transition-common/lib/services/accessibilityMap/types';

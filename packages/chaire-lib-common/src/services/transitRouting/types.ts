@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 // This file contains types for the trRouting calculations
-import * as TrRoutingApi from '../../api/TrRouting';
+import type * as TrRoutingApi from '../../api/TrRouting';
 
 export enum ErrorCodes {
     NoRoutingFound = 'TRROUTING_NO_ROUTING_FOUND',

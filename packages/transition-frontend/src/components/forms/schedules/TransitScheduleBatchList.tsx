@@ -12,12 +12,12 @@ import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Line from 'transition-common/lib/services/line/Line';
+import type Line from 'transition-common/lib/services/line/Line';
 import TransitScheduleBatchButton from './TransitScheduleBatchButton';
 import ButtonList from '../../parts/ButtonList';
 import TransitScheduleBatchEdit from './TransitScheduleBatchEdit';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
-import { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import type { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { RoutingService } from './RoutingService';
+import type { RoutingService } from './RoutingService';
 import ManualRoutingService from './ManualRoutingService';
 import OSRMRoutingService from './OSRMRoutingService';
 

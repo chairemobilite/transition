@@ -6,7 +6,7 @@
  */
 import geobuf from 'geobuf';
 import Pbf from 'pbf';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import placesDbQueries from '../models/db/places.db.queries';

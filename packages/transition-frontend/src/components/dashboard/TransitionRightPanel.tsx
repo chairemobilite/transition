@@ -17,7 +17,7 @@ import ScenarioComparisonPanel from '../forms/comparison/ScenarioComparisonPanel
 import GtfsImportForm from '../forms/gtfs/GtfsImportForm';
 import GtfsExportForm from '../forms/gtfs/GtfsExportForm';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import PreferencesPanel from '../forms/preferences/PreferencesEdit';
 
 interface RightPanelProps extends LayoutSectionProps {

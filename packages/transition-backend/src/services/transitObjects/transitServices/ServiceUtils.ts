@@ -11,8 +11,8 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { _makeStringUnique } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import dbQueries from '../../../models/db/transitServices.db.queries';
 import Service from 'transition-common/lib/services/service/Service';
-import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
-import { Knex } from 'knex';
+import type { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import type { Knex } from 'knex';
 
 /**
  * Get services by their ID from the database

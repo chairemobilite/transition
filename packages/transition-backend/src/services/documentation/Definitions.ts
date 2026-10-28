@@ -8,7 +8,7 @@ import fs from 'fs';
 import { parse } from '@unified-latex/unified-latex-util-parse';
 import { parseAlignEnvironment } from '@unified-latex/unified-latex-util-align';
 import { toString } from '@unified-latex/unified-latex-util-to-string';
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 
 /**
  * Get both the french and english version of a definition from the latex files.

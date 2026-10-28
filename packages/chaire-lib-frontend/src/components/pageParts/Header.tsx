@@ -1,17 +1,17 @@
 import React from 'react';
-import { NavLink, useNavigate, NavigateFunction } from 'react-router';
+import { NavLink, useNavigate, type NavigateFunction } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import moment from 'moment';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
 
 import ConfirmModal from '../modal/ConfirmModal';
 import { startLogout } from '../../actions/Auth';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
-import appConfiguration, { UserMenuItem } from '../../config/application.config';
-import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
-import { RootState } from '../../store/configureStore';
+import appConfiguration, { type UserMenuItem } from '../../config/application.config';
+import type { CliUser } from 'chaire-lib-common/lib/services/user/userType';
+import type { RootState } from '../../store/configureStore';
 
 export type HeaderProps = {
     path: string;

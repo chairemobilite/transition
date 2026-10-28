@@ -7,8 +7,8 @@
 // eslint-disable-next-line n/no-unpublished-import
 import type * as GtfsTypes from 'gtfs-types';
 
-import { ServiceAttributes } from '../service/Service';
-import { PeriodsGroup } from '../schedules/Period';
+import type { ServiceAttributes } from '../service/Service';
+import type { PeriodsGroup } from '../schedules/Period';
 
 export interface GtfsAgency extends GtfsTypes.Agency {
     // Make the agency ID required for the Gtfs import

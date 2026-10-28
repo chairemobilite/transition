@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import {
+import type {
     RoutingService,
     MapMatchingResults,
     MapMatchParameters,
@@ -13,7 +13,7 @@ import {
     TableToParameters,
     TableResults
 } from '../../../services/routing/RoutingService';
-import { RoutingServiceManager } from '../../../services/routing/RoutingServiceManager';
+import type { RoutingServiceManager } from '../../../services/routing/RoutingServiceManager';
 
 // Types of the RoutingService methods. If the signature changes, this needs to
 // be updated here too, otherwise tests may fail (or worse, succeed) without

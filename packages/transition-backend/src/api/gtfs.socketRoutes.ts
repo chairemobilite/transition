@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { isSocketIo } from './socketUtils';
-import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import { GtfsConstants, GtfsExportParameters } from 'transition-common/lib/api/gtfs';
+import { GtfsConstants, type GtfsExportParameters } from 'transition-common/lib/api/gtfs';
 import GtfsImporter from '../services/gtfsImport/GtfsImporter';
 import { exportGtfs } from '../services/gtfsExport/GtfsExporter';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';

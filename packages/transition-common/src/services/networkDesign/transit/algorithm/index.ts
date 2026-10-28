@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
-import { EvolutionaryAlgorithmDescriptor, EvolutionaryAlgorithmOptions } from './EvolutionaryAlgorithm';
+import type { SimulationAlgorithmDescriptor } from '../TransitNetworkDesignAlgorithm';
+import { EvolutionaryAlgorithmDescriptor, type EvolutionaryAlgorithmOptions } from './EvolutionaryAlgorithm';
 
 /**
  * Define the registry of all available algorithms

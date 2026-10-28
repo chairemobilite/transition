@@ -8,7 +8,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
 
 import config from '../../config/shared/project.config';
-import { GenericObject, GenericAttributes } from './GenericObject';
+import { GenericObject, type GenericAttributes } from './GenericObject';
 
 /**
  * An object where change history is kept as fields are updated. This allows to

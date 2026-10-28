@@ -6,7 +6,7 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 import pQueue from 'p-queue';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { TrRoutingBatchManager } from './TrRoutingBatchManager';
@@ -14,13 +14,13 @@ import { parseLocationsFromCsv } from '../accessMapLocation/AccessMapLocationPro
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodeDbQueries from '../../models/db/transitNodes.db.queries';
 import scenariosDbQueries from '../../models/db/transitScenarios.db.queries';
-import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
+import type { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 import { createAccessMapFileResultProcessor } from './TrAccessibilityMapBatchResult';
 import { TransitAccessibilityMapCalculator } from '../accessibilityMap/TransitAccessibilityMapCalculator';
-import { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
+import type { AccessibilityMapLocation } from 'transition-common/lib/services/accessibilityMap/AccessibiltyMapLocation';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { ExecutableJob } from '../executableJob/ExecutableJob';
-import { BatchAccessMapJobType } from './BatchAccessibilityMapJob';
+import type { ExecutableJob } from '../executableJob/ExecutableJob';
+import type { BatchAccessMapJobType } from './BatchAccessibilityMapJob';
 
 /**
  * Do batch accessibility map on a csv file input

@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import nodemailer, { Transporter } from 'nodemailer';
+import nodemailer, { type Transporter } from 'nodemailer';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import fs from 'fs';
-import DKIM from 'nodemailer/lib/dkim';
+import type DKIM from 'nodemailer/lib/dkim';
 
 // Generate the config block for DKIM (DomainKeys Identified Mail) if the right ENV variables are defined
 // DKIM allow to sign each sent email based on a key pair stored in DNS config

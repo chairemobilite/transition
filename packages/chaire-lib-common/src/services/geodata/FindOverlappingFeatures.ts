@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import * as turf from '@turf/turf';
 
-import { SingleGeometry } from './GeoJSONUtils';
+import type { SingleGeometry } from './GeoJSONUtils';
 
 // TODO Can we type this?
 const getComparisonMethod = (feature: GeoJSON.Feature): ((a: any, b: any) => boolean) => {

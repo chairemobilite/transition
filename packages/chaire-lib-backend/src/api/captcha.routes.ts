@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import express, { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
+import type express from 'express';
 
 import config from '../config/server.config';
 import { fileManager } from '../utils/filesystem/fileManager';

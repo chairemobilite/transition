@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
-import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
+import type { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import * as BatchAttributeSelectionWidgets from '../../transitCalculation/widgets/AttributeSelectionWidget';

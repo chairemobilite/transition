@@ -4,15 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import osrm from 'osrm';
+import type osrm from 'osrm';
 
 /*
 Content of the osrm type can be found at
 https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/osrm/index.d.ts
 */
 
-import { RoutingMode } from '../config/routingModes';
-import { TripRoutingQueryAttributes } from '../services/routing/types';
+import type { RoutingMode } from '../config/routingModes';
+import type { TripRoutingQueryAttributes } from '../services/routing/types';
 
 export interface TransitionMatchOptions extends osrm.MatchOptions {
     mode: RoutingMode;

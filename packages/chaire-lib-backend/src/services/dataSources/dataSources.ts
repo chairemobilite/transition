@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import DataSource, { DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
+import DataSource, { type DataSourceType } from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
 import dbQueries from '../../models/db/dataSources.db.queries';
 

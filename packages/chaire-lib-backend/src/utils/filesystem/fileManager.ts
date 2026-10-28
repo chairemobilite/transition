@@ -6,7 +6,7 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { DirectoryManager, directoryManager } from './directoryManager';
+import { type DirectoryManager, directoryManager } from './directoryManager';
 
 class FileManager {
     private _directoryManager: DirectoryManager;

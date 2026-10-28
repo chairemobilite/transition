@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import Generation from './Generation';
+import type Generation from './Generation';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 
 type LogFormats = 'csv' | 'log' | 'json';

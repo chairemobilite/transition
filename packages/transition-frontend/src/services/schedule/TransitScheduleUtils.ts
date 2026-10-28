@@ -4,7 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import Schedule, { SchedulePeriodTrip } from 'transition-common/lib/services/schedules/Schedule';
+import type { SchedulePeriodTrip } from 'transition-common/lib/services/schedules/Schedule';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
 
 export const haveSamePeriods = (schedule1: Schedule, schedule2: Schedule): boolean => {
     const periods1 = schedule1.attributes.periods;

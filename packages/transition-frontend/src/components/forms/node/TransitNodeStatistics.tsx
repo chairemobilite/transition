@@ -6,12 +6,12 @@
  */
 import React from 'react';
 import _uniq from 'lodash/uniq';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
-import Node from 'transition-common/lib/services/nodes/Node';
-import Line from 'transition-common/lib/services/line/Line';
+import type Node from 'transition-common/lib/services/nodes/Node';
+import type Line from 'transition-common/lib/services/line/Line';
 import Path from 'transition-common/lib/services/path/Path';
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
+import type PathCollection from 'transition-common/lib/services/path/PathCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 const SingleColumn: React.FunctionComponent<{ header: string; values?: string[] | number[]; isHeader?: boolean }> = ({

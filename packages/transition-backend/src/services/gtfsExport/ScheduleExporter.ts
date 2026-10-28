@@ -12,10 +12,10 @@ import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import dbQueries from '../../models/db/transitSchedules.db.queries';
 import pathDbQueries from '../../models/db/transitPaths.db.queries';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
+import type { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import Path from 'transition-common/lib/services/path/Path';
+import type Path from 'transition-common/lib/services/path/Path';
 
 // will return an object with trips and stop_times arrays
 // + nodeIds (the node ids used in this schedule)

@@ -6,13 +6,13 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { type WithTranslation, withTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
-import PreferencesSectionLineModeProps from '../PreferencesSectionLineModeProps';
+import type PreferencesSectionLineModeProps from '../PreferencesSectionLineModeProps';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const PreferencesSectionTransitLineMode: React.FunctionComponent<PreferencesSectionLineModeProps & WithTranslation> = (

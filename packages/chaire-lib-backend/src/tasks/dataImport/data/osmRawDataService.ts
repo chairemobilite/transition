@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { bbox, booleanPointInPolygon } from '@turf/turf';
-import { DataOsmRaw, OsmRawDataType, OsmRawDataTypeNode } from './dataOsmRaw';
-import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import type { DataOsmRaw, OsmRawDataType, OsmRawDataTypeNode } from './dataOsmRaw';
+import type { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 
 export type FeatureEntrancesOptions = {
     entranceTypes?: string[];

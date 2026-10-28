@@ -6,7 +6,7 @@
  */
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { PreferenceType } from 'chaire-lib-common/lib/config/defaultPreferences.config';
+import type { PreferenceType } from 'chaire-lib-common/lib/config/defaultPreferences.config';
 import React from 'react';
 
 /**

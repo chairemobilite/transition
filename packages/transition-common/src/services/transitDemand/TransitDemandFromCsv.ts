@@ -6,13 +6,13 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseCsvFile } from 'chaire-lib-common/lib/utils/files/CsvFile';
-import { TransitDemandFromCsvAttributes } from './types';
+import type { TransitDemandFromCsvAttributes } from './types';
 
 /**
  * Base attributes for any batch transit calculation, like routing or accessibility map

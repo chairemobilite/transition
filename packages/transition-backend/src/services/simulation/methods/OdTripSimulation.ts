@@ -4,16 +4,16 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
+import type { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TrRoutingError } from 'chaire-lib-common/lib/api/TrRouting';
-import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
+import type { TrRoutingError } from 'chaire-lib-common/lib/api/TrRouting';
+import type { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import {
     OdTripSimulationDescriptor,
-    OdTripSimulationOptions
+    type OdTripSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/OdTripSimulationMethod';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 

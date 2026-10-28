@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import { area as turfArea } from '@turf/turf';
 import { pipeline } from 'node:stream/promises';
 import JSONStream from 'JSONStream';
 import fs from 'fs';
 
 import GenericDataImportTask from './genericDataImportTask';
-import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import type { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 import { ignoreBuildings } from 'chaire-lib-common/lib/config/osm/osmBuildingQuerySetup';
 import { queryResidentialBuildings } from 'chaire-lib-common/lib/config/osm/osmResidentialBuildingTags';
 import { findOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';

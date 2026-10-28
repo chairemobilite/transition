@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import osrm from 'osrm';
+import type osrm from 'osrm';
 
-import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
-import * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type * as Status from 'chaire-lib-common/lib/utils/Status';
+import type { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import type * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
-import OSRMMode from './OSRMMode';
+import type OSRMMode from './OSRMMode';
 
 class OSRMService {
     private _modeRegistry: Record<RoutingMode, OSRMMode>;

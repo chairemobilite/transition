@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 import _get from 'lodash/get';
-import io, { Socket } from 'socket.io-client';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import io, { type Socket } from 'socket.io-client';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import EventEmitter from 'events';
 import { sectionLayers } from '../../config/layers.config';
 
-import { MainMapProps } from '../map/TransitionMainMap';
+import type { MainMapProps } from '../map/TransitionMainMap';
 import FullSizePanel from 'chaire-lib-frontend/lib/components/dashboard/FullSizePanel';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import Toolbar from 'chaire-lib-frontend/lib/components/dashboard/Toolbar';
@@ -36,7 +36,7 @@ import PlaceCollection from 'transition-common/lib/services/places/PlaceCollecti
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import { loadLayersAndCollections } from '../../services/dashboard/LayersAndCollectionsService';
-import {
+import type {
     Contribution,
     DashboardContribution,
     PanelSectionProps

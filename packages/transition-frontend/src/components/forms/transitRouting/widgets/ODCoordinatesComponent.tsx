@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt';
 

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { ChangeEvent, JSX } from 'react';
+import React, { type ChangeEvent, type JSX } from 'react';
 
 export type InputValue = {
     value: any;

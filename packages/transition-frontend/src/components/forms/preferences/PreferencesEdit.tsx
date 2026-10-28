@@ -5,12 +5,15 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { PreferencesClass, default as preferences } from 'chaire-lib-common/lib/config/Preferences';
+import { type PreferencesClass, default as preferences } from 'chaire-lib-common/lib/config/Preferences';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import PreferencesSectionGeneral from './sections/PreferencesSectionGeneral';

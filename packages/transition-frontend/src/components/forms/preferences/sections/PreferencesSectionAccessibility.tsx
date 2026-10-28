@@ -6,8 +6,8 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { WithTranslation, withTranslation } from 'react-i18next';
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import { type WithTranslation, withTranslation } from 'react-i18next';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 import PreferencesColorComponent from '../PreferencesColorComponent';
 
 const PreferencesSectionTransitRouting: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (

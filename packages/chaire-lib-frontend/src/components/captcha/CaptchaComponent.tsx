@@ -6,7 +6,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
-import { CaptchaProps } from './CaptchaProps';
+import type { CaptchaProps } from './CaptchaProps';
 
 // Use a React lazy component to dynamically load the appropriate captcha implementation
 const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: CaptchaProps) => {

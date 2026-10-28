@@ -7,11 +7,11 @@
 import PQueue from 'p-queue';
 
 import Node from 'transition-common/lib/services/nodes/Node';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
+import type NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import type PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import { updateAccessiblePlaces } from 'transition-common/lib/services/nodes/NodeGeographyUtils';
 import { getTransferableNodes } from './TransferableNodeUtils';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import { objectToCache } from '../../models/capnpCache/transitNodes.cache.queries';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
 import transferableNodesDbQueries from '../../models/db/transitNodeTransferable.db.queries';

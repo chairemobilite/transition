@@ -9,7 +9,7 @@ import React from 'react';
 import PreferencesResetToDefaultButton from './PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
-import PreferencesSectionProps from './PreferencesSectionProps';
+import type PreferencesSectionProps from './PreferencesSectionProps';
 
 type ColorPrefProps = {
     prefPath: string;

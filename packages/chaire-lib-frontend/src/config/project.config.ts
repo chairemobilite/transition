@@ -1,5 +1,5 @@
 import config, {
-    ProjectConfiguration,
+    type ProjectConfiguration,
     setProjectConfiguration
 } from 'chaire-lib-common/lib/config/shared/project.config';
 declare let __CONFIG__: ProjectConfiguration<unknown>;

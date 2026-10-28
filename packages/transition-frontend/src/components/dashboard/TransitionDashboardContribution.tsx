@@ -8,8 +8,8 @@ import React from 'react';
 
 import {
     DashboardContribution,
-    Contribution,
-    PanelSectionProps
+    type Contribution,
+    type PanelSectionProps
 } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import BottomPanel from './TransitionBottomPanel';
 import MenuBar from './TransitionMenuBar';

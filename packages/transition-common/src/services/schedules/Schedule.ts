@@ -9,15 +9,15 @@ import _isNumber from 'lodash/isNumber';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitPath from '../path/Path';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import type CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 
 export enum UnitLocation {
     ORIGIN = 'origin',

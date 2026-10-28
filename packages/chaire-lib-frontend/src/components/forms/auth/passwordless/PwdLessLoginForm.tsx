@@ -6,9 +6,9 @@ import FormErrors from '../../../pageParts/FormErrors';
 import { startPwdLessLogin } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
 import { _isBlank, _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { RootState } from '../../../../store/configureStore';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
+import type { RootState } from '../../../../store/configureStore';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
 import { useNavigate, useLocation } from 'react-router';
 
 type LoginPageProps = {

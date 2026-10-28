@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 // This file contains socket routes to access the routing services
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
-import { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { Routing } from '../services/routing/Routing';
 
 //TODO: The userId parameter is unused. Either remove it or implement a use for it.

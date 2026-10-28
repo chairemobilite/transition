@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
@@ -13,7 +13,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 
 import transitNodesDbQueries from '../../models/db/transitNodes.db.queries';
 import { DecayFunctionCalculator } from './DecayFunctionCalculator';
-import {
+import type {
     DecayFunctionParameters,
     DecayInputValueType,
     DecayInputValue,

@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
-import { AgencyImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { AgencyImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';

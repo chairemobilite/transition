@@ -4,12 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 
 import { startForgotPasswordRequest } from '../../actions/Auth';
-import Button, { ButtonProps } from '../input/Button';
+import Button, { type ButtonProps } from '../input/Button';
 import FormErrors from '../pageParts/FormErrors';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
-import { RootState } from '../../store/configureStore';
-import { Action } from 'redux';
-import { ThunkDispatch } from 'redux-thunk';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { RootState } from '../../store/configureStore';
+import type { Action } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
 
 type ForgotPasswordPageProps = {
     config: {

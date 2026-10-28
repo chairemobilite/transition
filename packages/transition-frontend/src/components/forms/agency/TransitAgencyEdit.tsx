@@ -8,7 +8,7 @@ import React from 'react';
 import Collapsible from 'react-collapsible';
 import _get from 'lodash/get';
 import timezones from 'timezone/zones';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputText from 'chaire-lib-frontend/lib/components/input/InputText';
@@ -19,12 +19,15 @@ import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMult
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pageParts/CollectionDownloadButtons';
-import Agency from 'transition-common/lib/services/agency/Agency';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type Agency from 'transition-common/lib/services/agency/Agency';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 const timezoneZoneChoices: { label: string; value: string }[] = [];
 for (let i = 0, countI = timezones.length; i < countI; i++) {

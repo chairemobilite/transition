@@ -6,7 +6,7 @@
  */
 import React from 'react';
 
-import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 
 export interface ChangeEventsState<T extends GenericObject<any>> {
     object: T;

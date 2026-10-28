@@ -6,9 +6,9 @@
  */
 import React from 'react';
 
-import { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import type { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import * as FieldMappingWidgets from './FieldMappingWidgets';
-import { CsvFieldMappingDescriptor, FileAndMappingAttributes } from 'transition-common/lib/services/csv';
+import type { CsvFieldMappingDescriptor, FileAndMappingAttributes } from 'transition-common/lib/services/csv';
 
 export type SingleFieldMappingComponentProps = {
     mappingDescriptor: CsvFieldMappingDescriptor;

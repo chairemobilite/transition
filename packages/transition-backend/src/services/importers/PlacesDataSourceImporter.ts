@@ -13,7 +13,7 @@ import { confirm } from '@inquirer/prompts';
 
 import placesDbQueries from '../../models/db/places.db.queries';
 import dataSourcesDbQuery from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
-import { PlaceAttributes } from 'transition-common/lib/services/places/Place';
+import type { PlaceAttributes } from 'transition-common/lib/services/places/Place';
 import DataSource from 'chaire-lib-common/lib/services/dataSource/DataSource';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import PQueue from 'p-queue';

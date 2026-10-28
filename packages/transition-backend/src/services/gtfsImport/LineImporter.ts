@@ -7,17 +7,17 @@
 import type { Route as GtfsRouteSpec } from 'gtfs-types';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import Line, { type LineAttributes } from 'transition-common/lib/services/line/Line';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
 import lineModes from 'transition-common/lib/config/lineModes';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { LineImportData, GtfsImportData, GtfsRoute } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { LineImportData, GtfsImportData, GtfsRoute } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import type { RightOfWayCategory, TransitMode } from 'transition-common/lib/services/line/types';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 import AgencyImporter from './AgencyImporter';
-import { GtfsObjectImporter } from './GtfsObjectImporter';
-import { GtfsInternalData, formatColor } from './GtfsImportTypes';
+import type { GtfsObjectImporter } from './GtfsObjectImporter';
+import { type GtfsInternalData, formatColor } from './GtfsImportTypes';
 
 // Default line color as per the GTFS specification
 const DEFAULT_LINE_COLOR = '#FFFFFF';

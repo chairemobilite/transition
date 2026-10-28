@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import type { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
 import transitLinesDbQueries from '../../../models/db/transitLines.db.queries';
 import { duplicatePaths } from '../transitPaths/PathDuplicator';
 import { duplicateServices } from '../transitServices/ServiceDuplicator';

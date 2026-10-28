@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingRoute } from './types';
+import type { TrRoutingRoute } from './types';
 import { secondsSinceMidnightToTimeStr, secondsToMinutes } from '../../utils/DateTimeUtils';
-import { TrRoutingV2 } from '../../api/TrRouting';
+import type { TrRoutingV2 } from '../../api/TrRouting';
 
 export interface TrRoutingWalkingStep {
     action: 'walking';

@@ -4,9 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
-import PathCollection from '../path/PathCollection';
-import { SegmentToGeoJSON, StepGeojsonProperties } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import type { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import type PathCollection from '../path/PathCollection';
+import type {
+    SegmentToGeoJSON,
+    StepGeojsonProperties
+} from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 
 export class SegmentToGeoJSONFromPaths {
     constructor(private _pathCollection: PathCollection) {

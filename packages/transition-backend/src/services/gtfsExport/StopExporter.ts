@@ -8,12 +8,12 @@ import fs from 'fs';
 import { unparse } from 'papaparse';
 
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Node from 'transition-common/lib/services/nodes/Node';
+import type Node from 'transition-common/lib/services/nodes/Node';
 import dbQueries from '../../models/db/transitNodes.db.queries';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
-import { GtfsStop } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsStop } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 
 const objectToGtfs = (node: Node, includeCustomFields = false): GtfsStop => {
     const attributes = node.attributes;

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 import { faCheck } from '@fortawesome/free-solid-svg-icons/faCheck';
@@ -19,8 +19,8 @@ import DocumentationTooltip from '../../parts/DocumentationTooltip';
 import TransitNodeEdit from './TransitNodeEdit';
 import TransitNodeCollectionEdit from './TransitNodeCollectionEdit';
 import NodesImportForm from './TransitNodeImportForm';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import Node from 'transition-common/lib/services/nodes/Node';
+import type NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import type Node from 'transition-common/lib/services/nodes/Node';
 import { deleteUnusedNodes } from '../../../services/transitNodes/transitNodesUtils';
 
 // Using a state object instead of 2 useState hooks because we want this object

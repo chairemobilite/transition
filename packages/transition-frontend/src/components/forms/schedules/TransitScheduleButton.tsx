@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
-import Line from 'transition-common/lib/services/line/Line';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
+import type Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 

@@ -6,13 +6,13 @@
  */
 import _toString from 'lodash/toString';
 
-import Simulation, { SimulationAttributes } from './Simulation';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import Simulation, { type SimulationAttributes } from './Simulation';
+import type CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
 import GenericObjectCollection from 'chaire-lib-common/lib/utils/objects/GenericObjectCollection';
-import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 /**
  * A collection of transit services

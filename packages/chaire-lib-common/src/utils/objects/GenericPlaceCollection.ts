@@ -7,7 +7,7 @@
 import geokdbush from 'geokdbush';
 import KDBush from 'kdbush';
 
-import { GenericPlace, GenericPlaceAttributes } from './GenericPlace';
+import type { GenericPlace, GenericPlaceAttributes } from './GenericPlace';
 import GenericMapObjectCollection from './GenericMapObjectCollection';
 import { _isBlank } from '../LodashExtensions';
 import Preferences from '../../config/Preferences';

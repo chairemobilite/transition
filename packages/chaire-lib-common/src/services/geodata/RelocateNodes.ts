@@ -6,7 +6,7 @@
  */
 
 import { lineString, nearestPointOnLine, booleanPointInPolygon, distance } from '@turf/turf';
-import { LineString, Point, Feature, Polygon, Position } from 'geojson';
+import type { LineString, Point, Feature, Polygon, Position } from 'geojson';
 
 const MAX_NODE_RELOCATION_DISTANCE = 50; // in meters
 

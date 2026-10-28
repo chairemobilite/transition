@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import APIResponseBase from './APIResponseBase';
-import { AccessibilityMapCalculationResult } from '../../services/routingCalculation/RoutingCalculator';
-import { Feature, MultiPolygon, Point } from 'geojson';
-import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import {
+import type { AccessibilityMapCalculationResult } from '../../services/routingCalculation/RoutingCalculator';
+import type { Feature, MultiPolygon, Point } from 'geojson';
+import type * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
+import type {
     PlaceCategory,
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';

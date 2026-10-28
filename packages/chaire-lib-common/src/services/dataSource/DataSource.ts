@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { ObjectWithHistory } from '../../utils/objects/ObjectWithHistory';
-import { GenericAttributes } from '../../utils/objects/GenericObject';
+import type { GenericAttributes } from '../../utils/objects/GenericObject';
 import serviceLocator from '../../utils/ServiceLocator';
 
 export const dataSourceTypesArray = [

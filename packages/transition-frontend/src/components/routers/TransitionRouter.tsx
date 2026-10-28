@@ -8,7 +8,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router';
 
 import DashboardTransition from '../dashboard/TransitionDashboard';
-import { MainMapProps } from '../map/TransitionMainMap';
+import type { MainMapProps } from '../map/TransitionMainMap';
 import NotFoundPage from 'chaire-lib-frontend/lib/components/pages/NotFoundPage';
 import UnauthorizedPage from 'chaire-lib-frontend/lib/components/pages/UnauthorizedPage';
 import { LoginPage } from 'chaire-lib-frontend/lib/components/pages';
@@ -19,7 +19,7 @@ import ResetPasswordPage from 'chaire-lib-frontend/lib/components/pages/ResetPas
 import UnconfirmedPage from 'chaire-lib-frontend/lib/components/pages/UnconfirmedPage';
 import PrivateRoute from 'chaire-lib-frontend/lib/components/routers/PrivateRoute';
 import PublicRoute from 'chaire-lib-frontend/lib/components/routers/PublicRoute';
-import { DashboardContribution } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type { DashboardContribution } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 
 type TransitionRouterProps = {
     contributions: DashboardContribution[];

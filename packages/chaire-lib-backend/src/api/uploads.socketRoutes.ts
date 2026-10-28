@@ -8,7 +8,7 @@ import type SocketIO from 'socket.io';
 import _merge from 'lodash/merge';
 
 import { fileManager } from '../utils/filesystem/fileManager';
-import { FileUploadOptions, FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
+import type { FileUploadOptions, FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
 
 export type FileUploadServerOptions = {
     acceptTypes: string[];

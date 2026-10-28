@@ -1,14 +1,14 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate, Link, NavigateFunction, Location } from 'react-router';
+import { useLocation, useNavigate, Link, type NavigateFunction, type Location } from 'react-router';
 
 import FormErrors from '../../../pageParts/FormErrors';
 import { startLogin } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
-import { RootState } from '../../../../store/configureStore';
-import { Action } from 'redux';
-import { ThunkDispatch } from 'redux-thunk';
+import type { RootState } from '../../../../store/configureStore';
+import type { Action } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
 
 type LoginPageProps = {
     withForgotPassword?: boolean;

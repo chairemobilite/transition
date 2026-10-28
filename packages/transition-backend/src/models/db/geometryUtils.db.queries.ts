@@ -10,9 +10,9 @@
 
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { randomUUID } from 'crypto';
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 export async function clipPolygon(circles: Array<{ center: [number, number]; radiusKm: number }>): Promise<any> {
     if (circles.length === 0) {

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { PropsWithChildren } from 'react';
+import React, { type PropsWithChildren } from 'react';
 import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import Markdown from 'react-markdown';

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { validate as uuidValidate } from 'uuid';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import type { Idable } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 

@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import Collapsible from 'react-collapsible';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 
@@ -15,17 +15,17 @@ import CollectionDownloadButtons from 'chaire-lib-frontend/lib/components/pagePa
 import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButtons';
 import AgencyEdit from './TransitAgencyEdit';
 import LineEdit from '../line/TransitLineEdit';
-import AgenciesList, { AgencyListState } from './TransitAgencyList';
+import AgenciesList, { type AgencyListState } from './TransitAgencyList';
 import AgencyImportForm from './TransitAgencyImportForm';
 import LineImportForm from '../line/TransitLineImportForm';
 import PathImportForm from '../path/TransitPathImportForm';
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
-import Agency from 'transition-common/lib/services/agency/Agency';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import Line from 'transition-common/lib/services/line/Line';
-import Path from 'transition-common/lib/services/path/Path';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import type Agency from 'transition-common/lib/services/agency/Agency';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type PathCollection from 'transition-common/lib/services/path/PathCollection';
+import type Line from 'transition-common/lib/services/line/Line';
+import type Path from 'transition-common/lib/services/path/Path';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
 
 interface AgencyPanelProps extends WithTranslation {
     availableRoutingModes: string[];

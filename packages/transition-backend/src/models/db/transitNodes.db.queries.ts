@@ -20,8 +20,8 @@ import {
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
-import { Knex } from 'knex';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { Knex } from 'knex';
 
 const tableName = 'tr_transit_nodes';
 const pathTableName = 'tr_transit_paths';

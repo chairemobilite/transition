@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { isSocketIo } from './socketUtils';
 import uploadsSocketRoutes from './uploads.socketRoutes';

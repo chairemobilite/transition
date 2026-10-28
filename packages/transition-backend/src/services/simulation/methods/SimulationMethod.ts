@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { SimulationAlgorithmDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import type { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
+import type { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 /**
  * Interface for simulation method implementations. A simulation method will be

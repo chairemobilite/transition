@@ -6,14 +6,14 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 import random from 'random';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
-import { GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { AlgorithmConfiguration } from '../networkDesign/transit/algorithm';
-import { TransitNetworkDesignParameters } from '../networkDesign/transit/TransitNetworkDesignParameters';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import { type GenericAttributes, GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { AlgorithmConfiguration } from '../networkDesign/transit/algorithm';
+import type { TransitNetworkDesignParameters } from '../networkDesign/transit/TransitNetworkDesignParameters';
+import type { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 export type SimulationRuntimeOptions = {
     numberOfThreads: number;

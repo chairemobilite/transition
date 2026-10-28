@@ -6,7 +6,7 @@
  */
 // Unused vars, but linked to in the documentation
 import { GtfsImportData } from '../services/gtfs/GtfsImportTypes'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export interface GtfsExportParameters {
     gtfsExporterId: string;

@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import _get from 'lodash/get';
@@ -25,12 +25,12 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import DownloadsUtils from 'chaire-lib-frontend/lib/services/DownloadsService';
-import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
+import { ChangeEventsForm, type ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -41,7 +41,7 @@ import {
     secondsToMinutes,
     minutesToSeconds
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 import TransitAccessibilityMapRouting, {
     MAX_DELTA_MINUTES,
@@ -49,7 +49,7 @@ import TransitAccessibilityMapRouting, {
     MIN_WALKING_SPEED_KPH,
     MAX_WALKING_SPEED_KPH
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import type { TransitAccessibilityMapWithPolygonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 import { calculateAccessibilityMap } from '../../../services/routing/RoutingUtils';
 import AccessibilityMapStatsComponent from './AccessibilityMapStatsComponent';

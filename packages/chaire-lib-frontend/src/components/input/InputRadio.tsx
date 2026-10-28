@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
+import React, { type JSX } from 'react';
 
 type ChoiceType = {
     value: string | boolean;

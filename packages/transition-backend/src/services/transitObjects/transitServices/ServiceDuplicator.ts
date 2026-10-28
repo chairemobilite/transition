@@ -8,13 +8,13 @@
 // services. Except for the high level database transactions, this file should
 // not contain any functions calling directly database queries. These should be
 // in the ServiceUtils.ts file.
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
-import Service from 'transition-common/lib/services/service/Service';
+import type Service from 'transition-common/lib/services/service/Service';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { getServicesById, getUniqueServiceName, saveServices } from './ServiceUtils';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import type { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
 
 // TODO Add more options, like the complete name of the new service
 export type DuplicateServiceOptions = {

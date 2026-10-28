@@ -7,11 +7,11 @@
 import React from 'react';
 import _uniq from 'lodash/uniq';
 
-import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import { PathAttributes } from 'transition-common/lib/services/path/Path';
+import type Scenario from 'transition-common/lib/services/scenario/Scenario';
+import type { PathAttributes } from 'transition-common/lib/services/path/Path';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Line from 'transition-common/lib/services/line/Line';
-import Agency from 'transition-common/lib/services/agency/Agency';
+import type Line from 'transition-common/lib/services/line/Line';
+import type Agency from 'transition-common/lib/services/agency/Agency';
 
 export interface TransitScenarioLinesDetailProps {
     scenario: Scenario;

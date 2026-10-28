@@ -9,10 +9,10 @@ import { useTranslation } from 'react-i18next';
 import { Tab, Tabs, TabList } from 'react-tabs';
 
 import AlternativesSelect from './ScenarioComparisonAlternativesSelect';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
-import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import type { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 
 export interface ScenarioComparisonTabProps {
     result1: RoutingResultsByMode;

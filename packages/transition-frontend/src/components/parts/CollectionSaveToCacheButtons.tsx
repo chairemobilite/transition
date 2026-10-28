@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faArchive } from '@fortawesome/free-solid-svg-icons/faArchive';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
+import type GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
 
 interface CollectionSaveToCacheProps extends WithTranslation {
     collection?: GenericCollection<any>;

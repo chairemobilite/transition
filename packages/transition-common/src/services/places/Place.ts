@@ -4,13 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
-import { EventEmitter } from 'events';
+import type GeoJSON from 'geojson';
+import type { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { GenericPlace, GenericPlaceAttributes } from 'chaire-lib-common/lib/utils/objects/GenericPlace';
+import { GenericPlace, type GenericPlaceAttributes } from 'chaire-lib-common/lib/utils/objects/GenericPlace';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 export interface PlaceAttributes extends GenericPlaceAttributes {

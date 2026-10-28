@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 import _toString from 'lodash/toString';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
@@ -24,16 +24,20 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import Node, { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type Node from 'transition-common/lib/services/nodes/Node';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import NodeStatistics from './TransitNodeStatistics';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { proposeNames } from 'transition-common/lib/services/nodes/NodeGeographyUtils';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface NodeFormProps extends WithTranslation {
     node: Node;

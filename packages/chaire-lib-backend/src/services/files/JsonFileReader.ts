@@ -7,7 +7,7 @@
 import fs from 'fs';
 import { chain } from 'stream-chain';
 import { parser as jsonParser } from 'stream-json';
-import jsonFilter from 'stream-json/filters/FilterBase';
+import type jsonFilter from 'stream-json/filters/FilterBase';
 import { pick as jsonPick } from 'stream-json/filters/Pick';
 import { streamArray as jsonStreamArray } from 'stream-json/streamers/StreamArray';
 

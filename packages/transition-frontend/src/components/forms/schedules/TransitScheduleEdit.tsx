@@ -5,23 +5,27 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons/faTrashAlt';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
-import InputSelect, { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import InputSelect, { type choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
-import Schedule, { ScheduleCalculationMode } from 'transition-common/lib/services/schedules/Schedule';
-import Line from 'transition-common/lib/services/line/Line';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
+import { ScheduleCalculationMode } from 'transition-common/lib/services/schedules/Schedule';
+import type Line from 'transition-common/lib/services/line/Line';
 import TransitSchedulePeriod from './TransitSchedulePeriod';
 
 interface ScheduleFormProps {

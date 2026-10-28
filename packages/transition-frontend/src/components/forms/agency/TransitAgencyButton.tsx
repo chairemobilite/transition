@@ -11,7 +11,7 @@ import MathJax from 'react-mathjax';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import Agency from 'transition-common/lib/services/agency/Agency';
+import type Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import Button from '../../parts/Button';
@@ -19,8 +19,8 @@ import ButtonCell from '../../parts/ButtonCell';
 import ButtonList from '../../parts/ButtonList';
 import DocumentationTooltip from '../../parts/DocumentationTooltip';
 import TransitLineButton from '../line/TransitLineButton';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 interface AgencyButtonProps {
     agency: Agency;

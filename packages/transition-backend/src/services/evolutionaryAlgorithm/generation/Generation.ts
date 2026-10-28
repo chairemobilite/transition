@@ -5,15 +5,16 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import pQueue from 'p-queue';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
-import NetworkCandidate, { ResultSerialization } from '../candidate/Candidate';
+import type { ResultSerialization } from '../candidate/Candidate';
+import type NetworkCandidate from '../candidate/Candidate';
 import { collectionToCache } from '../../../models/capnpCache/transitScenarios.cache.queries';
-import * as AlgoTypes from '../internalTypes';
+import type * as AlgoTypes from '../internalTypes';
 import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import SimulationRunBackend from '../../simulation/SimulationRun';
+import type Scenario from 'transition-common/lib/services/scenario/Scenario';
+import type SimulationRunBackend from '../../simulation/SimulationRun';
 import GenerationLogger from './GenerationLogger';
 
 abstract class Generation {

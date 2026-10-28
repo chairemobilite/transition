@@ -20,13 +20,13 @@ import {
     destroy
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import {
+import type {
     SimulationRunAttributes,
     SimulationRunDataAttributes,
     SimulationRuntimeOptions
 } from 'transition-common/lib/services/simulation/SimulationRun';
 import scenarioDbQueries from './transitScenarios.db.queries';
-import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
+import type { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 
 const tableName = 'tr_simulation_runs';
 const runToScenarioTableName = 'tr_simulation_run_scenario';

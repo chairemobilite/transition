@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import Line from './Line';
+import type Line from './Line';
 
 /**
  * Get the weight of a line, ie a value representing its importance in the

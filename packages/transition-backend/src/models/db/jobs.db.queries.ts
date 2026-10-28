@@ -8,8 +8,8 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 
 import { truncate, destroy } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { Knex } from 'knex';
-import { JobAttributes, JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
+import type { Knex } from 'knex';
+import type { JobAttributes, JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
 
 const tableName = 'tr_jobs';
 

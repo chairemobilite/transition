@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
-import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import type { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 
 export interface TransitRoutingStepRideButtonProps extends WithTranslation {
     boardingStep: TrRoutingV2.TripStepBoarding;

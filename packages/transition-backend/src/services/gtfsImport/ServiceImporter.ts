@@ -11,16 +11,16 @@ import _isEqual from 'lodash/isEqual';
 
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Service, { ServiceAttributes, serviceDays } from 'transition-common/lib/services/service/Service';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import Service, { type ServiceAttributes, serviceDays } from 'transition-common/lib/services/service/Service';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { ServiceImportData, GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { ServiceImportData, GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { getUniqueServiceName } from '../transitObjects/transitServices/ServiceUtils';
-import { GtfsObjectImporter } from './GtfsObjectImporter';
-import { formatColor, GtfsInternalData } from './GtfsImportTypes';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import Line from 'transition-common/lib/services/line/Line';
+import type { GtfsObjectImporter } from './GtfsObjectImporter';
+import { formatColor, type GtfsInternalData } from './GtfsImportTypes';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type Line from 'transition-common/lib/services/line/Line';
 
 export interface GtfsService extends GtfsTypes.Calendar {
     only_dates: string[];

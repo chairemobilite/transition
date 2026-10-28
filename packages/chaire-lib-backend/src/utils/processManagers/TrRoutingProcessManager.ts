@@ -7,7 +7,7 @@
 import { directoryManager } from '../filesystem/directoryManager';
 import ProcessManager from './ProcessManager';
 import osrmService from '../osrm/OSRMService';
-import config, { TrRoutingConfig } from '../../config/server.config';
+import config, { type TrRoutingConfig } from '../../config/server.config';
 import serverConfig from '../../config/ServerConfig';
 
 // Set 2 threads as default, just in case we have more than one request being handled

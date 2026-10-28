@@ -11,16 +11,16 @@ import * as turf from '@turf/turf';
 import type * as GtfsTypes from 'gtfs-types';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { GenericPlace, GenericPlaceAttributes } from 'chaire-lib-common/lib/utils/objects/GenericPlace';
+import { GenericPlace, type GenericPlaceAttributes } from 'chaire-lib-common/lib/utils/objects/GenericPlace';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { metersToMapboxPixelsAtMaxZoom } from 'chaire-lib-common/lib/utils/geometry/ConversionUtils';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import {
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type {
     PlaceCategory,
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';

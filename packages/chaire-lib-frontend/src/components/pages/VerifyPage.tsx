@@ -2,17 +2,17 @@ import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
 import Button from '../input/Button';
 
 import {
     startConfirmUser,
     startGetConfirmUserInfo,
-    ConfirmCallbackType,
-    ConfirmInfoCallbackType
+    type ConfirmCallbackType,
+    type ConfirmInfoCallbackType
 } from '../../actions/Auth';
-import { RootState } from '../../store/configureStore';
+import type { RootState } from '../../store/configureStore';
 
 type Status = 'Loading' | 'Ready' | 'Confirming' | 'Confirmed' | 'NotFound' | 'MissingToken' | 'Error';
 

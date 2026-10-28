@@ -5,15 +5,15 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 import { faWindowClose } from '@fortawesome/free-solid-svg-icons/faWindowClose';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Line from 'transition-common/lib/services/line/Line';
-import { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import type Line from 'transition-common/lib/services/line/Line';
+import type { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import TransitScheduleEdit from './TransitScheduleEdit';
 import TransitScheduleButton from './TransitScheduleButton';
 import ButtonList from '../../parts/ButtonList';

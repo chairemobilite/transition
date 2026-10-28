@@ -5,13 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import type * as GtfsTypes from 'gtfs-types';
-import { Path, type PeriodSegmentData } from 'transition-common/lib/services/path/Path';
+import type { Path, PeriodSegmentData } from 'transition-common/lib/services/path/Path';
 import { buildPeriodSegmentData } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 import type { TimeAndDistance } from 'transition-common/lib/services/path/PathTypes';
-import { StopTime, TripStopTimesWithService } from '../gtfsImport/GtfsImportTypes';
+import type { StopTime, TripStopTimesWithService } from '../gtfsImport/GtfsImportTypes';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { TransitSchedulePeriod, findPeriodShortname } from 'transition-common/lib/services/schedules/Period';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import { type TransitSchedulePeriod, findPeriodShortname } from 'transition-common/lib/services/schedules/Period';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 import {
     length as turfLength,

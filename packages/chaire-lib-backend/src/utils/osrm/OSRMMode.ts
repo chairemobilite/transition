@@ -8,12 +8,12 @@ import _merge from 'lodash/merge';
 import _camelCase from 'lodash/camelCase';
 import _flatten from 'lodash/flatten';
 
-import GeoJSON from 'geojson';
-import osrm from 'osrm'; // Types from the osrm API definition see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/osrm/index.d.ts
+import type GeoJSON from 'geojson';
+import type osrm from 'osrm'; // Types from the osrm API definition see https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/osrm/index.d.ts
 
-import * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import type { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
 
 import fetchRetry from 'fetch-retry';
 const fetch = fetchRetry(global.fetch);

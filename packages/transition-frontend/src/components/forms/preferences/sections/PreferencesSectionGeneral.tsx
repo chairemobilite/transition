@@ -17,7 +17,7 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 
 const PreferencesSectionGeneral: React.FunctionComponent<PreferencesSectionProps> = (props) => {
     const { t } = useTranslation(['main', 'transit']);

@@ -4,19 +4,19 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { isSocketIo } from './socketUtils';
 import { saveAndUpdateAllNodes } from '../services/nodes/NodeCollectionUtils';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
+import type { ScheduleAttributes } from 'transition-common/lib/services/schedules/Schedule';
 import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import nodesDbQueries from '../models/db/transitNodes.db.queries';
 import schedulesDbQueries from '../models/db/transitSchedules.db.queries';
 import { TransitApi } from 'transition-common/lib/api/transit';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import { saveNode } from '../services/nodes/TransitNode';
 
 /**

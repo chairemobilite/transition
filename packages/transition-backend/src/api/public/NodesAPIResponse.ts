@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Feature, FeatureCollection, Point } from 'geojson';
+import type { Feature, FeatureCollection, Point } from 'geojson';
 import APIResponseBase from './APIResponseBase';
 
 type NodesAPIProperties = {

@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import MemcachedProcessManager, {
-    MemcachedInstance
+    type MemcachedInstance
 } from 'chaire-lib-backend/lib/utils/processManagers/MemcachedProcessManager';
-import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
+import type { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 
 /**

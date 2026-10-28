@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import { parseCsvFile as parse, CsvFileAttributes } from 'chaire-lib-common/lib/utils/files/CsvFile';
+import { parseCsvFile as parse, type CsvFileAttributes } from 'chaire-lib-common/lib/utils/files/CsvFile';
 
 /**
  * Wrapper around the papaparse file parser for CSV files. It transforms the

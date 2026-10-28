@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import { FileConfig } from 'transition-common/lib/services/csv';
+import type { FileConfig } from 'transition-common/lib/services/csv';
 import { ExecutableJob } from './ExecutableJob';
 
 export class ExecutableJobUtils {

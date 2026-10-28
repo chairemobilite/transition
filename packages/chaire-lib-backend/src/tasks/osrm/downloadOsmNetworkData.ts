@@ -7,8 +7,8 @@
 import { confirm } from '@inquirer/prompts';
 
 import osmDownloader from '../../utils/osm/OsmOverpassDownloader';
-import { GenericTask } from '../genericTask';
-import { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
+import type { GenericTask } from '../genericTask';
+import type { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
 import networksPolyForOsrm from '../../config/osm/overpassQueries/networksPolyForOsrm';
 import { createXmlOsmElementValidationTransform } from '../../utils/osm/OsmValidationTransform';
 

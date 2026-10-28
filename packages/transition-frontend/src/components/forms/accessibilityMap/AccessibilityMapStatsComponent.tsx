@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX, useState } from 'react';
+import React, { type JSX, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Collapsible from 'react-collapsible';
 import { Tooltip } from 'react-tooltip';

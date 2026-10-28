@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { useTranslation, withTranslation, WithTranslation } from 'react-i18next';
+import { useTranslation, withTranslation, type WithTranslation } from 'react-i18next';
 import Collapsible from 'react-collapsible';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
@@ -35,14 +35,18 @@ import PathStatistics from './TransitPathStatistics';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import TransitPathSegmentTimesByPeriodModal from './TransitPathSegmentTimesByPeriodModal/TransitPathSegmentTimesByPeriodModal';
 import lineModesConfig from 'transition-common/lib/config/lineModes';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
 import { parseIntOrNull, parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
-import Path, { pathDirectionArray } from 'transition-common/lib/services/path/Path';
+import type Path from 'transition-common/lib/services/path/Path';
+import { pathDirectionArray } from 'transition-common/lib/services/path/Path';
 import { chaikinSmoothPath } from '../../../services/path/chaikinSmoothing';
-import Line from 'transition-common/lib/services/line/Line';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type Line from 'transition-common/lib/services/line/Line';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
     const lineMode = lineModesConfig[i];

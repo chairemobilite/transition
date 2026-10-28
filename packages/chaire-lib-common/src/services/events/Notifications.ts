@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'stream';
+import type { EventEmitter } from 'stream';
 import serviceLocator from '../../utils/ServiceLocator';
 
 /**

@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import { validate as uuidValidate } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
@@ -24,7 +24,7 @@ import {
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { PathAttributes } from 'transition-common/lib/services/path/Path';
+import type { PathAttributes } from 'transition-common/lib/services/path/Path';
 import {
     createDuplicateQueryWithIdMapping,
     joinWithClauses,

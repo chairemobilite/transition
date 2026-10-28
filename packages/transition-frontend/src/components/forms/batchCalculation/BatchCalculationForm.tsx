@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -13,12 +13,12 @@ import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import ConfigureBatchCalculationForm from './stepForms/ConfigureBatchCalculationForm';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import ConfirmCalculationForm from './stepForms/ConfirmCalculationForm';
 import TransitBatchRoutingCalculator from 'transition-common/lib/services/transitRouting/TransitBatchRoutingCalculator';
 import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 import GenericCsvImportAndMappingForm from '../csv/GenericCsvImportAndMappingForm';
-import { BatchRoutingOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { BatchRoutingOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export interface BatchCalculationFormProps {
     initialValues?: {

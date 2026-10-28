@@ -6,7 +6,7 @@
  */
 import { point as turfPoint } from '@turf/turf';
 import proj4 from 'proj4';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { parseCsvFile as parseCsvFileFromStream } from 'chaire-lib-common/lib/utils/files/CsvFile';
@@ -19,9 +19,9 @@ import {
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import constants from 'chaire-lib-common/lib/config/constants';
-import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export type OdTripCsvMapping = TransitDemandFromCsvRoutingAttributes & {
     debug?: boolean;

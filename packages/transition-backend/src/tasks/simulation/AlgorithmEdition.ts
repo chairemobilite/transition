@@ -8,9 +8,10 @@ import { input, number, confirm, select, checkbox } from '@inquirer/prompts';
 import _cloneDeep from 'lodash/cloneDeep';
 import type { TFunction } from 'i18next';
 
-import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
-import { SimulationRuntimeOptions } from 'transition-common/lib/services/simulation/SimulationRun';
-import { SimulationAlgorithmOptionDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import type { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
+import type { SimulationRuntimeOptions } from 'transition-common/lib/services/simulation/SimulationRun';
+import type { SimulationAlgorithmOptionDescriptor } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
 import SimulationRunBackend from '../../services/simulation/SimulationRun';
 
 const getPromptForDescriptor = async (

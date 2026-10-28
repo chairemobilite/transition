@@ -7,7 +7,7 @@
 import * as z from 'zod';
 
 import CollectionImporter, { genericAttributesSchema } from './CollectionImporter';
-import { Agency, AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
+import { Agency, type AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
 import dbQueries from '../../models/db/transitAgencies.db.queries';
 
 const agencySchema = genericAttributesSchema.extend({

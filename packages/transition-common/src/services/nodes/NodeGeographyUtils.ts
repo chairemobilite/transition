@@ -6,7 +6,7 @@
  */
 import geokdbush from 'geokdbush';
 import { lineIntersect as turfLineIntersect, distance as turfDistance, point as turfPoint } from '@turf/turf';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
@@ -14,14 +14,15 @@ import routingServiceManager from 'chaire-lib-common/lib/services/routing/Routin
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
-import Node, { AccessiblePlacesPerTravelTime } from './Node';
-import PlaceCollection from '../places/PlaceCollection';
+import type { AccessiblePlacesPerTravelTime } from './Node';
+import type Node from './Node';
+import type PlaceCollection from '../places/PlaceCollection';
 
-import {
+import type {
     PlaceCategory,
     PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 // TODO: test

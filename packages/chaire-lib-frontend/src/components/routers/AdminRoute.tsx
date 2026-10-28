@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import PrivateRoute, { PrivateRouteProps } from './PrivateRoute';
+import PrivateRoute, { type PrivateRouteProps } from './PrivateRoute';
 
 // FIXME Admin route and permissions are not really used in transition.
 // chaire-lib cannot really test it. Since it is there for evolution, evolution

@@ -6,7 +6,7 @@
  */
 import _get from 'lodash/get';
 import TrError from '../../utils/TrError';
-import GenericCollection from '../../utils/objects/GenericCollection';
+import type GenericCollection from '../../utils/objects/GenericCollection';
 
 export default {
     /**

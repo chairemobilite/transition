@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import CollectionCacheable from 'chaire-lib-common/lib/services/objects/CollectionCacheable';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import type CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
 import GenericObjectCollection from 'chaire-lib-common/lib/utils/objects/GenericObjectCollection';
-import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 import Line from './Line';
 

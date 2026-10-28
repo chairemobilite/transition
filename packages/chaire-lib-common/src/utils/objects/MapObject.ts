@@ -7,7 +7,7 @@
 import _omit from 'lodash/omit';
 
 import { ObjectWithHistory } from './ObjectWithHistory';
-import { GenericAttributes } from './GenericObject';
+import type { GenericAttributes } from './GenericObject';
 
 export interface MapObjectAttributes<M extends GeoJSON.GeometryObject> extends GenericAttributes {
     geography: M;

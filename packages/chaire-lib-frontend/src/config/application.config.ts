@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TFunction } from 'i18next';
-import { UserPages } from 'chaire-lib-common/lib/services/user/userType';
-import { MouseEventHandler } from 'react';
+import type { TFunction } from 'i18next';
+import type { UserPages } from 'chaire-lib-common/lib/services/user/userType';
+import type { MouseEventHandler } from 'react';
 
 export type UserMenuItem = {
     getText: (t: TFunction) => string;

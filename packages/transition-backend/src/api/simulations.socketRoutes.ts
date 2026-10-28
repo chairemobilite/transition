@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import simulationDbQueries from '../models/db/simulations.db.queries';
 import simulationRunsDbQueries from '../models/db/simulationRuns.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { SimulationAttributes } from 'transition-common/lib/services/simulation/Simulation';
-import { SimulationRunAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
+import type { SimulationAttributes } from 'transition-common/lib/services/simulation/Simulation';
+import type { SimulationRunAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
 
 /**
  * Add routes specific to simulations
