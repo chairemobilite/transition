@@ -21,6 +21,10 @@ test.beforeAll(async ({ browser }) => {
     context.page = await testHelpers.initializeTestPage(browser);
 });
 
+test.afterAll(async () => {
+    await testHelpers.closeTestPage(context.page);
+});
+
 // Login using all methods enabled in the transition login page
 // We switch to english only on the first login, since the language is kept after that
 loginTestHelpers.startAndLoginAnonymously({ context, title: 'Transition', loginMethod: 'clickLoginButton', changeToEnglish: true });
