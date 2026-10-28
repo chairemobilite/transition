@@ -2,12 +2,12 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
 
 import FormErrors from '../../../pageParts/FormErrors';
 import { startPwdLessVerify } from '../../../../actions/Auth';
-import { RootState } from '../../../../store/configureStore';
+import type { RootState } from '../../../../store/configureStore';
 
 type MagicLinkVerifyProps = {
     headerText?: string;

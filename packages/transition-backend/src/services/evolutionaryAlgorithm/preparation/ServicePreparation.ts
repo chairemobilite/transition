@@ -5,18 +5,18 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import Line from 'transition-common/lib/services/line/Line';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type Line from 'transition-common/lib/services/line/Line';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
 import Service from 'transition-common/lib/services/service/Service';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import SimulationRun from 'transition-common/lib/services/simulation/SimulationRun';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type SimulationRun from 'transition-common/lib/services/simulation/SimulationRun';
 import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import Schedule from 'transition-common/lib/services/schedules/Schedule';
 import moment from 'moment';
-import * as AlgoTypes from '../internalTypes';
+import type * as AlgoTypes from '../internalTypes';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
 
 const PERIOD_GROUP_SHORTNAME = 'complete_day';

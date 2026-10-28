@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { PassportStatic } from 'passport';
+import type { PassportStatic } from 'passport';
 import BearerStrategy from 'passport-http-bearer';
-import { IAuthModel, IUserModel } from '../../services/auth/authModel';
+import type { IAuthModel, IUserModel } from '../../services/auth/authModel';
 import config from '../server.config';
 
 // Direct token login strategy: the token will be used as the username. If it

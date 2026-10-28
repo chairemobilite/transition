@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import _get from 'lodash/get';
 
 import * as Status from '../../utils/Status';
-import { GenericObject } from '../../utils/objects/GenericObject';
+import type { GenericObject } from '../../utils/objects/GenericObject';
 
 export default {
     // TODO Type the response

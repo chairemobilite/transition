@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { RouteResults } from '../../../services/routing/RoutingService';
+import type { RouteResults } from '../../../services/routing/RoutingService';
 
 const mockGetRouteByMode: jest.MockedFunction<
     (origin: GeoJSON.Feature<GeoJSON.Point>, destination: GeoJSON.Feature<GeoJSON.Point>) => Promise<RouteResults>

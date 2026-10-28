@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import { getDefinitionInAllLanguages } from '../services/documentation/Definitions';
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 
 export default function (socket: EventEmitter) {

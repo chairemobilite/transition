@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import AccessibilityMapRouting from './TransitAccessibilityMapRouting';
-import { TransitDemandFromCsv, DemandCsvAttributes } from '../transitDemand/TransitDemandFromCsv';
+import type AccessibilityMapRouting from './TransitAccessibilityMapRouting';
+import { TransitDemandFromCsv, type DemandCsvAttributes } from '../transitDemand/TransitDemandFromCsv';
 
 export interface TransitDemandFromCsvAccessMapAttributes extends DemandCsvAttributes {
     projection?: string;

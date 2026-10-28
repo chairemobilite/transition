@@ -11,15 +11,15 @@ import { bbox as turfBbox, featureCollection as turfFeatureCollection } from '@t
 
 import ScenarioComparisonResults from './ScenarioComparisonResults';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
-import { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import type { RoutingResult } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { useTranslation } from 'react-i18next';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
 
 export interface AlternativesSelectProps {
     result1: RoutingResult;

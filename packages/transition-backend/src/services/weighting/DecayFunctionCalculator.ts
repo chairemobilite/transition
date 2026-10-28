@@ -7,14 +7,14 @@
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import {
-    DecayFunctionParameters,
-    PowerDecayParameters,
-    ExponentialDecayParameters,
-    GammaDecayParameters,
-    CombinedDecayParameters,
-    LogisticDecayParameters,
-    DecayInputValueType,
-    DecayInputValue,
+    type DecayFunctionParameters,
+    type PowerDecayParameters,
+    type ExponentialDecayParameters,
+    type GammaDecayParameters,
+    type CombinedDecayParameters,
+    type LogisticDecayParameters,
+    type DecayInputValueType,
+    type DecayInputValue,
     MIN_DISTANCE_METERS,
     MIN_TRAVEL_TIME_SECONDS
 } from './types';

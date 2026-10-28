@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
-import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
-import { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
+import type { TransitDemandFromCsvAccessMapAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
+import type { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 
 export type BatchAccessMapJobType = {
     name: 'batchAccessMap';

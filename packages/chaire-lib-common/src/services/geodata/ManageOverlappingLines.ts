@@ -6,7 +6,7 @@
  */
 
 import { lineOffset, lineOverlap, lineString, booleanPointInPolygon } from '@turf/turf';
-import { LineString, Feature, Polygon } from 'geojson';
+import type { LineString, Feature, Polygon } from 'geojson';
 
 export const OFFSET_WIDTH = 3; // Offset of each line in meters
 

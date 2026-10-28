@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { GtfsInternalData } from './GtfsImportTypes';
+import type { GtfsInternalData } from './GtfsImportTypes';
 
 /**
  * Base class to read and prepare GTFS objects. This class represents the first

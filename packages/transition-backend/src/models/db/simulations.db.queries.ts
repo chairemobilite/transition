@@ -21,8 +21,11 @@ import {
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { SimulationAttributes, SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
-import { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
+import type {
+    SimulationAttributes,
+    SimulationDataAttributes
+} from 'transition-common/lib/services/simulation/Simulation';
+import type { TransitNetworkDesignParameters } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignParameters';
 
 const tableName = 'tr_simulations';
 

@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { PassportStatic } from 'passport';
+import type { PassportStatic } from 'passport';
 import url from 'url';
 import MagicLoginStrategy from 'passport-magic-login';
 import MagicWithDirectSignup from '../../services/auth/pwdLessDirectSignupStrategy';
 import { sendEmail, validateEmailExists } from '../../services/auth/userEmailNotifications';
-import { IAuthModel, IUserModel } from '../../services/auth/authModel';
+import type { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 // MagicLoginStrategy sends a link even for registration, for first-time users.
 // Since we also want to support direct entry to the app for first-time users,

@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Random } from 'random';
+import type { Random } from 'random';
 
-import Agency from 'transition-common/lib/services/agency/Agency';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import Service from 'transition-common/lib/services/service/Service';
-import SimulationRun from '../simulation/SimulationRun';
-import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
+import type Agency from 'transition-common/lib/services/agency/Agency';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type Service from 'transition-common/lib/services/service/Service';
+import type SimulationRun from '../simulation/SimulationRun';
+import type { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
 
 export type LineLevelOfService = {
     numberOfVehicles: number;

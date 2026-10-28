@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Modal from 'react-modal';
-import { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
+import type { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { useTranslation } from 'react-i18next';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 

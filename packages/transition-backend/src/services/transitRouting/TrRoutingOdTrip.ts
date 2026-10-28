@@ -6,11 +6,11 @@
  */
 import { feature as turfFeature } from '@turf/turf';
 
-import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { OdTripRouteResult } from './types';
+import type { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
+import type { OdTripRouteResult } from './types';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
-import { TransitRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 
 interface RouteOdTripParameters {
     routing: TransitRoutingQueryAttributes;

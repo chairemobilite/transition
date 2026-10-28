@@ -4,14 +4,14 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
+import type { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
 import appConfiguration from '../config/application.config';
 import { toCliUser } from '../services/auth/user';
-import { AuthAction, AuthActionTypes } from '../store/auth';
+import { type AuthAction, AuthActionTypes } from '../store/auth';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { Location, NavigateFunction } from 'react-router';
-import { Dispatch } from 'redux';
+import type { Location, NavigateFunction } from 'react-router';
+import type { Dispatch } from 'redux';
 
 // Required permissions to show user information in the header menu. For some basic user roles, like anonymous users, user information may not be wanted.
 let showUserInfoPerm:

@@ -12,7 +12,7 @@ import { faCircle } from '@fortawesome/free-solid-svg-icons/faCircle';
 import { InputCheckboxBoolean } from '../../../input/InputCheckbox';
 import { Button } from '../../../input/Button';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../store/configureStore';
+import type { RootState } from '../../../../store/configureStore';
 
 interface WidgetSetAdminProps {
     isAdmin: boolean;

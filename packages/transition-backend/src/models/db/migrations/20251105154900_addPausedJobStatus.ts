@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 const statusEnumName = 'tr_jobs_status';
 const newEnumValue = 'paused';

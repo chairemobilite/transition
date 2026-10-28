@@ -5,14 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
 import Simulation from 'transition-common/lib/services/simulation/Simulation';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
+import type SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 import SimulationButton from './SimulationButton';
 import ButtonList from '../../parts/ButtonList';
 

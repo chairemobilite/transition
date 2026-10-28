@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import * as turf from '@turf/turf';
 
 const findNearestFromPoint = <P extends GeoJSON.GeoJsonProperties>(

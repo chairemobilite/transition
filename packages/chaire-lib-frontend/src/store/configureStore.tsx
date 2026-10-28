@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { createStore, combineReducers, applyMiddleware, compose, Store } from 'redux';
-import { thunk, ThunkMiddleware } from 'redux-thunk';
+import { createStore, combineReducers, applyMiddleware, compose, type Store } from 'redux';
+import { thunk, type ThunkMiddleware } from 'redux-thunk';
 
 import { authReducer } from './auth';
-import { AuthState } from './auth/types';
+import type { AuthState } from './auth/types';
 
 declare global {
     interface Window {

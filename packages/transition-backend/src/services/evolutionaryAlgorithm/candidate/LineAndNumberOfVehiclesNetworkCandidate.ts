@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
-import Candidate, { Result, ResultSerialization } from './Candidate';
-import Line from 'transition-common/lib/services/line/Line';
+import Candidate, { type Result, type ResultSerialization } from './Candidate';
+import type Line from 'transition-common/lib/services/line/Line';
 import Scenario from 'transition-common/lib/services/scenario/Scenario';
-import * as AlgoTypes from '../internalTypes';
+import type * as AlgoTypes from '../internalTypes';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomFromDistribution } from 'chaire-lib-common/lib/utils/RandomUtils';
 import { getLineWeight } from 'transition-common/lib/services/line/LineUtils';

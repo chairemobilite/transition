@@ -6,7 +6,11 @@
  */
 import React from 'react';
 
-import { Contribution, LayoutSectionProps, PanelSectionProps } from '../../services/dashboard/DashboardContribution';
+import type {
+    Contribution,
+    LayoutSectionProps,
+    PanelSectionProps
+} from '../../services/dashboard/DashboardContribution';
 import ErrorBoundary from '../pageParts/ErrorBoundary';
 
 interface RightPanelProps extends LayoutSectionProps {

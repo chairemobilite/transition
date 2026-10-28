@@ -5,7 +5,7 @@ import { Link, Navigate } from 'react-router';
 
 import appConfiguration from '../../config/application.config';
 import RegisterForm from '../forms/auth/localLogin/RegisterForm';
-import { RootState } from '../../store/configureStore';
+import type { RootState } from '../../store/configureStore';
 
 type RegisterPageProps = {
     config: {

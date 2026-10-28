@@ -7,7 +7,7 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import { multiPoint as turfMultiPoint } from '@turf/turf';
 
-import { MapObject, MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
+import { MapObject, type MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 
 export interface BaseOdTripAttributes extends MapObjectAttributes<GeoJSON.MultiPoint> {
     origin_geography: GeoJSON.Point;

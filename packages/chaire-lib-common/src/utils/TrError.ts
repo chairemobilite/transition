@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TranslatableMessage } from './TranslatableMessage';
+import type { TranslatableMessage } from './TranslatableMessage';
 
 export default class TrError extends Error {
     private code: string;

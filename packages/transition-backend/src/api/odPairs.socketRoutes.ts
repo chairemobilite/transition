@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import odPairsQueries from '../models/db/odPairs.db.queries';
-import { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/BaseOdTrip';
+import type { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /**
  * Add routes specific to od pairs

@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import moment from 'moment';
 
 import { JobsConstants } from 'transition-common/lib/api/jobs';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
+import type { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 

@@ -6,11 +6,11 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { type WithTranslation, withTranslation } from 'react-i18next';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 
 const PreferencesSectionTransitAgencies: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (
     props: PreferencesSectionProps & WithTranslation

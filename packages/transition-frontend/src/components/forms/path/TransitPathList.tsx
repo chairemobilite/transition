@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 
-import Path from 'transition-common/lib/services/path/Path';
-import Line from 'transition-common/lib/services/line/Line';
+import type Path from 'transition-common/lib/services/path/Path';
+import type Line from 'transition-common/lib/services/line/Line';
 import TransitPathButton from './TransitPathButton';
 import ButtonList from '../../parts/ButtonList';
 import DocumentationTooltip from '../../parts/DocumentationTooltip';

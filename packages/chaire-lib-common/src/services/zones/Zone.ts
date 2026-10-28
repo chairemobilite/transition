@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { MapObject, MapObjectAttributes } from '../../utils/objects/MapObject';
+import { MapObject, type MapObjectAttributes } from '../../utils/objects/MapObject';
 
 export interface ZoneAttributes extends MapObjectAttributes<GeoJSON.Polygon | GeoJSON.MultiPolygon> {
     dataSourceId?: string;

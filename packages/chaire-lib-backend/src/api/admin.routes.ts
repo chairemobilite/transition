@@ -4,13 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import express, { Response, Request } from 'express';
+import express, { type Response, type Request } from 'express';
 
 import Users from '../services/users/users';
 import isAuthorized, { UserSubject, isAdmin } from '../services/auth/authorization';
 import { getAvailableRoles } from '../services/auth/userPermissions';
 import { userAuthModel } from '../services/auth/userAuthModel';
-import { UserAttributes } from '../services/users/user';
+import type { UserAttributes } from '../services/users/user';
 
 const router = express.Router();
 

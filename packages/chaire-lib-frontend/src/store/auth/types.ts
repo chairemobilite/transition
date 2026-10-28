@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { CliUser } from 'chaire-lib-common/lib/services/user/userType';
+import type { CliUser } from 'chaire-lib-common/lib/services/user/userType';
 
 export enum AuthActionTypes {
     LOGIN = 'LOGIN',

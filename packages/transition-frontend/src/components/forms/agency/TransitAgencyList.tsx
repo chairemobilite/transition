@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 import { faPlus } from '@fortawesome/free-solid-svg-icons/faPlus';
 
@@ -14,7 +14,7 @@ import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Agency from 'transition-common/lib/services/agency/Agency';
 import Line from 'transition-common/lib/services/line/Line';
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import TransitAgencyButton from './TransitAgencyButton';
 import ButtonList from '../../parts/ButtonList';
 import DocumentationTooltip from '../../parts/DocumentationTooltip';

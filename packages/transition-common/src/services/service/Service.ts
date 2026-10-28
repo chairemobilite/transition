@@ -6,16 +6,16 @@
  */
 import _chunk from 'lodash/chunk';
 import moment from 'moment';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
-import * as Status from 'chaire-lib-common/lib/utils/Status';
+import type * as Status from 'chaire-lib-common/lib/utils/Status';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 // import TransitGarage from '../../../../../../src/models/transition/transit/Garage';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Line from '../line/Line';
+import type Line from '../line/Line';
 
 export const serviceDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 

@@ -6,13 +6,13 @@
  */
 // Unused, but must be imported to make sure the environment is configured at this point, otherwise process.env will have undefined values
 import _dotenv from '../dotenv.config'; // eslint-disable-line @typescript-eslint/no-unused-vars
-import passport, { PassportStatic } from 'passport';
+import passport, { type PassportStatic } from 'passport';
 import GoogleStrategy from 'passport-google-oauth';
 import FacebookStrategy from 'passport-facebook';
 import url from 'url';
 import localLogin from './localLogin.config';
 import config from '../server.config';
-import { IAuthModel, IUserModel } from '../../services/auth/authModel';
+import type { IAuthModel, IUserModel } from '../../services/auth/authModel';
 
 export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic => {
     if (config.auth && config.auth.google === true) {

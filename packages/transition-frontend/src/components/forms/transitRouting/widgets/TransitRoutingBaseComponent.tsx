@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { secondsToMinutes, minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
 export interface TransitRoutingBaseComponentProps extends WithTranslation {

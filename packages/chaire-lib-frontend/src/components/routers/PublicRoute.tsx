@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { RouteProps } from 'react-router';
+import type { RouteProps } from 'react-router';
 
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import { Header } from '../pageParts';

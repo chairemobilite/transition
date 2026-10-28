@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as turf from '@turf/turf';
-import osrm from 'osrm';
-import GeoJSON from 'geojson';
+import type osrm from 'osrm';
+import type GeoJSON from 'geojson';
 import polyline from '@mapbox/polyline';
 
 import * as RoutingService from './RoutingService';
@@ -14,7 +14,7 @@ import serviceLocator from '../../utils/ServiceLocator';
 import { _isBlank } from '../../utils/LodashExtensions';
 import Preferences from '../../config/Preferences';
 import * as Status from '../../utils/Status';
-import * as OSRMRoutingAPI from '../../api/OSRMRouting';
+import type * as OSRMRoutingAPI from '../../api/OSRMRouting';
 import { ceilToPositiveInteger } from '../../utils/MathUtils';
 
 const defaultRoutingRadiusMeters = 20;

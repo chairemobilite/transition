@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import { getDefinitionFromServer } from '../../services/definitions/DefinitionsService';
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 import { Tooltip } from 'react-tooltip';
 
 interface DocumentationTooltipProps extends WithTranslation {

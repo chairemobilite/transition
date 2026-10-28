@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import PreferencesSectionProps from './PreferencesSectionProps';
+import type PreferencesSectionProps from './PreferencesSectionProps';
 
 interface PreferencesSectionLineModeProps extends PreferencesSectionProps {
     mode: string;

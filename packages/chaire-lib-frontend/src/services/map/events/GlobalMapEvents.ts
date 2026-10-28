@@ -4,18 +4,18 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { MapMouseEvent, LngLatBounds } from 'maplibre-gl';
+import type { MapMouseEvent, LngLatBounds } from 'maplibre-gl';
 import _debounce from 'lodash/debounce';
 import { lineString, bboxPolygon, bbox } from '@turf/turf';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { MapEventHandlerDescription } from '../IMapEventHandler';
+import type { MapEventHandlerDescription } from '../IMapEventHandler';
 import { getLinesInView, offsetOverlappingLines } from 'chaire-lib-common/lib/services/geodata/ManageOverlappingLines';
 import { getNodesInView, manageRelocatingNodes } from 'chaire-lib-common/lib/services/geodata/RelocateNodes';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from './MapEventsCallbacks';
-import { MapWithCustomEventsState } from '../MapWithCustomEventsState';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from './MapEventsCallbacks';
+import type { MapWithCustomEventsState } from '../MapWithCustomEventsState';
 
 // TODO: Make zoomLimit modifiable by user
 const zoomLimit = 14; //Zoom levels smaller than this will not apply line separation

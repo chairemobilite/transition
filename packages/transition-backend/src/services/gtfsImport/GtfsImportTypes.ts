@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import type * as GtfsTypes from 'gtfs-types';
-import { PeriodsGroup } from 'transition-common/lib/services/schedules/Period';
+import type { PeriodsGroup } from 'transition-common/lib/services/schedules/Period';
 
 /*
  * This file contains types used by the GTFS import, but that are required only

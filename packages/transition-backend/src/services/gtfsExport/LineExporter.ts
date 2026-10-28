@@ -7,9 +7,9 @@
 import fs from 'fs';
 import { unparse } from 'papaparse';
 
-import { GtfsRoute } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsRoute } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Line from 'transition-common/lib/services/line/Line';
+import type Line from 'transition-common/lib/services/line/Line';
 import dbQueries from '../../models/db/transitLines.db.queries';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

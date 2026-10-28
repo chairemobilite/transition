@@ -5,10 +5,15 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 import path from 'path';
 
-import Job, { JobAttributes, JobDataType, JobStatus, fileKey } from 'transition-common/lib/services/jobs/Job';
+import Job, {
+    type JobAttributes,
+    type JobDataType,
+    type JobStatus,
+    type fileKey
+} from 'transition-common/lib/services/jobs/Job';
 import jobsDbQueries from '../../models/db/jobs.db.queries';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import { execJob } from '../../tasks/serverWorkerPool';

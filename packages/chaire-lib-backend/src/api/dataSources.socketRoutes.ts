@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import dataSourcesDbQueries from '../models/db/dataSources.db.queries';
 

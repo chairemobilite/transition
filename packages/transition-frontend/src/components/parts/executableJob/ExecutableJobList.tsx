@@ -8,9 +8,9 @@
 /* eslint-disable react/jsx-key */
 
 import React from 'react';
-import { useTable, usePagination, useFilters, useSortBy, useFlexLayout, Column } from 'react-table';
-import { WithTranslation, withTranslation } from 'react-i18next';
-import { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { useTable, usePagination, useFilters, useSortBy, useFlexLayout, type Column } from 'react-table';
+import { type WithTranslation, withTranslation } from 'react-i18next';
+import type { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 

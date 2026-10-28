@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
+import type { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
 import { serializePermissions } from './authorization';
 import { getHomePage } from './userPermissions';
 import dbQueries from '../../models/db/users.db.queries';
-import { UserAttributes } from '../users/user';
-import { AuthModelBase, NewUserParams, UserModelBase } from './authModel';
+import type { UserAttributes } from '../users/user';
+import { AuthModelBase, type NewUserParams, UserModelBase } from './authModel';
 
 export const sanitizeUserAttributes = (attributes: UserAttributes): BaseUser => {
     // TODO: Sign serialized permissions with JWT token or other

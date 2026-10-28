@@ -7,14 +7,14 @@
 import _sum from 'lodash/sum';
 import _uniq from 'lodash/uniq';
 
-import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
 import {
     categories,
     detailedCategories,
-    PlaceCategory,
-    PlaceDetailedCategory
+    type PlaceCategory,
+    type PlaceDetailedCategory
 } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
-import NodeCollection from '../nodes/NodeCollection';
+import type NodeCollection from '../nodes/NodeCollection';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
 export interface TransitAccessibilityMapResult {

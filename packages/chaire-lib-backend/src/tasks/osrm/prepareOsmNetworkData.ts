@@ -7,8 +7,8 @@
 import { input, checkbox } from '@inquirer/prompts';
 import { fileSelector } from 'inquirer-file-selector';
 
-import { GenericTask } from '../genericTask';
-import { RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
+import type { GenericTask } from '../genericTask';
+import { type RoutingMode, routingModes } from 'chaire-lib-common/lib/config/routingModes';
 import OSRMServicePreparation from '../../utils/processManagers/OSRMServicePreparation';
 import { fileManager } from '../../utils/filesystem/fileManager';
 

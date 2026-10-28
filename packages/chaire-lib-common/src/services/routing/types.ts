@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
-import { TransitRoutingResultData } from './TransitRoutingResult';
-import { UnimodalRoutingResultData } from './RoutingResult';
+import type { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
+import type { TransitRoutingResultData } from './TransitRoutingResult';
+import type { UnimodalRoutingResultData } from './RoutingResult';
 
 // This file contains the types for routing functions, used by both frontend and backend
 

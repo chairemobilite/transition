@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { RoutingMode } from '../../config/routingModes';
-import { TransitRoutingResult, TransitRoutingResultData } from './TransitRoutingResult';
-import { RoutingResult, UnimodalRoutingResult, UnimodalRoutingResultData } from './RoutingResult';
+import type { RoutingMode } from '../../config/routingModes';
+import { TransitRoutingResult, type TransitRoutingResultData } from './TransitRoutingResult';
+import { type RoutingResult, UnimodalRoutingResult, type UnimodalRoutingResultData } from './RoutingResult';
 
 export type ResultsByMode = {
     [key in RoutingMode]?: UnimodalRoutingResult;

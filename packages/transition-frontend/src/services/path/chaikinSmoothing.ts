@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Position } from 'geojson';
+import type { Position } from 'geojson';
 import { distance as turfDistance, point as turfPoint } from '@turf/turf';
 
 /**

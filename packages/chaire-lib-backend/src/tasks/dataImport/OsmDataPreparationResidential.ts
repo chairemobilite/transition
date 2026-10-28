@@ -4,13 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import * as turf from '@turf/turf';
-import { DataOsmRaw, OsmRawDataType } from './data/dataOsmRaw';
-import { DataGeojson } from './data/dataGeojson';
+import type { DataOsmRaw, OsmRawDataType } from './data/dataOsmRaw';
+import type { DataGeojson } from './data/dataGeojson';
 import {
-    ResidentialEntranceGeojsonProperties,
-    ZoneGeojsonProperties,
+    type ResidentialEntranceGeojsonProperties,
+    type ZoneGeojsonProperties,
     default as osmGeojsonService
 } from './data/osmGeojsonService';
 import { getEntrancesForBuilding } from './data/osmRawDataService';
@@ -21,8 +21,8 @@ import {
     queryResidentialBuildings,
     defaultNumberOfFlats
 } from 'chaire-lib-common/lib/config/osm/osmResidentialBuildingTags';
-import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
-import { GeojsonOutputter } from './osmImportUtils';
+import type { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import type { GeojsonOutputter } from './osmImportUtils';
 
 // fields to query in the osm raw data to get the residential buildings:
 const queryResidentialBuildingsFromOsm = [

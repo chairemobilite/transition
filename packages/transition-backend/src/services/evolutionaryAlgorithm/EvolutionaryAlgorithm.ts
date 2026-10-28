@@ -4,13 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
-import { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
-import { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
-import { TransitNetworkDesignAlgorithmFactory } from '../simulation/SimulationExecution';
-import Agency from 'transition-common/lib/services/agency/Agency';
-import SimulationRun from '../simulation/SimulationRun';
+import type { TransitNetworkDesignAlgorithm } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';
+import type { EvolutionaryAlgorithmOptions } from 'transition-common/lib/services/networkDesign/transit/algorithm/EvolutionaryAlgorithm';
+import type { TransitNetworkDesignAlgorithmFactory } from '../simulation/SimulationExecution';
+import type Agency from 'transition-common/lib/services/agency/Agency';
+import type SimulationRun from '../simulation/SimulationRun';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import { collectionToCache as serviceCollectionToCache } from '../../models/capnpCache/transitServices.cache.queries';
 import { objectsToCache as linesToCache } from '../../models/capnpCache/transitLines.cache.queries';
@@ -20,13 +20,13 @@ import LineAndNumberOfVehiclesGeneration, {
     reproduceCandidates
 } from './generation/LineAndNumberOfVehiclesGeneration';
 import { prepareServices, saveSimulationScenario } from './preparation/ServicePreparation';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import * as AlgoTypes from './internalTypes';
-import NetworkCandidate from './candidate/LineAndNumberOfVehiclesNetworkCandidate';
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
-import Service from 'transition-common/lib/services/service/Service';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type * as AlgoTypes from './internalTypes';
+import type NetworkCandidate from './candidate/LineAndNumberOfVehiclesNetworkCandidate';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import type Service from 'transition-common/lib/services/service/Service';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import Generation from './generation/Generation';
+import type Generation from './generation/Generation';
 
 export const evolutionaryAlgorithmFactory: TransitNetworkDesignAlgorithmFactory<EvolutionaryAlgorithmOptions> = (
     options: EvolutionaryAlgorithmOptions,

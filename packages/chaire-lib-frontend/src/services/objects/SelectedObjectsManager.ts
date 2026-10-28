@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import events from 'events';
+import type events from 'events';
 
 type Idable = {
     id: string;

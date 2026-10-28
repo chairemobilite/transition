@@ -10,7 +10,7 @@ import {
     transit as transitAttributes,
     steps as transitStepsAttributes
 } from '../../config/trRoutingAttributes';
-import { routingModes, RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import { routingModes, type RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 
 export const getDefaultCsvAttributes = (modes: RoutingOrTransitMode[]): { [key: string]: string | number | null } => {
     const csvAttributes = _cloneDeep(baseAttributes);

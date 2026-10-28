@@ -7,12 +7,12 @@
 import React from 'react';
 import _toString from 'lodash/toString';
 import Collapsible from 'react-collapsible';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { type WithTranslation, withTranslation } from 'react-i18next';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import InputColor from 'chaire-lib-frontend/lib/components/input/InputColor';
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 import { parseFloatOrNull } from 'chaire-lib-common/lib/utils/MathUtils';
 
 const PreferencesSectionTransitNodes: React.FunctionComponent<PreferencesSectionProps & WithTranslation> = (

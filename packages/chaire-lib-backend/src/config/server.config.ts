@@ -9,11 +9,11 @@ import os from 'os';
 import _merge from 'lodash/merge';
 
 import config, {
-    ProjectConfiguration,
+    type ProjectConfiguration,
     setProjectConfiguration as setProjectConfigurationCommon
 } from 'chaire-lib-common/lib/config/shared/project.config';
 import fs from 'fs';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
 export const DEFAULT_LOG_FILE_COUNT = 3; // 3 files
 export const DEFAULT_LOG_FILE_SIZE_KB = 5 * 1024; // 5MB

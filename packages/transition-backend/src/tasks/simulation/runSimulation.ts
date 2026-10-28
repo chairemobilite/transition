@@ -9,10 +9,10 @@ import type { TFunction } from 'i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import i18n from 'chaire-lib-backend/lib/config/i18next';
-import { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
+import type { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
 import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 import { runSimulation } from '../../services/simulation/SimulationExecution';
 import { editAlgorithmConfiguration, getRuntimeConfiguration } from './AlgorithmEdition';

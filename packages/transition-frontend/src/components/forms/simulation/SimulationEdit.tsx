@@ -6,15 +6,18 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputText from 'chaire-lib-frontend/lib/components/input/InputText';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import { SaveableObjectForm, SaveableObjectState } from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
-import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
+import {
+    SaveableObjectForm,
+    type SaveableObjectState
+} from 'chaire-lib-frontend/lib/components/forms/SaveableObjectForm';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
+import type SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
 import BaseSimulationComponent from './widgets/BaseSimulationComponent';
 import SelectedObjectButtons from 'chaire-lib-frontend/lib/components/pageParts/SelectedObjectButtons';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';

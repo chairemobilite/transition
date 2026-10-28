@@ -1,7 +1,7 @@
 import { v4 as uuidV4 } from 'uuid';
-import { Request } from 'express';
-import { StrategyCreatedStatic } from 'passport';
-import { IAuthModel, IUserModel } from './authModel';
+import type { Request } from 'express';
+import type { StrategyCreatedStatic } from 'passport';
+import type { IAuthModel, IUserModel } from './authModel';
 
 const anonymousPrefix = 'anonym_';
 

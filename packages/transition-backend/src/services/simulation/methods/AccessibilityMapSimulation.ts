@@ -8,9 +8,9 @@ import random from 'random';
 import { EventEmitter } from 'events';
 import { point as turfPoint } from '@turf/turf';
 
-import { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
-import { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
+import type { SimulationRunDataAttributes } from 'transition-common/lib/services/simulation/SimulationRun';
+import type { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { SimulationMethodFactory, SimulationMethod } from './SimulationMethod';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import nodesDbQueries from '../../../models/db/transitNodes.db.queries';
 import { TransitAccessibilityMapCalculator } from '../../accessibilityMap/TransitAccessibilityMapCalculator';
@@ -18,7 +18,7 @@ import TransitAccessibilityMapRouting from 'transition-common/lib/services/acces
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import {
     AccessibilityMapSimulationDescriptor,
-    AccessibilityMapSimulationOptions
+    type AccessibilityMapSimulationOptions
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod/AccessibilityMapSimulationMethod';
 
 export const AccessibilityMapSimulationTitle = 'AccessibilityMapSimulation';

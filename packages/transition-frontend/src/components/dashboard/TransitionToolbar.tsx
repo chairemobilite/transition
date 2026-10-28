@@ -14,7 +14,7 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { loadLayersAndCollections } from '../../services/dashboard/LayersAndCollectionsService';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import { ThemeContext } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 
 const Toolbar: React.FunctionComponent<LayoutSectionProps> = (_props) => {

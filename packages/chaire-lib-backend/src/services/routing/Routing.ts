@@ -5,16 +5,16 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
 import transitRoutingService from '../transitRouting/TransitRoutingService';
-import { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
-import { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
-import { TransitRouteQueryOptions, HostPort } from 'chaire-lib-common/lib/api/TrRouting';
+import type { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RouteResults } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type { TrRoutingRouteResult } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TransitRouteQueryOptions, HostPort } from 'chaire-lib-common/lib/api/TrRouting';
 
 type TransitOrRouteCalculatorResult =
     | { routingMode: TransitMode; result: TrRoutingRouteResult | TrError }

@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { OsmRawQueryOr } from './OsmRawQueryType';
-import { Activities } from '../lookups';
-import { PlaceCategory, PlaceDetailedCategory } from './osmMappingDetailedCategoryToCategory';
+import type { OsmRawQueryOr } from './OsmRawQueryType';
+import type { Activities } from '../lookups';
+import type { PlaceCategory, PlaceDetailedCategory } from './osmMappingDetailedCategoryToCategory';
 
 /*
 These are POIs categories used for generating a plausible number of trips per weekday

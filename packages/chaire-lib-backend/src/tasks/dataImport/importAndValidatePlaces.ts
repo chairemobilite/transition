@@ -5,16 +5,16 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import GenericDataImportTask from './genericDataImportTask';
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import { DataFileGeojson } from './data/dataGeojson';
-import {
+import type {
     ResidentialEntranceGeojsonProperties,
     ZoneGeojsonProperties,
     ResidenceGeojsonProperties
 } from './data/osmGeojsonService';
 import { _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { splitOverlappingFeatures } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
-import { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
+import type { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
 
 // TODO: Make that configurable
 const landRoleFieldMapping = {

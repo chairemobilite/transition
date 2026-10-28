@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
-import { useTranslation, withTranslation, WithTranslation } from 'react-i18next';
+import React, { type JSX } from 'react';
+import { useTranslation, withTranslation, type WithTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _chunkify } from 'chaire-lib-common/lib/utils/LodashExtensions';

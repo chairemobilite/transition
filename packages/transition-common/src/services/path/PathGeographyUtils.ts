@@ -10,9 +10,9 @@ import * as turf from '@turf/turf';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
-import { Feature, FeatureCollection, Point } from 'geojson';
-import { MapMatchingResults, RoutingService } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { Feature, FeatureCollection, Point } from 'geojson';
+import type { MapMatchingResults, RoutingService } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { generatePathGeographyFromRouting } from './PathGeographyGenerator';
 import type { SegmentChangeInfo } from './PathTypes';
 import { kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';

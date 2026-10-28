@@ -6,7 +6,7 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 import _merge from 'lodash/merge';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 // TODO This class calls these socket routes. We should thus not import it here. The Preferences class should be divided as part of #1665
 import allPreferences from 'chaire-lib-common/lib/config/Preferences';

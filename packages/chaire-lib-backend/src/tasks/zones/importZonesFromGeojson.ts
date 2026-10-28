@@ -7,12 +7,12 @@
 import { select, input } from '@inquirer/prompts';
 import { fileSelector } from 'inquirer-file-selector';
 
-import { GenericTask } from '../genericTask';
+import type { GenericTask } from '../genericTask';
 import { v4 as uuidV4 } from 'uuid';
 import { fileManager } from '../../utils/filesystem/fileManager';
 import dsQueries from '../../models/db/dataSources.db.queries';
 import zonesQueries from '../../models/db/zones.db.queries';
-import { DataSourceAttributes } from 'chaire-lib-common/lib/services/dataSource/DataSource';
+import type { DataSourceAttributes } from 'chaire-lib-common/lib/services/dataSource/DataSource';
 
 /**
  * Task to import a zones data source in the database

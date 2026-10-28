@@ -4,15 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import AgencyImporter from './AgencyImporter';
 import ServiceImporter from './ServiceImporter';
@@ -20,7 +20,7 @@ import LineImporter from './LineImporter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import FrequencyImporter from './FrequencyImporter';
 import type * as GtfsTypes from 'gtfs-types';
-import { GtfsInternalData, ProgressEmitFn, StopTime } from './GtfsImportTypes';
+import type { GtfsInternalData, ProgressEmitFn, StopTime } from './GtfsImportTypes';
 import ShapeImporter from './ShapeImporter';
 import StopTimeImporter from './StopTimeImporter';
 import TripImporter from './TripImporter';

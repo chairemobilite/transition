@@ -7,7 +7,7 @@
 
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { GeneralizedCostFunctionValues, GeneralizedCostFunctionWeights } from './types';
+import type { GeneralizedCostFunctionValues, GeneralizedCostFunctionWeights } from './types';
 export class GeneralizedCostFunction {
     private weights: GeneralizedCostFunctionWeights;
 

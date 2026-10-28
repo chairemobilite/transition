@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import MathJax from 'react-mathjax';
 
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -13,8 +13,8 @@ import SpeedUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/Spe
 import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
 import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import pathStatsFormula from 'transition-common/lib/config/path/pathStats';
-import Path from 'transition-common/lib/services/path/Path';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type Path from 'transition-common/lib/services/path/Path';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 
 interface StatsRowProps extends WithTranslation {
     variable: string;

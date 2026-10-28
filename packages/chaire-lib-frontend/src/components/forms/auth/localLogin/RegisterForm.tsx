@@ -2,16 +2,16 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
 
 import { startRegisterWithPassword } from '../../../../actions/Auth';
 import Button from '../../../input/Button';
 import FormErrors from '../../../pageParts/FormErrors';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import CaptchaComponent from '../../../captcha/CaptchaComponent';
 import { _isEmail } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { RootState } from '../../../../store/configureStore';
+import type { RootState } from '../../../../store/configureStore';
 
 type RegisterFormProps = {
     withCaptcha?: boolean;

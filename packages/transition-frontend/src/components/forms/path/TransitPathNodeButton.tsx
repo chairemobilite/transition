@@ -5,13 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
 import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Path from 'transition-common/lib/services/path/Path';
-import Node from 'transition-common/lib/services/nodes/Node';
+import type Path from 'transition-common/lib/services/path/Path';
+import type Node from 'transition-common/lib/services/nodes/Node';
 
 interface PathButtonProps extends WithTranslation {
     path: Path;

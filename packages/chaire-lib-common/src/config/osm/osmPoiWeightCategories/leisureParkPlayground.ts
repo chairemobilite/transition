@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { POIWeightCategory } from '../POIWeightCategoryType';
+import type { POIWeightCategory } from '../POIWeightCategoryType';
 
 //TODO detail and separate into multiple weight categories for better precision from more samples
 //TODO: separate swimming pools

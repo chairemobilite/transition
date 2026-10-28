@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import React, { type JSX } from 'react';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
-import { TransitDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { TransitDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';

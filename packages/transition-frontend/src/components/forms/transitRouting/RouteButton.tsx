@@ -5,8 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import { withTranslation, type WithTranslation } from 'react-i18next';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 

@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { Navigate, RouteProps, useLocation } from 'react-router';
+import { Navigate, type RouteProps, useLocation } from 'react-router';
 
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 import { Header } from '../pageParts';
 import { useSelector } from 'react-redux';
-import { AuthState } from '../../store/auth';
+import type { AuthState } from '../../store/auth';
 
 export type PrivateRouteProps = RouteProps & {
     component: any;

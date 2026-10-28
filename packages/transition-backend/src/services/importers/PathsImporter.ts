@@ -8,7 +8,7 @@ import * as z from 'zod';
 
 import { genericAttributesSchema } from './CollectionImporter';
 import CollectionImporter from './GeojsonCollectionImporter';
-import Path, { PathAttributes, pathDirectionArray } from 'transition-common/lib/services/path/Path';
+import Path, { type PathAttributes, pathDirectionArray } from 'transition-common/lib/services/path/Path';
 import dbQueries from '../../models/db/transitPaths.db.queries';
 
 // TODO For paths, the data in the 'data' field is important, we should add them to the schema

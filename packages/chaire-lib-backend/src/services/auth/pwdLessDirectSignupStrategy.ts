@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Request } from 'express';
-import { StrategyCreatedStatic } from 'passport';
-import MagicLoginStrategy from 'passport-magic-login';
+import type { Request } from 'express';
+import type { StrategyCreatedStatic } from 'passport';
+import type MagicLoginStrategy from 'passport-magic-login';
 
-import { IAuthModel, IUserModel } from './authModel';
+import type { IAuthModel, IUserModel } from './authModel';
 
 /**
  * Passport strategy, which uses a magic link sent by email or sms, but allows a

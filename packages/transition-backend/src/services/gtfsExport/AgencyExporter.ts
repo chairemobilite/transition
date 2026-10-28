@@ -8,9 +8,9 @@ import fs from 'fs';
 import slugify from 'slugify';
 import { unparse } from 'papaparse';
 
-import { GtfsAgency } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsAgency } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Agency from 'transition-common/lib/services/agency/Agency';
+import type Agency from 'transition-common/lib/services/agency/Agency';
 import dbQueries from '../../models/db/transitAgencies.db.queries';
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

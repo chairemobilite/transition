@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { useTable, usePagination, useFilters } from 'react-table';
-import { WithTranslation, withTranslation } from 'react-i18next';
+import { type WithTranslation, withTranslation } from 'react-i18next';
 
 export interface UserDisplay {
     username: string;

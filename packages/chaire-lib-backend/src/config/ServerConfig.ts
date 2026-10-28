@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import config, { TrRoutingConfig } from './server.config';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import config, { type TrRoutingConfig } from './server.config';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 
 /**
  * Helper class to manage accesses to server configuration

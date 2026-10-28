@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _uniq from 'lodash/uniq';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
 import transitNodeTransferableDbQueries from '../../models/db/transitNodeTransferable.db.queries';

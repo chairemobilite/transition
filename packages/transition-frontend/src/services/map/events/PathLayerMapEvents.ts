@@ -8,8 +8,8 @@
 import { Popup as MapLibrePopup } from 'maplibre-gl';
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
-import { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
+import type { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import type { MapWithCustomEventsState } from 'chaire-lib-frontend/lib/services/map/MapWithCustomEventsState';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Path from 'transition-common/lib/services/path/Path';
 import { addHoverClass, removeHoverClass } from '../MapCursorHelper';

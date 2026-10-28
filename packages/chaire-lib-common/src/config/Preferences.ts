@@ -13,8 +13,8 @@ import EventEmitter from 'events';
 
 import * as Status from '../utils/Status';
 import { ObjectWithHistory } from '../utils/objects/ObjectWithHistory';
-import { Saveable } from '../utils/objects/Saveable';
-import { default as defaultPreferences, PreferencesModel } from './defaultPreferences.config';
+import type { Saveable } from '../utils/objects/Saveable';
+import { default as defaultPreferences, type PreferencesModel } from './defaultPreferences.config';
 import config from './shared/project.config';
 import { _isBlank } from '../utils/LodashExtensions';
 import { lineModesArray } from './lineModesDefaultValues';

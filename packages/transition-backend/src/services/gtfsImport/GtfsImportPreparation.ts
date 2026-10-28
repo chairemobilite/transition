@@ -9,7 +9,7 @@ import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionMan
 import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
 import LineCollection from 'transition-common/lib/services/line/LineCollection';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { GtfsImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 
 import AgencyImporter from './AgencyImporter';
 import LineImporter from './LineImporter';

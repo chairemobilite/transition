@@ -7,7 +7,7 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loadCaptchaEnginge, LoadCanvasTemplate, validateCaptcha } from 'react-simple-captcha';
-import { CaptchaProps } from './CaptchaProps';
+import type { CaptchaProps } from './CaptchaProps';
 
 export const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: CaptchaProps) => {
     const { t } = useTranslation('auth');

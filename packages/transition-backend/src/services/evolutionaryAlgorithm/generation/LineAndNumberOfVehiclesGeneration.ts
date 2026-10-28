@@ -6,12 +6,12 @@
  */
 import _cloneDeep from 'lodash/cloneDeep';
 import _isEqual from 'lodash/isEqual';
-import { Random } from 'random';
+import type { Random } from 'random';
 
 import Generation from './Generation';
 import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 import { randomBoolArray, shuffle } from 'chaire-lib-common/lib/utils/RandomUtils';
-import * as AlgoTypes from '../internalTypes';
+import type * as AlgoTypes from '../internalTypes';
 import KPointCrossover from '../reproduction/KPointCrossover';
 import Tournament from '../reproduction/Tournament';
 import Mutation from '../reproduction/Mutation';

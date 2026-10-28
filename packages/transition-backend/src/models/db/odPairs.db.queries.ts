@@ -22,7 +22,7 @@ import {
     stringifyDataSourceIds
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/BaseOdTrip';
+import type { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 
 const tableName = 'tr_od_pairs';
 const st = knexPostgis(knex);

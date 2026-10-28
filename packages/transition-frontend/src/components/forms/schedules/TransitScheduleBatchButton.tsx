@@ -6,11 +6,11 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import Line from 'transition-common/lib/services/line/Line';
+import type Line from 'transition-common/lib/services/line/Line';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
 
 interface ScheduleBatchButtonProps {
     line: Line;

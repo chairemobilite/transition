@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as Geojson from 'geojson';
-import { MapMatchingResults, MapLeg } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type * as Geojson from 'geojson';
+import type { MapMatchingResults, MapLeg } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -14,7 +14,8 @@ import {
     durationFromAccelerationDecelerationDistanceAndRunningSpeed,
     kphToMps
 } from 'chaire-lib-common/lib/utils/PhysicsUtils';
-import Path, { type PeriodSegmentData, type PathAttributesData } from './Path';
+import type Path from './Path';
+import type { PeriodSegmentData, PathAttributesData } from './Path';
 import { buildPeriodSegmentData } from './PathSegmentTimeUtils';
 import type { TimeAndDistance, TypeNodeChange, SegmentChangeInfo } from './PathTypes';
 

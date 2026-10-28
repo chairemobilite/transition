@@ -6,7 +6,7 @@
  */
 import React from 'react';
 
-import { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
+import type { Contribution, LayoutSectionProps } from '../../services/dashboard/DashboardContribution';
 
 interface BottomPanelProps extends LayoutSectionProps {
     activeSection: string;

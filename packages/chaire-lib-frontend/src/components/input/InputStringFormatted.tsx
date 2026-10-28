@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { default as InputString, InputStringProps } from './InputString';
+import { default as InputString, type InputStringProps } from './InputString';
 
 export type InputStringFormattedProps = InputStringProps & {
     /**

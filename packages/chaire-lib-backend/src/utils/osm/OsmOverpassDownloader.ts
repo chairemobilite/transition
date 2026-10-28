@@ -14,7 +14,7 @@ import type { ReadableStream } from 'node:stream/web';
 import { geojsonToPolyBoundary } from 'chaire-lib-common/lib/utils/geometry/ConversionUtils';
 import allNodesXmlQuery from '../../config/osm/overpassQueries/allNodes';
 import allWaysAndRelationsXmlQuery from '../../config/osm/overpassQueries/allWaysAndRelations';
-import { createPassthroughTransform, ValidationTransformFactory } from './OsmValidationTransform';
+import { createPassthroughTransform, type ValidationTransformFactory } from './OsmValidationTransform';
 
 export interface OsmOverpassDownloader {
     downloadJson(boundPoly: GeoJSON.Polygon, overpassXmlQueryString: string): Promise<JSON>; // boundary polygon should not have holes!

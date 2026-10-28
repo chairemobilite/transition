@@ -6,7 +6,7 @@
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import path from 'path';
-import { Express, Request, Response, RequestHandler } from 'express';
+import type { Express, Request, Response, RequestHandler } from 'express';
 
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import _camelCase from 'lodash/camelCase';
@@ -17,7 +17,7 @@ import KnexConnection from 'connect-session-knex';
 import morgan from 'morgan'; // http logger
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
+import type { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import publicRoutes from './api/public.routes';

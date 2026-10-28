@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import defineAbilitiesFor from './userPermissions';
-import { PackRule, packRules } from '@casl/ability/extra';
-import { UserAttributes } from '../users/user';
+import { type PackRule, packRules } from '@casl/ability/extra';
+import type { UserAttributes } from '../users/user';
 
 export const UserSubject = 'Users';
 

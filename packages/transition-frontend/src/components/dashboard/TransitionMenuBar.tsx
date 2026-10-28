@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX, use } from 'react';
+import React, { type JSX, use } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 import { ThemeContext } from 'chaire-lib-frontend/lib/contexts/ThemeContext';
 import config from 'chaire-lib-common/lib/config/shared/project.config';
 

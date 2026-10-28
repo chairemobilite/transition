@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { Saveable } from 'chaire-lib-common/lib/utils/objects/Saveable';
-import { ChangeEventsForm, ChangeEventsState } from './ChangeEventsForm';
+import type { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { Saveable } from 'chaire-lib-common/lib/utils/objects/Saveable';
+import { ChangeEventsForm, type ChangeEventsState } from './ChangeEventsForm';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 

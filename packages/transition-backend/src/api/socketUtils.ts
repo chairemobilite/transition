@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
-import SocketIO from 'socket.io';
+import type { EventEmitter } from 'events';
+import type SocketIO from 'socket.io';
 
 export const isSocketIo = (socket: EventEmitter): socket is SocketIO.Socket => {
     return typeof (socket as any).use === 'function';

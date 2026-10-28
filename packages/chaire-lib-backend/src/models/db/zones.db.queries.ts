@@ -22,7 +22,7 @@ import {
 } from './default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
+import type { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
 
 const tableName = 'tr_zones';
 const dataSourceTbl = 'tr_data_sources';

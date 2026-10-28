@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { JobsConstants } from 'transition-common/lib/api/jobs';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 export interface ExpandableFileProps {
     jobId: number;

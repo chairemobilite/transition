@@ -7,8 +7,8 @@
 import bytes from 'bytes';
 import { directoryManager } from '../../utils/filesystem/directoryManager';
 import config from '../../config/server.config';
-import usersDbQueries, { UserFilter } from '../../models/db/users.db.queries';
-import { UserAttributes } from './user';
+import usersDbQueries, { type UserFilter } from '../../models/db/users.db.queries';
+import type { UserAttributes } from './user';
 
 export default class Users {
     static getAllMatching = async (

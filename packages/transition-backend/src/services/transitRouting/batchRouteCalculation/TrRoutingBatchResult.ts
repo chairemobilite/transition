@@ -4,28 +4,28 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import fs from 'fs';
+import type fs from 'fs';
 import _omit from 'lodash/omit';
 import _cloneDeep from 'lodash/cloneDeep';
 
-import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import type { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
-import { OdTripRouteOutput, OdTripRouteResult } from '../types';
+import type { OdTripRouteOutput, OdTripRouteResult } from '../types';
 import { unparse } from 'papaparse';
-import { ErrorCodes, TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
-import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import { ErrorCodes, type TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/transitRouting/TrRoutingResultConversion';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import type { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type PathCollection from 'transition-common/lib/services/path/PathCollection';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
-import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
 import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
-import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { BatchRouteJobType } from '../BatchRoutingJob';
+import type { ExecutableJob } from '../../executableJob/ExecutableJob';
+import type { BatchRouteJobType } from '../BatchRoutingJob';
 
 const CSV_FILE_NAME = 'batchRoutingResults.csv';
 const DETAILED_CSV_FILE_NAME = 'batchRoutingDetailedResults.csv';

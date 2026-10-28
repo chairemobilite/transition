@@ -6,7 +6,7 @@
  */
 import React from 'react';
 
-import { AgencyImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { AgencyImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { InputCheckbox } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
 import GtfsExistingAgencyImport from './GtfsExistingAgencyImport';
 

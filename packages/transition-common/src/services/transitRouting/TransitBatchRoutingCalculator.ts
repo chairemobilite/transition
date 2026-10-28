@@ -7,11 +7,11 @@
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
-import { TransitBatchCalculationResult } from '../batchCalculation/types';
+import type { TransitBatchCalculationResult } from '../batchCalculation/types';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import TransitOdDemandFromCsv from '../transitDemand/TransitOdDemandFromCsv';
-import { BatchCalculationParameters, isBatchParametersValid } from '../batchCalculation/types';
-import { BatchRoutingOdDemandFromCsvAttributes } from '../transitDemand/types';
+import type TransitOdDemandFromCsv from '../transitDemand/TransitOdDemandFromCsv';
+import { type BatchCalculationParameters, isBatchParametersValid } from '../batchCalculation/types';
+import type { BatchRoutingOdDemandFromCsvAttributes } from '../transitDemand/types';
 
 export class TransitBatchRoutingCalculator {
     private static async _calculate(

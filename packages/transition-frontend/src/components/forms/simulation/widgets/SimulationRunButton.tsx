@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import moment from 'moment';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import SimulationRun from 'transition-common/lib/services/simulation/SimulationRun';
+import type SimulationRun from 'transition-common/lib/services/simulation/SimulationRun';
 import Button from '../../../parts/Button';
 import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal';
 import ButtonCell from '../../../parts/ButtonCell';

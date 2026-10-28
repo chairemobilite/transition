@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TrRoutingPath, TrRoutingV2 } from '../../../api/TrRouting';
-import { TrRoutingRoute } from '../../../services/transitRouting/types';
+import type { TrRoutingPath, TrRoutingV2 } from '../../../api/TrRouting';
+import type { TrRoutingRoute } from '../../../services/transitRouting/types';
 import TestUtils from '../../TestUtils';
 
 // TODO These constant paths seem to have as base an actual reply from trRouting

@@ -6,7 +6,7 @@
  */
 import fs from 'fs';
 import JSZip from 'jszip';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import { exportAgency } from './AgencyExporter';
@@ -16,10 +16,10 @@ import { exportLine } from './LineExporter';
 import { exportService } from './ServiceExporter';
 import { exportSchedule } from './ScheduleExporter';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { GtfsExportParameters } from 'transition-common/lib/api/gtfs';
+import type { GtfsExportParameters } from 'transition-common/lib/api/gtfs';
 import servicesDbQueries from '../../models/db/transitServices.db.queries';
 import agenciesDbQueries from '../../models/db/transitAgencies.db.queries';
-import { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
+import type { AgencyAttributes } from 'transition-common/lib/services/agency/Agency';
 
 const preparationProgressName = 'GTFSExporterPreparation';
 

@@ -6,10 +6,10 @@
  */
 import React from 'react';
 import { connect } from 'react-redux';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import appConfiguration from '../../config/application.config';
 import LoginForm from '../forms/auth/localLogin/LoginForm';
-import { useNavigate, NavigateFunction } from 'react-router';
+import { useNavigate, type NavigateFunction } from 'react-router';
 
 export type LoginPageProps = {
     isAuthenticated?: boolean;

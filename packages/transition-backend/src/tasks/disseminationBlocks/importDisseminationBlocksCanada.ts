@@ -9,7 +9,7 @@ import { fileSelector } from 'inquirer-file-selector';
 
 import importBoundariesFromGml from '../../services/importers/ZonesImporter';
 import importProximityMeasuresAndPopulationFromCsv from '../../services/importers/ProximityMeasuresAndPopulationImporter';
-import { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
+import type { GenericTask } from 'chaire-lib-backend/lib/tasks/genericTask';
 import dsQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import zonesQueries from 'chaire-lib-backend/lib/models/db/zones.db.queries';
 import DataSource from 'chaire-lib-common/lib/services/dataSource/DataSource';

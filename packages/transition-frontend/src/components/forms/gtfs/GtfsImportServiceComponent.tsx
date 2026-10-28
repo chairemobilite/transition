@@ -5,12 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
-import { ServiceImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { ServiceImportData } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import { InputCheckbox } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import TransitServiceFilter, { TransitServiceFilterFields } from '../service/TransitServiceFilter';
+import TransitServiceFilter, { type TransitServiceFilterFields } from '../service/TransitServiceFilter';
 import { serviceMatches } from '../../../services/transitService/TransitServiceUtils';
 
 export interface GtfsImportServiceComponentProps extends WithTranslation {

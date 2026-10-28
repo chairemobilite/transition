@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import moment, { Moment } from 'moment';
+import moment, { type Moment } from 'moment';
 import bcrypt from 'bcryptjs';
 
-import { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
-import { UserAttributesBase } from '../users/user';
+import type { BaseUser } from 'chaire-lib-common/lib/services/user/userType';
+import type { UserAttributesBase } from '../users/user';
 
 export interface IUserModel {
     id: number;

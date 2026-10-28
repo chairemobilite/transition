@@ -7,7 +7,7 @@
 import { fileManager } from '../filesystem/fileManager';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
 const defaultDirectoryPrefix = process.env.OSRM_DIRECTORY_PREFIX
     ? process.env.OSRM_DIRECTORY_PREFIX

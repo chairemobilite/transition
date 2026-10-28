@@ -1,4 +1,4 @@
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 /*
  * Copyright 2022, Polytechnique Montreal and contributors

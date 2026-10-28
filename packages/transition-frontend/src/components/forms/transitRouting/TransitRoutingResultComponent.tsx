@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import React, { type JSX } from 'react';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 
 import TransitRoutingStepWalkButton from './TransitRoutingStepWalkButton';
 import TransitRoutingStepRideButton from './TransitRoutingStepRideButton';
@@ -13,11 +13,11 @@ import RouteButton from './RouteButton';
 import DistanceUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DistanceUnitFormatter';
 import DurationUnitFormatter from 'chaire-lib-frontend/lib/components/pageParts/DurationUnitFormatter';
 import { secondsToMinutes, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import type { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { pathIsRoute } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 
 export interface TransitRoutingResultsProps extends WithTranslation {

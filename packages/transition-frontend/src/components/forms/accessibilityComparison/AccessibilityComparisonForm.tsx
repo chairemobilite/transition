@@ -6,8 +6,8 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { createRoot, Root } from 'react-dom/client';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { createRoot, type Root } from 'react-dom/client';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
@@ -17,8 +17,8 @@ import _toString from 'lodash/toString';
 import moment from 'moment';
 import Loader from 'react-spinners/BeatLoader';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';
-import * as maplibregl from 'maplibre-gl';
-import { FeatureCollection } from 'geojson';
+import type * as maplibregl from 'maplibre-gl';
+import type { FeatureCollection } from 'geojson';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
@@ -28,12 +28,12 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import DownloadsUtils from 'chaire-lib-frontend/lib/services/DownloadsService';
-import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
+import { ChangeEventsForm, type ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { mpsToKph, kphToMps } from 'chaire-lib-common/lib/utils/PhysicsUtils';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -44,7 +44,7 @@ import {
     secondsToMinutes,
     minutesToSeconds
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 import TransitAccessibilityMapRouting, {
     MAX_DELTA_MINUTES,
@@ -52,7 +52,7 @@ import TransitAccessibilityMapRouting, {
     MIN_WALKING_SPEED_KPH,
     MAX_WALKING_SPEED_KPH
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import { TransitAccessibilityMapComparisonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
+import type { TransitAccessibilityMapComparisonResult } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
 
 import { calculateAccessibilityMap, calculateAccessibilityMapComparison } from '../../../services/routing/RoutingUtils';
 import AccessibilityComparisonStatsComponent from './AccessibilityComparisonStatsComponent';

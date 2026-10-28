@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import GenerationLogger from './GenerationLogger';
-import Generation from './Generation';
+import type Generation from './Generation';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 
 class LineAndNumberOfVehiclesGenerationLogger extends GenerationLogger {

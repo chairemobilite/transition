@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 
 const scheduleTblName = 'tr_transit_schedules';
 const schedulePeriodTblName = 'tr_transit_schedule_periods';

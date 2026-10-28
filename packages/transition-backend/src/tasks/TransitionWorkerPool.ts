@@ -13,9 +13,9 @@ import { batchAccessibilityMap } from '../services/transitRouting/TrAccessibilit
 import prepareSocketRoutes from '../scripts/prepareProcessRoutes';
 import OSRMProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
-import { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
-import { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibilityMapJob';
-import { JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
+import type { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
+import type { BatchAccessMapJobType } from '../services/transitRouting/BatchAccessibilityMapJob';
+import type { JobDataType, JobStatus } from 'transition-common/lib/services/jobs/Job';
 import Users from 'chaire-lib-backend/lib/services/users/users';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 

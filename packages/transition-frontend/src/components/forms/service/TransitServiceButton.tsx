@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 import Collapsible from 'react-collapsible';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Service from 'transition-common/lib/services/service/Service';
+import type Service from 'transition-common/lib/services/service/Service';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 import * as Status from 'chaire-lib-common/lib/utils/Status';

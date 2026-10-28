@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as AlgoTypes from '../internalTypes';
-import NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
+import type * as AlgoTypes from '../internalTypes';
+import type NetworkCandidate from '../candidate/LineAndNumberOfVehiclesNetworkCandidate';
 
 // chromosome must be an array with the same size for both parents (2 parents are used)
 class KPointCrossover {

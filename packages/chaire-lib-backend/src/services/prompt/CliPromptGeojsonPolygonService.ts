@@ -5,9 +5,9 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { fileSelector } from 'inquirer-file-selector';
-import { Polygon, FeatureCollection, Feature } from 'geojson';
+import type { Polygon, FeatureCollection, Feature } from 'geojson';
 
-import { PromptGeojsonPolygonService, GeojsonServiceOptions } from './promptGeojsonService';
+import type { PromptGeojsonPolygonService, GeojsonServiceOptions } from './promptGeojsonService';
 import { fileManager } from '../../utils/filesystem/fileManager';
 
 export class CliPromptGeojsonPolygonService implements PromptGeojsonPolygonService {

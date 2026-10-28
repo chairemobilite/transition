@@ -8,7 +8,7 @@ import knex from '../../config/shared/db.config';
 import { exists, update, deleteRecord } from './default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { randomUUID } from 'crypto';
-import { TokenAttributes } from '../../services/auth/token';
+import type { TokenAttributes } from '../../services/auth/token';
 import config from '../../config/server.config';
 
 const tableName = 'tokens';

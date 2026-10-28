@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
-import { Feature, GeoJsonProperties, Geometry } from 'geojson';
+import type { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type { Feature, GeoJsonProperties, Geometry } from 'geojson';
 
 export type OdTripRouteResult = {
     uuid: string;

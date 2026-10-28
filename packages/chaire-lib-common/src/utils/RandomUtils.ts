@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import random, { Random } from 'random';
+import random, { type Random } from 'random';
 import _cloneDeep from 'lodash/cloneDeep';
 
 import { sequentialArray } from './MathUtils';

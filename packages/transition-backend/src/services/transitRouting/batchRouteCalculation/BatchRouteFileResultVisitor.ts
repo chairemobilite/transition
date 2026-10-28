@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { ExecutableJob } from '../../executableJob/ExecutableJob';
-import { BatchRouteJobType, BatchRouteResultVisitor } from '../BatchRoutingJob';
-import { OdTripRouteResult } from '../types';
+import type { ExecutableJob } from '../../executableJob/ExecutableJob';
+import type { BatchRouteJobType, BatchRouteResultVisitor } from '../BatchRoutingJob';
+import type { OdTripRouteResult } from '../types';
 import { createRoutingFileResultProcessor, generateFileOutputResults } from './TrRoutingBatchResult';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import pathDbQueries from '../../../models/db/transitPaths.db.queries';

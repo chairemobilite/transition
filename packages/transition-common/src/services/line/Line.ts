@@ -7,18 +7,18 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import _get from 'lodash/get';
 import _uniq from 'lodash/uniq';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
-import TransitPath, { PathDirection, PathAttributes } from '../path/Path';
-import Schedule, { ScheduleAttributes, SchedulePeriodTrip } from '../schedules/Schedule';
+import TransitPath, { type PathDirection, type PathAttributes } from '../path/Path';
+import Schedule, { type ScheduleAttributes, type SchedulePeriodTrip } from '../schedules/Schedule';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import lineModes from '../../config/lineModes';
 import type { RightOfWayCategory, TransitMode } from './types';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import { featureCollection as turfFeatureCollection } from '@turf/turf';

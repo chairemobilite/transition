@@ -7,8 +7,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Line from 'transition-common/lib/services/line/Line';
-import Agency from 'transition-common/lib/services/agency/Agency';
+import type Line from 'transition-common/lib/services/line/Line';
+import type Agency from 'transition-common/lib/services/agency/Agency';
 import Button from '../../parts/Button';
 import ButtonCell from '../../parts/ButtonCell';
 

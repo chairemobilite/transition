@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Place, PlaceAttributes } from './Place';
+import { Place, type PlaceAttributes } from './Place';
 import CollectionLoadable from 'chaire-lib-common/lib/services/objects/CollectionLoadable';
 import GenericPlaceCollection from 'chaire-lib-common/lib/utils/objects/GenericPlaceCollection';
-import Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type Progressable from 'chaire-lib-common/lib/utils/objects/Progressable';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 
 /**
  * A collection of places (POIs or activity places)

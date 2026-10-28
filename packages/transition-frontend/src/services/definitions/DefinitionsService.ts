@@ -7,7 +7,7 @@
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { Dictionary } from 'lodash';
+import type { Dictionary } from 'lodash';
 
 // Cache the definitions once they are fetched. This is to avoid fetching the
 // same definition multiple times. 'loading' means a request to the server is

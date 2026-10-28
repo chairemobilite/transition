@@ -4,15 +4,15 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React, { JSX } from 'react';
+import React, { type JSX } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import TransitRoutingStepWalkButton from '../transitRouting/TransitRoutingStepWalkButton';
 import TransitRoutingStepRideButton from '../transitRouting/TransitRoutingStepRideButton';
 import { secondsToMinutes, secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
-import { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TrRoutingV2 } from 'chaire-lib-common/lib/api/TrRouting';
+import type { TransitRoutingAttributes } from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
 
 export interface ScenarioComparisonResultsProps {
     paths: {

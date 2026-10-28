@@ -10,9 +10,9 @@ import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { GtfsInternalData, StopTimeImportData, StopTime } from './GtfsImportTypes';
+import type { GtfsInternalData, StopTimeImportData, StopTime } from './GtfsImportTypes';
 
-import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+import type { GtfsObjectPreparator } from './GtfsObjectPreparator';
 import { ceilToPositiveInteger } from 'chaire-lib-common/lib/utils/MathUtils';
 
 /**

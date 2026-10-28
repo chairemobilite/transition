@@ -6,7 +6,7 @@
  */
 import { useState } from 'react';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { FileUploadOptions, FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
+import type { FileUploadOptions, FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
 
 export const useFileUploader = (autoImport = true, progressName = 'UploadingFile') => {
     const [uploadStatus, setUploadStatus] = useState<FileUploadStatus>({ status: 'notUploaded' });

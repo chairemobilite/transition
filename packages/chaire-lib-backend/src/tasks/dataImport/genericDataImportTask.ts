@@ -7,7 +7,7 @@
 import { readdirSync } from 'fs';
 import { select, input, confirm } from '@inquirer/prompts';
 
-import { GenericTask } from '../genericTask';
+import type { GenericTask } from '../genericTask';
 import { GeojsonOutputter } from './osmImportUtils';
 
 /**

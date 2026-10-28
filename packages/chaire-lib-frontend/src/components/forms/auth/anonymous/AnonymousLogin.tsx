@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import { useDispatch } from 'react-redux';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
-import { RootState } from '../../../../store/configureStore';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
+import type { RootState } from '../../../../store/configureStore';
 import { startAnonymousLogin } from '../../../../actions/Auth';
 
 type AnonymousLoginProps = {

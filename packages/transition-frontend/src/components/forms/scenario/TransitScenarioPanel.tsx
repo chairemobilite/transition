@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faFileUpload } from '@fortawesome/free-solid-svg-icons/faFileUpload';
 
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
@@ -15,8 +15,8 @@ import CollectionSaveToCacheButtons from '../../parts/CollectionSaveToCacheButto
 import ScenarioEdit from './TransitScenarioEdit';
 import ScenariosList from './TransitScenarioList';
 import ScenariosImportForm from './TransitScenarioImportForm';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
-import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import type ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
+import type Scenario from 'transition-common/lib/services/scenario/Scenario';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 
 // Using a state object instead of 2 useState hooks because we want this object

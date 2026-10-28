@@ -12,7 +12,7 @@
  * TODO Can this go in chaire-lib? evolution also uses it
  */
 
-import {
+import type {
     UseColumnOrderInstanceProps,
     UseColumnOrderState,
     UseExpandedHooks,

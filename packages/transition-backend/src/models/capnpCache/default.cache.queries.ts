@@ -9,8 +9,8 @@ import pQueue from 'p-queue';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
-import { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
+import type { GenericObject } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 
 /** Decides if we use a passed cache path directory or use the default one */
 const getCacheDirectory = (cachePathDirectoryOverride?: string): string => {

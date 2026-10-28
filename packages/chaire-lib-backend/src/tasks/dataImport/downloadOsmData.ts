@@ -7,7 +7,7 @@
 import GenericDataImportTask from './genericDataImportTask';
 
 import osmDownloader from '../../utils/osm/OsmOverpassDownloader';
-import { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
+import type { PromptGeojsonPolygonService } from '../../services/prompt/promptGeojsonService';
 
 export default class DownloadOsmData extends GenericDataImportTask {
     private _promptPolygon: PromptGeojsonPolygonService;

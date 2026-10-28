@@ -11,7 +11,7 @@ import { spawn } from 'child_process';
 
 import { fileManager } from '../filesystem/fileManager';
 import { getOsrmDirectoryPathForMode, defaultDirectoryPrefix, getDirectoryPrefix } from './OSRMServicePath';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { DEFAULT_LOG_FILE_COUNT, DEFAULT_LOG_FILE_SIZE_KB } from '../../config/server.config';
 
 const LOG_FILE_RELATIVE_PATH = 'logs/osrm_prep_logs';

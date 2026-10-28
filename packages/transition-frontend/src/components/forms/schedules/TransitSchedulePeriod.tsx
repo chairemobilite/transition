@@ -15,7 +15,7 @@ import { faArrowDown } from '@fortawesome/free-solid-svg-icons/faArrowDown';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
-import InputSelect, { choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
+import InputSelect, { type choiceType } from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { _isBlank, _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
@@ -26,8 +26,9 @@ import {
     minutesToSeconds
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Schedule, { ScheduleCalculationMode } from 'transition-common/lib/services/schedules/Schedule';
-import Line from 'transition-common/lib/services/line/Line';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
+import { ScheduleCalculationMode } from 'transition-common/lib/services/schedules/Schedule';
+import type Line from 'transition-common/lib/services/line/Line';
 
 interface TransitSchedulePeriodProps {
     schedule: Schedule;

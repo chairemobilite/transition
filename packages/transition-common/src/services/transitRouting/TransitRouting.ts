@@ -5,13 +5,13 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _cloneDeep from 'lodash/cloneDeep';
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 
 import { BaseObject } from 'chaire-lib-common/lib/utils/objects/BaseObject';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import { validateTrQueryAttributes } from './TransitRoutingQueryAttributes';
 import { validateAndCreateTripRoutingAttributes } from 'chaire-lib-common/lib/services/routing/RoutingAttributes';
 

@@ -4,17 +4,17 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
-import DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-import SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
-import { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
-import { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import type DataSourceCollection from 'chaire-lib-common/lib/services/dataSource/DataSourceCollection';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import type PathCollection from 'transition-common/lib/services/path/PathCollection';
+import type PlaceCollection from 'transition-common/lib/services/places/PlaceCollection';
+import type ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type SimulationCollection from 'transition-common/lib/services/simulation/SimulationCollection';
+import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
+import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
 
 // TODO: Bring back the missing data types
 type LoadLayersOptions = {

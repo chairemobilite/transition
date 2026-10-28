@@ -10,15 +10,15 @@ import type * as GtfsTypes from 'gtfs-types';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import { Node, NodeAttributes, StopAttributes } from 'transition-common/lib/services/nodes/Node';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
+import { Node, type NodeAttributes, type StopAttributes } from 'transition-common/lib/services/nodes/Node';
+import type NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import { StopImportData, GtfsImportData, GtfsStop } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
+import type { StopImportData, GtfsImportData, GtfsStop } from 'transition-common/lib/services/gtfs/GtfsImportTypes';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
-import { GtfsObjectPreparator } from './GtfsObjectPreparator';
+import type { GtfsObjectPreparator } from './GtfsObjectPreparator';
 import { getNodesInBirdDistanceFromPoint } from '../nodes/NodeCollectionUtils';
-import { ProgressEmitFn } from './GtfsImportTypes';
+import type { ProgressEmitFn } from './GtfsImportTypes';
 
 export class StopImporter implements GtfsObjectPreparator<StopImportData> {
     private _filePath: string;

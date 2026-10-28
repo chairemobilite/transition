@@ -7,7 +7,7 @@
 
 import { ParamsValidatorUtils } from '../../utils/ParamsValidatorUtils';
 import TrError from '../../utils/TrError';
-import { TransitRouteQueryOptions } from '../../api/TrRouting/base';
+import type { TransitRouteQueryOptions } from '../../api/TrRouting/base';
 
 // This file contains functions and types related to the summary attributes
 

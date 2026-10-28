@@ -19,8 +19,8 @@ import {
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
-import { Knex } from 'knex';
+import type { ScenarioAttributes } from 'transition-common/lib/services/scenario/Scenario';
+import type { Knex } from 'knex';
 
 const tableName = 'tr_transit_scenarios';
 const scenarioServiceTableName = 'tr_transit_scenario_services';

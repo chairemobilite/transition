@@ -18,8 +18,8 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { _isBlank, _toInteger } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { roundToDecimals } from 'chaire-lib-common/lib/utils/MathUtils';
 import { decimalHourToTimeStr, secondsToMinutes, minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import Schedule from 'transition-common/lib/services/schedules/Schedule';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
+import type Schedule from 'transition-common/lib/services/schedules/Schedule';
+import type LineCollection from 'transition-common/lib/services/line/LineCollection';
 
 interface TransitScheduleBatchPeriodProps {
     schedules: Schedule[];

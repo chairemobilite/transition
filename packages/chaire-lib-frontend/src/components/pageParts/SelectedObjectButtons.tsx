@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons/faArrowLeft';
 import { faUndoAlt } from '@fortawesome/free-solid-svg-icons/faUndoAlt';
 import { faRedoAlt } from '@fortawesome/free-solid-svg-icons/faRedoAlt';
@@ -14,7 +14,7 @@ import { faCheckCircle } from '@fortawesome/free-solid-svg-icons/faCheckCircle';
 
 import Button from '../input/Button';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
+import type { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import { isSaveable } from 'chaire-lib-common/lib/utils/objects/Saveable';
 
 export type SelectedObjectButtonsProps<T extends ObjectWithHistory<any>> = WithTranslation & {

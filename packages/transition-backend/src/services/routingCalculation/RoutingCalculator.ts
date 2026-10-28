@@ -5,23 +5,23 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
-import { UnimodalRoutingResultData } from 'chaire-lib-common/lib/services/routing/RoutingResult';
+import type { UnimodalRoutingResultData } from 'chaire-lib-common/lib/services/routing/RoutingResult';
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
-import { RoutingResultsByMode, TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
-import { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
+import type { RoutingResultsByMode, TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { resultToObject } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
 import { TransitAccessibilityMapCalculator } from '../accessibilityMap/TransitAccessibilityMapCalculator';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
-import {
+import type {
     TransitAccessibilityMapResult,
     TransitAccessibilityMapWithPolygonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';
-import { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
-import { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
+import type { TrRoutingResultAccessibilityMap } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transitRouting/TransitRoutingResult';
 
 export type UnimodalRouteCalculationResultParams = UnimodalRoutingResultData & {

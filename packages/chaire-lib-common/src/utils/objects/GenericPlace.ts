@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { MapObject, MapObjectAttributes } from './MapObject';
+import { MapObject, type MapObjectAttributes } from './MapObject';
 
 export type GenericPlaceAttributes = MapObjectAttributes<GeoJSON.Point>;
 

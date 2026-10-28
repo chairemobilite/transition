@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import * as AlgoTypes from '../internalTypes';
-import { EventEmitter } from 'events';
-import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import type * as AlgoTypes from '../internalTypes';
+import type { EventEmitter } from 'events';
+import type Scenario from 'transition-common/lib/services/scenario/Scenario';
 
 export type Result = {
     /**

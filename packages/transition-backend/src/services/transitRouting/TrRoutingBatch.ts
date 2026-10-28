@@ -6,20 +6,20 @@
  */
 import { performance } from 'perf_hooks';
 import pQueue from 'p-queue';
-import { EventEmitter } from 'events';
+import type { EventEmitter } from 'events';
 
 import { TrRoutingBatchManager } from './TrRoutingBatchManager';
 import routeOdTrip from './TrRoutingOdTrip';
 import { parseOdTripsFromCsvStream } from '../odTrip/odTripProvider';
-import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
-import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
+import type { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
+import type { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
 
 import resultsDbQueries from '../../models/db/batchRouteResults.db.queries';
 import { CheckpointTracker } from '../executableJob/JobCheckpointTracker';
 import { resultIsUnimodal } from 'chaire-lib-common/lib/services/routing/RoutingResultUtils';
-import { ExecutableJob } from '../executableJob/ExecutableJob';
-import { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { ExecutableJob } from '../executableJob/ExecutableJob';
+import type { BatchRouteJobType, BatchRouteResultVisitor } from './BatchRoutingJob';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import { BatchRouteFileResultVisitor } from './batchRouteCalculation/BatchRouteFileResultVisitor';
 
 const CHECKPOINT_INTERVAL = 250;

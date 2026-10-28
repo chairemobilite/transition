@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import projectConfig, {
-    ProjectConfiguration,
+    type ProjectConfiguration,
     setProjectConfiguration
 } from 'chaire-lib-common/lib/config/shared/project.config';
 

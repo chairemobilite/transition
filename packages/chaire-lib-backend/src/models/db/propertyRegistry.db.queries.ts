@@ -6,7 +6,7 @@
  */
 import knex from '../../config/shared/db.config';
 import knexPostgis from 'knex-postgis';
-import { type Knex } from 'knex';
+import type { Knex } from 'knex';
 import type { Iso3166Alpha2Code } from 'iso-3166-ts';
 import { isPoint } from 'geojson-validation';
 

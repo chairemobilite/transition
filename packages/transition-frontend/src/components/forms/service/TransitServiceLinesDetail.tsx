@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import Service from 'transition-common/lib/services/service/Service';
+import type Service from 'transition-common/lib/services/service/Service';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import TransitServiceLineItem from '../service/TransitServiceLineItem';
 import ButtonList from '../../parts/ButtonList';

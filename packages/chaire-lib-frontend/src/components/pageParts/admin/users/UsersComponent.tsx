@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import UsersTable, { UserDisplay } from './UsersTable';
+import UsersTable, { type UserDisplay } from './UsersTable';
 import { DefaultColumnFilter } from './TableFilters';
 import WidgetChangePermission from './WidgetChangePermission';
 import WidgetSetAdmin from './WidgetSetAdmin';

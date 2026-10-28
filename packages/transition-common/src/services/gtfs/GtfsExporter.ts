@@ -4,12 +4,12 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import { GtfsConstants } from '../../api/gtfs';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export interface GtfsExporterAttributes extends GenericAttributes {
     selectedAgencies: string[];

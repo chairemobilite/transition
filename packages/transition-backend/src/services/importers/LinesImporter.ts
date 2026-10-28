@@ -7,7 +7,7 @@
 import * as z from 'zod';
 
 import CollectionImporter, { genericAttributesSchema } from './CollectionImporter';
-import Line, { LineAttributes } from 'transition-common/lib/services/line/Line';
+import Line, { type LineAttributes } from 'transition-common/lib/services/line/Line';
 import dbQueries from '../../models/db/transitLines.db.queries';
 import { rightOfWayCategories, transitModes } from 'transition-common/lib/services/line/types';
 import { objectsToCache } from '../../models/capnpCache/transitLines.cache.queries';

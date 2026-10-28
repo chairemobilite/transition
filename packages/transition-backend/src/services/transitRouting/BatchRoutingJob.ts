@@ -4,11 +4,11 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
-import { OdTripRouteResult } from './types';
-import { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { TransitBatchCalculationResult } from 'transition-common/lib/services/batchCalculation/types';
+import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import type { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
+import type { OdTripRouteResult } from './types';
+import type { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export type BatchRouteJobType = {
     name: 'batchRoute';

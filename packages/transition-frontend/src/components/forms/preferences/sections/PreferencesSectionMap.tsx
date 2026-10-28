@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 import PreferencesResetToDefaultButton from '../PreferencesResetToDefaultButton';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 
 /**
  * Map preferences section.

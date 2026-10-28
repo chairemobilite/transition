@@ -9,8 +9,8 @@ import React from 'react';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import BatchCalculationList from './BatchCalculationList';
 import BatchCalculationForm from './BatchCalculationForm';
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import { BatchRoutingOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
+import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import type { BatchRoutingOdDemandFromCsvAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export interface CalculationPanelPanelProps {
     availableRoutingModes?: string[];

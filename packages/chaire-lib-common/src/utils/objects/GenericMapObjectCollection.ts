@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { MapObjectAttributes, MapObject } from './MapObject';
+import type { MapObjectAttributes, MapObject } from './MapObject';
 import GenericCollection from './GenericCollection';
 
 export default abstract class GenericMapObjectCollection<

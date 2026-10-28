@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import sharedSession from 'express-socket.io-session';
-import { Server as SocketIOServer, Socket } from 'socket.io';
+import { Server as SocketIOServer, type Socket } from 'socket.io';
 import events from 'events';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

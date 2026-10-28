@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import StreamZip from 'node-stream-zip';
-import SocketIO from 'socket.io';
+import type SocketIO from 'socket.io';
 
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import uploadSocketRoutes from 'chaire-lib-backend/lib/api/uploads.socketRoutes';

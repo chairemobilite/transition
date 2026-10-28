@@ -9,7 +9,7 @@ import type { Feature } from 'geojson';
 import { mat4 } from 'gl-matrix';
 import type { AnimatedCustomLayer } from './AnimatedCustomLayer';
 import { createBuffer, createProgram, getUniformLocation } from './glUtils';
-import { buildNodeInstances, calculateNodeRadiusForZoom, NodeInstances } from './nodeGeometry';
+import { buildNodeInstances, calculateNodeRadiusForZoom, type NodeInstances } from './nodeGeometry';
 
 /** Radius bounds in CSS pixels */
 const RADIUS_MIN_PIXELS = 2;

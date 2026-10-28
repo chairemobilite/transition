@@ -11,7 +11,8 @@ import { unparse } from 'papaparse';
 import moment from 'moment';
 
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
-import Service, { serviceDays } from 'transition-common/lib/services/service/Service';
+import type Service from 'transition-common/lib/services/service/Service';
+import { serviceDays } from 'transition-common/lib/services/service/Service';
 import dbQueries from '../../models/db/transitServices.db.queries';
 import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';

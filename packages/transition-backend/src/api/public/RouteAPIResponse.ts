@@ -4,18 +4,18 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import {
+import type {
     RouteCalculationResultParamsByMode,
     TransitRouteCalculationResultParams,
     UnimodalRouteCalculationResultParams
 } from '../../services/routingCalculation/RoutingCalculator';
-import { Feature, FeatureCollection, LineString, Point } from 'geojson';
-import { RoutingMode, RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
-import { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
+import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
+import type { RoutingMode, RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import type * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
+import type { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import APIResponseBase from './APIResponseBase';
-import { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
 
 type RouteAPIUnimodalResultResponse = {
     paths: Array<{

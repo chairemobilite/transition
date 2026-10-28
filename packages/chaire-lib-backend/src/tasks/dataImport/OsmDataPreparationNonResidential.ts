@@ -4,28 +4,28 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import * as turf from '@turf/turf';
 import _uniq from 'lodash/uniq';
-import { DataOsmRaw, OsmRawDataType } from './data/dataOsmRaw';
-import { DataGeojson } from './data/dataGeojson';
+import type { DataOsmRaw, OsmRawDataType } from './data/dataOsmRaw';
+import type { DataGeojson } from './data/dataGeojson';
 import {
-    NonResidentialEntranceGeojsonProperties,
-    PointOfInterest,
+    type NonResidentialEntranceGeojsonProperties,
+    type PointOfInterest,
     default as osmGeojsonService
 } from './data/osmGeojsonService';
-import { getEntrancesForBuilding, findOsmData, FeatureEntrancesOptions } from './data/osmRawDataService';
+import { getEntrancesForBuilding, findOsmData, type FeatureEntrancesOptions } from './data/osmRawDataService';
 import {
     splitOverlappingFeatures,
     getOverlappingIndices,
     findOverlappingFeatures
 } from 'chaire-lib-common/lib/services/geodata/FindOverlappingFeatures';
 import { findNearest } from 'chaire-lib-common/lib/services/geodata/FindNearestFeature';
-import { SingleGeoFeature, isPolygon } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import { type SingleGeoFeature, isPolygon } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
 import poiTagsQuery, { isPoiToProcess } from 'chaire-lib-common/lib/config/osm/osmNodesActivityValidTagsQuery';
 import { detailedCategoryToCategory } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 import propertiesToDetailedCategory from 'chaire-lib-common/lib/config/osm/osmMappingTagsToDetailedCategory';
-import { GeojsonOutputter } from './osmImportUtils';
+import type { GeojsonOutputter } from './osmImportUtils';
 import { ignoreBuildings } from 'chaire-lib-common/lib/config/osm/osmBuildingQuerySetup';
 
 // TODO: don't import building=cabin if no POI inside instead of taking the centroid (  Warning: building way/453810388 (https://projets.chaire.transition.city/id/#id=w453810388&map=19.00/45.38979799473684/-74.02757081052633) with points of interest does not have any entrance. Using the centroid instead)

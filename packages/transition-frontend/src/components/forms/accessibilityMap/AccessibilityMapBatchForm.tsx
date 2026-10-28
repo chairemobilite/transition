@@ -6,7 +6,7 @@
  */
 import React from 'react';
 import Collapsible from 'react-collapsible';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import Loader from 'react-spinners/BeatLoader';
 
 import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
@@ -21,20 +21,20 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import { default as FormErrors } from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import TransitBatchAccessibilityMap, {
     accessibilityMapPreferencesPath
 } from 'transition-common/lib/services/accessibilityMap/TransitBatchAccessibilityMap';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
+import { ChangeEventsForm, type ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
 import LoadingPage from 'chaire-lib-frontend/lib/components/pages/LoadingPage';
 import { _toInteger, _toBool, _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 import BatchAttributesSelection from './widgets/BatchAttributesSelection';
 import { BatchAccessibilityMapCalculator } from '../../../services/accessibilityMap/BatchAccessibilityMapCalculator';
 import ExecutableJobComponent from '../../parts/executableJob/ExecutableJobComponent';
-import { FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
+import type { FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
 
 export interface BatchAccessibilityMapFormProps {
     routingEngine: TransitAccessibilityMapRouting;

@@ -5,11 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import Preferences from '../../config/Preferences';
-import { Route } from './RoutingService';
-import { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
+import type { Route } from './RoutingService';
+import type { RoutingOrTransitMode, RoutingMode } from '../../config/routingModes';
 import TrError from '../../utils/TrError';
-import { TranslatableMessage } from '../../utils/TranslatableMessage';
-import { TrRoutingRoute } from '../transitRouting/types';
+import type { TranslatableMessage } from '../../utils/TranslatableMessage';
+import type { TrRoutingRoute } from '../transitRouting/types';
 
 export const pathIsRoute = (path: Route | TrRoutingRoute | undefined): path is Route => {
     return typeof (path as any).distance === 'number';

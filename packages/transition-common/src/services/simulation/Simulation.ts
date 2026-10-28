@@ -7,22 +7,22 @@
 import _cloneDeep from 'lodash/cloneDeep';
 import slugify from 'slugify';
 
-import * as Status from 'chaire-lib-common/lib/utils/Status';
-import CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
+import type * as Status from 'chaire-lib-common/lib/utils/Status';
+import type CollectionManager from 'chaire-lib-common/lib/utils/objects/CollectionManager';
 import { ObjectWithHistory } from 'chaire-lib-common/lib/utils/objects/ObjectWithHistory';
 import SaveUtils from 'chaire-lib-common/lib/services/objects/SaveUtils';
-import Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type Saveable from 'chaire-lib-common/lib/utils/objects/Saveable';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import { validateTrBaseAttributes } from '../transitRouting/TransitRoutingQueryAttributes';
-import { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TransitRoutingBaseAttributes } from 'chaire-lib-common/lib/services/routing/types';
 import {
-    TransitNetworkDesignParameters,
+    type TransitNetworkDesignParameters,
     validateTransitNetworkDesignParameters
 } from '../networkDesign/transit/TransitNetworkDesignParameters';
-import { SimulationAlgorithmDescriptor } from '../networkDesign/transit/TransitNetworkDesignAlgorithm';
+import type { SimulationAlgorithmDescriptor } from '../networkDesign/transit/TransitNetworkDesignAlgorithm';
 import {
-    AlgorithmConfiguration,
+    type AlgorithmConfiguration,
     getAlgorithmDescriptor,
     getAllAlgorithmTypes
 } from '../networkDesign/transit/algorithm';

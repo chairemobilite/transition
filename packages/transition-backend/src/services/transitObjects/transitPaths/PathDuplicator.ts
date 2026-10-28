@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
+import type { WithTransaction } from 'chaire-lib-backend/lib/models/db/types.db';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import transitPathsDbQueries from '../../../models/db/transitPaths.db.queries';
 

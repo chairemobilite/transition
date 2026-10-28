@@ -3,13 +3,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 
-import Button, { ButtonProps } from '../input/Button';
+import Button, { type ButtonProps } from '../input/Button';
 import FormErrors from '../pageParts/FormErrors';
 import { startResetPassword } from '../../actions/Auth';
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
-import { RootState } from '../../store/configureStore';
-import { ThunkDispatch } from 'redux-thunk';
-import { Action } from 'redux';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type { RootState } from '../../store/configureStore';
+import type { ThunkDispatch } from 'redux-thunk';
+import type { Action } from 'redux';
 
 type Status = 'Confirmed' | 'NotFound' | 'Expired' | 'PasswordChanged' | 'Error';
 

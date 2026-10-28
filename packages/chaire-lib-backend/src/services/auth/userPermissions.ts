@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { AbilityBuilder, MongoAbility, createMongoAbility } from '@casl/ability';
-import { UserAttributes } from '../users/user';
+import { AbilityBuilder, type MongoAbility, createMongoAbility } from '@casl/ability';
+import type { UserAttributes } from '../users/user';
 
 const roleMap: { [key: string]: ((builder: AbilityBuilder<MongoAbility>, user: UserAttributes) => void)[] } = {
     admin: [({ can }: AbilityBuilder<MongoAbility>) => can('manage', 'all')]

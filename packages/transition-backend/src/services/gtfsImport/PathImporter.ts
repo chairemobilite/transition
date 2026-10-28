@@ -8,11 +8,11 @@ import type * as GtfsTypes from 'gtfs-types';
 import pQueue from 'p-queue';
 import _isEqual from 'lodash/isEqual';
 
-import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
-import Line from 'transition-common/lib/services/line/Line';
-import Path from 'transition-common/lib/services/path/Path';
+import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
+import type Line from 'transition-common/lib/services/line/Line';
+import type Path from 'transition-common/lib/services/path/Path';
 import { GtfsMessages } from 'transition-common/lib/services/gtfs/GtfsMessages';
-import { GtfsInternalData, StopTime, TripStopTimesWithService } from './GtfsImportTypes';
+import type { GtfsInternalData, StopTime, TripStopTimesWithService } from './GtfsImportTypes';
 import {
     generateGeographyAndSegmentsFromGtfs,
     generateGeographyAndSegmentsFromStopTimes

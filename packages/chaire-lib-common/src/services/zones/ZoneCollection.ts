@@ -4,13 +4,13 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { Zone, ZoneAttributes } from './Zone';
-import CollectionManager from '../../utils/objects/CollectionManager';
+import { Zone, type ZoneAttributes } from './Zone';
+import type CollectionManager from '../../utils/objects/CollectionManager';
 import CollectionLoadable from '../objects/CollectionLoadable';
 import GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
-import Progressable from '../../utils/objects/Progressable';
-import { GenericAttributes } from '../../utils/objects/GenericObject';
-import { EventManager } from '../events/EventManager';
+import type Progressable from '../../utils/objects/Progressable';
+import type { GenericAttributes } from '../../utils/objects/GenericObject';
+import type { EventManager } from '../events/EventManager';
 
 interface BaseOdTripCollectionAttributes {
     dataSourceId?: string;

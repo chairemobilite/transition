@@ -5,10 +5,10 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 // FIXME: Is this method still useful or was it just a quick to prototype data importation stuff?
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import { booleanPointInPolygon as turfPointInPolygon, booleanPointOnLine as turfPointInLine } from '@turf/turf';
 
-import { PlaceAttributes } from '../places';
+import type { PlaceAttributes } from '../places';
 
 const getComparisonMethod = (feature: GeoJSON.Feature) => {
     if (feature.geometry.type === 'LineString') {

@@ -19,7 +19,7 @@ import {
     updateMultiple
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import _cloneDeep from 'lodash/cloneDeep';
-import {
+import type {
     SchedulePeriodTrip,
     SchedulePeriod,
     ScheduleAttributes
@@ -29,7 +29,7 @@ import {
     secondsSinceMidnightToTimeStr,
     timeStrToSecondsSinceMidnight
 } from 'chaire-lib-common/lib/utils/DateTimeUtils';
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import {
     createDuplicateQueryWithIdMapping,

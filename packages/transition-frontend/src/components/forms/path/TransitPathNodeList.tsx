@@ -5,14 +5,14 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import { bbox as turfBbox } from '@turf/turf';
 
-import Path from 'transition-common/lib/services/path/Path';
+import type Path from 'transition-common/lib/services/path/Path';
 import TransitPathNodeButton from './TransitPathNodeButton';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import ToggleableHelp from 'chaire-lib-frontend/lib/components/pageParts/ToggleableHelp';
 
 interface PathListProps extends WithTranslation {

@@ -7,7 +7,7 @@
 /** This file encapsulates map events that apply to the routingPoints layer, in any section */
 import type { MapLayerMouseEvent } from 'maplibre-gl';
 
-import { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
+import type { MapEventHandlerDescription } from 'chaire-lib-frontend/lib/services/map/IMapEventHandler';
 import { addHoverClass, removeHoverClass } from '../MapCursorHelper';
 
 const onRoutingPointMouseEnter = (e: MapLayerMouseEvent) => {

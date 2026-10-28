@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { DataBase } from './dataBase';
-import GeoJSON from 'geojson';
+import type GeoJSON from 'geojson';
 import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
 import JSONStream from 'JSONStream';

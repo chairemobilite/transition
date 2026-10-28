@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { pathIsRoute, RoutingResult } from './RoutingResult';
+import { pathIsRoute, type RoutingResult } from './RoutingResult';
 
 export type SortAlternativesBy = 'none' | 'travelTime';
 

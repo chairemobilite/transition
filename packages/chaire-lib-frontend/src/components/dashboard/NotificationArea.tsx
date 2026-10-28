@@ -8,7 +8,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Loader from 'react-spinners/ClockLoader';
 
-import { Notification } from 'chaire-lib-common/lib/services/events/Notifications';
+import type { Notification } from 'chaire-lib-common/lib/services/events/Notifications';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 
 type UiNotification = {

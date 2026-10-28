@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -13,13 +13,13 @@ import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/InputStringFormatted';
 import { InputCheckboxBoolean } from 'chaire-lib-frontend/lib/components/input/InputCheckbox';
-import Simulation from 'transition-common/lib/services/simulation/Simulation';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
 import {
-    AlgorithmConfiguration,
+    type AlgorithmConfiguration,
     getAlgorithmDescriptor,
     getAllAlgorithmTypes
 } from 'transition-common/lib/services/networkDesign/transit/algorithm';
-import {
+import type {
     SimulationAlgorithmDescriptor,
     SimulationAlgorithmOptionDescriptor
 } from 'transition-common/lib/services/networkDesign/transit/TransitNetworkDesignAlgorithm';

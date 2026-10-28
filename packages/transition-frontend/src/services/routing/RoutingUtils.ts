@@ -6,15 +6,15 @@
  */
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
-import TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
-import { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
-import TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
-import {
+import type { RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import type TransitRouting from 'transition-common/lib/services/transitRouting/TransitRouting';
+import type { RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
+import type TransitAccessibilityMapRouting from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
+import type {
     TransitMapCalculationOptions,
     TransitMapColorOptions
 } from 'transition-common/lib/services/accessibilityMap/types';
-import {
+import type {
     TransitAccessibilityMapWithPolygonResult,
     TransitAccessibilityMapComparisonResult
 } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapResult';

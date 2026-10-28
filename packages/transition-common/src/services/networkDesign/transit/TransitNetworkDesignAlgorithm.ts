@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { EventEmitter } from 'events';
-import AgencyCollection from '../../agency/AgencyCollection';
-import LineCollection from '../../line/LineCollection';
-import ServiceCollection from '../../service/ServiceCollection';
+import type { EventEmitter } from 'events';
+import type AgencyCollection from '../../agency/AgencyCollection';
+import type LineCollection from '../../line/LineCollection';
+import type ServiceCollection from '../../service/ServiceCollection';
 
 /**
  * Simulation algorithm class. This will actually run the algorithm

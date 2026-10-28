@@ -11,7 +11,7 @@ import { unparse } from 'papaparse';
 
 import Button from '../input/Button';
 import DownloadsUtils from '../../services/DownloadsService';
-import GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
+import type GenericCollection from 'chaire-lib-common/lib/utils/objects/GenericCollection';
 
 export type CollectionDownloadButtonsProps = {
     collection: GenericCollection<any>;

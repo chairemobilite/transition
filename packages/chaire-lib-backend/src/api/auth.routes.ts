@@ -5,7 +5,8 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _set from 'lodash/set';
-import express, { Request, Response } from 'express';
+import type { Request, Response } from 'express';
+import type express from 'express';
 import crypto from 'crypto';
 import moment from 'moment';
 import url from 'url';
@@ -16,9 +17,9 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
 import config from '../config/server.config';
 import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
-import { UserAttributes } from '../services/users/user';
-import { IAuthModel, IUserModel } from '../services/auth/authModel';
-import { PassportStatic } from 'passport';
+import type { UserAttributes } from '../services/users/user';
+import type { IAuthModel, IUserModel } from '../services/auth/authModel';
+import type { PassportStatic } from 'passport';
 import setupCaptchRoutes from './captcha.routes';
 import isAuthorized, { UserSubject } from '../services/auth/authorization';
 

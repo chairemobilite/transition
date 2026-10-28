@@ -6,8 +6,12 @@
  */
 import { point as turfPoint } from '@turf/turf';
 import trRoutingServiceBackend from '../../utils/trRouting/TrRoutingServiceBackend';
-import { TransitRouteQueryOptions, HostPort, AccessibilityMapQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
-import {
+import type {
+    TransitRouteQueryOptions,
+    HostPort,
+    AccessibilityMapQueryOptions
+} from 'chaire-lib-common/lib/api/TrRouting';
+import type {
     SummaryResponse,
     RouteResponse,
     AccessibilityMapResponse
@@ -17,8 +21,8 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
 import {
     ErrorCodes,
-    TrRoutingResultAccessibilityMap,
-    TrRoutingRouteResult
+    type TrRoutingResultAccessibilityMap,
+    type TrRoutingRouteResult
 } from 'chaire-lib-common/lib/services/transitRouting/types';
 
 const errorCodeByReason = (

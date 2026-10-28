@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React from 'react';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import _cloneDeep from 'lodash/cloneDeep';
 import _toString from 'lodash/toString';
 
@@ -14,12 +14,12 @@ import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper'
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 import {
     isBatchParametersValid,
-    BatchCalculationParameters
+    type BatchCalculationParameters
 } from 'transition-common/lib/services/batchCalculation/types';
 import TransitRoutingBaseComponent from '../../transitRouting/widgets/TransitRoutingBaseComponent';
 import InputSelect from 'chaire-lib-frontend/lib/components/input/InputSelect';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
+import type ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import InputRadio from 'chaire-lib-frontend/lib/components/input/InputRadio';
 import * as BatchAttributeSelectionWidgets from '../../transitCalculation/widgets/AttributeSelectionWidget';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';

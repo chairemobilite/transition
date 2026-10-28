@@ -6,7 +6,7 @@
  */
 import { minutesToSeconds } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
-import {
+import type {
     TransitRoutingBaseAttributes,
     TransitRoutingQueryAttributes
 } from 'chaire-lib-common/lib/services/routing/types';

@@ -8,8 +8,8 @@ import React from 'react';
 
 import TransitPathNodesList from '../forms/path/TransitPathNodeList';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import Path from 'transition-common/lib/services/path/Path';
-import { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+import type Path from 'transition-common/lib/services/path/Path';
+import type { LayoutSectionProps } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
 
 const BottomPanel: React.FunctionComponent<LayoutSectionProps> = (_props: LayoutSectionProps) => {
     const [path, setPath] = React.useState<{ path: Path | undefined }>({

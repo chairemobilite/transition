@@ -8,7 +8,7 @@ import { validate as uuidValidate } from 'uuid';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
-import MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
+import type MapLayerManager from 'chaire-lib-frontend/lib/services/map/MapLayerManager';
 
 class PathMapLayerManager {
     private _layerManager: MapLayerManager;

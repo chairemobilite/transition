@@ -4,10 +4,10 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
-import { DataGeojson } from './dataGeojson';
-import { OsmRawDataType, OsmRawDataTypeNode } from './dataOsmRaw';
-import { PlaceCategory } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
+import type { SingleGeoFeature } from 'chaire-lib-common/lib/services/geodata/GeoJSONUtils';
+import type { DataGeojson } from './dataGeojson';
+import type { OsmRawDataType, OsmRawDataTypeNode } from './dataOsmRaw';
+import type { PlaceCategory } from 'chaire-lib-common/lib/config/osm/osmMappingDetailedCategoryToCategory';
 
 /**
  * Geojson properties for entrances

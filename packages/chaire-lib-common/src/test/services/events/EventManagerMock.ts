@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import EventManagerImpl, { EventManager } from '../../../services/events/EventManager';
+import EventManagerImpl, { type EventManager } from '../../../services/events/EventManager';
 import serviceLocator from '../../../utils/ServiceLocator';
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */

@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { FileReaderCallback } from 'chaire-lib-backend/lib/services/files/JsonFileReader';
+import type { GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import type { FileReaderCallback } from 'chaire-lib-backend/lib/services/files/JsonFileReader';
 import { parseGeojsonFileFeatures } from 'chaire-lib-backend/lib/services/files/GeojsonFileReader';
 import CollectionImporter from './CollectionImporter';
 

@@ -7,7 +7,7 @@
 import React from 'react';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons/faFileDownload';
 import { faTasks } from '@fortawesome/free-solid-svg-icons/faTasks';
-import { withTranslation, WithTranslation } from 'react-i18next';
+import { withTranslation, type WithTranslation } from 'react-i18next';
 import slugify from 'slugify';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -19,13 +19,13 @@ import Button from 'chaire-lib-frontend/lib/components/input/Button';
 import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import GtfsExporter from 'transition-common/lib/services/gtfs/GtfsExporter';
-import { ChangeEventsForm, ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
-import { GtfsConstants, GtfsExportStatus } from 'transition-common/lib/api/gtfs';
+import { ChangeEventsForm, type ChangeEventsState } from 'chaire-lib-frontend/lib/components/forms/ChangeEventsForm';
+import { GtfsConstants, type GtfsExportStatus } from 'transition-common/lib/api/gtfs';
 import TransitServiceFilterableList from '../service/TransitServiceFilterableList';
-import Agency from 'transition-common/lib/services/agency/Agency';
-import TransitService from 'transition-common/lib/services/service/Service';
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
+import type Agency from 'transition-common/lib/services/agency/Agency';
+import type TransitService from 'transition-common/lib/services/service/Service';
+import type AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
+import type ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
 
 type GtfsExportFormState = {
     // Subset of services and agencies to display in the form, based on the selected filters

@@ -8,16 +8,16 @@ import React from 'react';
 import _cloneDeep from 'lodash/cloneDeep';
 import { useTranslation } from 'react-i18next';
 
-import Path from 'transition-common/lib/services/path/Path';
+import type Path from 'transition-common/lib/services/path/Path';
 import Preferences from 'chaire-lib-common/lib/config/Preferences';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
-import { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
-import { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
-import { PeriodsGroup } from 'transition-common/lib/services/schedules/Period';
+import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
+import type { SchedulePeriod } from 'transition-common/lib/services/schedules/Schedule';
+import type { PeriodsGroup } from 'transition-common/lib/services/schedules/Period';
 
 import {
-    LocalSegmentTimes,
-    ServiceSegmentTimes,
+    type LocalSegmentTimes,
+    type ServiceSegmentTimes,
     buildSegmentsByServiceAndPeriod
 } from 'transition-common/lib/services/path/PathSegmentTimeUtils';
 

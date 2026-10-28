@@ -7,22 +7,23 @@
 import TrRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import pQueue from 'p-queue';
-import Scenario from 'transition-common/lib/services/scenario/Scenario';
+import type Scenario from 'transition-common/lib/services/scenario/Scenario';
 import trRoutingService from 'chaire-lib-backend/lib/utils/trRouting/TrRoutingServiceBackend';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import ServerConfig from 'chaire-lib-backend/lib/config/ServerConfig';
 
-import Simulation, { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
+import type { SimulationDataAttributes } from 'transition-common/lib/services/simulation/Simulation';
+import type Simulation from 'transition-common/lib/services/simulation/Simulation';
 import SimulationRun, {
-    SimulationRunAttributes,
-    SimulationRunDataAttributes,
-    SimulationRuntimeOptions
+    type SimulationRunAttributes,
+    type SimulationRunDataAttributes,
+    type SimulationRuntimeOptions
 } from 'transition-common/lib/services/simulation/SimulationRun';
-import {
+import type {
     SimulationMethodType,
     SimulationMethodRegistry
 } from 'transition-common/lib/services/networkDesign/transit/simulationMethod';
-import { SimulationMethodFactory } from './methods/SimulationMethod';
+import type { SimulationMethodFactory } from './methods/SimulationMethod';
 import { OdTripSimulationFactory } from './methods/OdTripSimulation';
 import { AccessibilityMapSimulationFactory } from './methods/AccessibilityMapSimulation';
 import simulationRunsDbQueries from '../../models/db/simulationRuns.db.queries';

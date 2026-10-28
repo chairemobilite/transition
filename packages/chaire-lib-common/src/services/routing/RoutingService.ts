@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GeoJSON from 'geojson';
-import { RoutingMode } from '../../config/routingModes';
+import type GeoJSON from 'geojson';
+import type { RoutingMode } from '../../config/routingModes';
 
 // FIXME Make sure these parameters are those that apply to map matching as the name implies
 export interface MapMatchParameters {

@@ -9,7 +9,7 @@ import type { Feature } from 'geojson';
 import { mat4 } from 'gl-matrix';
 import type { AnimatedCustomLayer } from './AnimatedCustomLayer';
 import { createBuffer, createProgram, getUniformLocation } from './glUtils';
-import { buildPathInstances, PathInstances, SEGMENT_FLOATS } from './pathGeometry';
+import { buildPathInstances, type PathInstances, SEGMENT_FLOATS } from './pathGeometry';
 
 /** Longest frame interval used to advance the arrows, so they do not jump after a pause (e.g. hidden tab) */
 const MAX_FRAME_SECONDS = 0.1;

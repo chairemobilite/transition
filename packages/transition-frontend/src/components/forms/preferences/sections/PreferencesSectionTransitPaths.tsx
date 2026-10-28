@@ -4,9 +4,9 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import React from 'react';
+import type React from 'react';
 
-import PreferencesSectionProps from '../PreferencesSectionProps';
+import type PreferencesSectionProps from '../PreferencesSectionProps';
 
 // TODO: Implement this component or delete it.
 const PreferencesSectionTransitPaths: React.FunctionComponent<PreferencesSectionProps> = (

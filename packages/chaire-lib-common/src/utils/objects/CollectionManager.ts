@@ -4,8 +4,8 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import GenericImmutableCollection from './GenericImmutableCollection';
-import { EventManager } from '../../services/events/EventManager';
+import type GenericImmutableCollection from './GenericImmutableCollection';
+import type { EventManager } from '../../services/events/EventManager';
 
 export default class CollectionManager {
     // TODO Does the collection manager need an event manager at all?

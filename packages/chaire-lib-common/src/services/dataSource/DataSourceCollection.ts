@@ -6,12 +6,12 @@
  */
 import DataSource from './DataSource';
 import CollectionCacheable from '../../services/objects/CollectionCacheable';
-import CollectionManager from '../../utils/objects/CollectionManager';
+import type CollectionManager from '../../utils/objects/CollectionManager';
 import CollectionLoadable from '../../services/objects/CollectionLoadable';
 import GenericObjectCollection from '../../utils/objects/GenericObjectCollection';
-import Progressable from '../../utils/objects/Progressable';
-import { GenericAttributes } from '../../utils/objects/GenericObject';
-import { EventManager } from '../../services/events/EventManager';
+import type Progressable from '../../utils/objects/Progressable';
+import type { GenericAttributes } from '../../utils/objects/GenericObject';
+import type { EventManager } from '../../services/events/EventManager';
 
 /**
  * A collection of data sources

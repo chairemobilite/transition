@@ -5,7 +5,12 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import MapLibreMap, { MapRef, ScaleControl, SourceSpecification, LayerSpecification } from 'react-map-gl/maplibre';
+import MapLibreMap, {
+    type MapRef,
+    ScaleControl,
+    type SourceSpecification,
+    type LayerSpecification
+} from 'react-map-gl/maplibre';
 import type { StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +20,7 @@ import ConfirmModal from 'chaire-lib-frontend/lib/components/modal/ConfirmModal'
 import { usePreference } from 'chaire-lib-frontend/lib/hooks/usePreference';
 import {
     isProjectBasemapStyleUrl,
-    ProjectMapBasemapShortname
+    type ProjectMapBasemapShortname
 } from 'chaire-lib-common/lib/config/mapBaseLayersProject.types';
 
 import MapConfigurationPanel from './TransitionMapControlsMenu';

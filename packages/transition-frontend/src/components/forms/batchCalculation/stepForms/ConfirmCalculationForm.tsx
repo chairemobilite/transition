@@ -7,11 +7,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
+import type ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 
-import { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
+import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
+import type TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
 
 export interface ConfirmCalculationFormProps {
     currentDemand: TransitOdDemandFromCsv;

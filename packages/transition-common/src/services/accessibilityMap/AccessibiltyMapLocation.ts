@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
+import type { MapObjectAttributes } from 'chaire-lib-common/lib/utils/objects/MapObject';
 
 export interface AccessibilityMapLocation extends MapObjectAttributes<GeoJSON.Point> {
     timeOfTrip: number;

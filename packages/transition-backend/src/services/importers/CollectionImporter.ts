@@ -7,8 +7,8 @@
 import { validate as uuidValidate } from 'uuid';
 import * as z from 'zod';
 
-import { GenericObject, GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
-import { parseJsonFile, FileReaderCallback } from 'chaire-lib-backend/lib/services/files/JsonFileReader';
+import type { GenericObject, GenericAttributes } from 'chaire-lib-common/lib/utils/objects/GenericObject';
+import { parseJsonFile, type FileReaderCallback } from 'chaire-lib-backend/lib/services/files/JsonFileReader';
 
 // TODO Should we remove null choices or keep their values when exporting?
 export const genericAttributesSchema = z.object({

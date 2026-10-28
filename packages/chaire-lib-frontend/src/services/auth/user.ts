@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { BaseUser, CliUser, UserPages, UserPermissions } from 'chaire-lib-common/lib/services/user/userType';
+import type { BaseUser, CliUser, UserPages, UserPermissions } from 'chaire-lib-common/lib/services/user/userType';
 import isAuthorized, { deserializeRules } from './authorization';
 
 export const toCliUser = (user: BaseUser, pages: UserPages[] = [], showUserInfoPerm?: UserPermissions): CliUser => {
