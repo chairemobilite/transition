@@ -21,6 +21,10 @@ test.beforeAll(async ({ browser }) => {
     context.page = await testHelpers.initializeTestPage(browser);
 });
 
+test.afterAll(async () => {
+    await testHelpers.closeTestPage(context.page);
+});
+
 loginTestHelpers.startAndLoginAnonymously({ context, title: 'Transition' });
 
 // Click on a few sections of the left menu to check that the panel switching
