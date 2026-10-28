@@ -7,6 +7,7 @@
 import type * as GtfsTypes from 'gtfs-types';
 
 import { parseCsvFile } from 'chaire-lib-backend/lib/services/files/CsvFile';
+import { gtfsCsvOptions } from './gtfsCsvOptions';
 import { timeStrToSecondsSinceMidnight } from 'chaire-lib-common/lib/utils/DateTimeUtils';
 import { gtfsFiles } from 'transition-common/lib/services/gtfs/GtfsFiles';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
@@ -124,7 +125,7 @@ export class StopTimeImporter implements GtfsObjectPreparator<
 
                 stopTimes.push(trip);
             },
-            { header: true }
+            gtfsCsvOptions({ header: true })
         );
         return stopTimes;
     }
