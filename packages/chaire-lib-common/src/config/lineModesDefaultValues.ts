@@ -17,6 +17,7 @@ export const lineModesArray = [
     'tram',
     'tramTrain',
     'water',
+    'airplane',
     'gondola',
     'funicular',
     'taxi',
@@ -107,6 +108,22 @@ export default {
         defaultDeceleration: 0.5,
         defaultDwellTimeSeconds: 60,
         maxRunningSpeedKmH: 100
+    },
+    airplane: {
+        routingMode: null,
+        routingEngine: 'manual',
+        // As-the-crow-flies: the path ignores wind, altitude and aircraft type.
+        // Propeller aircraft cruise around 300-700 km/h, so 500 is a plausible average.
+        defaultRunningSpeedKmH: 500,
+        defaultAcceleration: 0.5,
+        defaultDeceleration: 0.5,
+        // Two hours: airport dwell, including the average early arrival.
+        defaultDwellTimeSeconds: 2 * 60 * 60,
+        // Ceiling above the two-hour default.
+        maxDwellTimeSeconds: 4 * 60 * 60,
+        // Commercial jets cruise around 800-1000 km/h, about the speed of sound.
+        // Anything faster is supersonic and is a separate mode.
+        maxRunningSpeedKmH: 1000
     },
     gondola: {
         routingMode: null,
