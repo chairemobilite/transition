@@ -252,23 +252,42 @@ describe('Captcha Routes Tests', () => {
         });
     });
 
-    // Run simple captcha tests after cap.js tests have completed
-    describe('Simple Captcha', () => {
+    // Run the other captcha types tests after cap.js tests have completed
+    describe('Simple captcha type, which was removed', () => {
+        it('should warn and use Cap.js instead', async () => {
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+            config.captchaComponentType = 'simple';
+
+            const app = express();
+            app.use(express.json());
+            const router = express.Router();
+            captchaRoutes(router);
+            app.use(router);
+            await waitForSetup();
+
+            expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("The 'simple' captcha was removed"));
+            const response = await request(app).post('/captcha/challenge');
+            expect(response.status).toBe(200);
+            expect(createChallengeMock).toHaveBeenCalledTimes(1);
+            warnSpy.mockRestore();
+        });
+    });
+
+    describe('Unsupported captcha type', () => {
         let app;
         let middlewareApp;
 
         beforeAll(async () => {
-            
-            // Setup routes for simple captcha
-            config.captchaComponentType = 'simple';
-            
+            // Setup routes for a captcha type that is not supported
+            config.captchaComponentType = 'unsupported' as any;
+
             // Setup main app
             app = express();
             app.use(express.json());
             const router = express.Router();
             captchaRoutes(router);
             app.use(router);
-            
+
             // Setup middleware app
             middlewareApp = express();
             middlewareApp.use(express.json());
@@ -277,12 +296,12 @@ describe('Captcha Routes Tests', () => {
                 validateCaptchaToken(),
                 (req, res) => res.status(200).json({ success: true })
             );
-            
+
             // Wait for routes and validation function to be initialized
             await waitForSetup();
         });
 
-        describe('Routes for simple captcha', () => {
+        describe('Routes for an unsupported captcha type', () => {
             it('should not define /captcha/challenge route', async () => {
                 const response = await request(app).post('/captcha/challenge');
                 expect(response.status).toBe(404);
@@ -294,8 +313,8 @@ describe('Captcha Routes Tests', () => {
             });
         });
 
-        describe('Captcha Middleware with Simple Captcha', () => {
-            it('should always allow access with any token for simple captcha', async () => {
+        describe('Captcha Middleware with an unsupported captcha type', () => {
+            it('should always allow access with any token', async () => {
                 const anyToken = 'any-token-will-work';
                 const response = await request(middlewareApp)
                     .post('/protected')
