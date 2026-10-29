@@ -393,9 +393,26 @@ routeResultNoRoutingReason:
       type: string
       example: 'cannot calculate transit route with trRouting because of an error on server: MISSING_DATA_AGENCIES'
     code:
-      type: string
-      enum: [ErrorCodes]
-      example: 'TRROUTING_MISSING_DATA'
+      $ref: '#/errorCodes'
+
+errorCodes:
+  type: string
+  description: Code of the routing error.
+  enum:
+    - 'TRROUTING_NO_ROUTING_FOUND'
+    - 'TRROUTING_NO_ROUTING_NO_ACCESS_AT_ORIGIN'
+    - 'TRROUTING_NOT_ROUTING_NO_ACCESS_AT_DESTINATION'
+    - 'TRROUTING_NOT_ROUTING_NO_ACCESS_AT_ORIGIN_AND_DESTINATION'
+    - 'TRROUTING_NO_ROUTING_NO_SERVICE_FROM_ORIGIN'
+    - 'TRROUTING_NO_ROUTING_NO_SERVICE_TO_DESTINATION'
+    - 'TRROUTING_SERVER_NOT_RUNNING'
+    - 'TRROUTING_NOT_ROUTING_NO_ACCESS_AT_PLACE'
+    - 'TRROUTING_NO_ROUTING_NO_SERVICE_AT_PLACE'
+    - 'TRROUTING_ERROR_UNKNOWN'
+    - 'TRROUTING_MISSING_DATA'
+    - 'TRROUTING_INVALID_DATA'
+    - 'TRROUTING_QUERY_ERROR'
+  example: 'TRROUTING_MISSING_DATA'
 
 singleRouteResponse:
   type: object
