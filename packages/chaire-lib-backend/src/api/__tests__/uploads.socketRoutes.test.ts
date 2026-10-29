@@ -29,12 +29,17 @@ const createDirectoryMock = fileManager.directoryManager.createDirectoryIfNotExi
 
 const socketStub = new EventEmitter();
 const importerMock = jest.fn();
+const objectImporterMock = jest.fn();
 const absoluteUserDir = '/absolute/user/dir';
 const customImportDir = 'someImportDir';
 uploadRoutes(socketStub as any, absoluteUserDir, {
     test: {
         type: 'function',
         fct: importerMock
+    },
+    testObjects: {
+        type: 'importerObject',
+        object: { import: objectImporterMock }
     }
 }, {
     chunkSizeMB: 2,
@@ -389,4 +394,84 @@ describe('Upload file chunks', () => {
         expect(progressCallback).toHaveBeenCalledWith({ status: 'error', error: 'CannotWriteChunk' });
     });
 
+});
+
+describe('Object importer results', () => {
+    const filename = 'objects.json';
+
+    // Upload a file for the object importer and resolve with the importer event sent to the client
+    const uploadAndWaitForImportEvent = () => new Promise<{ event: string; data: unknown }>((resolve) => {
+        const onImported = (data: unknown) => {
+            removeListeners();
+            resolve({ event: 'imported', data });
+        };
+        const onImportError = (data: unknown) => {
+            removeListeners();
+            resolve({ event: 'importError', data });
+        };
+        const removeListeners = () => {
+            socketStub.off('importer.testObjectsImported', onImported);
+            socketStub.off('importer.testObjectsImportError', onImportError);
+        };
+        socketStub.on('importer.testObjectsImported', onImported);
+        socketStub.on('importer.testObjectsImportError', onImportError);
+        socketStub.emit('uploadFile', 'somefilecontent', {
+            uploadType: 'someType',
+            data: { objects: 'testObjects', filename }
+        }, jest.fn());
+    });
+
+    let consoleErrorSpy: jest.SpyInstance;
+    beforeEach(() => {
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+
+    test('Successful import', async () => {
+        objectImporterMock.mockResolvedValueOnce({ result: 'success', created: 2, updated: 0 });
+
+        const importEvent = await uploadAndWaitForImportEvent();
+
+        expect(objectImporterMock).toHaveBeenCalledWith(`${customImportDir}/${filename}`);
+        expect(importEvent.event).toEqual('imported');
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    test('Import returns a string error', async () => {
+        const error = 'Error validating data for object at position 2: Invalid ID format';
+        objectImporterMock.mockResolvedValueOnce({ result: 'error', error });
+
+        const importEvent = await uploadAndWaitForImportEvent();
+
+        // String errors are sent to the client
+        expect(importEvent).toEqual({
+            event: 'importError',
+            data: { text: 'main:errors:ErrorImportingFileWithDetails', params: { error } }
+        });
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(filename), error);
+    });
+
+    test('Import returns an unexpected error', async () => {
+        const error = new Error('insert into "some_table" failed');
+        objectImporterMock.mockResolvedValueOnce({ result: 'error', error });
+
+        const importEvent = await uploadAndWaitForImportEvent();
+
+        // The error details are not sent to the client
+        expect(importEvent).toEqual({ event: 'importError', data: 'main:errors:ErrorImportingFile' });
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(filename), error);
+    });
+
+    test('Import rejects', async () => {
+        const error = new Error('unexpected error');
+        objectImporterMock.mockRejectedValueOnce(error);
+
+        const importEvent = await uploadAndWaitForImportEvent();
+
+        expect(importEvent).toEqual({ event: 'importError', data: 'main:errors:ErrorImportingFile' });
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(filename), error);
+    });
 });

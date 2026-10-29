@@ -9,6 +9,7 @@ import _merge from 'lodash/merge';
 
 import { fileManager } from '../utils/filesystem/fileManager';
 import { FileUploadOptions, FileUploadStatus } from 'chaire-lib-common/lib/utils/files/fileUpload/types';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 export type FileUploadServerOptions = {
     acceptTypes: string[];
@@ -27,6 +28,12 @@ type ObjectImporter =
     | {
           type: 'importerObject';
           object: {
+              /**
+               * Import the objects from the file. The import fails if the
+               * promise rejects or resolves to `{ result: 'error', error }`.
+               * String errors are sent to the client, so they should be
+               * meaningful to the user.
+               */
               import: (filePath: string) => Promise<unknown>;
               attributes?: unknown;
           };
@@ -41,6 +48,16 @@ type ObjectImporter =
 
 // Remove anything before a slash or backslash in the filename to prevent path traversal attacks
 const sanitizeFileName = (filename: string) => filename.replace(/^.*[\\/]/, '');
+
+const isImportError = (result: unknown): result is { result: 'error'; error: unknown } =>
+    typeof result === 'object' && result !== null && (result as { result?: unknown }).result === 'error';
+
+// Only string errors, like data validation messages, are sent to the client.
+// Other errors, like database errors, may expose internal details.
+const getImportErrorMessage = (error: unknown): TranslatableMessage =>
+    typeof error === 'string'
+        ? { text: 'main:errors:ErrorImportingFileWithDetails', params: { error } }
+        : 'main:errors:ErrorImportingFile';
 
 export default function (
     socket: SocketIO.Socket,
@@ -73,12 +90,21 @@ export default function (
             if (objectImporter.type === 'importerObject') {
                 objectImporter.object
                     .import(saveToFile)
-                    .then(() => {
+                    .then((result) => {
+                        if (isImportError(result)) {
+                            console.error(`Error importing file ${saveToFile}:`, result.error);
+                            socket.emit(
+                                `importer.${importObjectsName}ImportError`,
+                                getImportErrorMessage(result.error)
+                            );
+                            return;
+                        }
                         console.log('finished importing file', saveToFile);
                         socket.emit(`importer.${importObjectsName}Imported`, objectImporter.object.attributes);
                     })
                     .catch((error) => {
-                        console.error(error);
+                        console.error(`Error importing file ${saveToFile}:`, error);
+                        socket.emit(`importer.${importObjectsName}ImportError`, getImportErrorMessage(error));
                     });
             } else if (objectImporter.type === 'function') {
                 objectImporter.fct(socket, absoluteUserDir, saveToFile);

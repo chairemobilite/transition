@@ -12,7 +12,10 @@ import { faUpload } from '@fortawesome/free-solid-svg-icons/faUpload';
 
 import InputFile from 'chaire-lib-frontend/lib/components/input/InputFile';
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
+import FormErrors from 'chaire-lib-frontend/lib/components/pageParts/FormErrors';
 import { useFileUploader } from 'chaire-lib-frontend/lib/components/input/FileUploaderHook';
+import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
+import { TranslatableMessage } from 'chaire-lib-common/lib/utils/TranslatableMessage';
 
 interface FileImportFormProps {
     pluralizedObjectsName: string;
@@ -24,9 +27,24 @@ interface FileImportFormProps {
 
 const FileImportForm: React.FunctionComponent<FileImportFormProps> = (props: FileImportFormProps) => {
     const [currentChangeCount, setCurrentChangeCount] = React.useState(0);
+    const [importErrors, setImportErrors] = React.useState<TranslatableMessage[]>([]);
     const { t } = useTranslation('main');
     const fileImportRef = React.useRef<HTMLInputElement>(null) as React.RefObject<HTMLInputElement>;
     const { upload } = useFileUploader();
+
+    React.useEffect(() => {
+        const importErrorEvent = `importer.${props.pluralizedObjectsName}ImportError`;
+        const onImportError = (error: TranslatableMessage) => {
+            setImportErrors([error]);
+            // Stop the import progress started when the upload completed
+            serviceLocator.eventManager.emit('progress', { name: 'Importing', progress: 1.0 });
+        };
+        serviceLocator.socketEventManager.on(importErrorEvent, onImportError);
+        return () => {
+            serviceLocator.socketEventManager.off(importErrorEvent, onImportError);
+        };
+    }, [props.pluralizedObjectsName]);
+
     return (
         <form
             id={`tr__form-transit-${props.pluralizedObjectsName}-import`}
@@ -40,7 +58,10 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps> = (props: Fil
                         id={`formField${_upperFirst(props.pluralizedObjectsName)}ImporterFile`}
                         accept={props.acceptsExtension}
                         inputRef={fileImportRef}
-                        onChange={() => setCurrentChangeCount(currentChangeCount + 1)}
+                        onChange={() => {
+                            setCurrentChangeCount(currentChangeCount + 1);
+                            setImportErrors([]);
+                        }}
                     />
                 </div>
             </div>
@@ -62,6 +83,7 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps> = (props: Fil
                             // upload
                             if (fileImportRef.current.files && fileImportRef.current.files.length > 0) {
                                 const file = fileImportRef.current.files[0];
+                                setImportErrors([]);
                                 upload(file, {
                                     uploadType: 'imports',
                                     data: {
@@ -74,8 +96,8 @@ const FileImportForm: React.FunctionComponent<FileImportFormProps> = (props: Fil
                     />
                 )}
             </div>
-            {/* TODO Add actual upload error information when we have it
-              <FormErrors errors={validator.getErrors()} /> */}
+            {/* TODO Also show the file upload errors, they are only logged in the console for now */}
+            <FormErrors errors={importErrors} />
         </form>
     );
 };
