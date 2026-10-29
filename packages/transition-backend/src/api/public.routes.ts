@@ -91,7 +91,7 @@ export default function (app: express.Express, passport: PassportStatic) {
     const router = express.Router();
 
     router.use('/', (req, res, next) => {
-        passport.authenticate('bearer-strategy', { session: false }, (err, _user, _info) => {
+        passport.authenticate('bearer-strategy', { session: false }, (err, user, _info) => {
             if (err) {
                 console.error(err);
                 if (err === 'DatabaseTokenExpired') {
@@ -107,6 +107,12 @@ export default function (app: express.Express, passport: PassportStatic) {
                     const message = 'Internal Server Error';
                     return res.status(500).send(message);
                 }
+            }
+
+            // A missing or malformed token gives no error, only no user
+            if (!user) {
+                const message = 'Unauthorized';
+                return res.status(401).send(message);
             }
 
             next();

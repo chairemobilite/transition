@@ -250,6 +250,20 @@ describe('Testing passport bearer-strategy middleware', () => {
         expect(passport.authenticate).toHaveBeenCalledTimes(3);
     });
 
+    test('Should return 401 when no user is authenticated', async () => {
+        (passport.authenticate as jest.Mock).mockImplementation((strategy, options, callback) => {
+            return () => {
+                callback(null, false);
+            }
+        });
+
+        const response = await request(app).get('/api/v1');
+
+        expect(response.status).toEqual(401);
+        expect(response.text).toEqual('Unauthorized');
+        expect(passport.authenticate).toHaveBeenCalledTimes(1);
+    });
+
     test('Should return 500 when other error is encountered', async () => {
         const error = 'testerror';
 
