@@ -5,11 +5,15 @@ info:
 servers:
   - url: http://localhost:8080/
 
+security:
+  - bearerAuth: []
+
 paths:
   /token:
     post:
       summary: Retrieve authentication token for specified user
-      description: Returns an authentication token. This token is required in the Authentication header of requests to other endpoints.
+      description: Returns an authentication token. Send it as a bearer token in the Authorization header of requests to other endpoints.
+      security: []
       requestBody:
         required: true
         content:
@@ -41,6 +45,7 @@ paths:
       summary: Get the versions supported by this API
       description: Get the latest version of the API supported by this version of Transition
       x-added-in-version: 1.1
+      security: []
       responses:
         '200':
           description: Returns a list of the latest version for each supported major version of the API
@@ -64,6 +69,8 @@ paths:
             application/json:
               schema:
                 $ref: 'paths.yml#/paths'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/nodes:
     get:
@@ -76,6 +83,8 @@ paths:
             application/json:
               schema:
                 $ref: 'nodes.yml#/nodes'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   
   /api/v1/scenarios:
     get:
@@ -88,6 +97,8 @@ paths:
             application/json:
               schema:
                 $ref: 'scenarios.yml#/scenarios'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/agencies:
     get:
@@ -101,6 +112,8 @@ paths:
             application/json:
               schema:
                 $ref: 'agencies.yml#/agencies'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/services:
     get:
@@ -114,6 +127,8 @@ paths:
             application/json:
               schema:
                 $ref: 'services.yml#/services'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/lines:
     get:
@@ -127,6 +142,8 @@ paths:
             application/json:
               schema:
                 $ref: 'lines.yml#/lines'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/routing-modes:
     get: 
@@ -139,6 +156,8 @@ paths:
             application/json:
               schema:
                 $ref: 'routingModes.yml#/routingModes'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   
   /api/v1/summary:
     post:
@@ -185,6 +204,8 @@ paths:
             application/json:
               schema:
                 $ref: 'summary.yml#/query_error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/route:
     post:
@@ -215,6 +236,8 @@ paths:
             application/json:
               schema:
                 $ref: 'route.yml#/routeResponseBadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /api/v1/accessibility:
     post: 
@@ -245,3 +268,20 @@ paths:
             application/json:
               schema:
                 $ref: 'accessibilityMap.yml#/accessibilityMapResponseBadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    Unauthorized:
+      description: The token is missing, invalid or expired. An expired token returns DatabaseTokenExpired.
+      content:
+        text/plain:
+          schema:
+            type: string
+            description: Description of the encountered error
+            example: Unauthorized
