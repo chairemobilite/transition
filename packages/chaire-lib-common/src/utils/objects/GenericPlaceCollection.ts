@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import geokdbush from 'geokdbush';
+import { around } from 'geokdbush';
 import KDBush from 'kdbush';
 
 import type { GenericPlace, GenericPlaceAttributes } from './GenericPlace';
@@ -14,6 +14,15 @@ import Preferences from '../../config/Preferences';
 import routingServiceManager from '../../services/routing/RoutingServiceManager';
 import { ceilToPositiveInteger } from '../MathUtils';
 
+const createSpatialIndex = <A>(features: GeoJSON.Feature<GeoJSON.Point, A>[]): KDBush => {
+    const spatialIndex = new KDBush(features.length);
+    for (let i = 0, count = features.length; i < count; i++) {
+        spatialIndex.add(features[i].geometry.coordinates[0], features[i].geometry.coordinates[1]);
+    }
+    spatialIndex.finish();
+    return spatialIndex;
+};
+
 /**
  * A collection of point locations on a map
  */
@@ -21,15 +30,15 @@ export default abstract class GenericPlaceCollection<
     A extends GenericPlaceAttributes,
     T extends GenericPlace<A>
 > extends GenericMapObjectCollection<GeoJSON.Point, A, T> {
-    protected _spatialIndex: KDBush<GeoJSON.Feature<GeoJSON.Point, A>>;
+    // The spatial index only stores the position of each point in the array of
+    // features it was built from, so keep that array to get the features back
+    protected _spatialIndex: KDBush;
+    protected _spatialIndexFeatures: GeoJSON.Feature<GeoJSON.Point, A>[];
 
     constructor(features: GeoJSON.Feature<GeoJSON.Point, A>[], attributes?: { [key: string]: unknown }) {
         super(features, attributes);
-        this._spatialIndex = new KDBush(
-            this.features,
-            (feature) => feature.geometry.coordinates[0],
-            (feature) => feature.geometry.coordinates[1]
-        );
+        this._spatialIndexFeatures = this.features;
+        this._spatialIndex = createSpatialIndex(this._spatialIndexFeatures);
     }
 
     updateIndexes(): void {
@@ -42,29 +51,22 @@ export default abstract class GenericPlaceCollection<
         this.updateSpatialIndex();
     }
 
-    getSpatialIndex(): KDBush<GeoJSON.Feature<GeoJSON.Point, A>> {
-        return this._spatialIndex;
-    }
-
     updateSpatialIndex() {
-        this._spatialIndex = new KDBush(
-            this.features,
-            (feature) => feature.geometry.coordinates[0],
-            (feature) => feature.geometry.coordinates[1]
-        );
+        this._spatialIndexFeatures = this.features;
+        this._spatialIndex = createSpatialIndex(this._spatialIndexFeatures);
     }
 
     pointsInBirdRadiusMetersAround(
         geometry: GeoJSON.Point,
         birdRadiusMeters = 1000
     ): GeoJSON.Feature<GeoJSON.Point, A>[] {
-        return geokdbush.around(
+        return around(
             this._spatialIndex,
             geometry.coordinates[0],
             geometry.coordinates[1],
             undefined,
             birdRadiusMeters / 1000
-        );
+        ).map((featureIndex) => this._spatialIndexFeatures[featureIndex]);
     }
 
     isPointsInBirdRadius(points: GeoJSON.Feature<GeoJSON.Point>[] | null): points is GeoJSON.Feature<GeoJSON.Point>[] {
