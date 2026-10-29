@@ -7078,6 +7078,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"countries-and-timezones@npm:^3.11.0":
+  version: 3.11.0
+  resolution: "countries-and-timezones@npm:3.11.0"
+  checksum: 10c0/353b9f4aeb259938f4521caa69c69c2e1e5551f7d0f81912db35ce99f75eb9e404bc04b0940e59a1cfe53d9680f9469ba08f4617b9bc1fd81bfc12c09bcc380f
+  languageName: node
+  linkType: hard
+
 "crc@npm:^3.3.0":
   version: 3.8.0
   resolution: "crc@npm:3.8.0"
@@ -15302,13 +15309,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"timezone@npm:^1.0.23":
-  version: 1.0.23
-  resolution: "timezone@npm:1.0.23"
-  checksum: 10c0/0322592e05d21975fa7896ebbdd58fa33ad27966bb4282708b877ac375cb2b13fc90330a27695f2ef43e152af4d697f5a55420193a4e85ccf1a8f990982a489a
-  languageName: node
-  linkType: hard
-
 "tinybench@npm:^2.9.0":
   version: 2.9.0
   resolution: "tinybench@npm:2.9.0"
@@ -15568,6 +15568,7 @@ __metadata:
     compression-webpack-plugin: "npm:^12.0.0"
     copy-webpack-plugin: "npm:^14.0.0"
     copyfiles: "npm:^2.4.1"
+    countries-and-timezones: "npm:^3.11.0"
     cross-env: "npm:^10.1.0"
     date-fns: "npm:^4.1.0"
     dotenv: "npm:^17.2.3"
@@ -15606,7 +15607,6 @@ __metadata:
     sass-loader: "npm:^16.0.6"
     slugify: "npm:^1.6.6"
     socket.io-client: "npm:^4.8.4"
-    timezone: "npm:^1.0.23"
     transition-common: "workspace:^"
     ts-jest: "npm:^29.4.15"
     ts-loader: "npm:^9.6.2"
