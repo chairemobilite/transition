@@ -7,7 +7,7 @@
 import GeoJSON from 'geojson';
 import { area as turfArea } from '@turf/turf';
 import { pipeline } from 'node:stream/promises';
-import JSONStream from 'JSONStream';
+import { createJsonArrayStream } from '../../services/files/JsonFileReader';
 import fs from 'fs';
 
 import GenericDataImportTask from './genericDataImportTask';
@@ -58,7 +58,7 @@ export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask 
         console.log('Fetch buildings from osm geojson data...');
         const buildings: GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>[] = [];
         const readStream = fs.createReadStream(sourceFile);
-        const jsonParser = JSONStream.parse('features.*');
+        const jsonParser = createJsonArrayStream('features');
 
         return new Promise((resolve) => {
             jsonParser.on('data', (feature) => {
@@ -82,7 +82,7 @@ export default class enhanceAndSaveOsmPolygonData extends GenericDataImportTask 
         const writeStream = fs.createWriteStream(destinationFile);
         writeStream.write('{"type":"FeatureCollection","features":[');
         const readStream = fs.createReadStream(sourceFile);
-        const jsonParser = JSONStream.parse('features.*');
+        const jsonParser = createJsonArrayStream('features');
         let i = 0;
 
         console.log('Fetch polygons and multipolygons from osm geojson data...');

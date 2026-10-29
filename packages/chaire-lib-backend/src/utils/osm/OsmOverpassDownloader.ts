@@ -7,7 +7,7 @@
 import osmToGeojson from 'osm2geojson-lite';
 import fs from 'fs';
 import { pipeline } from 'node:stream/promises';
-import JSONStream from 'JSONStream';
+import { createJsonArrayStream } from '../../services/files/JsonFileReader';
 import { Readable } from 'node:stream';
 import type { ReadableStream } from 'node:stream/web';
 
@@ -163,7 +163,7 @@ class OsmOverpassDownloaderImpl implements OsmOverpassDownloader {
 
         const writeStream = fs.createWriteStream(filename);
         writeStream.write('{"type":"FeatureCollection","features":['); // Put all the data in one big feature collection
-        const jsonStream = JSONStream.parse('elements.*');
+        const jsonStream = createJsonArrayStream('elements');
         let firstIteration = true;
 
         //Encapsulating the logic of the streams in a promise allows for each event to happen when expected, particularly when writing a large file.

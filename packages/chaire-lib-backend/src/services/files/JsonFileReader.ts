@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
+import { Duplex } from 'stream';
 import { chain } from 'stream-chain';
 import { parser as jsonParser } from 'stream-json';
 import jsonFilter from 'stream-json/filters/FilterBase';
@@ -77,4 +78,27 @@ export const parseJsonFile = async (
             resolve('notfound');
         }
     });
+};
+
+/**
+ * Create a stream that parses JSON text and emits each element of the array
+ * at `arrayPath`. For example, `features` streams the features of a GeoJSON
+ * feature collection and `elements` the elements of an Overpass API response.
+ * Pipe a text stream into it, like a file read stream or a response body.
+ * `null` elements are skipped.
+ *
+ * @param {string} arrayPath The path of the array in the JSON document, with
+ * the fields of nested objects separated by dots
+ * @return {*}  {Duplex} A duplex stream that emits the array's elements in
+ * object mode
+ */
+export const createJsonArrayStream = (arrayPath: string): Duplex => {
+    const streams = [
+        jsonParser(),
+        jsonPick({ filter: arrayPath }),
+        jsonStreamArray(),
+        // Emit the element itself instead of its index and value
+        (data: { key: number; value: unknown }) => data.value
+    ];
+    return chain(streams as [any]);
 };
