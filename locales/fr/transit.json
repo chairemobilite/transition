@@ -501,6 +501,8 @@
         "ShowHelpText": "Montrer l'aide pour l'édition de parcours",
         "CloseHelpText": "Fermer l'aide pour l'édition de parcours",
         "SmoothPath": "Lisser le parcours (algorithme de Chaikin)",
+        "ShowCurveSegmentsLayer": "Afficher les segments de courbe à vitesse limitée sur la carte",
+        "ShowCurveSegmentsLayerHelp": "Met en évidence les sections du parcours où le rayon de courbure limite la vitesse maximale (affiché en orange sur la carte).",
         "warningFromGtfs": "Attention! Ce parcours a été importé d'un GTFS. Le recalculer pourrait changer le tracé ou les temps de parcours.",
         "EditSegmentTimesByPeriod": "Modifier les temps de parcours par segment par période",
         "SegmentTimesByPeriod": "Temps de parcours par segment par période",

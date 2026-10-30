@@ -501,6 +501,8 @@
         "ShowHelpText": "Show path edit help",
         "CloseHelpText": "Close path edit help",
         "SmoothPath": "Smooth path (Chaikin's algorithm)",
+        "ShowCurveSegmentsLayer": "Show speed-restricted curve segments on map",
+        "ShowCurveSegmentsLayerHelp": "Highlights path sections where the curve radius limits the maximum speed (shown in orange on the map).",
         "warningFromGtfs": "Warning! This transit path was imported from a GTFS. Recomputing its path could change the geography and timings.",
         "EditSegmentTimesByPeriod": "Edit segment travel times by period",
         "SegmentTimesByPeriod": "Segment travel times by period",
