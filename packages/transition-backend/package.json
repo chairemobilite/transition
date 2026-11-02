@@ -61,7 +61,7 @@
         "socket.io": "^4.8.4",
         "transition-common": "workspace:^",
         "transition-rust-backend": "workspace:^",
-        "uuid": "^11.1.0",
+        "uuid": "^14.0.3",
         "workerpool": "^10.0.0",
         "xml-reader": "^2.4.3",
         "yargs": "^18.0.0",
