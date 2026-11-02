@@ -29,7 +29,7 @@
     "papaparse": "^5.5.3",
     "pbf": "^3.3.0",
     "random": "^5.4.1",
-    "uuid": "^11.1.0"
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "@casl/ability": "^6.8.1",

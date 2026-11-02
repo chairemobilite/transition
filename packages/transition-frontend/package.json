@@ -56,7 +56,7 @@
     "socket.io-client": "^4.8.4",
     "timezone": "^1.0.23",
     "transition-common": "workspace:^",
-    "uuid": "^11.1.0"
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
