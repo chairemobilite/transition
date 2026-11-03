@@ -161,6 +161,12 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
     const columns = React.useMemo(() => {
         const columns = [
             {
+                Header: t('transit:jobs:Name'),
+                accessor: 'name',
+                width: 80,
+                Cell: (cellProps) => cellProps.value || '--'
+            },
+            {
                 Header: t('transit:jobs:Date'),
                 accessor: 'created_at',
                 width: 70,
