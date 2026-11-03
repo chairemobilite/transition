@@ -1014,6 +1014,7 @@
         }
     },
     "jobs": {
+        "Name": "Name",
         "Date": "Date",
         "EndTime": "End",
         "Status": "Status",
