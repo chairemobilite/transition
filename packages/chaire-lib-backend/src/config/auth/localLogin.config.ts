@@ -20,6 +20,19 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 const getConfirmEmail = () => config.auth?.localLogin?.confirmEmail;
 export const getConfirmEmailStrategy = () => config.auth?.localLogin?.confirmEmailStrategy;
 
+/**
+ * Whether users can create an account. Registration is allowed unless
+ * explicitly disabled. Keep in sync with the frontend's register page, so the
+ * server rejects what the interface does not offer.
+ */
+export const isRegistrationAllowed = (): boolean => config.auth?.localLogin?.allowRegistration !== false;
+
+/**
+ * Whether users can reset their password. Password reset is only available
+ * when explicitly enabled. Keep in sync with the frontend's login page.
+ */
+export const isForgotPasswordAllowed = (): boolean => config.auth?.localLogin?.forgotPasswordPage === true;
+
 const getVerifyUrl = (confirmationToken: string): string => {
     const host = process.env.HOST || 'http://localhost:8080';
     return new url.URL(`/verify/${confirmationToken}`, host).href;

@@ -4,11 +4,11 @@ module.exports = {
     projectDirectory: `${__dirname}/runtime/`,
     auth: {
       localLogin: {
-        // Whether users can create an account. If false, the register page will not be available. Defaults to true
+        // Whether users can create an account. If false, the register page will not be available and the server will reject registrations. Defaults to true
         allowRegistration: true,
         // This will send an email to confirm the user's email address. Email send needs to be configured. By default, users can register and directly login.
         // confirmEmail: true,
-        // Whether to allow users to reset their password. If false, the forgot password page will not be available. By default the page is not present
+        // Whether to allow users to reset their password. If false, the forgot password page will not be available and the server will reject password reset requests. By default the page is not present
         // forgotPasswordPage: false,
         // Whether to allow users to login with a username. If false, the username field will not be displayed on the login page. Defaults to true
         // registerWithEmailOnly?: boolean;

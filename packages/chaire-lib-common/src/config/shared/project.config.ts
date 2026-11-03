@@ -43,8 +43,9 @@ export type ProjectConfiguration<AdditionalConfig> = {
             confirmEmailStrategy?: 'confirmByAdmin' | 'confirmByUser';
             /**
              * Whether to allow users to reset their password. If false, the
-             * forgot password page will not be available. By default the page
-             * is not present
+             * forgot password page will not be available and the server will
+             * not accept password reset requests. By default the page is not
+             * present
              */
             forgotPasswordPage?: boolean;
             /**
@@ -54,7 +55,8 @@ export type ProjectConfiguration<AdditionalConfig> = {
             registerWithEmailOnly?: boolean;
             /**
              * Whether users can create an account. If false, the register page
-             * will not be available. Defaults to true
+             * will not be available and the server will reject registration
+             * requests. Defaults to true
              */
             allowRegistration?: boolean;
         };
