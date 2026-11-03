@@ -1057,6 +1057,7 @@
     "batchCalculation": {
         "List": "Calculation jobs",
         "New": "New calculation",
+        "CalculationNameHelp": "Optional. This name identifies the calculation in the list of calculations. It has no effect on the results.",
         "UploadFile": "Upload file",
         "DemandData": "Demand data",
         "AnalysisParameters": "Parameters",
