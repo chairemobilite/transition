@@ -55,6 +55,10 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
                         </th>
                     </tr>
                     <tr>
+                        <th>{t('transit:transitRouting:CalculationName')}</th>
+                        <td>{props.routingParameters.calculationName?.trim() || '-'}</td>
+                    </tr>
+                    <tr>
                         <th>{t('transit:transitRouting:RoutingModes')}</th>
                         <td>
                             {props.routingParameters.routingModes
