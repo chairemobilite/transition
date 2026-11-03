@@ -10,6 +10,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import _toString from 'lodash/toString';
 
 import { _toBool } from 'chaire-lib-common/lib/utils/LodashExtensions';
+import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 import InputMultiselect from 'chaire-lib-frontend/lib/components/input/InputMultiselect';
 import {
@@ -85,6 +86,13 @@ const ConfigureCalculationParametersForm: React.FunctionComponent<
 
     return (
         <div className="tr__form-section">
+            <InputWrapper label={props.t('transit:transitRouting:CalculationName')}>
+                <InputString
+                    id={'formFieldTransitBatchRoutingCalculationName'}
+                    value={props.routingParameters.calculationName}
+                    onValueUpdated={(value) => onValueChange('calculationName', value)}
+                />
+            </InputWrapper>
             {routingModeChoices.length > 0 && (
                 <InputWrapper twoColumns={false} label={props.t('transit:transitRouting:RoutingModes')}>
                     <InputMultiselect
