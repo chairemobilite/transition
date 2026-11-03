@@ -23,6 +23,7 @@ interface BatchCalculationListProps extends WithTranslation {
         parameters: BatchCalculationParameters;
         demand: BatchRoutingOdDemandFromCsvAttributes;
         csvFields: string[];
+        name?: string;
     }) => void;
 }
 
