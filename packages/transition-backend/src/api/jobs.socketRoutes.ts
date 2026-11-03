@@ -10,7 +10,9 @@ import moment from 'moment';
 import { JobsConstants } from 'transition-common/lib/api/jobs';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import type { JobAttributes, JobDataType } from 'transition-common/lib/services/jobs/Job';
+import { getJobCalculationName } from 'transition-common/lib/services/jobs/JobCalculationName';
 import { ExecutableJob } from '../services/executableJob/ExecutableJob';
+import { calculationNameToFileNamePart } from '../services/executableJob/CalculationNameFilePart';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 
 /**
@@ -77,6 +79,10 @@ export default function (socket: EventEmitter, userId: number) {
                         title: string | { text: string; fileName: string };
                     };
                 } = {};
+                const calculationName = getJobCalculationName(job.attributes);
+                const calculationNameFilePart =
+                    calculationName === undefined ? '' : calculationNameToFileNamePart(calculationName);
+                const downloadPrefix = calculationNameFilePart === '' ? '' : `${calculationNameFilePart}_`;
                 Object.keys(jobResourceFiles).forEach((file) => {
                     if (jobResourceFiles[file] && files?.includes(jobResourceFiles[file] as string)) {
                         const fileName = jobResourceFiles[file] as string;
@@ -84,8 +90,8 @@ export default function (socket: EventEmitter, userId: number) {
                         const formattedTime = moment(job.attributes.created_at || '').format('YYYYMMDD_HHmmss');
                         const downloadName =
                             match === null
-                                ? `${fileName}_${formattedTime}`
-                                : `${match[1]}_${formattedTime}.${match[2]}`;
+                                ? `${downloadPrefix}${fileName}_${formattedTime}`
+                                : `${downloadPrefix}${match[1]}_${formattedTime}.${match[2]}`;
                         jobFiles[file] = {
                             url: `/job/${id}/${fileName}`,
                             downloadName: downloadName,
