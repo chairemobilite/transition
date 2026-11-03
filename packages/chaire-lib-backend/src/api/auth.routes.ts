@@ -16,7 +16,11 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 // TODO Responsibility for user login management is usually in passport, move it there
 import { resetPasswordEmail, sendConfirmedByAdminEmail } from '../services/auth/userEmailNotifications';
 import config from '../config/server.config';
-import { getConfirmEmailStrategy } from '../config/auth/localLogin.config';
+import {
+    getConfirmEmailStrategy,
+    isForgotPasswordAllowed,
+    isRegistrationAllowed
+} from '../config/auth/localLogin.config';
 import type { UserAttributes } from '../services/users/user';
 import type { IAuthModel, IUserModel } from '../services/auth/authModel';
 import type { PassportStatic } from 'passport';
@@ -195,17 +199,21 @@ export default <U extends IUserModel>(router: express.Router, authModel: IAuthMo
         });
     });
 
-    router.post(
-        '/register',
-        passport.authenticate('local-signup', { failWithError: true, failureMessage: true }),
-        (req: Request, res: Response) => {
-            return res.status(200).json({
-                user: req.user,
-                status: 'Registration successful!'
-            });
-        },
-        defaultFailureCallback
-    );
+    // Only add the route if registration is allowed, hiding the register page
+    // in the frontend is not enough to prevent account creation
+    if (isRegistrationAllowed()) {
+        router.post(
+            '/register',
+            passport.authenticate('local-signup', { failWithError: true, failureMessage: true }),
+            (req: Request, res: Response) => {
+                return res.status(200).json({
+                    user: req.user,
+                    status: 'Registration successful!'
+                });
+            },
+            defaultFailureCallback
+        );
+    }
 
     router.post('/update_user_preferences', (req, res) => {
         const valuesByPath = req.body.valuesByPath;
@@ -258,55 +266,59 @@ export default <U extends IUserModel>(router: express.Router, authModel: IAuthMo
         }
     });
 
-    router.post('/forgot', async (req, res) => {
-        const token = crypto.randomBytes(20).toString('hex');
-        try {
-            // TODO Responsibility for user login management is usually in passport, move it there
-            const user = await authModel.find({ email: req.body.email });
+    // Only add the password reset routes if the forgot password page is
+    // enabled, hiding the page in the frontend is not enough to disable them
+    if (isForgotPasswordAllowed()) {
+        router.post('/forgot', async (req, res) => {
+            const token = crypto.randomBytes(20).toString('hex');
+            try {
+                // TODO Responsibility for user login management is usually in passport, move it there
+                const user = await authModel.find({ email: req.body.email });
 
-            if (!user) {
+                if (!user) {
+                    return res.status(200).json({
+                        status: 'ok',
+                        emailExists: false
+                    });
+                }
+
+                await user.updateAndSave({
+                    password_reset_token: token,
+                    password_reset_expire_at: moment(Date.now() + 86400000)
+                });
+
+                const host = process.env.HOST || 'http://localhost:8080';
+                const resetPasswordUrl = new url.URL(`/reset/${token}`, host).href;
+                resetPasswordEmail(user, { resetPasswordUrl });
+
                 return res.status(200).json({
                     status: 'ok',
-                    emailExists: false
+                    emailExists: true
+                });
+            } catch (error) {
+                console.error(error);
+                return res.status(500).json({
+                    status: 'error',
+                    error
                 });
             }
+        });
 
-            await user.updateAndSave({
-                password_reset_token: token,
-                password_reset_expire_at: moment(Date.now() + 86400000)
-            });
-
-            const host = process.env.HOST || 'http://localhost:8080';
-            const resetPasswordUrl = new url.URL(`/reset/${token}`, host).href;
-            resetPasswordEmail(user, { resetPasswordUrl });
-
-            return res.status(200).json({
-                status: 'ok',
-                emailExists: true
-            });
-        } catch (error) {
-            console.error(error);
-            return res.status(500).json({
-                status: 'error',
-                error
-            });
-        }
-    });
-
-    router.post('/reset/:token', async (req, res) => {
-        try {
-            const newPwd = req.body.newPassword ? req.body.newPassword : undefined;
-            const response = await authModel.resetPassword(req.params.token, newPwd);
-            return res.status(200).json({
-                status: response
-            });
-        } catch (error) {
-            console.error('Error resetting password: ', error);
-            return res.status(500).json({
-                status: 'Error'
-            });
-        }
-    });
+        router.post('/reset/:token', async (req, res) => {
+            try {
+                const newPwd = req.body.newPassword ? req.body.newPassword : undefined;
+                const response = await authModel.resetPassword(req.params.token, newPwd);
+                return res.status(200).json({
+                    status: response
+                });
+            } catch (error) {
+                console.error('Error resetting password: ', error);
+                return res.status(500).json({
+                    status: 'Error'
+                });
+            }
+        });
+    }
 
     // Setup eventual captcha routes for the application, as it is often related to authentication
     setupCaptchRoutes(router);

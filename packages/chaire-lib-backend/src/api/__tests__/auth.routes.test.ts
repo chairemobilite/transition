@@ -15,8 +15,13 @@ import { userAuthModel } from '../../services/auth/userAuthModel';
 import config from '../../config/server.config';
 import usersDbQueries from '../../models/db/users.db.queries';
 
+// The forgot password page needs to be enabled for the password reset routes to be available
 jest.mock('../../config/server.config', () => ({
-    auth: {}
+    auth: {
+        localLogin: {
+            forgotPasswordPage: true
+        }
+    }
 }));
 jest.mock('../../services/auth/userEmailNotifications');
 const mockedResetPwdEmail = resetPasswordEmail as jest.MockedFunction<typeof resetPasswordEmail>;
@@ -627,4 +632,126 @@ describe('Verify confirmation token, actual confirmation POST', () => {
         expect(confirmAccountSpy).not.toHaveBeenCalled();
     });
 
+});
+
+// Create a new app with the auth routes, as the routes depend on the configuration when they are added
+const createAuthRoutesApp = () => {
+    const newApp = express();
+    newApp.use(express.json() as RequestHandler);
+    newApp.use(express.urlencoded({ extended: true }) as RequestHandler);
+    authRoutes(newApp, userAuthModel, passport);
+    return newApp;
+};
+
+describe('Registration and password reset disabled in configuration', () => {
+    let disabledApp: express.Express;
+
+    beforeAll(() => {
+        config.auth = {
+            localLogin: {
+                allowRegistration: false,
+                forgotPasswordPage: false
+            }
+        };
+        disabledApp = createAuthRoutesApp();
+    });
+
+    afterAll(() => {
+        config.auth = {};
+    });
+
+    test('Signup is not available', async () => {
+        authResponse = {
+            error: null,
+            user: { username: validUsername }
+        };
+        await request(disabledApp)
+            .post('/register')
+            .send({ usernameOrEmail: validUsername, password })
+            .set('Accept', 'application/json')
+            .expect(404);
+        expect(authMockFunctions['local-signup']).not.toHaveBeenCalled();
+    });
+
+    test('Forgot password is not available', async () => {
+        await request(disabledApp)
+            .post('/forgot')
+            .send({ email: validEmail })
+            .set('Accept', 'application/json')
+            .expect(404);
+        expect(mockFind).not.toHaveBeenCalled();
+        expect(mockUpdate).not.toHaveBeenCalled();
+        expect(mockedResetPwdEmail).not.toHaveBeenCalled();
+    });
+
+    test('Password reset is not available', async () => {
+        await request(disabledApp)
+            .post('/reset/ThisIsAnArbitraryToken')
+            .send({ newPassword: 'newPassword' })
+            .set('Accept', 'application/json')
+            .expect(404);
+        expect(mockResetPassword).not.toHaveBeenCalled();
+    });
+
+    test('Login is still available', async () => {
+        authResponse = {
+            error: null,
+            user: { username: validUsername }
+        };
+        const res = await request(disabledApp)
+            .post('/login')
+            .send({ usernameOrEmail: validUsername, password })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+        expect(res.body.status).toEqual('Login successful!');
+        expect(authMockFunctions['local-login']).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('Registration and password reset with default configuration', () => {
+    let defaultApp: express.Express;
+
+    beforeAll(() => {
+        config.auth = { localLogin: {} };
+        defaultApp = createAuthRoutesApp();
+    });
+
+    afterAll(() => {
+        config.auth = {};
+    });
+
+    test('Signup is available by default', async () => {
+        authResponse = {
+            error: null,
+            user: { username: validUsername }
+        };
+        const res = await request(defaultApp)
+            .post('/register')
+            .send({ usernameOrEmail: validUsername, password })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+        expect(res.body.status).toEqual('Registration successful!');
+        expect(authMockFunctions['local-signup']).toHaveBeenCalledTimes(1);
+    });
+
+    test('Forgot password is not available by default', async () => {
+        await request(defaultApp)
+            .post('/forgot')
+            .send({ email: validEmail })
+            .set('Accept', 'application/json')
+            .expect(404);
+        expect(mockFind).not.toHaveBeenCalled();
+        expect(mockedResetPwdEmail).not.toHaveBeenCalled();
+    });
+
+    test('Password reset is not available by default', async () => {
+        await request(defaultApp)
+            .post('/reset/ThisIsAnArbitraryToken')
+            .send({ newPassword: 'newPassword' })
+            .set('Accept', 'application/json')
+            .expect(404);
+        expect(mockResetPassword).not.toHaveBeenCalled();
+    });
 });
