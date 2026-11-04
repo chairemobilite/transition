@@ -15,16 +15,15 @@ const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: CaptchaP
 
     useEffect(() => {
         // Dynamically import the appropriate captcha implementation
-        if (config.captchaComponentType === 'simple') {
-            import('./SimpleCaptcha')
-                .then((module) => {
-                    setCaptchaImpl(() => module.default);
-                })
-                .catch((err) => {
-                    console.error('Error loading captcha component:', err);
-                    setError('Failed to load captcha component');
-                });
-        } else if (config.captchaComponentType === 'capjs') {
+        switch (config.captchaComponentType) {
+        // TODO: Remove this fallback, and 'simple' from the `captchaComponentType`
+        // type, in November 2027, a year after the simple captcha was removed
+        case 'simple':
+            console.warn(
+                'The \'simple\' captcha was removed, Cap.js is used instead. Set `captchaComponentType` to \'capjs\' in the project configuration.'
+            );
+            // falls through
+        case 'capjs':
             import('./CapJsCaptcha')
                 .then((module) => {
                     setCaptchaImpl(() => module.default);
@@ -33,7 +32,8 @@ const CaptchaComponent: React.FunctionComponent<CaptchaProps> = (props: CaptchaP
                     console.error('Error loading captcha component:', err);
                     setError('Failed to load captcha component');
                 });
-        } else {
+            break;
+        default:
             setError(`Unsupported captcha component type: ${config.captchaComponentType}`);
         }
     }, []);

@@ -89,10 +89,13 @@ export type ProjectConfiguration<AdditionalConfig> = {
     };
     separateAdminLoginPage: boolean;
     /**
-     * The type of captcha to use in the application, where required. `simple`
-     * means a simple captcha where the user needs to identify a string of
-     * character from an image and does not require any additional
-     * configuration. Defaults to `simple`.
+     * The type of captcha to use in the application, where required. `capjs`
+     * is a proof of work captcha, from Cap.js, that the server validates.
+     * The `simple` captcha was removed: setting it logs a warning and uses
+     * `capjs` instead. Defaults to `capjs`.
+     *
+     * TODO: Remove `simple` in November 2027, a year after the simple captcha
+     * was removed, with its fallback in CaptchaComponent and captcha.routes
      */
     captchaComponentType: 'simple' | 'capjs';
     // @deprecated
@@ -140,7 +143,7 @@ const projectConfig: ProjectConfiguration<any> = {
     userDiskQuota: '1gb',
     maxFileUploadMB: 256,
     sections: {},
-    captchaComponentType: 'simple'
+    captchaComponentType: 'capjs'
 };
 
 /**

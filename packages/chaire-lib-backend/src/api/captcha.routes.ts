@@ -50,6 +50,13 @@ export default (router: express.Router) => {
     // Setup routes based on captcha type
     const setupCaptchaRoutes = async () => {
         switch (config.captchaComponentType) {
+        // TODO: Remove this fallback, and 'simple' from the `captchaComponentType`
+        // type, in November 2027, a year after the simple captcha was removed
+        case 'simple':
+            console.warn(
+                'The \'simple\' captcha was removed, Cap.js is used instead. Set `captchaComponentType` to \'capjs\' in the project configuration.'
+            );
+            // falls through
         case 'capjs':
             try {
                 const capjs = await import('@cap.js/server');
