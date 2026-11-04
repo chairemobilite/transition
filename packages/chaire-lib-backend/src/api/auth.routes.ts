@@ -59,19 +59,6 @@ export default <U extends IUserModel>(router: express.Router, authModel: IAuthMo
         });
     }
 
-    if (config.auth && config.auth.facebook === true) {
-        router.get('/facebooklogin', passport.authenticate('facebook'));
-        router.get('/facebookoauth', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
-            if (req.user) {
-                res.redirect('/survey');
-            } else {
-                return res.status(200).json({
-                    error: 'User not authenticated'
-                });
-            }
-        });
-    }
-
     router.get('/verifyAuthentication', (req, res) => {
         if (req.isAuthenticated() && req.user) {
             return res.status(200).json({
