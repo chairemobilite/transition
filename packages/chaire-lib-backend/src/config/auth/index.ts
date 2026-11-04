@@ -8,7 +8,6 @@
 import _dotenv from '../dotenv.config'; // eslint-disable-line @typescript-eslint/no-unused-vars
 import passport, { type PassportStatic } from 'passport';
 import GoogleStrategy from 'passport-google-oauth';
-import FacebookStrategy from 'passport-facebook';
 import url from 'url';
 import localLogin from './localLogin.config';
 import config from '../server.config';
@@ -48,46 +47,6 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
                             })
                             .catch(() => {
                                 return done('Cannot verify google id credentials');
-                            });
-                    }
-                )
-            );
-        }
-    }
-
-    if (config.auth && config.auth.facebook === true) {
-        if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET) {
-            console.error(
-                'Auth error: Facebook authentication is enabled but the FACEBOOK_APP_ID and FACEBOOK_APP_SECRET environment variables are not set'
-            );
-        } else {
-            passport.use(
-                new FacebookStrategy(
-                    {
-                        clientID: process.env.FACEBOOK_APP_ID,
-                        clientSecret: process.env.FACEBOOK_APP_SECRET,
-                        callbackURL: new url.URL('/facebookoauth', process.env.HOST).href
-                    },
-                    (accessToken, refreshToken, profile, done) => {
-                        authModel
-                            .find({ facebook_id: profile.id })
-                            .then(async (user) => {
-                                if (user !== undefined) {
-                                    // TODO Should sanitize user, but see if other fields need to be included
-                                    user.recordLogin();
-                                    done(null, user.sanitize());
-                                } else {
-                                    const newUser = await authModel.createAndSave({
-                                        facebookId: profile.id,
-                                        isTest: false
-                                    });
-                                    newUser.recordLogin();
-                                    done(null, newUser !== null ? newUser.sanitize() : false);
-                                }
-                                return null;
-                            })
-                            .catch(() => {
-                                return done('Cannot verify facebook id credentials');
                             });
                     }
                 )
