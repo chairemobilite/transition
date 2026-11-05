@@ -9,10 +9,6 @@ import type { RootState } from '../../store/configureStore';
 
 type RegisterPageProps = {
     config: {
-        // @deprecated Use the value in auth instead
-        allowRegistration?: boolean;
-        // @deprecated Use the value in auth instead
-        registerWithEmailOnly?: boolean;
         auth?: {
             localLogin: {
                 allowRegistration?: boolean;
@@ -27,16 +23,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ config }) => {
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
     // Check if registration is allowed based on config
-    const allowRegistration = React.useMemo(
-        () => config.allowRegistration !== false && config.auth?.localLogin?.allowRegistration !== false,
-        [config]
-    );
+    const allowRegistration = React.useMemo(() => config.auth?.localLogin?.allowRegistration !== false, [config]);
 
     // Handle email-only registration configuration
-    const withEmailOnly = React.useMemo(
-        () => config.registerWithEmailOnly || config.auth?.localLogin?.registerWithEmailOnly,
-        [config]
-    );
+    const withEmailOnly = React.useMemo(() => config.auth?.localLogin?.registerWithEmailOnly, [config]);
 
     // Redirect if authenticated
     if (isAuthenticated) {

@@ -11,17 +11,10 @@ import type { RootState } from '../../store/configureStore';
 import type { Action } from 'redux';
 import type { ThunkDispatch } from 'redux-thunk';
 
-type ForgotPasswordPageProps = {
-    config: {
-        allowRegistration: boolean;
-        registerWithEmailOnly: boolean;
-    };
-};
-
 const emailRegex =
     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = () => {
+const ForgotPasswordPage: React.FC = () => {
     const { t } = useTranslation('auth');
     const dispatch = useDispatch<ThunkDispatch<RootState, unknown, Action>>();
 

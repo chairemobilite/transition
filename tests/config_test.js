@@ -4,8 +4,6 @@ module.exports = {
     projectDirectory: `${__dirname}/runtime/`,
     projectShortname: 'test',
   
-    allowRegistration: true,
-  
     mapDefaultCenter: {
       lat: 45.503205,
       lon: -73.569417

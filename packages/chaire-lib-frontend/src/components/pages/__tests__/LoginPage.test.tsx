@@ -52,8 +52,12 @@ describe('Login page rendering', () => {
 
         renderWithProviders(
             <LoginPage config={{
-                allowRegistration: true,
-                forgotPasswordPage: true
+                auth: {
+                    localLogin: {
+                        allowRegistration: true,
+                        forgotPasswordPage: true
+                    }
+                }
             }}/>,
             { preloadedState: { auth: { isAuthenticated: true } } }
         );
@@ -64,8 +68,12 @@ describe('Login page rendering', () => {
     test('Allow registration, no forgot password page', () => {
         const { container } = renderWithProviders(
             <LoginPage config={{
-                allowRegistration: true,
-                forgotPasswordPage: false
+                auth: {
+                    localLogin: {
+                        allowRegistration: true,
+                        forgotPasswordPage: false
+                    }
+                }
             }}/>
         );
         expect(container).toMatchSnapshot();
@@ -74,7 +82,11 @@ describe('Login page rendering', () => {
     test('Registration not allowed, no forgot password page', () => {
         const { container } = renderWithProviders(
             <LoginPage config={{
-                allowRegistration: false
+                auth: {
+                    localLogin: {
+                        allowRegistration: false
+                    }
+                }
             }}/>
         );
         expect(container).toMatchSnapshot();
@@ -83,8 +95,12 @@ describe('Login page rendering', () => {
     test('Registration allowed, allow forget password', () => {
         const { container } = renderWithProviders(
             <LoginPage config={{
-                allowRegistration: true,
-                forgotPasswordPage: true
+                auth: {
+                    localLogin: {
+                        allowRegistration: true,
+                        forgotPasswordPage: true
+                    }
+                }
             }}/>
         );
         expect(container).toMatchSnapshot();

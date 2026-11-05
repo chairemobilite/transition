@@ -86,5 +86,34 @@ describe('setProjectConfiguration, wrong values for max parallel calculators', (
         expect(warnSpy).toHaveBeenCalledTimes(1);
         expect(warnSpy.mock.calls[0][0]).toBe(`maxParallelCalculators (${parallelCalculators}) should not exceed the number of CPUs: ${availableCPUs.length}. This may cause performance issues.`);
     });
-    
+
+});
+
+describe('setProjectConfiguration, removed top-level local login options', () => {
+
+    test('Top-level options are rejected', () => {
+        expect(() => setProjectConfiguration({
+            confirmEmail: true,
+            allowRegistration: false,
+            maxParallelCalculators: 1
+        } as any)).toThrow('The `allowRegistration`, `confirmEmail` options at the top level of the configuration are no longer supported. Please move them to `auth.localLogin` instead.');
+        // Nothing from the rejected configuration should be set
+        expect((config as any).confirmEmail).toBeUndefined();
+        expect((config as any).allowRegistration).toBeUndefined();
+        expect(config.maxParallelCalculators).not.toEqual(1);
+    });
+
+    test('Options in auth.localLogin are accepted', () => {
+        setProjectConfiguration({
+            auth: {
+                localLogin: {
+                    confirmEmail: true,
+                    allowRegistration: false
+                }
+            }
+        });
+        expect(config.auth?.localLogin?.confirmEmail).toEqual(true);
+        expect(config.auth?.localLogin?.allowRegistration).toEqual(false);
+    });
+
 });
