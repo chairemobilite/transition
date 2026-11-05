@@ -1,0 +1,10 @@
+[out:json][timeout:100];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+way["natural"~"^(water)$"](poly:{{polyboundary}});
+relation["natural"~"^(water)$"](poly:{{polyboundary}});
+
+);
+out geom;
