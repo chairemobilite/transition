@@ -92,14 +92,17 @@ describe('setProjectConfiguration, wrong values for max parallel calculators', (
 describe('setProjectConfiguration, removed top-level local login options', () => {
 
     test('Top-level options are rejected', () => {
-        expect(() => setProjectConfiguration({
+        // The removed options are not part of the configuration type anymore
+        const configWithRemovedOptions: Record<string, unknown> = {
             confirmEmail: true,
             allowRegistration: false,
             maxParallelCalculators: 1
-        } as any)).toThrow('The `allowRegistration`, `confirmEmail` options at the top level of the configuration are no longer supported. Please move them to `auth.localLogin` instead.');
+        };
+        expect(() => setProjectConfiguration(configWithRemovedOptions as Parameters<typeof setProjectConfiguration>[0])).toThrow('The `allowRegistration`, `confirmEmail` options at the top level of the configuration are no longer supported. Please move them to `auth.localLogin` instead.');
         // Nothing from the rejected configuration should be set
-        expect((config as any).confirmEmail).toBeUndefined();
-        expect((config as any).allowRegistration).toBeUndefined();
+        const configValues: Record<string, unknown> = config;
+        expect(configValues.confirmEmail).toBeUndefined();
+        expect(configValues.allowRegistration).toBeUndefined();
         expect(config.maxParallelCalculators).not.toEqual(1);
     });
 

@@ -354,16 +354,17 @@ class InvalidConfigurationError extends Error {}
  * TODO Remove this check in November 2027, a year after the options were
  * removed from the top level of the configuration
  *
- * @param newConfig The configuration to check
+ * @param newConfig The configuration to check. It is typed as a record, as the
+ * removed options are not part of the configuration type anymore
  */
-const checkRemovedLocalLoginOptions = (newConfig: Partial<ProjectConfiguration<ServerSideProjectConfiguration>>) => {
+const checkRemovedLocalLoginOptions = (newConfig: Record<string, unknown>) => {
     const removedLocalLoginOptions = [
         'allowRegistration',
         'confirmEmail',
         'confirmEmailStrategy',
         'forgotPasswordPage',
         'registerWithEmailOnly'
-    ].filter((option) => (newConfig as any)[option] !== undefined);
+    ].filter((option) => newConfig[option] !== undefined);
     if (removedLocalLoginOptions.length > 0) {
         throw new InvalidConfigurationError(
             `The ${removedLocalLoginOptions.map((option) => `\`${option}\``).join(', ')} options at the top level of the configuration are no longer supported. Please move them to \`auth.localLogin\` instead.`
