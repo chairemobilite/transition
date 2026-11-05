@@ -5,9 +5,21 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import type { EventEmitter } from 'events';
+import type { LineString } from 'geojson';
 
 import * as Status from 'chaire-lib-common/lib/utils/Status';
+import type { CurveAnalysisResponse } from 'transition-common/lib/services/path/railCurves/types';
+import { isRailMode } from 'transition-common/lib/services/line/types';
 import pathsDbQueries from '../models/db/transitPaths.db.queries';
+import { analyzeCurveRadius } from '../services/path/railCurves/curvatureAnalysis';
+import { computeLargeAngleVertices } from '../services/path/railCurves/geometry';
+
+/** Untrusted socket payload. The mode and the speed are checked before use. */
+type CurveAnalysisRequest = {
+    geography?: LineString;
+    mode?: unknown;
+    runningSpeedKmH?: unknown;
+};
 
 /**
  * Add routes specific to transit paths objects
@@ -48,6 +60,43 @@ export default function (socket: EventEmitter) {
                 if (typeof callback === 'function') {
                     callback(Status.createError('Error getting paths for services'));
                 }
+            }
+        }
+    );
+
+    socket.on(
+        'transitPaths.curveAnalysis',
+        async (
+            request: CurveAnalysisRequest | null | undefined,
+            callback: (status: Status.Status<CurveAnalysisResponse>) => void
+        ) => {
+            try {
+                // Destructured in the try block, so a missing payload returns an error status
+                const { geography, mode, runningSpeedKmH } = request ?? {};
+                // Only rail modes are accepted, so other strings cannot select a speed coefficient
+                if (typeof mode !== 'string' || !isRailMode(mode)) {
+                    callback(Status.createError('Curve analysis is only available for rail modes'));
+                    return;
+                }
+                // The caller sends the path running speed, which the path always has from its mode defaults
+                if (typeof runningSpeedKmH !== 'number' || !Number.isFinite(runningSpeedKmH) || runningSpeedKmH <= 0) {
+                    callback(Status.createError('Curve analysis requires a positive running speed'));
+                    return;
+                }
+                const coordinates = geography?.coordinates;
+                if (!geography || !Array.isArray(coordinates) || coordinates.length < 3) {
+                    callback(Status.createOk({ segments: [], largeAngleVertices: [] }));
+                    return;
+                }
+                callback(
+                    Status.createOk({
+                        segments: analyzeCurveRadius(geography, { mode, runningSpeedKmH }),
+                        largeAngleVertices: computeLargeAngleVertices(coordinates)
+                    })
+                );
+            } catch (error) {
+                console.error(`Error in transitPaths.curveAnalysis: ${error}`);
+                callback(Status.createError('Error performing curve analysis'));
             }
         }
     );
