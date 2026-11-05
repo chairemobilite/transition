@@ -14,8 +14,6 @@ import { useNavigate, type NavigateFunction } from 'react-router';
 export type LoginPageProps = {
     isAuthenticated?: boolean;
     config: {
-        allowRegistration?: boolean;
-        forgotPasswordPage?: boolean;
         auth?: {
             localLogin: {
                 allowRegistration?: boolean;
@@ -36,17 +34,11 @@ export const LoginPage: React.FunctionComponent<LoginPageProps & WithTranslation
         }
     }, []);
 
-    const allowRegistration =
-        props.config.allowRegistration !== false && props.config.auth?.localLogin?.allowRegistration !== false;
+    const allowRegistration = props.config.auth?.localLogin?.allowRegistration !== false;
 
     return (
         <React.Fragment>
-            <LoginForm
-                withForgotPassword={
-                    props.config.forgotPasswordPage === true ||
-                    props.config.auth?.localLogin?.forgotPasswordPage === true
-                }
-            />
+            <LoginForm withForgotPassword={props.config.auth?.localLogin?.forgotPasswordPage === true} />
             <div className="apptr__separator-medium"></div>
             <div className="apptr__footer-link-container">
                 {allowRegistration && (

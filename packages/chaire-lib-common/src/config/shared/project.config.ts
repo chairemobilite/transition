@@ -98,10 +98,6 @@ export type ProjectConfiguration<AdditionalConfig> = {
      * was removed, with its fallback in CaptchaComponent and captcha.routes
      */
     captchaComponentType: 'simple' | 'capjs';
-    // @deprecated
-    confirmEmail?: boolean;
-    // @deprecated
-    confirmEmailStrategy?: 'confirmByAdmin' | 'confirmByUser';
     languages: string[];
     defaultLocale: string;
 

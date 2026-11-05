@@ -340,10 +340,46 @@ setProjectConfigurationCommon<ServerSideProjectConfiguration>({
 });
 
 /**
+ * Error in the configuration that must prevent the server from starting,
+ * instead of starting with the default configuration
+ */
+class InvalidConfigurationError extends Error {}
+
+/**
+ * The local login options used to be at the top level of the configuration,
+ * they are now only read from `auth.localLogin`. Ignoring options like
+ * `confirmEmail` or `allowRegistration` would silently change who can log in,
+ * so refuse the configuration if they are still at the top level.
+ *
+ * TODO Remove this check in November 2027, a year after the options were
+ * removed from the top level of the configuration
+ *
+ * @param newConfig The configuration to check
+ */
+const checkRemovedLocalLoginOptions = (newConfig: Partial<ProjectConfiguration<ServerSideProjectConfiguration>>) => {
+    const removedLocalLoginOptions = [
+        'allowRegistration',
+        'confirmEmail',
+        'confirmEmailStrategy',
+        'forgotPasswordPage',
+        'registerWithEmailOnly'
+    ].filter((option) => (newConfig as any)[option] !== undefined);
+    if (removedLocalLoginOptions.length > 0) {
+        throw new InvalidConfigurationError(
+            `The ${removedLocalLoginOptions.map((option) => `\`${option}\``).join(', ')} options at the top level of the configuration are no longer supported. Please move them to \`auth.localLogin\` instead.`
+        );
+    }
+};
+
+/**
  * Set the project configuration. This method handles deprecated values
  * @param newConfig The additional configuration to set
+ * @throws InvalidConfigurationError if the configuration uses options that
+ * were removed
  */
 export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<ServerSideProjectConfiguration>>) => {
+    checkRemovedLocalLoginOptions(newConfig);
+
     // If the configuration file has a `trRoutingCacheAllScenarios` option, but the engine configuration does not have a `cacheAllScenarios` option, set it
     // FIXME Remove once the trRoutingCacheAllScenarios is fully deprecated
     if (
@@ -436,8 +472,11 @@ try {
         );
     }
     setProjectConfiguration(configFromFile);
-} catch {
+} catch (error) {
     console.error(`Error loading server configuration in file ${configFileNormalized}`);
+    if (error instanceof InvalidConfigurationError) {
+        throw error;
+    }
 }
 
 /** Application configuration, does not include the server configuration */
