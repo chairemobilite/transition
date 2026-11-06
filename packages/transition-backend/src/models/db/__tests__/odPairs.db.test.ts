@@ -6,6 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 import dbQueries from '../odPairs.db.queries';
 import dataSourceDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
@@ -263,6 +264,33 @@ describe(`${objectName}`, () => {
         expect(collection[0].getId()).toBe(_newObjectAttributes2.id);
         expect(collection[0].attributes).toEqual(new ObjectClass(_newObjectAttributes2, false).attributes);
 
+    });
+
+    // The data source IDs and sample size can come from a client through the
+    // socket routes, they must never be part of the query
+    test('collection, data source ID with a condition is not part of the query', async() => {
+        // Would select the pairs of all data sources if inserted in the query
+        // The ID is not a valid uuid
+        await expect(dbQueries.collection([`${dataSourceId}') OR ('1' = '1`])).rejects.toThrow(TrError);
+    });
+
+    test('collection, data source ID with a statement is not part of the query', async() => {
+        // Would change all pairs if inserted in the query. The end makes the
+        // rest of the original query valid, so the statements would succeed
+        await expect(dbQueries.collection([`${dataSourceId}'); UPDATE tr_od_pairs SET internal_id = 'injected'; SELECT * FROM tr_od_pairs WHERE data_source_id IN ('${dataSourceId}`])).rejects.toThrow(TrError);
+        const injectedPairs = await knex('tr_od_pairs').where('internal_id', 'injected');
+        expect(injectedPairs).toEqual([]);
+    });
+
+    test('collection, sample size with a statement is rejected', async() => {
+        await expect(dbQueries.collection(undefined, '1; DELETE FROM tr_od_pairs' as unknown as number)).rejects.toThrow(TrError);
+        const _collection = await dbQueries.collection();
+        expect(_collection.length).toEqual(2);
+    });
+
+    test('collection with sample size', async() => {
+        const _collection = await dbQueries.collection(undefined, 1);
+        expect(_collection.length).toEqual(1);
     });
 
 });
