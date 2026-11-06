@@ -19,7 +19,8 @@ import {
     deleteForDataSourceId,
     truncate,
     destroy,
-    stringifyDataSourceIds
+    dataSourceIdsToArray,
+    validateSampleSize
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import type { BaseOdTripAttributes } from 'transition-common/lib/services/odTrip/BaseOdTrip';
@@ -83,17 +84,22 @@ const attributesParser = (dbAttributes: {
 });
 
 const collection = async (dataSourceIds?: string[], sampleSize?: number): Promise<BaseOdTripAttributes[]> => {
-    const dataSourceIdsStr = stringifyDataSourceIds(dataSourceIds || []);
+    // These parameters can come from a client, they must only be passed as bindings
+    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const limit = validateSampleSize(sampleSize);
     try {
-        const response = await knex.raw(`
-      SELECT 
+        const response = await knex.raw(
+            `
+      SELECT
         *,
         CASE origin_geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(origin_geography)::jsonb END as origin_geography,
         CASE destination_geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(destination_geography)::jsonb END as destination_geography
       FROM ${tableName}
-      ${dataSourceIdsStr.length > 0 ? `WHERE data_source_id IN (${dataSourceIdsStr.join(',')})` : ''}
-      ORDER BY ${sampleSize !== undefined ? `RANDOM() LIMIT ${sampleSize}` : 'integer_id'};
-    `);
+      ${dataSourceIdsArray.length > 0 ? `WHERE data_source_id IN (${dataSourceIdsArray.map(() => '?').join(', ')})` : ''}
+      ORDER BY ${limit !== undefined ? 'RANDOM() LIMIT ?' : 'integer_id'};
+    `,
+            [...dataSourceIdsArray, ...(limit !== undefined ? [limit] : [])]
+        );
         const collection = response?.rows;
         if (collection) {
             return collection.map(attributesParser);

@@ -20,7 +20,8 @@ import {
     deleteForDataSourceId,
     truncate,
     destroy,
-    stringifyDataSourceIds
+    dataSourceIdsToArray,
+    validateSampleSize
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import {
@@ -48,16 +49,21 @@ const attributesCleaner = function (attributes: Partial<PlaceAttributes>): { [ke
 };
 
 const collection = async (dataSourceIds: string[] = [], sampleSize?: number): Promise<PlaceAttributes[]> => {
-    const dataSourceIdsStr = stringifyDataSourceIds(dataSourceIds || []);
+    // These parameters can come from a client, they must only be passed as bindings
+    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const limit = validateSampleSize(sampleSize);
     try {
-        const response = await knex.raw(`
-        SELECT 
+        const response = await knex.raw(
+            `
+        SELECT
         *,
         CASE geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography
       FROM ${tableName}
-      ${dataSourceIdsStr.length > 0 ? `WHERE data_source_id IN (${dataSourceIdsStr.join(',')})` : ''}
-      ORDER BY ${sampleSize !== undefined ? `RANDOM() LIMIT ${sampleSize}` : 'integer_id'};
-    `);
+      ${dataSourceIdsArray.length > 0 ? `WHERE data_source_id IN (${dataSourceIdsArray.map(() => '?').join(', ')})` : ''}
+      ORDER BY ${limit !== undefined ? 'RANDOM() LIMIT ?' : 'integer_id'};
+    `,
+            [...dataSourceIdsArray, ...(limit !== undefined ? [limit] : [])]
+        );
         const collection = response?.rows;
         if (collection) {
             return collection;
@@ -139,9 +145,12 @@ const geojsonCollection = async (
     sampleSize?: number
 ): Promise<GeoJSON.FeatureCollection<GeoJSON.Point, PlaceAttributes>> => {
     // TODO: we should not fetch the whole data content, we should read place when modifying one instead of creating a Place from the geojson
-    const dataSourceIdsStr = stringifyDataSourceIds(dataSourceIds);
+    // These parameters can come from a client, they must only be passed as bindings
+    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const limit = validateSampleSize(sampleSize);
     try {
-        const response = await knex.raw(`
+        const response = await knex.raw(
+            `
         SELECT jsonb_build_object(
             'type',     'FeatureCollection',
             'features', COALESCE(jsonb_agg(features.feature), '[]'::jsonb)
@@ -175,14 +184,16 @@ const geojsonCollection = async (
                 ) AS properties
               FROM ${tableName}
               ${
-    dataSourceIdsStr && dataSourceIdsStr.length > 0
-        ? `WHERE data_source_id IN (${dataSourceIdsStr.join(',')})`
+    dataSourceIdsArray.length > 0
+        ? `WHERE data_source_id IN (${dataSourceIdsArray.map(() => '?').join(', ')})`
         : ''
 }
-              ORDER BY ${sampleSize !== undefined ? `RANDOM() LIMIT ${sampleSize}` : 'integer_id'}
+              ORDER BY ${limit !== undefined ? 'RANDOM() LIMIT ?' : 'integer_id'}
             ) inputs
           ) features;
-    `);
+    `,
+            [...dataSourceIdsArray, ...(limit !== undefined ? [limit] : [])]
+        );
         const geojson = response.rows[0]?.geojson;
         if (geojson) {
             return geojson;
@@ -202,11 +213,11 @@ const geojsonCollection = async (
 };
 
 const countForDataSources = async (dataSourceIds: string[] = []): Promise<{ [key: string]: number }> => {
-    const dataSourceIdsStr = stringifyDataSourceIds(dataSourceIds);
+    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
     try {
         const query = knex(tableName).select('data_source_id', knex.raw('count(id)'));
-        if (dataSourceIdsStr && dataSourceIdsStr.length > 0) {
-            query.whereRaw(`data_source_id IN (${dataSourceIdsStr.join(',')})`);
+        if (dataSourceIdsArray.length > 0) {
+            query.whereIn('data_source_id', dataSourceIdsArray);
         }
         query.groupBy('data_source_id');
 

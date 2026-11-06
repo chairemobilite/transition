@@ -7,6 +7,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import { point as turfPoint } from '@turf/turf';
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
+import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 import dbQueries from '../places.db.queries';
 import dataSourcesDbQueries from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
@@ -342,6 +343,52 @@ describe(`${objectName}`, () => {
         const collectionTooLarge = await dbQueries.collection([dataSourceId], 3);
         expect(collectionTooLarge.length).toEqual(2);
 
+    });
+
+    // The data source IDs and sample size can come from a client through the
+    // socket routes, they must never be part of the query
+    describe('Data source IDs and sample size are not part of the query', () => {
+        // Would select the places of all data sources if inserted in the query
+        const idWithCondition = `${dataSourceId}') OR ('1' = '1`;
+        // Would rename all places if inserted in the query. The end makes the
+        // rest of the original query valid, so the statements would succeed
+        const idWithStatement = `${dataSourceId}'); UPDATE tr_places SET shortname = 'injected'; SELECT * FROM tr_places WHERE data_source_id IN ('${dataSourceId}`;
+        const sampleSizeWithStatement = '1; DELETE FROM tr_places' as unknown as number;
+
+        test.each([
+            ['collection', () => dbQueries.collection([idWithCondition])],
+            ['geojson collection', () => dbQueries.geojsonCollection([idWithCondition])],
+            ['count by data source', () => dbQueries.countForDataSources([idWithCondition])]
+        ])('%s, data source ID with a condition', async (_title, query) => {
+            // The ID is not a valid uuid
+            await expect(query()).rejects.toThrow(TrError);
+        });
+
+        test('collection, data source ID with a statement', async () => {
+            await expect(dbQueries.collection([idWithStatement])).rejects.toThrow(TrError);
+            const injectedPlaces = await knex('tr_places').where('shortname', 'injected');
+            expect(injectedPlaces).toEqual([]);
+        });
+
+        test.each([
+            ['collection', () => dbQueries.collection([dataSourceId], sampleSizeWithStatement)],
+            ['geojson collection', () => dbQueries.geojsonCollection([dataSourceId], sampleSizeWithStatement)]
+        ])('%s, sample size with a statement', async (_title, query) => {
+            await expect(query()).rejects.toThrow(TrError);
+            const collection = await dbQueries.collection();
+            expect(collection.length).toEqual(4);
+        });
+
+        test('geojson collection with data source and sample size', async () => {
+            const geojson = await dbQueries.geojsonCollection([dataSourceId], 1);
+            expect(geojson.features.length).toEqual(1);
+            expect(geojson.features[0].properties.data_source_id).toEqual(dataSourceId);
+        });
+
+        test('collection with a single data source ID and a null sample size, as sent by socket routes', async () => {
+            const collection = await dbQueries.collection(dataSourceId as unknown as string[], null as unknown as number);
+            expect(collection.length).toEqual(2);
+        });
     });
 
     test('should delete objects from database', async() => {
