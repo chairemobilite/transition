@@ -7,8 +7,6 @@
 import React, { type PropsWithChildren } from 'react';
 import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 export type ConfirmModalProps = {
     isOpen: boolean;
@@ -92,7 +90,7 @@ export const ConfirmModal: React.FC<PropsWithChildren<ConfirmModalProps>> = (pro
             <div>
                 {props.title && (
                     <div className="center">
-                        <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{props.title}</Markdown>
+                        <p>{props.title}</p>
                     </div>
                 )}
 
@@ -104,7 +102,7 @@ export const ConfirmModal: React.FC<PropsWithChildren<ConfirmModalProps>> = (pro
                         <div dangerouslySetInnerHTML={{ __html: props.text }} />
                     ) : (
                         <div className="confirm-popup">
-                            <Markdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{props.text}</Markdown>
+                            <p>{props.text}</p>
                         </div>
                     )
                 ) : null}

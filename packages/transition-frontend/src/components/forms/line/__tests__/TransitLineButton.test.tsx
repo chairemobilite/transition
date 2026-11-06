@@ -16,9 +16,6 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import Agency from 'transition-common/lib/services/agency/Agency';
 
 
-jest.mock('react-markdown', () => 'Markdown');
-jest.mock('remark-gfm', () => 'remark-gfm');
-
 jest.mock('chaire-lib-common/lib/utils/ServiceLocator', () => ({
     socketEventManager: {
         emit: jest.fn(),
