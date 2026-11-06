@@ -93,7 +93,6 @@ test('Passwordless login, first entry, direct access', async () => {
         username: newUserEmail,
         email: newUserEmail,
         google_id: null,
-        facebook_id: null,
         generated_password: null,
         password: null,
         first_name: '',

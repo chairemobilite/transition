@@ -19,7 +19,6 @@ export type UserAttributesBase = {
     preferences?: { [key: string]: any } | null;
     generated_password?: string | null;
     google_id?: string | null;
-    facebook_id?: string | null;
     // TODO Type to datetime string
     created_at?: string;
     updated_at?: string;

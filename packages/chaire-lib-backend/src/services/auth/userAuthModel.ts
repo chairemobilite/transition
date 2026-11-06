@@ -35,12 +35,8 @@ class UserAuthModel extends AuthModelBase<UserModel> {
             username: userData.username || null,
             email: userData.email || null,
             google_id: userData.googleId || null,
-            facebook_id: userData.facebookId || null,
             generated_password: userData.generatedPassword || null,
-            password:
-                userData.googleId || userData.facebookId || !userData.password
-                    ? null
-                    : this.encryptPassword(userData.password),
+            password: userData.googleId || !userData.password ? null : this.encryptPassword(userData.password),
             first_name: userData.firstName || '',
             last_name: userData.lastName || '',
             is_valid: userData.isTest === true ? false : true,

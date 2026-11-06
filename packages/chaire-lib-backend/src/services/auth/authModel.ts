@@ -38,7 +38,6 @@ export type NewUserParams = {
     /** Unencrypted generated password, the authentication model should take care to save it as expected */
     generatedPassword?: string;
     googleId?: string;
-    facebookId?: string;
     /** Unencrypted password, the authentication model should take care to save it as expected */
     password?: string;
     isTest?: boolean;
@@ -76,7 +75,6 @@ export interface IAuthModel<U extends IUserModel> {
             username?: string;
             email?: string;
             google_id?: string;
-            facebook_id?: string;
         },
         orWhere?: boolean
     ) => Promise<U | undefined>;

@@ -132,7 +132,6 @@ test('Complete flow with valid token', async() => {
         username: token,
         email: null,
         google_id: null,
-        facebook_id: null,
         generated_password: null,
         password: null,
         first_name: '',
