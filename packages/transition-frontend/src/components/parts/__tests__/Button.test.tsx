@@ -11,10 +11,6 @@ import '@testing-library/jest-dom';
 import Button from '../Button';
 import { create } from 'node:domain';
 
-// Mock react-markdown and remark-gfm as they use syntax not supported by jest
-jest.mock('react-markdown', () => 'Markdown');
-jest.mock('remark-gfm', () => 'remark-gfm');
-
 const mockSelect = jest.fn();
 const mockDuplicate = jest.fn();
 const mockDelete = jest.fn();
