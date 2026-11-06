@@ -10,10 +10,6 @@ import '@testing-library/jest-dom';
 
 import ButtonCell from '../ButtonCell';
 
-// Mock react-markdown and remark-gfm as they use syntax not supported by jest
-jest.mock('react-markdown', () => 'Markdown');
-jest.mock('remark-gfm', () => 'remark-gfm');
-
 const mockOnClick = jest.fn();
 
 test('Left align, one child', () => {

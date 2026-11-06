@@ -8,10 +8,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import ConfirmModal from '../ConfirmModal';
 
-// Mock react-markdown and remark-gfm as they use syntax not supported by jest
-jest.mock('react-markdown', () => 'Markdown');
-jest.mock('remark-gfm', () => 'remark-gfm');
-
 // Mock react-i18next
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
