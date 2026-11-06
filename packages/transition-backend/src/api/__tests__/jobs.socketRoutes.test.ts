@@ -36,7 +36,7 @@ jest.mock('../../tasks/serverWorkerPool', () => (
 const mockedPool = execJob as jest.MockedFunction<typeof execJob>;
 
 type TestJobType = {
-    name: 'test';
+    type: 'test';
     data: {
         parameters: {
             foo: string
@@ -56,7 +56,7 @@ beforeEach(() => {
 
 const defaultJobAttributes: JobAttributes<TestJobType> = {
     id: 4,
-    name: 'test' as const,
+    type: 'test' as const,
     user_id: 3,
     status: 'inProgress',
     internal_data: {},
@@ -69,7 +69,7 @@ const defaultJobAttributes: JobAttributes<TestJobType> = {
 describe('Jobs list', () => {
 
     test('List jobs properly', (done) => {
-        const jobs = [{id: 1, user_id: userId, name: 'test', status: 'pending' as const, internal_data: {}, data: {}}];
+        const jobs = [{id: 1, user_id: userId, type: 'test', status: 'pending' as const, internal_data: {}, data: {}}];
         mockedCollection.mockResolvedValueOnce({ jobs, totalCount: 1 });
         socketStub.emit('executableJobs.list', {}, async (status) => {
             expect(Status.isStatusOk(status)).toEqual(true);

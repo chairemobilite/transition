@@ -7,7 +7,7 @@
 import Job, { JobAttributes } from '../Job';
 
 type TestJobType = {
-    name: 'test';
+    type: 'test';
     data: {
         parameters: {
             foo: string
@@ -31,7 +31,7 @@ type TestJobTypeWithInternalData = TestJobType &{
 
 const jobAttributes: JobAttributes<TestJobType> = {
     id: 1,
-    name: 'test' as const,
+    type: 'test' as const,
     user_id: 3,
     status: 'pending',
     internal_data: { },
@@ -47,7 +47,7 @@ const jobAttributesWithInternalData: JobAttributes<TestJobTypeWithInternalData> 
 test('Test constructor', () => {
     const mainJobObj = new Job<TestJobType>(jobAttributes);
     expect(mainJobObj.status).toEqual('pending');
-    expect(mainJobObj.attributes.name).toEqual('test');
+    expect(mainJobObj.attributes.type).toEqual('test');
     expect((mainJobObj.attributes as any).status).toBeUndefined();
 });
 
@@ -55,7 +55,7 @@ test('Test constructor: without resources', () => {
     const { resources, ...rest } = jobAttributes;
     const mainJobObj = new Job<TestJobType>({ ...rest });
     expect(mainJobObj.status).toEqual('pending');
-    expect(mainJobObj.attributes.name).toEqual('test');
+    expect(mainJobObj.attributes.type).toEqual('test');
     expect((mainJobObj.attributes as any).status).toBeUndefined();
 });
 

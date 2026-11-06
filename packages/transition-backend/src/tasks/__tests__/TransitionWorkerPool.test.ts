@@ -77,7 +77,7 @@ describe('batch route execution', () => {
             attributes: {
                 id: 34,
                 user_id: 1,
-                name: 'batchRoute',
+                type: 'batchRoute',
                 status: 'pending',
                 data: {
                     parameters: {
@@ -160,7 +160,7 @@ describe('batch route execution', () => {
             attributes: {
                 id: 34,
                 user_id: 1,
-                name: 'batchRoute',
+                type: 'batchRoute',
                 status: 'pending',
                 data: {
                     parameters: {
@@ -243,7 +243,7 @@ describe('batch route execution', () => {
             attributes: {
                 id: 34,
                 user_id: 1,
-                name: 'batchRoute',
+                type: 'batchRoute',
                 status: status,
                 data: {
                     parameters: {
@@ -300,7 +300,7 @@ describe('batch route execution', () => {
             attributes: {
                 id: 34,
                 user_id: 1,
-                name: 'batchRoute',
+                type: 'batchRoute',
                 status: 'inProgress',
                 data: {
                     parameters: {
@@ -379,7 +379,7 @@ describe('batch route execution', () => {
             attributes: {
                 id: 34,
                 user_id: 1,
-                name: 'batchRoute',
+                type: 'batchRoute',
                 status: status,
                 data: {
                     parameters: {
@@ -423,7 +423,7 @@ describe('batch route execution', () => {
             getJobFileDirectory: jest.fn().mockReturnValue('/dir'),
             hasInputFile: jest.fn().mockReturnValue(false),
             status: 'pending',
-            attributes: { id: 42, user_id: 1, name: 'batchRoute', status: 'pending', data: { parameters: {} }, internal_data: {}, resources: {} }
+            attributes: { id: 42, user_id: 1, type: 'batchRoute', status: 'pending', data: { parameters: {} }, internal_data: {}, resources: {} }
         } as any;
         const updatableTask = _cloneDeep(mockedTask);
         mockLoadTask.mockResolvedValueOnce(updatableTask);

@@ -16,7 +16,7 @@ import { cyclingRouteResult, simplePathResult, walkingRouteResult } from '../../
 const objectName   = 'job';
 
 type TestJobType = {
-    name: 'test';
+    type: 'test';
     data: {
         parameters: {
             foo: string
@@ -25,7 +25,7 @@ type TestJobType = {
     files: { }
 }
 
-const data = { name: 'test' as const, data: { parameters: { foo: 'bar' } } } as TestJobType;
+const data = { type: 'test' as const, data: { parameters: { foo: 'bar' } } } as TestJobType;
 
 const userAttributes = {
     id: 3,
@@ -35,7 +35,7 @@ const userAttributes = {
 
 const jobAttributes: Omit<JobAttributes<TestJobType>, 'id'> = {
     status: 'pending' as const,
-    name: 'test' as const,
+    type: 'test' as const,
     user_id: userAttributes.id,
     data: data.data,
     internal_data: {}

@@ -11,7 +11,7 @@ import type { OdTripRouteResult } from './types';
 import type { TransitDemandFromCsvRoutingAttributes } from 'transition-common/lib/services/transitDemand/types';
 
 export type BatchRouteJobType = {
-    name: 'batchRoute';
+    type: 'batchRoute';
     data: {
         parameters: {
             demandAttributes: TransitDemandFromCsvRoutingAttributes;

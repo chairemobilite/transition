@@ -89,7 +89,7 @@ export default function (socket: EventEmitter, userId: number) {
                         jobFiles[file] = {
                             url: `/job/${id}/${fileName}`,
                             downloadName: downloadName,
-                            title: { text: `transit:jobs:${job.attributes.name}:files:${file}`, fileName }
+                            title: { text: `transit:jobs:${job.attributes.type}:files:${file}`, fileName }
                         };
                     }
                 });

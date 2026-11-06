@@ -14,7 +14,7 @@ import { JobAttributes, Job as ObjectClass } from 'transition-common/lib/service
 const objectName   = 'job';
 
 type TestJobType = {
-    name: 'test';
+    type: 'test';
     data: {
         parameters: {
             foo: string
@@ -24,7 +24,7 @@ type TestJobType = {
 }
 
 type TestJobType2 = {
-    name: 'test2';
+    type: 'test2';
     data: {
         parameters: {
             foo: string
@@ -33,7 +33,7 @@ type TestJobType2 = {
     files: { myFile: boolean; }
 }
 
-const data = { name: 'test' as const, data: { parameters: { foo: 'bar' } } } as TestJobType;
+const data = { type: 'test' as const, data: { parameters: { foo: 'bar' } } } as TestJobType;
 
 const userAttributes = {
     id: 3,
@@ -43,7 +43,7 @@ const userAttributes = {
 
 const newObjectAttributes: Omit<JobAttributes<TestJobType>, 'id'> = {
     status: 'pending' as const,
-    name: 'test' as const,
+    type: 'test' as const,
     user_id: userAttributes.id,
     internal_data: {},
     data: data.data,
@@ -65,7 +65,7 @@ const updatedAttributes = {
 
 const newObjectAttributes2: Omit<JobAttributes<TestJobType2>, 'id'> = {
     status: 'completed' as const,
-    name: 'test2' as const,
+    type: 'test2' as const,
     user_id: userAttributes.id,
     internal_data: {
         checkpoint: 0
@@ -246,28 +246,28 @@ describe(`${objectName}`, () => {
         let result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 0, pageSize: 1 });
         expect(result.totalCount).toBe(2);
         expect(result.jobs.length).toBe(1);
-        expect(result.jobs[0].name).toEqual(newObjectAttributes2.name);
+        expect(result.jobs[0].type).toEqual(newObjectAttributes2.type);
         const firstId = result.jobs[0].id;
 
         // Read second page for first user, default sort
         result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 1, pageSize: 1 });
         expect(result.totalCount).toBe(2);
         expect(result.jobs.length).toBe(1);
-        expect(result.jobs[0].name).toEqual(newObjectAttributes.name);
+        expect(result.jobs[0].type).toEqual(newObjectAttributes.type);
         const secondId = result.jobs[0].id;
 
         // Read first page for first user, sort ascending
         result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 0, pageSize: 1, sort: [{ field: 'created_at', direction: 'asc' }] });
         expect(result.totalCount).toBe(2);
         expect(result.jobs.length).toBe(1);
-        expect(result.jobs[0].name).toEqual(newObjectAttributes.name);
+        expect(result.jobs[0].type).toEqual(newObjectAttributes.type);
         expect(result.jobs[0].id).toEqual(secondId);
 
         // Read second page for first user, sort ascending
         result = await dbQueries.collection({ userId: userAttributes.id, pageIndex: 1, pageSize: 1, sort: [{ field: 'created_at', direction: 'asc' }] });
         expect(result.totalCount).toBe(2);
         expect(result.jobs.length).toBe(1);
-        expect(result.jobs[0].name).toEqual(newObjectAttributes2.name);
+        expect(result.jobs[0].type).toEqual(newObjectAttributes2.type);
         expect(result.jobs[0].id).toEqual(firstId);
 
     });
@@ -349,11 +349,11 @@ describe(`${objectName}`, () => {
     test('Read collections by user and job', async() => {
         
         // The user has 2 jobs, there are 2 jobs of job type, but only 1 for user
-        let result = await dbQueries.collection({ userId: userAttributes.id, jobType: newObjectAttributes.name, pageIndex: 0, pageSize: 0 });
+        let result = await dbQueries.collection({ userId: userAttributes.id, jobType: newObjectAttributes.type, pageIndex: 0, pageSize: 0 });
         expect(result.totalCount).toBe(1);
         expect(result.jobs.length).toBe(1);
         expect(result.jobs[0].user_id).toEqual(userAttributes.id);
-        expect(result.jobs[0].name).toEqual(newObjectAttributes.name);
+        expect(result.jobs[0].type).toEqual(newObjectAttributes.type);
     });
 
 

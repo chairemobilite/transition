@@ -20,7 +20,7 @@ const progressEmitter = new EventEmitter();
 
 // Mock job type
 type TestJobType = {
-    name: 'test';
+    type: 'test';
     data: {
         parameters: {
             foo: string
@@ -34,7 +34,7 @@ type TestJobType = {
 }
 
 const newJobAttributes: Omit<JobAttributes<TestJobType>, 'id' | 'status' | 'internal_data'> = {
-    name: 'test' as const,
+    type: 'test' as const,
     user_id: 3,
     data: { parameters: { foo: 'bar' } },
     resources: { files: { testFile: 'path/to/file' } }
@@ -47,8 +47,8 @@ const jobAttributes: JobAttributes<TestJobType> = {
     internal_data: {}
 };
 
-type TestChildJobType = Omit<TestJobType, 'name'> & {
-    name: 'testChild';
+type TestChildJobType = Omit<TestJobType, 'type'> & {
+    type: 'testChild';
 }
 
 
@@ -106,7 +106,7 @@ describe('Test jobs creation', () => {
         mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
         await ExecutableJob.createJob(newJobAttributes, listener);
         expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
-        expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+        expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, type: jobObj.attributes.type });
     });
 
     test('Test create job with input files', async () => {
@@ -147,7 +147,7 @@ describe('Test jobs creation', () => {
 
     test('Test create child job different type', async () => {
         const newChildJobAttributes: Omit<JobAttributes<TestChildJobType>, 'id' | 'status' | 'internal_data'> = {
-            name: 'testChild' as const,
+            type: 'testChild' as const,
             user_id: 3,
             data: { parameters: { foo: 'bar' } },
             resources: { files: { testFile: 'path/to/file' } }
@@ -338,7 +338,7 @@ test('Test save', async () => {
     listener.on('executableJob.updated', jobUpdatedListener);
     await jobObj.save(listener);
     expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, type: jobObj.attributes.type });
 });
 
 test('Test delete no child', async () => {
@@ -358,13 +358,13 @@ test('Test delete no child', async () => {
 
     await jobObj.delete(listener);
     expect(jobUpdatedListener).toHaveBeenCalledTimes(1);
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, type: jobObj.attributes.type });
 });
 
 test('Test delete with children', async () => {
     const jobAttributesChild1: JobAttributes<TestChildJobType> = {
         ...newJobAttributes,
-        name: 'testChild' as const,
+        type: 'testChild' as const,
         id: 3,
         status: 'pending',
         parentJobId: 2,
@@ -373,7 +373,7 @@ test('Test delete with children', async () => {
 
     const jobAttributesChild2: JobAttributes<TestChildJobType> = {
         ...newJobAttributes,
-        name: 'testChild' as const,
+        type: 'testChild' as const,
         id: 4,
         status: 'pending',
         parentJobId: 2,
@@ -401,9 +401,9 @@ test('Test delete with children', async () => {
     mockedJobCollection.mockResolvedValueOnce({ jobs: [], totalCount: 0 })
     await jobObj.delete(listener);
     expect(jobUpdatedListener).toHaveBeenCalledTimes(3);
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, name: jobObj.attributes.name });
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobAttributesChild1.id, name: jobAttributesChild1.name });
-    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobAttributesChild2.id, name: jobAttributesChild2.name });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, type: jobObj.attributes.type });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobAttributesChild1.id, type: jobAttributesChild1.type });
+    expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobAttributesChild2.id, type: jobAttributesChild2.type });
 
 });
 
