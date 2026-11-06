@@ -118,7 +118,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
 
         const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes });
-        jobProgressEmitter.emit('executableJob.updated', { id, name: attributes.name });
+        jobProgressEmitter.emit('executableJob.updated', { id, type: attributes.type });
         const job = new ExecutableJob<TData>({ id, status: 'pending', internal_data: {}, ...attributes });
         toCopy.forEach(({ filePath, jobFileName }) =>
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
@@ -456,7 +456,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             statusMessages
         });
         console.log('Updated job with checkpoint', internal_data.checkpoint);
-        jobProgressEmitter.emit('executableJob.updated', { id: updatedId, name: this.attributes.name });
+        jobProgressEmitter.emit('executableJob.updated', { id: updatedId, type: this.attributes.type });
         return updatedId;
     }
 
@@ -479,7 +479,7 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
         const id = await jobsDbQueries.delete(this.attributes.id);
 
-        jobProgressEmitter.emit('executableJob.updated', { id: this.attributes.id, name: this.attributes.name });
+        jobProgressEmitter.emit('executableJob.updated', { id: this.attributes.id, type: this.attributes.type });
         return id;
     }
 }

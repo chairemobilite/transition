@@ -63,8 +63,8 @@ const ExecutableJobList: React.FunctionComponent<ExecutableJobListProps> = (prop
         useFlexLayout
     );
 
-    const reloadData = (data: { id: number; name: string }) => {
-        if (props.jobType === undefined || props.jobType === data.name) {
+    const reloadData = (data: { id: number; type: string }) => {
+        if (props.jobType === undefined || props.jobType === data.type) {
             props.fetchData({ pageIndex, pageSize, filters, sortBy });
         }
     };

@@ -56,7 +56,7 @@ const inputFileName = 'input.csv';
 
 const mockJobAttributes = {
     id: jobId,
-    name: 'batchRoute' as const,
+    type: 'batchRoute' as const,
     user_id: 123,
     status: 'pending' as const,
     internal_data: {},

@@ -285,7 +285,7 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
         if (componentProps.jobType === undefined) {
             columns.push({
                 Header: t('transit:jobs:JobType') as string,
-                accessor: 'name'
+                accessor: 'type'
             });
         }
         return columns;

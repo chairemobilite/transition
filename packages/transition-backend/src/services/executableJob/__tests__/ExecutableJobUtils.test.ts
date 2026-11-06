@@ -11,7 +11,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 
 // Mock job type
 type TestJobType = {
-    name: 'test';
+    type: 'test';
     data: {
         parameters: {
             foo: string
@@ -28,7 +28,7 @@ const jobAttributes = {
     id: 2,
     status: 'pending' as const,
     internal_data: {},
-    name: 'test' as const,
+    type: 'test' as const,
     user_id: 3,
     data: { parameters: { foo: 'bar' } },
     resources: { files: { testFile: 'path/to/file' } }
