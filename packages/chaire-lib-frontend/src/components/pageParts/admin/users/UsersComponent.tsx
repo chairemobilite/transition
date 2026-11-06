@@ -7,9 +7,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import UsersTable, { type UserDisplay } from './UsersTable';
-import { DefaultColumnFilter } from './TableFilters';
+import { BooleanColumnFilter, DefaultColumnFilter } from './TableFilters';
 import WidgetChangePermission from './WidgetChangePermission';
-import WidgetSetAdmin from './WidgetSetAdmin';
+import WidgetSetUserFlag from './WidgetSetUserFlag';
 
 const UsersComponent: React.FC = () => {
     const { t } = useTranslation('admin');
@@ -33,7 +33,7 @@ const UsersComponent: React.FC = () => {
         // Make a query string from the filters
         const additionalQueryString = !filters
             ? undefined
-            : filters.map((obj) => `${encodeURI(obj.id)}=${encodeURI(obj.value)}`).join('&');
+            : filters.map((obj) => `${encodeURIComponent(obj.id)}=${encodeURIComponent(obj.value)}`).join('&');
 
         try {
             const response = await fetch(
@@ -50,7 +50,8 @@ const UsersComponent: React.FC = () => {
                 if (jsonData.users) {
                     setData(jsonData.users);
                 }
-                if (jsonData.totalCount) {
+                // The count can be 0, when no user matches the filters
+                if (typeof jsonData.totalCount === 'number') {
                     setTotalCount(jsonData.totalCount);
                     setPageCount(Math.ceil(jsonData.totalCount / pageSize));
                 }
@@ -74,7 +75,12 @@ const UsersComponent: React.FC = () => {
     // Columns of the user table
     // TODO This may be where we add column formatting
     const columns = React.useMemo(() => {
-        const columns = [
+        const columns: {
+            Header: string;
+            accessor: keyof UserDisplay;
+            Filter?: (filterProps: any) => React.ReactElement;
+            Cell?: (cellProps: any) => React.ReactElement;
+        }[] = [
             {
                 Header: t('admin:user:Username'),
                 accessor: 'username',
@@ -86,11 +92,29 @@ const UsersComponent: React.FC = () => {
                 Filter: DefaultColumnFilter
             },
             {
+                Header: t('admin:user:isConfirmed'),
+                accessor: 'is_confirmed',
+                Filter: BooleanColumnFilter,
+                // The key makes sure the widget state is reset when the row shows another user
+                Cell: (cellProps) => (
+                    <WidgetSetUserFlag
+                        key={cellProps.row.original.uuid}
+                        flag="is_confirmed"
+                        value={cellProps.value}
+                        userUuid={cellProps.row.original.uuid}
+                        userId={cellProps.row.original.id}
+                    />
+                )
+            },
+            {
                 Header: t('admin:user:isAdmin'),
                 accessor: 'is_admin',
+                Filter: BooleanColumnFilter,
                 Cell: (cellProps) => (
-                    <WidgetSetAdmin
-                        isAdmin={cellProps.value}
+                    <WidgetSetUserFlag
+                        key={cellProps.row.original.uuid}
+                        flag="is_admin"
+                        value={cellProps.value}
                         userUuid={cellProps.row.original.uuid}
                         userId={cellProps.row.original.id}
                     />

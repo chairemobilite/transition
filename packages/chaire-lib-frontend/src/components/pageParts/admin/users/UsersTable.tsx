@@ -12,10 +12,13 @@ import { useTable, usePagination, useFilters } from 'react-table';
 import { type WithTranslation, withTranslation } from 'react-i18next';
 
 export interface UserDisplay {
+    id: number;
+    uuid: string;
     username: string;
     email: string;
-    is_admin: boolean;
-    permissions: { [key: string]: boolean };
+    is_admin: boolean | null;
+    is_confirmed: boolean | null;
+    permissions: { [key: string]: boolean } | null;
 }
 
 interface UsersTableProps extends WithTranslation {
