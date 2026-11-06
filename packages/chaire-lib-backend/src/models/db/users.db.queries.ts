@@ -143,6 +143,8 @@ export type UserFilter = {
     email?: string;
     username?: string;
     is_admin?: boolean;
+    /** `false` also matches users where the flag is null, as they cannot log in either */
+    is_confirmed?: boolean;
 };
 
 // Even if it is typed, in reality, this data comes from the universe and can be anything. Make sure we don't inject sql
@@ -169,6 +171,9 @@ const getRawFilter = (filters: UserFilter): [string, string[]] | undefined => {
     }
     if (filters.is_admin !== undefined) {
         rawFilters.push(`is_admin IS ${filters.is_admin === true ? 'TRUE' : 'NOT TRUE'}`);
+    }
+    if (filters.is_confirmed !== undefined) {
+        rawFilters.push(`is_confirmed IS ${filters.is_confirmed === true ? 'TRUE' : 'NOT TRUE'}`);
     }
     return rawFilters.length === 0 ? undefined : [rawFilters.join(' AND '), bindings];
 };

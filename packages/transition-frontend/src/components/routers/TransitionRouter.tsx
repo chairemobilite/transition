@@ -17,9 +17,13 @@ import ForgotPage from 'chaire-lib-frontend/lib/components/pages/ForgotPasswordP
 import VerifyPage from 'chaire-lib-frontend/lib/components/pages/VerifyPage';
 import ResetPasswordPage from 'chaire-lib-frontend/lib/components/pages/ResetPasswordPage';
 import UnconfirmedPage from 'chaire-lib-frontend/lib/components/pages/UnconfirmedPage';
+import UsersPage from 'chaire-lib-frontend/lib/components/pages/admin/UsersPage';
 import PrivateRoute from 'chaire-lib-frontend/lib/components/routers/PrivateRoute';
 import PublicRoute from 'chaire-lib-frontend/lib/components/routers/PublicRoute';
 import type { DashboardContribution } from 'chaire-lib-frontend/lib/services/dashboard/DashboardContribution';
+
+// Same permissions as required by the server's admin routes
+export const usersPagePermissions = { Users: ['read', 'update'] };
 
 type TransitionRouterProps = {
     contributions: DashboardContribution[];
@@ -36,6 +40,10 @@ const TransitionRouter: React.FunctionComponent<TransitionRouterProps> = (props:
             <Route path="/reset/:token" element={<PublicRoute component={ResetPasswordPage} />} />
             <Route path="/unauthorized" element={<PublicRoute component={UnauthorizedPage} />} />
             <Route path="/login" element={<PublicRoute component={LoginPage} />} />
+            <Route
+                path="/admin/users"
+                element={<PrivateRoute component={UsersPage} path="/admin/users" permissions={usersPagePermissions} />}
+            />
             <Route
                 path="/"
                 element={

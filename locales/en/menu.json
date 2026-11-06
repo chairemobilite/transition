@@ -6,5 +6,6 @@
     "User": "Connected",
     "Reset": "Reset session",
     "ResetUserPrefsTitle": "Reset all user preferences and configuration to their default values?",
-    "ResetUserPrefsConfirm": "Reset preferences"
+    "ResetUserPrefsConfirm": "Reset preferences",
+    "Users": "Users"
 }

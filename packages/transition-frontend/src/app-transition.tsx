@@ -12,7 +12,7 @@ import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router';
 
 import i18n from 'chaire-lib-frontend/lib/config/i18n.config';
-import TransitionRouter from './components/routers/TransitionRouter';
+import TransitionRouter, { usersPagePermissions } from './components/routers/TransitionRouter';
 import MainMap from './components/map/TransitionMainMap';
 import configureStore from 'chaire-lib-frontend/lib/store/configureStore';
 import { LoadingPage } from 'chaire-lib-frontend/lib/components/pages';
@@ -41,6 +41,12 @@ setWorkerUrl(`/dist/maplibre-gl-worker.mjs?v=${getVersion()}`);
 
 setApplicationConfiguration({
     homePage: '/dashboard',
+    // Header links, only shown to users who can manage users, so they can go
+    // back and forth between the map and the users page
+    pages: [
+        { path: '/dashboard', permissions: usersPagePermissions, title: 'menu:dashboard' },
+        { path: '/admin/users', permissions: usersPagePermissions, title: 'menu:Users' }
+    ],
     userMenuItems: [
         {
             getText: (t: TFunction) => t('main:Preferences'),

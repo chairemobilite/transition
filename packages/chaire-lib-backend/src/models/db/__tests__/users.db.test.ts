@@ -29,7 +29,8 @@ const user2: Partial<UserAttributes> = {
     email: 'test@example.org',
     preferences: { lang: 'fr' },
     first_name: 'Toto',
-    password_reset_token: 'sometokenforpasswordreset'
+    password_reset_token: 'sometokenforpasswordreset',
+    is_confirmed: true
 };
 
 const userCaps: Partial<UserAttributes> = {
@@ -306,6 +307,22 @@ describe('list users', () => {
         const { users: notAdminUsers, totalCount: totalCountNotAdmin } = await dbQueries.getList({ filters: { is_admin: false }, pageIndex: 0, pageSize: -1 });
         expect(totalCountNotAdmin).toEqual(1);
         expect(notAdminUsers.length).toEqual(1);
+
+        // is_confirmed is true, only user2 is confirmed
+        const { users: confirmedUsers, totalCount: totalCountConfirmed } = await dbQueries.getList({ filters: { is_confirmed: true }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountConfirmed).toEqual(1);
+        expect(confirmedUsers.map((u) => u.id)).toEqual([user2.id]);
+
+        // is_confirmed is false, includes the users with a null flag
+        const { users: unconfirmedUsers, totalCount: totalCountUnconfirmed } = await dbQueries.getList({ filters: { is_confirmed: false }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountUnconfirmed).toEqual(2);
+        expect(unconfirmedUsers.find((u) => u.id === user2.id)).toBeUndefined();
+
+        // Combine the admin and confirmed filters
+        const { totalCount: totalCountConfirmedAdmin } = await dbQueries.getList({ filters: { is_admin: true, is_confirmed: true }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountConfirmedAdmin).toEqual(0);
+        const { totalCount: totalCountUnconfirmedAdmin } = await dbQueries.getList({ filters: { is_admin: true, is_confirmed: false }, pageIndex: 0, pageSize: -1 });
+        expect(totalCountUnconfirmedAdmin).toEqual(2);
     });
 
     test('Combine filter and paging', async () => {

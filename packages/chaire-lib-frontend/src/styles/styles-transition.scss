@@ -17,6 +17,7 @@
 @include meta.load-css('dashboard');
 @include meta.load-css('leftMenu');
 @include meta.load-css('widgets');
+@include meta.load-css('admin');
 @import 'react-datepicker/dist/react-datepicker.css';
 @import 'react-tabs/style/react-tabs.css';
 @include meta.load-css('react-tabs');

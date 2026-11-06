@@ -16,6 +16,7 @@ import expressSession from 'express-session';
 import KnexConnection from 'connect-session-knex';
 import morgan from 'morgan'; // http logger
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
+import adminRoutes from 'chaire-lib-backend/lib/api/admin.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import type { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
@@ -116,6 +117,9 @@ export const setupServer = (app: Express) => {
 
     // Set up public API
     publicRoutes(app, passport);
+
+    // User management routes, the router validates the user's permissions
+    app.use('/api/admin', adminRoutes);
 
     // TODO File may not be at root of user directory, support path instead of just file here
     app.get('/exports/:file', (req, res) => {

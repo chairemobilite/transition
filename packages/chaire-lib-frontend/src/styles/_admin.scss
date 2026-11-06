@@ -1,0 +1,42 @@
+@use 'settings';
+
+// Administration pages, like the users page
+.admin {
+    padding: 1rem 2rem;
+
+    .userTable {
+        table {
+            border-collapse: collapse;
+            font-size: settings.$font-size-xsmall;
+        }
+
+        th,
+        td {
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid settings.$border-white;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        // Column filters
+        th > div {
+            margin-top: 0.4rem;
+            font-weight: normal;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 0;
+            font-size: settings.$font-size-xsmall;
+        }
+    }
+
+    // Checkbox and apply button of a user flag, on the same line
+    .admin-user-flag {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+}
