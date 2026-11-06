@@ -12,10 +12,6 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router';
 
 import configureStore from '../../../store/configureStore';
 
-// Header pulls in ESM-only deps (react-markdown) that jest does not transform;
-// it is irrelevant to the redirect logic under test, so stub it out.
-jest.mock('../../pageParts', () => ({ Header: () => null }));
-
 import PrivateRoute from '../PrivateRoute';
 
 // Login stand-in that exposes the referrer PrivateRoute stored in location.state,
