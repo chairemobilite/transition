@@ -709,6 +709,64 @@ describe('Registration and password reset disabled in configuration', () => {
     });
 });
 
+describe('Registration and password reset enabled in configuration', () => {
+    let enabledApp: express.Express;
+
+    beforeAll(() => {
+        config.auth = {
+            localLogin: {
+                allowRegistration: true,
+                forgotPasswordPage: true
+            }
+        };
+        enabledApp = createAuthRoutesApp();
+    });
+
+    afterAll(() => {
+        config.auth = {};
+    });
+
+    test('Signup is available', async () => {
+        authResponse = {
+            error: null,
+            user: { username: validUsername }
+        };
+        const res = await request(enabledApp)
+            .post('/register')
+            .send({ usernameOrEmail: validUsername, password })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+        expect(res.body.status).toEqual('Registration successful!');
+        expect(authMockFunctions['local-signup']).toHaveBeenCalledTimes(1);
+    });
+
+    test('Forgot password is available', async () => {
+        const res = await request(enabledApp)
+            .post('/forgot')
+            .send({ email: 'invalid@test.org' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+        expect(res.body.emailExists).toEqual(false);
+        expect(mockFind).toHaveBeenCalledTimes(1);
+    });
+
+    test('Password reset is available', async () => {
+        mockResetPassword.mockImplementation(() => 'PasswordChanged');
+        const token = 'ThisIsAnArbitraryToken';
+        const res = await request(enabledApp)
+            .post(`/reset/${token}`)
+            .send({ newPassword: 'newPassword' })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .expect(200);
+        expect(res.body.status).toEqual('PasswordChanged');
+        expect(mockResetPassword).toHaveBeenCalledTimes(1);
+        expect(mockResetPassword).toHaveBeenCalledWith(token, 'newPassword');
+    });
+});
+
 describe('Registration and password reset with default configuration', () => {
     let defaultApp: express.Express;
 
