@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import sharedSession from 'express-socket.io-session';
+import type { IncomingMessage } from 'http';
 import { Server as SocketIOServer, type Socket } from 'socket.io';
 import events from 'events';
 
@@ -13,6 +13,9 @@ import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import preferencesSocketRoutes from 'chaire-lib-backend/lib/api/preferences.socketRoutes';
 import allSocketRoutes from './api/all.socketRoutes';
 import clientEventManager from './utils/ClientEventManager';
+
+// The handshake request, with the express session, where passport keeps the ID of the logged in user
+type SessionRequest = IncomingMessage & { session?: { passport?: { user?: number } } };
 
 const setupSocketServerApp = async function (server, sessionMiddleware) {
     // Add socket routes to an event emitter for the server process to use
@@ -25,19 +28,13 @@ const setupSocketServerApp = async function (server, sessionMiddleware) {
         maxHttpBufferSize: 1e8 // 100MB
     });
 
-    io.use(
-        sharedSession(sessionMiddleware, {
-            autoSave: true
-        })
-    );
+    // Run the express session middleware on the handshake request, as the socket.io documentation shows
+    io.engine.use(sessionMiddleware);
 
     io.use((socket, next) => {
-        // FIXME We should remove the need to use any, but the session field is not present in the handshake type, though this type should be overridden by the express-socket.io-session package. See if there are incompatibilities with socket.io 4
-        if (
-            (socket.handshake as any).session &&
-            (socket.handshake as any).session.passport &&
-            (socket.handshake as any).session.passport.user > 0
-        ) {
+        const userId = (socket.request as SessionRequest).session?.passport?.user;
+        if (userId !== undefined && userId > 0) {
+            socket.data.userId = userId;
             return next();
         }
         socket.disconnect(true);
@@ -48,7 +45,7 @@ const setupSocketServerApp = async function (server, sessionMiddleware) {
     });
 
     io.on('connection', (socket: Socket) => {
-        const userId = (socket as any).handshake.session.passport.user;
+        const userId: number = socket.data.userId;
         socket.on('disconnect', () => {
             io.emit('user disconnected');
             clientEventManager.removeClientSocket(socket, userId);
