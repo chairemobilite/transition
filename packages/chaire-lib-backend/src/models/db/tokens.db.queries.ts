@@ -18,35 +18,23 @@ const defaultTokenLifespanDays: number = isNaN(Number(config.tokenLifespanDays))
     ? 10
     : Number(config.tokenLifespanDays);
 
-const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
+/**
+ * Get the API token of a user, or create one if the user does not have one or
+ * if it is expired.
+ *
+ * @param userId The ID of the user to get the token for. The user must already
+ * be authenticated, the token is not for a user looked up from the username or
+ * email, which could match another user than the one authenticated.
+ * @returns The API token of the user
+ */
+const getOrCreate = async (userId: number): Promise<string> => {
     try {
-        const userId = await knex(userTableName)
-            .where(function () {
-                this.where('username', usernameOrEmail).orWhere('email', usernameOrEmail);
-            })
-            .then(async (row) => {
-                if (row === undefined) {
-                    throw new TrError(
-                        `Could not match ${usernameOrEmail} in table ${tableName} database`,
-                        'DBUTK0001',
-                        'NoUserMatchError'
-                    );
-                }
-                if (row.length < 1) {
-                    throw new TrError(
-                        `Could not match ${usernameOrEmail} in table ${tableName} database`,
-                        'DBUTK0002',
-                        'NoUserMatchError'
-                    );
-                } else {
-                    return row[0].id;
-                }
-            });
         const now = new Date();
         const row = await knex(tableName).where('user_id', userId);
         if (row[0]) {
             if (row[0].expiry_date < now) {
-                deleteToken(userId);
+                // Wait for the deletion, the new token is for the same user
+                await deleteToken(userId);
             } else {
                 return row[0].api_token;
             }
@@ -65,7 +53,7 @@ const getOrCreate = async (usernameOrEmail: string): Promise<string> => {
         throw TrError.isTrError(error)
             ? error
             : new TrError(
-                `Cannot add api_token to user ${usernameOrEmail} in table ${tableName} database (knex error: ${error})`,
+                `Cannot add api_token to user ${userId} in table ${tableName} database (knex error: ${error})`,
                 'DBUTK0003',
                 'DatabaseCannotCreateBecauseDatabaseError'
             );
@@ -114,7 +102,7 @@ const getUserByToken = async (token: string) => {
     }
 };
 
-const deleteToken = async (userId: string) => {
+const deleteToken = async (userId: number) => {
     try {
         await knex(tableName).where('user_id', userId).del();
     } catch (error) {

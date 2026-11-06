@@ -405,32 +405,53 @@ test('Local signup strategy, with email confirmation by admin, urls without endi
 
 });
 
-test('Bearer-Strategy', async () => {
-    mockFindToken.mockResolvedValueOnce(validToken);
-    const endFct = jest.fn();
-
-    const authPromise = new Promise((resolve, reject) => {
+describe('Bearer-Strategy', () => {
+    // Authenticate a request with the valid token. Resolves with the arguments
+    // of the next function on success, or with the message the response is
+    // ended with on failure
+    const authenticateWithToken = () => new Promise<{ result: unknown; err: unknown }>((resolve) => {
         passport.authenticate('bearer-strategy')(
             {
-                logIn: logInFct, 
-                headers: {authorization: `Bearer ${validToken}`},
+                logIn: logInFct,
+                headers: { authorization: `Bearer ${validToken}` }
             },
-            {   
+            {
                 setHeader: jest.fn(),
-                end: endFct.mockImplementation((message) => (
-                    console.log(message),
-                    resolve({ result: null, err: message })
-                    ))
-            }, (err, result) => {
+                end: jest.fn().mockImplementation((message) => resolve({ result: null, err: message }))
+            },
+            (err, result) => {
                 resolve({ result, err });
             }
-            );
+        );
     });
-    const authResult: any = await authPromise;
-    expect(authResult.err).toBeUndefined();
-    expect(authResult.result).toBeUndefined();
-    expect(logInFct).toHaveBeenCalledTimes(1);
-    expect(logInFct).toHaveBeenCalledWith(validToken, expect.anything(), expect.anything());
-    expect(mockFindToken).toHaveBeenCalledTimes(1);
-    expect(mockFindToken).toHaveBeenCalledWith(validToken);
+
+    beforeEach(() => {
+        mockFindToken.mockClear();
+    });
+
+    test('Confirmed user', async () => {
+        const user = { id: 1, username: validUsername, is_confirmed: true };
+        mockFindToken.mockResolvedValueOnce(user);
+        const authResult = await authenticateWithToken();
+        expect(authResult.err).toBeUndefined();
+        expect(authResult.result).toBeUndefined();
+        expect(logInFct).toHaveBeenCalledTimes(1);
+        expect(logInFct).toHaveBeenCalledWith(user, expect.anything(), expect.anything());
+        expect(mockFindToken).toHaveBeenCalledTimes(1);
+        expect(mockFindToken).toHaveBeenCalledWith(validToken);
+    });
+
+    // A user who cannot log in, like an unconfirmed user, should not be able
+    // to use a token obtained before either
+    test.each([
+        ['not confirmed', false],
+        ['without confirmation status', null]
+    ])('User %s', async (_title, isConfirmed) => {
+        mockFindToken.mockResolvedValueOnce({ id: 1, username: validUsername, is_confirmed: isConfirmed });
+        const authResult = await authenticateWithToken();
+        expect(authResult.err).toEqual('Unauthorized');
+        expect(logInFct).not.toHaveBeenCalled();
+        expect(mockFindToken).toHaveBeenCalledTimes(1);
+        expect(mockFindToken).toHaveBeenCalledWith(validToken);
+    });
 });

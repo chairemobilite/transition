@@ -126,7 +126,7 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
     });
 
     test('Should return api token', async () => {
-        const testToken = await tokensDbQueries.getOrCreate(user.email as string)
+        const testToken = await tokensDbQueries.getOrCreate(user.id as number)
         expect(testToken).toEqual(validToken.api_token)
     });
 
@@ -148,7 +148,7 @@ describe(`Tokens Database: Token exists in Tokens table`, () => {
 
     test('Should return an error when user not in database', async() => {
         
-        await expect(tokensDbQueries.getOrCreate(badUser.email as string)).rejects.toThrow(TrError);
+        await expect(tokensDbQueries.getOrCreate(badUser.id as number)).rejects.toThrow(TrError);
 
     });
 
@@ -183,7 +183,7 @@ describe(`Tokens Database: Token does not exist in Tokens table`, () => {
         jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (validToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
         
         const query1 = await knex('tokens');
-        await tokensDbQueries.getOrCreate(user.email as string)
+        await tokensDbQueries.getOrCreate(user.id as number)
         const query2 = await knex('tokens');
         expect(query2.length).toBeGreaterThan(query1.length)
         expect(query2[0].api_token).toEqual(validToken.api_token)
@@ -211,7 +211,7 @@ describe(`Tokens Database: Expiry`, () => {
 
     test('Should return new token expired', async() => {
         jest.spyOn(crypto, 'randomUUID').mockImplementation(() => (validToken.api_token) as `${string}-${string}-${string}-${string}-${string}`)
-        const query = await tokensDbQueries.getOrCreate(expiredTokenUser.email as string)
+        const query = await tokensDbQueries.getOrCreate(expiredTokenUser.id as number)
         expect(query).toEqual(validToken.api_token)
     });
 

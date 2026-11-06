@@ -109,6 +109,11 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
             try {
                 const user = await tokensDbQueries.getUserByToken(token);
                 if (!user) throw 'InvalidToken';
+                // Like for the local login, an unconfirmed user cannot use the
+                // API, even with a token obtained before
+                if (user.is_confirmed !== true) {
+                    return done(null, false, { message: 'UnconfirmedUser' });
+                }
                 done(null, user);
             } catch (err) {
                 const message = TrError.isTrError(err) ? err.export().localizedMessage : err;

@@ -44,20 +44,42 @@ import LinesAPIResponse from './public/LinesAPIResponse';
 const CURRENT_API_VERSION = 1.1;
 
 export default function (app: express.Express, passport: PassportStatic) {
+    // Flow to get an API token. API clients send their credentials to this
+    // route and get the token in the response, they usually never had a
+    // session on the website and none is created here:
+    //
+    // 1. Validate that the username or email and the password are in the
+    //    request body, before running the login strategy.
+    // 2. Verify the credentials with the local login strategy. With a custom
+    //    callback, passport does not log the user in, it only passes the
+    //    result of the verification to the callback, which must handle every
+    //    case:
+    //    - an error: unknown user, wrong password or database error
+    //    - no error, but no user: the credentials are correct, but the user
+    //      cannot log in, for example if their account is not confirmed. This
+    //      is not an error for passport, so it must be rejected explicitly.
+    //    - the user: the credentials are valid and the user can log in
+    // 3. Issue the token for the user returned by the strategy, never for a
+    //    user looked up again from the request, which may not be the one whose
+    //    credentials were verified.
     app.use('/token', (req, res, next) => {
-        passport.authenticate('local-login', { failWithError: true, failureMessage: true }, (err, _user, _info) => {
-            const credentials = req.body;
-            if (!credentials.usernameOrEmail) {
-                const message = 'MissingUsernameOrEmail';
-                console.error(message);
-                return res.status(400).send(message);
-            }
-            if (!credentials.password) {
-                const message = 'MissingPassword';
-                console.error(message);
-                return res.status(400).send(message);
-            }
+        // 1. Validate the credentials. The body can be undefined if the
+        // request has none. The login strategy also reads the query string,
+        // so this also makes sure the credentials are not in the URL.
+        const credentials = req.body ?? {};
+        if (!credentials.usernameOrEmail) {
+            const message = 'MissingUsernameOrEmail';
+            console.error(message);
+            return res.status(400).send(message);
+        }
+        if (!credentials.password) {
+            const message = 'MissingPassword';
+            console.error(message);
+            return res.status(400).send(message);
+        }
 
+        // 2. Verify the credentials
+        passport.authenticate('local-login', { session: false }, (err, user, info) => {
             if (err) {
                 console.error(err);
 
@@ -69,13 +91,21 @@ export default function (app: express.Express, passport: PassportStatic) {
                 }
             }
 
+            if (!user) {
+                const message = typeof info?.message === 'string' ? info.message : 'Unauthorized';
+                return res.status(401).send(message);
+            }
+
+            // Keep the authenticated user for the next handler
+            res.locals.authenticatedUserId = user.id;
             next();
         })(req, res, next);
     });
 
     app.post('/token', async (req, res, _next) => {
         try {
-            const token = await tokensDbQueries.getOrCreate(req.body.usernameOrEmail);
+            // 3. Issue the token for the authenticated user
+            const token = await tokensDbQueries.getOrCreate(res.locals.authenticatedUserId);
             res.status(200).send(token);
         } catch (error) {
             console.error(error);
