@@ -114,7 +114,7 @@ const locations = [
 
 const mockJobAttributes = {
     id: 1,
-    name: 'batchAccessMap' as const,
+    type: 'batchAccessMap' as const,
     user_id: 123,
     status: 'pending' as const,
     internal_data: {},

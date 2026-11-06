@@ -256,7 +256,7 @@ describe('trRouting routes', () => {
             expect(Status.isStatusOk(status));
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
-                name: 'batchRoute',
+                type: 'batchRoute',
                 user_id: 1,
                 data: {
                     parameters: {
@@ -284,7 +284,7 @@ describe('trRouting routes', () => {
             expect(Status.isStatusOk(status));
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
-                name: 'batchRoute',
+                type: 'batchRoute',
                 user_id: 1,
                 data: {
                     parameters: {
@@ -314,7 +314,7 @@ describe('trRouting routes', () => {
             expect((status as any).error).toEqual(message);
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
-                name: 'batchRoute',
+                type: 'batchRoute',
                 user_id: 1,
                 data: {
                     parameters: {
@@ -336,7 +336,7 @@ describe('trRouting routes', () => {
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
                 user_id: 1,
-                name: 'batchAccessMap',
+                type: 'batchAccessMap',
                 data: {
                     parameters: {
                         batchAccessMapAttributes: batchAccessMapParameters,
@@ -362,7 +362,7 @@ describe('trRouting routes', () => {
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
                 user_id: 1,
-                name: 'batchAccessMap',
+                type: 'batchAccessMap',
                 data: {
                     parameters: {
                         batchAccessMapAttributes: batchAccessMapParameters,

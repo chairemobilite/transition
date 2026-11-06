@@ -224,7 +224,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     // TODO Handle the input file and add it to the task
                     const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob({
                         user_id: userId,
-                        name: 'batchRoute',
+                        type: 'batchRoute',
                         data: {
                             parameters: {
                                 demandAttributes: parameters.fileAndMapping.fieldMappings,
@@ -260,7 +260,7 @@ export default function (socket: EventEmitter, userId?: number) {
             ) => {
                 try {
                     const job = await ExecutableJob.loadTask(jobId);
-                    if (job.attributes.name !== 'batchRoute') {
+                    if (job.attributes.type !== 'batchRoute') {
                         throw 'Requested job is not a batchRoute job';
                     }
                     const batchRouteJob = job as ExecutableJob<BatchRouteJobType>;
@@ -316,7 +316,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     // TODO Handle the input file and add it to the task
                     const job = await ExecutableJob.createJob({
                         user_id: userId,
-                        name: 'batchAccessMap',
+                        type: 'batchAccessMap',
                         data: {
                             parameters: {
                                 batchAccessMapAttributes: parameters,

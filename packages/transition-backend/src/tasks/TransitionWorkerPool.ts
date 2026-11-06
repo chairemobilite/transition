@@ -155,7 +155,7 @@ export const wrapTaskExecution = async (id: number) => {
     try {
         if (!isDiskSpaceSufficient(task)) {
             console.log(
-                `Pausing job ${task.attributes.id} (${task.attributes.name}) because user disk quota is reached`
+                `Pausing job ${task.attributes.id} (${task.attributes.type}) because user disk quota is reached`
             );
             // Disk space is insufficient, pause the job so the user can clean up and resume
             task.setPaused();
@@ -169,7 +169,7 @@ export const wrapTaskExecution = async (id: number) => {
         task.setInProgress();
         await task.save(taskListener);
         let taskResultStatus = true;
-        switch (task.attributes.name) {
+        switch (task.attributes.type) {
         case 'batchRoute':
             taskResultStatus = await wrapBatchRoute(task as ExecutableJob<BatchRouteJobType>);
             break;
@@ -177,7 +177,7 @@ export const wrapTaskExecution = async (id: number) => {
             taskResultStatus = await wrapBatchAccessMap(task as ExecutableJob<BatchAccessMapJobType>);
             break;
         default:
-            console.log(`Unknown task ${task.attributes.name}`);
+            console.log(`Unknown task ${task.attributes.type}`);
             taskResultStatus = false;
         }
         if (taskResultStatus) {
@@ -187,7 +187,7 @@ export const wrapTaskExecution = async (id: number) => {
         }
     } catch (error) {
         console.error(
-            `Setting job ${task.attributes.id} (${task.attributes.name}) as failed because of an error: ${error}`
+            `Setting job ${task.attributes.id} (${task.attributes.type}) as failed because of an error: ${error}`
         );
         if (TrError.isTrError(error)) {
             task.attributes.statusMessages = {

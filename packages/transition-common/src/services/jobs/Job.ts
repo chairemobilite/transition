@@ -7,13 +7,13 @@ import type { TranslatableMessage } from 'chaire-lib-common/lib/utils/Translatab
  * License text available at https://opensource.org/licenses/MIT
  */
 export type JobDataType = {
-    name: string;
+    type: string;
     data: { [key: string]: unknown };
     files: { [fileTitle: string]: boolean };
     internal_data?: Record<string, unknown>;
 };
 
-export type JobNameKey = 'name';
+export type JobTypeKey = 'type';
 export type JobDataKey = 'data';
 export type JobInternalDataKey = 'internal_data';
 export type fileKey = 'files';
@@ -68,7 +68,7 @@ type DefaultInternalData = { checkpoint?: number };
 export interface JobAttributes<TData extends JobDataType> {
     id: number;
     user_id: number;
-    name: TData[JobNameKey];
+    type: TData[JobTypeKey];
     status: JobStatus;
     statusMessages?: {
         errors?: TranslatableMessage[];
@@ -114,7 +114,7 @@ export interface JobAttributes<TData extends JobDataType> {
  * Here's an example usage of this class, with a test job:
  * ```
  * type TestJobType = {
- *     name: 'test';
+ *     type: 'test';
  *     data: {
  *         parameters: {
  *             foo: string
@@ -125,7 +125,7 @@ export interface JobAttributes<TData extends JobDataType> {
  *     }
  * }
  *
- * const mainJobObj = new Job<TestJobType>({ name: 'test', data: { parameters: { foo: 'bar' }}, user_id: 3 }, true);
+ * const mainJobObj = new Job<TestJobType>({ type: 'test', data: { parameters: { foo: 'bar' }}, user_id: 3 }, true);
  *
  * ```
  */
@@ -141,7 +141,7 @@ export class Job<TData extends JobDataType> {
     }
 
     toString() {
-        return this._attributes.name;
+        return this._attributes.type;
     }
 
     /** Returns the numeric id */

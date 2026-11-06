@@ -81,7 +81,7 @@ const collection = async (
                 query.where('user_id', userId);
             }
             if (jobType !== undefined) {
-                query.where('name', jobType);
+                query.where('type', jobType);
             }
             if (statuses !== undefined) {
                 const statusesArray = statuses;

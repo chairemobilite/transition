@@ -10,7 +10,7 @@ import type { AccessibilityMapAttributes } from 'transition-common/lib/services/
 import type { TrRoutingBatchJobParameters } from './TrRoutingBatchJobParameters';
 
 export type BatchAccessMapJobType = {
-    name: 'batchAccessMap';
+    type: 'batchAccessMap';
     data: {
         parameters: {
             batchAccessMapAttributes: TransitDemandFromCsvAccessMapAttributes;
