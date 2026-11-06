@@ -66,11 +66,6 @@ export default <U extends IUserModel>(passport: PassportStatic, authModel: IAuth
                 password: string,
                 done: (error: any, user?: any, options?: LocalStrategy.IVerifyOptions) => void
             ) => {
-                // TODO: The previous non bookshelf version of this method checked for master_password. Is that still useful?
-                /* if (process.env.MASTER_PASSWORD && password === process.env.MASTER_PASSWORD) {
-                    query = 'username = ? OR email = ? OR facebook_id = ? OR google_id = ?'; //password ? `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}') AND password = crypt('${password}', password)` : `(username = '${usernameOrEmail}' OR email = '${usernameOrEmail}')`;
-                    binding = [usernameOrEmail, usernameOrEmail, usernameOrEmail, usernameOrEmail];
-                } */
                 authModel
                     .find({ usernameOrEmail: usernameOrEmail })
                     .then(async (model) => {
