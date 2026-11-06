@@ -40,6 +40,34 @@ export const transitModes = [
 /** An enumeration of transit modes */
 export type TransitMode = (typeof transitModes)[number];
 
+/**
+ * Rail-based transit modes. They run on fixed tracks where the curve radius limits the speed.
+ * Only modes running on two rails are included, as the curve speed formula
+ * uses the cant of a two-rail track. Monorail is not a rail mode despite its
+ * name: it runs on a single beam. Funicular and cable car are cable-hauled,
+ * so they are not rail modes either.
+ * Cant: https://en.wikipedia.org/wiki/Cant_(road_and_rail)
+ * Curves: https://en.wikipedia.org/wiki/Minimum_railway_curve_radius
+ * Track geometry: https://en.wikipedia.org/wiki/Track_geometry
+ */
+export const railModes = [
+    'rail',
+    'highSpeedRail',
+    'metro',
+    'tram',
+    'tramTrain'
+] as const satisfies readonly TransitMode[];
+export type RailMode = (typeof railModes)[number];
+
+/**
+ * Check whether a mode is a rail-based mode.
+ *
+ * @param {string | undefined | null} mode The mode to check, can come from untrusted input
+ * @returns {boolean} true if the mode is one of `railModes`
+ */
+export const isRailMode = (mode: string | undefined | null): mode is RailMode =>
+    (railModes as readonly string[]).includes(mode as string);
+
 /** Vertical alignments:
  * underground: below grade (subway, tunnel, etc.) (level -1)
  * surface: at-grade (level 0) (solid, not water)

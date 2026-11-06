@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import type { Position } from 'geojson';
-import { distance as turfDistance, point as turfPoint } from '@turf/turf';
+import { findCoarseVertices } from 'transition-common/lib/services/path/PathVertexGeometry';
 
 /**
  * Corner cutting for a polyline drawn by hand.
@@ -20,64 +20,18 @@ import { distance as turfDistance, point as turfPoint } from '@turf/turf';
  * coordinates stay fixed, so a sharp turn at a stop stays sharp. Only
  * corners between the stops are cut.
  *
- * The 1/4 and 3/4 weights are Chaikin's. The 10° and 50 m thresholds below
- * are not in the paper: they stop a second click from adding points to a
- * curve that is already dense. They were configured after testing the same
+ * The 1/4 and 3/4 weights are Chaikin's. The 10° and 50 m thresholds of
+ * `findCoarseVertices` (transition-common PathVertexGeometry) are not in the
+ * paper: they stop a second click from adding points to a curve that is
+ * already dense. They were configured after testing the same
  * algorithm for some time in a fork of the osm id editor (tested by @kaligrafy).
  */
 
-/** Below this turning angle, a vertex is part of a dense curve, not a corner to cut. */
-const MIN_DEFLECTION_ANGLE_RAD = (10 * Math.PI) / 180;
-/** A large angle this close to its neighbours is an already-drawn curve, not a coarse corner. */
-const MIN_COARSE_VERTEX_SPACING_METERS = 50;
-
 /**
- * Unsigned turning angle at p2, in radians (0 = straight, PI = reversal).
- * Longitude is scaled by cos(latitude) so the angle is measured on the ground.
- * @param p1 Previous vertex [lon, lat]
- * @param p2 Vertex where the turn is measured [lon, lat]
- * @param p3 Next vertex [lon, lat]
- */
-const calculateTurningAngle = (p1: Position, p2: Position, p3: Position): number => {
-    // Mean latitude of the three vertices, in radians.
-    const meanLatRad = ((p1[1] + p2[1] + p3[1]) / 3) * (Math.PI / 180);
-    // One degree of longitude is cos(latitude) times one degree of latitude.
-    const cosLat = Math.cos(meanLatRad);
-    // Incoming edge p1 -> p2, in a local equirectangular plane. Not a velocity.
-    const v1x = (p2[0] - p1[0]) * cosLat;
-    const v1y = p2[1] - p1[1];
-    // Outgoing edge p2 -> p3, same plane.
-    const v2x = (p3[0] - p2[0]) * cosLat;
-    const v2y = p3[1] - p2[1];
-    // atan2(|v1 × v2|, v1 · v2) is the unsigned angle between the two edges.
-    return Math.atan2(Math.abs(v1x * v2y - v1y * v2x), v1x * v2x + v1y * v2y);
-};
-
-/**
- * True when an interior vertex still has a corner worth cutting:
- * turning angle at least {@link MIN_DEFLECTION_ANGLE_RAD}, and distance
- * to at least one neighbour at least {@link MIN_COARSE_VERTEX_SPACING_METERS}.
+ * True when an interior vertex still has a corner worth cutting, see `findCoarseVertices`.
  * @param coords Polyline including its fixed endpoints
  */
-function hasCoarseVertices(coords: Position[]): boolean {
-    if (coords.length < 3) return false;
-
-    for (let i = 1; i < coords.length - 1; i++) {
-        const angle = calculateTurningAngle(coords[i - 1], coords[i], coords[i + 1]);
-        if (angle >= MIN_DEFLECTION_ANGLE_RAD) {
-            const distPrev = turfDistance(turfPoint(coords[i - 1] as number[]), turfPoint(coords[i] as number[]), {
-                units: 'meters'
-            });
-            const distNext = turfDistance(turfPoint(coords[i] as number[]), turfPoint(coords[i + 1] as number[]), {
-                units: 'meters'
-            });
-            if (Math.max(distPrev, distNext) >= MIN_COARSE_VERTEX_SPACING_METERS) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
+const hasCoarseVertices = (coords: Position[]): boolean => findCoarseVertices(coords).length > 0;
 
 /**
  * One Chaikin pass. Endpoints stay put.

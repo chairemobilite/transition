@@ -18,6 +18,7 @@ import { faBezierCurve } from '@fortawesome/free-solid-svg-icons/faBezierCurve';
 import _toString from 'lodash/toString';
 import MathJax from 'react-mathjax';
 import { point as turfPoint, featureCollection as turfFeatureCollection } from '@turf/turf';
+import type { Point, Position } from 'geojson';
 
 //import lineRoutingEngines from '../../../../config/transition/pathRoutingEngines';
 import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
@@ -47,6 +48,10 @@ import type Line from 'transition-common/lib/services/line/Line';
 import type { NodeAttributes } from 'transition-common/lib/services/nodes/Node';
 import type { EventManager } from 'chaire-lib-common/lib/services/events/EventManager';
 import type { MapUpdateLayerEventType } from 'chaire-lib-frontend/lib/services/map/events/MapEventsCallbacks';
+import * as Status from 'chaire-lib-common/lib/utils/Status';
+import { isRailMode } from 'transition-common/lib/services/line/types';
+import type { CurveAnalysisResponse } from 'transition-common/lib/services/path/railCurves/types';
+import { requestRailCurveAnalysis, curveSegmentsToGeojson } from '../../../services/path/railCurveAnalysis';
 const lineModesConfigByMode = {};
 for (let i = 0, countI = lineModesConfig.length; i < countI; i++) {
     const lineMode = lineModesConfig[i];
@@ -99,10 +104,20 @@ interface PathFormState extends SaveableObjectState<Path> {
     waypointDraggingIndex?: number;
     forceRecalculate: boolean;
     serviceIdsWithFailedScheduleGeneration: string[];
+    showCurveSegmentsLayer: boolean;
+    /**
+     * Last curve analysis of a rail path, with the coordinates that were analyzed.
+     * The curve segment indices refer to these coordinates, not to the current path geography.
+     */
+    curveAnalysis?: { coordinates: Position[]; response: CurveAnalysisResponse };
 }
 
 class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormState> {
     private resetChangesCount = 0;
+    /** Incremented at each curve analysis request, so responses to older requests are ignored */
+    private curveAnalysisRequestId = 0;
+    /** Parameters of the last curve analysis request, to skip requests when they did not change */
+    private lastCurveAnalysisRequest?: { coordinates?: Position[]; runningSpeedKmH?: number; mode?: string };
 
     constructor(props: PathFormProps) {
         super(props);
@@ -120,7 +135,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             confirmModalForceRecalculateIsOpen: false,
             forceRecalculate: false,
             serviceIdsWithFailedScheduleGeneration: [],
-            segmentTimesByPeriodModalIsOpen: false
+            segmentTimesByPeriodModalIsOpen: false,
+            showCurveSegmentsLayer: true
         };
     }
 
@@ -134,6 +150,13 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         return null;
     }
 
+    toggleCurveSegmentsLayer = () => {
+        this.setState(
+            (prevState) => ({ showCurveSegmentsLayer: !prevState.showCurveSegmentsLayer }),
+            () => this.updateLayers()
+        );
+    };
+
     toggleTemporaryManualRouting = () => {
         this.onValueChange('data.temporaryManualRouting', {
             value: !this.props.path.getData('temporaryManualRouting')
@@ -146,10 +169,11 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.on('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.on('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.on('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
-        serviceLocator.eventManager.on('selected.updateLayers.path', this.updateLayers);
+        serviceLocator.eventManager.on('selected.updateLayers.path', this.onPathGeographyChanged);
         // Call the updateLayers method to display the path on the map, as the event may have been emitted before the listener was added
         this.updateLayers();
         serviceLocator.keyboardManager.on('m', this.toggleTemporaryManualRouting);
+        this.fetchCurveAnalysis();
     }
 
     componentWillUnmount() {
@@ -158,9 +182,56 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.off('waypoint.drag', this.onDragWaypoint);
         serviceLocator.eventManager.off('waypoint.update', this.onUpdateWaypoint);
         serviceLocator.eventManager.off('waypoint.replaceByNodeId', this.onReplaceWaypointByNodeId);
-        serviceLocator.eventManager.off('selected.updateLayers.path', this.updateLayers);
+        serviceLocator.eventManager.off('selected.updateLayers.path', this.onPathGeographyChanged);
         serviceLocator.keyboardManager.off('m');
     }
+
+    /**
+     * Request the curve analysis of the current rail path geography. The
+     * result is displayed on the map only and does not change the path data.
+     * Nothing is requested when the geography, the speed and the mode have not
+     * changed since the last request.
+     */
+    fetchCurveAnalysis = async () => {
+        const mode = this.props.line.attributes.mode;
+        const geography = this.props.path.attributes.geography;
+        const runningSpeedKmH = this.props.path.attributes.data.defaultRunningSpeedKmH;
+        const last = this.lastCurveAnalysisRequest;
+        if (
+            last &&
+            geography?.coordinates === last.coordinates &&
+            runningSpeedKmH === last.runningSpeedKmH &&
+            mode === last.mode
+        ) {
+            return;
+        }
+        this.lastCurveAnalysisRequest = { coordinates: geography?.coordinates, runningSpeedKmH, mode };
+        // The incremented request id discards the response of any pending request
+        const requestId = ++this.curveAnalysisRequestId;
+        // The previous analysis was computed for other parameters
+        if (this.state.curveAnalysis) {
+            this.setState({ curveAnalysis: undefined }, this.updateLayers);
+        }
+        if (!isRailMode(mode) || !geography || typeof runningSpeedKmH !== 'number' || runningSpeedKmH <= 0) {
+            return;
+        }
+        serviceLocator.eventManager.emit('progress', { name: 'CalculatingCurves', progress: 0.0 });
+        const status = await requestRailCurveAnalysis(geography, mode, runningSpeedKmH);
+        serviceLocator.eventManager.emit('progress', { name: 'CalculatingCurves', progress: 1.0 });
+        if (requestId !== this.curveAnalysisRequestId) {
+            return;
+        }
+        if (Status.isStatusError(status)) {
+            console.error('Error fetching curve analysis', status.error);
+            // Forget the failed parameters, so that the next call sends the request again
+            this.lastCurveAnalysisRequest = undefined;
+            return;
+        }
+        this.setState(
+            { curveAnalysis: { coordinates: geography.coordinates, response: Status.unwrap(status) } },
+            this.updateLayers
+        );
+    };
 
     updateLayers = () => {
         const selectedPath = serviceLocator.selectedObjectsManager.getSingleSelection('path');
@@ -170,8 +241,15 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         // find a way to fix this using another method.
         const pathGeojson = selectedPath ? selectedPath.toGeojson() : undefined;
         const nodesGeojsons = selectedPath ? selectedPath.nodesGeojsons() : [];
+        // The line mode can change after the analysis: curves are only shown for rail modes
+        const curveAnalysis = isRailMode(this.props.line.attributes.mode) ? this.state.curveAnalysis : undefined;
+        const curveSegments = this.state.showCurveSegmentsLayer && curveAnalysis ? curveAnalysis.response.segments : [];
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPathsSelected: turfFeatureCollection(pathGeojson && pathGeojson.geometry ? [pathGeojson] : []),
+            transitPathCurveSegments: curveSegmentsToGeojson(curveAnalysis?.coordinates ?? [], curveSegments),
+            transitPathLargeAngleVertices: turfFeatureCollection<Point>(
+                curveAnalysis?.response.largeAngleVertices ?? []
+            ),
             transitNodesSelected: turfFeatureCollection(nodesGeojsons),
             transitNodesRoutingRadius: turfFeatureCollection(nodesGeojsons),
             transitPathWaypoints: turfFeatureCollection(selectedPath ? selectedPath.waypointsGeojsons() : []),
@@ -188,9 +266,16 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         });
     };
 
+    onPathGeographyChanged = () => {
+        this.updateLayers();
+        this.fetchCurveAnalysis();
+    };
+
     onValueChange = (path: string, value?: { value: any; isValid?: boolean }) => {
         super.onValueChange(path, value);
         this.updateLayers();
+        // The running speed changes the curve threshold. Unchanged parameters do not send a request.
+        this.fetchCurveAnalysis();
     };
 
     onHistoryChange = () => {
@@ -302,7 +387,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         path.updateGeography({ forceRecalculate: true })
             .then((_response) => {
                 serviceLocator.selectedObjectsManager.setSelection('path', [path]);
-                this.updateLayers();
+                this.onPathGeographyChanged();
             })
             .catch((error) => {
                 console.error('cannot update path geography', error);
@@ -356,7 +441,7 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
             path.updateGeography()
                 .then(() => {
                     serviceLocator.selectedObjectsManager.setSelection('path', [path]);
-                    this.updateLayers();
+                    this.onPathGeographyChanged();
                     serviceLocator.eventManager.emit('progress', {
                         name: 'SmoothingPath',
                         progress: 1.0
@@ -380,6 +465,8 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
         serviceLocator.eventManager.emit('map.updateLayers', {
             transitPaths: serviceLocator.collectionManager.get('paths').toGeojson(),
             transitPathsSelected: turfFeatureCollection([]),
+            transitPathCurveSegments: turfFeatureCollection([]),
+            transitPathLargeAngleVertices: turfFeatureCollection([]),
             transitNodesSelected: turfFeatureCollection([]),
             transitNodesSelectedErrors: turfFeatureCollection([]),
             transitNodesRoutingRadius: turfFeatureCollection([]),
@@ -740,6 +827,19 @@ class TransitPathEdit extends SaveableObjectForm<Path, PathFormProps, PathFormSt
                                         type="number"
                                         min={0}
                                     />
+                                </div>
+                            )}
+                            {isRailMode(mode) && (
+                                <div className="apptr__form-input-container">
+                                    <InputCheckboxBoolean
+                                        id={`formFieldTransitPathShowCurveSegments${pathId}`}
+                                        label={this.props.t('transit:transitPath:ShowCurveSegmentsLayer')}
+                                        isChecked={this.state.showCurveSegmentsLayer}
+                                        onValueChange={this.toggleCurveSegmentsLayer}
+                                    />
+                                    <p className="_small _pale _no-margin">
+                                        {this.props.t('transit:transitPath:ShowCurveSegmentsLayerHelp')}
+                                    </p>
                                 </div>
                             )}
                             {pathRoutingEngine === 'engine' && (
