@@ -1,0 +1,14 @@
+{
+    "user": {
+        "Username": "Username",
+        "Email": "Email",
+        "isAdmin": "Administrator",
+        "isConfirmed": "Confirmed",
+        "roles": "Roles",
+        "ApplyChanges": "Apply changes",
+        "ErrorSaving": "Error saving the change",
+        "FilterAll": "All",
+        "FilterYes": "Yes",
+        "FilterNo": "No"
+    }
+}

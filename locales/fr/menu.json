@@ -6,5 +6,6 @@
     "User": "Connecté",
     "Reset":"Réinitialiser la session",
     "ResetUserPrefsTitle": "Réinitialiser les préférences à leur valeur par défaut?",
-    "ResetUserPrefsConfirm": "Réinitialiser les préférences"
+    "ResetUserPrefsConfirm": "Réinitialiser les préférences",
+    "Users": "Utilisateurs"
 }
