@@ -46,6 +46,8 @@ export const isBatchParametersValid = (
 };
 
 export type BatchCalculationParameters = {
+    /** User-defined name of the calculation, shown in the job list and added to the result file names */
+    calculationName?: string;
     withGeometries: boolean;
     detailed: boolean;
     /**
