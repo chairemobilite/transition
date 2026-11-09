@@ -8,7 +8,6 @@ import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import path from 'path';
 import type { Express, Request, Response, RequestHandler } from 'express';
 
-import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import _camelCase from 'lodash/camelCase';
 import * as express from 'express';
 import favicon from 'serve-favicon';
@@ -17,10 +16,10 @@ import KnexConnection from 'connect-session-knex';
 import morgan from 'morgan'; // http logger
 import authRoutes from 'chaire-lib-backend/lib/api/auth.routes';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
-import type { UserAttributes } from 'chaire-lib-backend/lib/services/users/user';
 import config from 'chaire-lib-backend/lib/config/server.config';
 import { userAuthModel } from 'chaire-lib-backend/lib/services/auth/userAuthModel';
 import publicRoutes from './api/public.routes';
+import userFilesRoutes from './api/userFiles.routes';
 import configurePassport from 'chaire-lib-backend/lib/config/auth';
 
 export const setupServer = (app: Express) => {
@@ -117,30 +116,8 @@ export const setupServer = (app: Express) => {
     // Set up public API
     publicRoutes(app, passport);
 
-    // TODO File may not be at root of user directory, support path instead of just file here
-    app.get('/exports/:file', (req, res) => {
-        // The file will be in the user's data directory, but we do not want to expose userId
-        const filename = req.params.file;
-        const userId = (req.user as UserAttributes).id;
-        if (fileManager.fileExistsAbsolute(`${directoryManager.userDataDirectory}/${userId}/exports/${filename}`)) {
-            res.sendFile(path.join(directoryManager.userDataDirectory, String(userId), 'exports', filename));
-        } else {
-            res.status(404).json({ status: 'FileDoesNotExist' });
-        }
-    });
-
-    // TODO File may not be at root of user directory, support path instead of just file here
-    app.get('/job/:jobId/:file', (req, res) => {
-        // The file will be in the user's data directory, but we do not want to expose userId
-        const filename = req.params.file;
-        const jobId = req.params.jobId;
-        const userId = (req.user as UserAttributes).id;
-        if (fileManager.fileExistsAbsolute(`${directoryManager.userDataDirectory}/${userId}/${jobId}/${filename}`)) {
-            res.sendFile(path.join(directoryManager.userDataDirectory, String(userId), String(jobId), filename));
-        } else {
-            res.status(404).json({ status: 'FileDoesNotExist' });
-        }
-    });
+    // Routes to download the user's files
+    userFilesRoutes(app);
 
     app.use('/dist/', publicPath); // this needs to be after gzip middlewares.
     app.use('/locales/', localePath); // this needs to be after gzip middlewares.
