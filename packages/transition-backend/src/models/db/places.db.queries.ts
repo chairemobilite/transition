@@ -49,30 +49,23 @@ const attributesCleaner = function (attributes: Partial<PlaceAttributes>): { [ke
 };
 
 const collection = async (dataSourceIds: string[] = [], sampleSize?: number): Promise<PlaceAttributes[]> => {
-    // These parameters can come from a client, they must only be passed as bindings
+    // These parameters can come from a client, they must only be passed to the query builder, never in raw SQL
     const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
     const limit = validateSampleSize(sampleSize);
     try {
-        const response = await knex.raw(
-            `
-        SELECT
-        *,
-        CASE geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography
-      FROM ${tableName}
-      ${dataSourceIdsArray.length > 0 ? `WHERE data_source_id IN (${dataSourceIdsArray.map(() => '?').join(', ')})` : ''}
-      ORDER BY ${limit !== undefined ? 'RANDOM() LIMIT ?' : 'integer_id'};
-    `,
-            [...dataSourceIdsArray, ...(limit !== undefined ? [limit] : [])]
+        const query = knex(tableName).select(
+            '*',
+            knex.raw('CASE geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(geography)::jsonb END as geography')
         );
-        const collection = response?.rows;
-        if (collection) {
-            return collection;
+        if (dataSourceIdsArray.length > 0) {
+            query.whereIn('data_source_id', dataSourceIdsArray);
         }
-        throw new TrError(
-            'cannot fetch places collection because database did not return a valid array',
-            'DBQPLC0001',
-            'PlaceCollectionCouldNotBeFetchedBecauseDatabaseError'
-        );
+        if (limit !== undefined) {
+            query.orderByRaw('RANDOM()').limit(limit);
+        } else {
+            query.orderBy('integer_id');
+        }
+        return await query;
     } catch (error) {
         throw new TrError(
             `cannot fetch places collection because of a database error (knex error: ${error})`,
@@ -145,56 +138,58 @@ const geojsonCollection = async (
     sampleSize?: number
 ): Promise<GeoJSON.FeatureCollection<GeoJSON.Point, PlaceAttributes>> => {
     // TODO: we should not fetch the whole data content, we should read place when modifying one instead of creating a Place from the geojson
-    // These parameters can come from a client, they must only be passed as bindings
+    // These parameters can come from a client, they must only be passed to the query builder, never in raw SQL
     const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
     const limit = validateSampleSize(sampleSize);
     try {
-        const response = await knex.raw(
-            `
-        SELECT jsonb_build_object(
-            'type',     'FeatureCollection',
-            'features', COALESCE(jsonb_agg(features.feature), '[]'::jsonb)
-          ) as geojson
-          FROM (
-            SELECT jsonb_build_object(
+        const inputsQuery = knex(tableName).select(
+            'id',
+            'geography',
+            'integer_id',
+            knex.raw(`json_build_object(
+              'id'                , id,
+              'data_source_id'    , data_source_id,
+              'internal_id'       , internal_id,
+              'integer_id'        , integer_id,
+              'shortname'         , shortname,
+              'name'              , name,
+              'is_frozen'         , is_frozen,
+              'description'       , description,
+              'data'              , data,
+              'walking_5min_accessible_nodes_count', walking_5min_accessible_nodes_count,
+              'walking_10min_accessible_nodes_count', walking_10min_accessible_nodes_count,
+              'walking_15min_accessible_nodes_count', walking_15min_accessible_nodes_count,
+              'walking_20min_accessible_nodes_count', walking_20min_accessible_nodes_count
+            ) AS properties`)
+        );
+        if (dataSourceIdsArray.length > 0) {
+            inputsQuery.whereIn('data_source_id', dataSourceIdsArray);
+        }
+        if (limit !== undefined) {
+            inputsQuery.orderByRaw('RANDOM()').limit(limit);
+        } else {
+            inputsQuery.orderBy('integer_id');
+        }
+        const featuresQuery = knex
+            .select(
+                knex.raw(`jsonb_build_object(
               'type'      , 'Feature',
               'id'        , inputs.integer_id,
               'geometry'  , ST_AsGeoJSON(inputs.geography)::jsonb,
               'properties', inputs.properties
-            ) AS feature
-            FROM (
-              SELECT 
-                id,
-                geography,
-                integer_id,
-                json_build_object(
-                  'id'                , id,
-                  'data_source_id'    , data_source_id,
-                  'internal_id'       , internal_id,
-                  'integer_id'        , integer_id,
-                  'shortname'         , shortname,
-                  'name'              , name,
-                  'is_frozen'         , is_frozen,
-                  'description'       , description,
-                  'data'              , data,
-                  'walking_5min_accessible_nodes_count', walking_5min_accessible_nodes_count,
-                  'walking_10min_accessible_nodes_count', walking_10min_accessible_nodes_count,
-                  'walking_15min_accessible_nodes_count', walking_15min_accessible_nodes_count,
-                  'walking_20min_accessible_nodes_count', walking_20min_accessible_nodes_count
-                ) AS properties
-              FROM ${tableName}
-              ${
-    dataSourceIdsArray.length > 0
-        ? `WHERE data_source_id IN (${dataSourceIdsArray.map(() => '?').join(', ')})`
-        : ''
-}
-              ORDER BY ${limit !== undefined ? 'RANDOM() LIMIT ?' : 'integer_id'}
-            ) inputs
-          ) features;
-    `,
-            [...dataSourceIdsArray, ...(limit !== undefined ? [limit] : [])]
-        );
-        const geojson = response.rows[0]?.geojson;
+            ) AS feature`)
+            )
+            .from(inputsQuery.as('inputs'))
+            .as('features');
+        const response = await knex
+            .select<{ geojson?: GeoJSON.FeatureCollection<GeoJSON.Point, PlaceAttributes> }[]>(
+                knex.raw(`jsonb_build_object(
+              'type',     'FeatureCollection',
+              'features', COALESCE(jsonb_agg(features.feature), '[]'::jsonb)
+            ) as geojson`)
+            )
+            .from(featuresQuery);
+        const geojson = response[0]?.geojson;
         if (geojson) {
             return geojson;
         }
