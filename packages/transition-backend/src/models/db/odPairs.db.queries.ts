@@ -84,31 +84,30 @@ const attributesParser = (dbAttributes: {
 });
 
 const collection = async (dataSourceIds?: string[], sampleSize?: number): Promise<BaseOdTripAttributes[]> => {
-    // These parameters can come from a client, they must only be passed as bindings
+    // These parameters can come from a client, they must only be passed to the query builder, never in raw SQL
     const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
     const limit = validateSampleSize(sampleSize);
     try {
-        const response = await knex.raw(
-            `
-      SELECT
-        *,
-        CASE origin_geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(origin_geography)::jsonb END as origin_geography,
-        CASE destination_geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(destination_geography)::jsonb END as destination_geography
-      FROM ${tableName}
-      ${dataSourceIdsArray.length > 0 ? `WHERE data_source_id IN (${dataSourceIdsArray.map(() => '?').join(', ')})` : ''}
-      ORDER BY ${limit !== undefined ? 'RANDOM() LIMIT ?' : 'integer_id'};
-    `,
-            [...dataSourceIdsArray, ...(limit !== undefined ? [limit] : [])]
+        const query = knex(tableName).select(
+            '*',
+            knex.raw(
+                'CASE origin_geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(origin_geography)::jsonb END as origin_geography'
+            ),
+            knex.raw(
+                'CASE destination_geography WHEN NULL THEN NULL ELSE ST_AsGeoJSON(destination_geography)::jsonb END as destination_geography'
+            )
         );
-        const collection = response?.rows;
-        if (collection) {
-            return collection.map(attributesParser);
+        if (dataSourceIdsArray.length > 0) {
+            query.whereIn('data_source_id', dataSourceIdsArray);
         }
-        throw new TrError(
-            'cannot fetch od pairs collection because database did not return a valid array',
-            'DBQPLC0001',
-            'OdPairCollectionCouldNotBeFetchedBecauseDatabaseError'
-        );
+        if (limit !== undefined) {
+            query.orderByRaw('RANDOM()').limit(limit);
+        } else {
+            query.orderBy('integer_id');
+        }
+        const collection = await query;
+        // TODO The parser does not return the required `geography` field, so the attributes are partial
+        return collection.map(attributesParser) as BaseOdTripAttributes[];
     } catch (error) {
         throw new TrError(
             `cannot fetch od pairs collection because of a database error (knex error: ${error})`,
