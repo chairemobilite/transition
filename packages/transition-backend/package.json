@@ -55,7 +55,7 @@
         "pbf": "^5.1.2",
         "proj4": "^2.15.0",
         "random": "^5.4.1",
-        "serve-favicon": "^2.5.0",
+        "serve-favicon": "^2.5.1",
         "slugify": "^1.6.6",
         "socket.io": "^4.8.4",
         "transition-common": "workspace:^",
