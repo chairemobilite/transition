@@ -7320,13 +7320,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"element-resize-event@npm:^3.0.6":
-  version: 3.0.6
-  resolution: "element-resize-event@npm:3.0.6"
-  checksum: 10c0/3252df8eb14a3f8a8e858f290a6412cacf26e0a40dc24fbaab21a006218e58bf346e7ad0bcbb1d415ddea226e735f7e1c93f6aa7841be3ce9f58284b9b173474
-  languageName: node
-  linkType: hard
-
 "emittery@npm:^0.13.1":
   version: 0.13.1
   resolution: "emittery@npm:0.13.1"
@@ -14389,7 +14382,6 @@ __metadata:
     cross-env: "npm:^10.1.0"
     date-fns: "npm:^4.1.0"
     dotenv: "npm:^17.2.3"
-    element-resize-event: "npm:^3.0.6"
     eslint: "npm:^10.13.0"
     eslint-plugin-n: "npm:^18.5.0"
     eslint-plugin-react: "npm:^7.37.5"
