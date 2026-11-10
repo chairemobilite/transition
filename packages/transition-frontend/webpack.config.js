@@ -60,10 +60,6 @@ module.exports = (env) => {
     const entry = fs.existsSync('./' + customStylesFilePath)
         ? [entryFileName, './' + customStylesFilePath]
         : [entryFileName];
-    const includeDirectories = [
-        path.join(__dirname, 'lib'),
-        path.join(__dirname, 'lib', entryFileName)
-    ];
 
     return {
         // Controls which information to display (see https://webpack.js.org/configuration/stats/)
@@ -121,17 +117,8 @@ module.exports = (env) => {
                     exclude: /node_modules/
                 },
                 {
-                    use: 'json-loader',
-                    test: /\.geojson$/,
-                    include: includeDirectories
-                },
-                {
                     test: /\.(ttf|woff2|woff|eot|svg)$/,
                     type: 'asset'
-                },
-                {
-                    test: /\.glsl$/,
-                    use: 'ts-shader-loader'
                 },
                 {
                     // Plain CSS (including files @imported from SCSS) is handled natively by webpack
