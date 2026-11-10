@@ -6,7 +6,7 @@
  */
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import path from 'path';
-import type { Express, Request, Response, RequestHandler } from 'express';
+import type { Express, Request, Response } from 'express';
 
 import _camelCase from 'lodash/camelCase';
 import * as express from 'express';
@@ -80,9 +80,8 @@ export const setupServer = (app: Express) => {
             }
         })
     );
-    // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
-    app.use(express.json({ limit: '500mb' }) as RequestHandler);
-    app.use(express.urlencoded({ limit: '500mb', extended: true }) as RequestHandler);
+    app.use(express.json({ limit: '500mb' }));
+    app.use(express.urlencoded({ limit: '500mb', extended: true }));
     app.use(session);
     app.use(favicon(path.join(publicDirectory, 'favicon.ico')));
     app.use(passport.initialize());
