@@ -9,7 +9,6 @@ const path = require('path');
 const webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 require('chaire-lib-backend/lib/config/dotenv.config');
 
@@ -82,7 +81,9 @@ module.exports = (env) => {
             path: bundleOutputPath,
             filename: bundleFileName,
             cssFilename: styleFileName,
-            publicPath: '/dist/'
+            publicPath: '/dist/',
+            // Remove the files of previous production builds
+            clean: isProduction
         },
         experiments: {
             // Webpack's built-in CSS support resolves @import and url() and emits the .css file,
@@ -152,11 +153,6 @@ module.exports = (env) => {
             ]
         },
         plugins: [
-            new CleanWebpackPlugin({
-                dry: !isProduction,
-                verbose: true,
-                cleanAfterEveryBuildPatterns: ['**/*', '!images/**', '!*.html']
-            }),
             new HtmlWebpackPlugin({
                 filename: htmlFileName,
                 template: path.join(publicDirectory, 'index.html')
