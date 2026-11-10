@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import _cloneDeep from 'lodash/cloneDeep';
-import express, { RequestHandler } from 'express';
+import express from 'express';
 import publicRoutes from '../public.routes';
 import passport from 'passport'
 import request from 'supertest';
@@ -32,7 +32,7 @@ jest.mock('passport');
 const mockSummary = TrRoutingServiceBackend.summary as jest.MockedFunction<typeof TrRoutingServiceBackend.summary>;
 
 const app = express();
-app.use(express.json() as RequestHandler);
+app.use(express.json());
 publicRoutes(app, passport);
 
 beforeEach(() => {

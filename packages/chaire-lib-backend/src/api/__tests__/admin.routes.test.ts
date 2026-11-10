@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import request from 'supertest';
-import express, { RequestHandler } from 'express';
+import express from 'express';
 import router from '../admin.routes';
 import { userAuthModel } from '../../services/auth/userAuthModel';
 
@@ -61,7 +61,7 @@ const currentUserToEdit = {
 getByUuidSpy.mockResolvedValue(currentUserToEdit);
 
 const app = express();
-app.use(express.json() as RequestHandler);
+app.use(express.json());
 app.use('/api/admin', router);
 
 beforeEach(() => {

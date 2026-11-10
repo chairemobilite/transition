@@ -4,7 +4,7 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import express, { RequestHandler } from 'express';
+import express from 'express';
 import request from 'supertest';
 import session from 'supertest-session';
 import passport from 'passport';
@@ -108,9 +108,8 @@ jest.mock('../../services/auth/authorization', () => ({
 }));
 
 const app = express();
-// FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
-app.use(express.json({ limit: '500mb' }) as RequestHandler);
-app.use(express.urlencoded({extended: true}) as RequestHandler);
+app.use(express.json({ limit: '500mb' }));
+app.use(express.urlencoded({extended: true}));
 const router = express.Router();
 authRoutes(router, userAuthModel, passport);
 app.use(router);
@@ -379,9 +378,8 @@ describe('Passwordless and anonymous auth routes, supported', () => {
 
     // Use a second express app for these cases to make sure routes are updated with config
     const secondApp = express();
-    // FIXME Since upgrading @types/node, the types are wrong and we get compilation error. It is documented for example https://github.com/DefinitelyTyped/DefinitelyTyped/issues/53584 the real fix would require upgrading a few packages and may have side-effects. Simple casting works for now.
-    secondApp.use(express.json({ limit: '500mb' }) as RequestHandler);
-    secondApp.use(express.urlencoded({extended: true}) as RequestHandler);
+    secondApp.use(express.json({ limit: '500mb' }));
+    secondApp.use(express.urlencoded({extended: true}));
     authRoutes(secondApp, userAuthModel, passport);
 
     afterAll(() => {
@@ -637,8 +635,8 @@ describe('Verify confirmation token, actual confirmation POST', () => {
 // Create a new app with the auth routes, as the routes depend on the configuration when they are added
 const createAuthRoutesApp = () => {
     const newApp = express();
-    newApp.use(express.json() as RequestHandler);
-    newApp.use(express.urlencoded({ extended: true }) as RequestHandler);
+    newApp.use(express.json());
+    newApp.use(express.urlencoded({ extended: true }));
     authRoutes(newApp, userAuthModel, passport);
     return newApp;
 };
