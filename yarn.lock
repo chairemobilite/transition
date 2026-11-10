@@ -8243,17 +8243,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fresh@npm:0.5.2":
-  version: 0.5.2
-  resolution: "fresh@npm:0.5.2"
-  checksum: 10c0/c6d27f3ed86cc5b601404822f31c900dd165ba63fff8152a3ef714e2012e7535027063bc67ded4cb5b3a49fa596495d46cacd9f47d6328459cf570f08b7d9e5a
-  languageName: node
-  linkType: hard
-
 "fresh@npm:^2.0.0":
   version: 2.0.0
   resolution: "fresh@npm:2.0.0"
   checksum: 10c0/0557548194cb9a809a435bf92bcfbc20c89e8b5eb38861b73ced36750437251e39a111fc3a18b98531be9dd91fe1411e4969f229dc579ec0251ce6c5d4900bbc
+  languageName: node
+  linkType: hard
+
+"fresh@npm:~0.5.2":
+  version: 0.5.2
+  resolution: "fresh@npm:0.5.2"
+  checksum: 10c0/c6d27f3ed86cc5b601404822f31c900dd165ba63fff8152a3ef714e2012e7535027063bc67ded4cb5b3a49fa596495d46cacd9f47d6328459cf570f08b7d9e5a
   languageName: node
   linkType: hard
 
@@ -10940,13 +10940,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ms@npm:2.1.1":
-  version: 2.1.1
-  resolution: "ms@npm:2.1.1"
-  checksum: 10c0/056140c631e740369fa21142417aba1bd629ab912334715216c666eb681c8f015c622dd4e38bc1d836b30852b05641331661703af13a0397eb0ca420fc1e75d9
-  languageName: node
-  linkType: hard
-
 "ms@npm:2.1.2":
   version: 2.1.2
   resolution: "ms@npm:2.1.2"
@@ -10954,7 +10947,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ms@npm:^2.1.1, ms@npm:^2.1.3":
+"ms@npm:^2.1.1, ms@npm:^2.1.3, ms@npm:~2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
   checksum: 10c0/d924b57e7312b3b63ad21fc5b3dc0af5e78d61a1fc7cfb5457edaf26326bf62be5307cc87ffb6862ef1c2b33b0233cdb5d4f01c4c958cc0d660948b65a287a48
@@ -12969,13 +12962,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-buffer@npm:5.1.1":
-  version: 5.1.1
-  resolution: "safe-buffer@npm:5.1.1"
-  checksum: 10c0/1c233bd105deeba3c9a8911ed4ec24ba45adbb51fec02f7944a10a202c38e3df4ef2b524bdeb55f2e4f8c77c13b2959e2e2e6022e5d99acdd70633b5f7e138cf
-  languageName: node
-  linkType: hard
-
 "safe-buffer@npm:5.1.2, safe-buffer@npm:~5.1.0, safe-buffer@npm:~5.1.1":
   version: 5.1.2
   resolution: "safe-buffer@npm:5.1.2"
@@ -12983,7 +12969,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"safe-buffer@npm:5.2.1, safe-buffer@npm:^5.0.1, safe-buffer@npm:~5.2.0":
+"safe-buffer@npm:5.2.1, safe-buffer@npm:^5.0.1, safe-buffer@npm:~5.2.0, safe-buffer@npm:~5.2.1":
   version: 5.2.1
   resolution: "safe-buffer@npm:5.2.1"
   checksum: 10c0/6501914237c0a86e9675d4e51d89ca3c21ffd6a31642efeba25ad65720bce6921c9e7e974e5be91a786b25aa058b5303285d3c15dbabf983a919f5f630d349f3
@@ -13172,16 +13158,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"serve-favicon@npm:^2.5.0":
-  version: 2.5.0
-  resolution: "serve-favicon@npm:2.5.0"
+"serve-favicon@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "serve-favicon@npm:2.5.1"
   dependencies:
     etag: "npm:~1.8.1"
-    fresh: "npm:0.5.2"
-    ms: "npm:2.1.1"
+    fresh: "npm:~0.5.2"
+    ms: "npm:~2.1.3"
     parseurl: "npm:~1.3.2"
-    safe-buffer: "npm:5.1.1"
-  checksum: 10c0/7244ced3c46f8dfde591dc801f1e21ebc8fa07c4870cbbaee3ce37104b3aad32858e674e251a8ed4837867ea0dd67cb734b485ae5a7b0895cb6022f8b8c79303
+    safe-buffer: "npm:~5.2.1"
+  checksum: 10c0/b0860fa122096207357ee11eba34692f0ce9ef5b62f12d41fac5384e905556e44340661cae966df8d59b4bd5b7ee140596b4a1c39e4778216641588c3f246e48
   languageName: node
   linkType: hard
 
@@ -14282,7 +14268,7 @@ __metadata:
     proj4: "npm:^2.15.0"
     random: "npm:^5.4.1"
     rimraf: "npm:^6.1.4"
-    serve-favicon: "npm:^2.5.0"
+    serve-favicon: "npm:^2.5.1"
     slugify: "npm:^1.6.6"
     socket.io: "npm:^4.8.4"
     socket.io-client: "npm:^4.8.4"
