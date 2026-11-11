@@ -6347,6 +6347,7 @@ __metadata:
     react-select: "npm:^5.10.2"
     react-spinners: "npm:^0.17.0"
     react-table: "npm:^7.8.0"
+    react-tabs: "npm:^6.1.0"
     redux: "npm:^5.0.1"
     redux-thunk: "npm:^3.1.0"
     rimraf: "npm:^6.1.4"
