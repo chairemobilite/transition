@@ -6,6 +6,8 @@
  */
 import type { EventEmitter } from 'events';
 
+import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
+import { isSocketIo } from './socketUtils';
 import { recreateCache } from '../services/capnpCache/dbToCache';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -36,6 +38,20 @@ export default function (socket: EventEmitter) {
             } catch (error) {
                 console.error('Error recreating cache: ', error);
                 callback(Status.createError(TrError.isTrError(error) ? error.message : 'Error saving cache'));
+                return;
+            }
+            // Restart trRouting, if it is running, so it uses the new cache.
+            // The client already got the response, it is done in the background.
+            try {
+                const response = await trRoutingProcessManager.restart({ doNotStartIfStopped: true });
+                if (response.status === 'started') {
+                    socket.emit('service.trRouting.started');
+                    if (isSocketIo(socket)) {
+                        socket.broadcast.emit('service.trRouting.started');
+                    }
+                }
+            } catch (error) {
+                console.error('Error restarting trRouting after saving the cache: ', error);
             }
         }
     );

@@ -151,11 +151,11 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps> = (_props) => {
 
     const saveAllCache = useCallback(() => {
         serviceLocator.eventManager.emit('progress', { name: 'SavingAllCache', progress: 0.0 });
+        // The server restarts trRouting after saving the cache, if it is running
         serviceLocator.socketEventManager.emit('cache.saveAll', () => {
             serviceLocator.eventManager.emit('progress', { name: 'SavingAllCache', progress: 1.0 });
-            _restartTrRouting({ doNotStartIfStopped: true });
         });
-    }, [_restartTrRouting]);
+    }, []);
 
     const saveAndUpdateNodes = useCallback(() => {
         serviceLocator.socketEventManager.emit(
