@@ -1,0 +1,10 @@
+[out:json][timeout:100];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+way["landuse"~"^(residential)$"](poly:{{polyboundary}});
+relation["landuse"~"^(residential)$"](poly:{{polyboundary}});
+
+);
+out geom;
