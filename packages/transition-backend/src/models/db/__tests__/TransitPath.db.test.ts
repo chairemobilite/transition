@@ -6,7 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import _cloneDeep from 'lodash/cloneDeep';
-import { lineString as turfLineString } from '@turf/helpers';
+import { lineString as turfLineString } from '@turf/turf';
 
 import knex from 'chaire-lib-backend/lib/config/shared/db.config';
 import dbQueries from '../transitPaths.db.queries';
