@@ -6,7 +6,8 @@
  */
 import fs from 'fs';
 import path from 'path';
-import JSZip from 'jszip';
+import { EventEmitter } from 'events';
+import { unzipSync, strFromU8 } from 'fflate';
 import os from 'os';
 import { v4 as uuidV4 } from 'uuid';
 
@@ -98,7 +99,7 @@ describe('Test valid workflow', () => {
             selectedAgencies: selectedAgencyIds
         }
 
-        // There are no actual file written, so the zip will not zip anything. Ideally, we should mock JSZip, but it works
+        // There are no actual file written, so the zip will not zip anything. Ideally, we should mock the zip library, but it works
         const file = await exportGtfs(testGtfsExportOptions, directory);
         expect(file).toEqual('gtfs.zip');
         
@@ -166,7 +167,7 @@ describe('Test valid workflow', () => {
             selectedServices: selectedServiceIds
         }
 
-        // There are no actual file written, so the zip will not zip anything. Ideally, we should mock JSZip, but it works
+        // There are no actual file written, so the zip will not zip anything. Ideally, we should mock the zip library, but it works
         const file = await exportGtfs(testGtfsExportOptions, directory);
         expect(file).toEqual('gtfs.zip');
 
@@ -237,7 +238,7 @@ describe('Test valid workflow', () => {
             includeTransitionCustomFields
         }
 
-        // There are no actual file written, so the zip will not zip anything. Ideally, we should mock JSZip, but it works
+        // There are no actual file written, so the zip will not zip anything. Ideally, we should mock the zip library, but it works
         const file = await exportGtfs(testGtfsExportOptions, directory);
         expect(file).toEqual('gtfs.zip');
 
@@ -530,19 +531,51 @@ test('Test ZIP file compression validation', async() => {
         
         // Verify ZIP file is valid and contains expected files
         const zipContent = fs.readFileSync(zipFilePath);
-        const zip = await JSZip.loadAsync(zipContent);
-        
-        expect(zip.file('agency.txt')).toBeTruthy();
-        expect(zip.file('routes.txt')).toBeTruthy();
+        const zip = unzipSync(zipContent);
+
+        expect(zip['agency.txt']).toBeTruthy();
+        expect(zip['routes.txt']).toBeTruthy();
 
         // Verify content integrity
-        const agencyContent = await zip.file('agency.txt')?.async('string');
-        expect(agencyContent).toBe(sampleData['agency.txt']);
+        expect(strFromU8(zip['agency.txt'])).toBe(sampleData['agency.txt']);
 
     } finally {
         // Clean up test directory
         if (fs.existsSync(testDirectory)) {
             await fs.promises.rm(testDirectory, { recursive: true, force: true });
         }
+    }
+});
+
+test('Test ZIP file cannot be written', async() => {
+    const testDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gtfs-zip-error-'));
+    // A directory with the zip file's name makes opening the zip file fail
+    fs.mkdirSync(path.join(testDirectory, 'gtfs.zip'));
+
+    try {
+        mockedAgencyExport.mockImplementationOnce(async (_agencyIds, options) => {
+            await fs.promises.writeFile(path.join(options.directoryPath, 'agency.txt'), 'agency_id\nagency\n');
+            return { status: 'success', lineIds: [], agencyToGtfsId: {} };
+        });
+        mockedLineExport.mockResolvedValueOnce({ status: 'success' });
+        mockedServiceExport.mockResolvedValue({ status: 'success', serviceToGtfsId: {} });
+        mockedScheduleExport.mockResolvedValue({ status: 'success', pathIds: [], nodeIds: [] });
+        mockedStopExport.mockResolvedValue({ status: 'success' });
+        mockedPathExport.mockResolvedValue({ status: 'success' });
+
+        const progressEmitter = new EventEmitter();
+        const zippingProgress: number[] = [];
+        progressEmitter.on('progress', ({ name, progress }) => {
+            if (name === 'GTFSExporterZipping') {
+                zippingProgress.push(progress);
+            }
+        });
+
+        // The export should reject instead of crashing the process or never settling
+        await expect(exportGtfs(gtfsExportOptions, testDirectory, progressEmitter)).rejects.toMatchObject({ code: 'EISDIR' });
+        // The zipping progress is completed anyway, so the notification does not stay forever
+        expect(zippingProgress[zippingProgress.length - 1]).toEqual(1.0);
+    } finally {
+        await fs.promises.rm(testDirectory, { recursive: true, force: true });
     }
 });

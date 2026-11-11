@@ -5,8 +5,11 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import JSZip from 'jszip';
-import type { EventEmitter } from 'events';
+import zlib from 'zlib';
+import { once, type EventEmitter } from 'events';
+import { Transform } from 'stream';
+import { finished, pipeline } from 'stream/promises';
+import { Zip, type ZipInputFile } from 'fflate';
 
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import { exportAgency } from './AgencyExporter';
@@ -40,35 +43,86 @@ const writeZipFile = async (
     zipDirectory: string,
     progressEmitter?: EventEmitter
 ): Promise<boolean> => {
-    return new Promise((resolve, _reject) => {
-        progressEmitter?.emit('progress', { name: 'GTFSExporterZipping', progress: 0.0 });
-
+    progressEmitter?.emit('progress', { name: 'GTFSExporterZipping', progress: 0.0 });
+    try {
         const files = fileManager.directoryManager.getFilesAbsolute(zipDirectory);
         if (!files) {
             throw new TrError(`No files found for gtfs export in folder ${zipDirectory}`, 'GTFSEXP0010');
         }
 
         console.log('Start creating zip file ...');
-        const zipper = new JSZip();
-
-        files.forEach((gtfsFile) => zipper.file(gtfsFile, fs.createReadStream(`${zipDirectory}/${gtfsFile}`)));
+        const output = fs.createWriteStream(zipAbsoluteFilePath);
+        // First error from the zip or the output file. Listening to the output's
+        // errors also keeps an unwritable path from crashing the process.
+        let zipError: Error | null = null;
+        output.on('error', (err) => {
+            zipError ??= err;
+        });
+        const zipper = new Zip((err, data, final) => {
+            if (err) {
+                zipError ??= err;
+                return;
+            }
+            output.write(data);
+            if (final) {
+                output.end();
+            }
+        });
         progressEmitter?.emit('progress', { name: 'GTFSExporterZipping', progress: 0.1 });
-        zipper
-            .generateNodeStream({
-                type: 'nodebuffer',
-                streamFiles: true,
-                compression: 'DEFLATE',
-                compressionOptions: {
-                    level: 9
-                }
-            })
-            .pipe(fs.createWriteStream(zipAbsoluteFilePath))
-            .on('finish', () => {
-                console.log('Creating zip file complete.');
-                progressEmitter?.emit('progress', { name: 'GTFSExporterZipping', progress: 1.0 });
-                resolve(true);
-            });
-    });
+        try {
+            // Files are compressed one after the other, so only one file's chunks are in memory at a time.
+            // fflate writes the zip structure, but Node's zlib does the compression: its level 9 gives
+            // smaller files than fflate's on GTFS data, and runs outside the main thread.
+            for (const gtfsFile of files) {
+                // compression 8 is deflate. crc and size are of the uncompressed data.
+                const entry: ZipInputFile = { filename: gtfsFile, compression: 8, crc: 0, size: 0 };
+                // add() sets entry.ondata, which takes this file's compressed data
+                zipper.add(entry);
+                // Each chunk of the file goes through these steps in order: read, crc and size, compression
+                // with zlib, then sent to fflate. The pipeline waits on each step, so reading follows the
+                // pace of the compression and of the output file.
+                await pipeline(
+                    fs.createReadStream(`${zipDirectory}/${gtfsFile}`),
+                    // Updates the crc and size the zip needs, then passes the chunk unchanged to zlib
+                    new Transform({
+                        transform(chunk: Buffer, _encoding, callback) {
+                            entry.crc = zlib.crc32(chunk, entry.crc);
+                            entry.size += chunk.length;
+                            callback(null, chunk);
+                        }
+                    }),
+                    zlib.createDeflateRaw({ level: 9, memLevel: 9 }),
+                    async (compressed: AsyncIterable<Buffer<ArrayBuffer>>) => {
+                        for await (const data of compressed) {
+                            entry.ondata?.(null, data, false);
+                            if (zipError) {
+                                throw zipError;
+                            }
+                            if (output.writableNeedDrain) {
+                                await once(output, 'drain');
+                            }
+                        }
+                    }
+                );
+                // Tells fflate this file is complete: it then writes the file's crc and sizes, known
+                // only now, and goes on with the next file.
+                // The arguments are (error, data, isLastChunk): an empty chunk marked as the last one,
+                // because the last compressed chunk is only known once zlib has finished.
+                entry.ondata?.(null, new Uint8Array(0), true);
+            }
+            zipper.end();
+            await finished(output);
+        } catch (error) {
+            zipper.terminate();
+            output.destroy();
+            throw error;
+        }
+        console.log('Creating zip file complete.');
+        return true;
+    } finally {
+        // Always complete the progress, even on error, so the notification does not stay forever
+        progressEmitter?.emit('progress', { name: 'GTFSExporterZipping', progress: 1.0 });
+    }
 };
 
 type DataFilterOptions = Pick<
