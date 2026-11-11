@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import xmlReader from 'xml-reader';
+import sax from 'sax';
 import fs from 'fs';
 import PQueue from 'p-queue';
 
@@ -17,16 +17,12 @@ import type { ZoneAttributes } from 'chaire-lib-common/lib/services/zones/Zone';
 // We use the includes() function on this array to ensure the import works with both english and french files.
 const DBUID_STRINGS = ['fme:DBUID', 'fme:IDIDU'];
 
-// The structure of the object given by the xml-reader package. Copied from the npm page.
+// An element of a feature, or the text it contains
 interface XmlNode {
     /** element name (empty for text nodes) */
     name: string;
-    /** node type (element or text), see NodeType constants */
-    type: string;
     /** value of a text node */
     value: string;
-    /** reference to parent node (null with parentNodes option disabled or root node) */
-    parent: XmlNode;
     /** map of attributes name => value */
     attributes: { [name: string]: string };
     /** array of children nodes */
@@ -39,8 +35,8 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
         throw new Error(`Boundaries GML file not found: ${boundariesFile}`);
     }
 
-    const parser = xmlReader.create({ stream: true, parentNodes: false });
-    const readStream = fs.createReadStream(boundariesFile);
+    const parser = sax.parser(true);
+    const readStream = fs.createReadStream(boundariesFile, 'utf8');
     let i = 0;
 
     const batchSize = 500;
@@ -54,7 +50,7 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
 
     const queue = new PQueue({ concurrency: 3 });
 
-    parser.on('tag:gml:featureMember', (feature: XmlNode) => {
+    const handleFeature = (feature: XmlNode) => {
         try {
             const fme = feature.children[0];
 
@@ -146,9 +142,43 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
             console.error(`Error while reading the gml file: ${error}`);
             readStream.destroy(error as Error);
         }
-    });
+    };
 
-    parser.on('done', () => {
+    // The elements of the feature being read, from the feature member to the current element
+    const openElements: XmlNode[] = [];
+    parser.onopentag = (tag) => {
+        if (openElements.length === 0 && tag.name !== 'gml:featureMember') {
+            return;
+        }
+        // Without the xmlns option, the attribute values are strings
+        const element: XmlNode = {
+            name: tag.name,
+            value: '',
+            attributes: tag.attributes as { [name: string]: string },
+            children: []
+        };
+        openElements.at(-1)?.children.push(element);
+        openElements.push(element);
+    };
+    parser.ontext = (text) => {
+        const parent = openElements.at(-1);
+        // Skip the whitespace between elements
+        if (parent !== undefined && text.trim() !== '') {
+            parent.children.push({ name: '', value: text, attributes: {}, children: [] });
+        }
+    };
+    parser.onclosetag = () => {
+        const element = openElements.pop();
+        if (element !== undefined && openElements.length === 0) {
+            handleFeature(element);
+        }
+    };
+    parser.onerror = (error) => {
+        console.error(`Error while parsing the gml file: ${error}`);
+        readStream.destroy(error);
+    };
+
+    parser.onend = () => {
         if (batch.length > 0) {
             queue.add(async () => {
                 try {
@@ -159,11 +189,15 @@ export default async function importBoundariesFromGml(boundariesFile: string, da
                 }
             });
         }
-    });
+    };
 
     return new Promise((resolve, reject) => {
         readStream.on('data', (chunk) => {
-            parser.parse(chunk.toString());
+            parser.write(chunk as string);
+        });
+
+        readStream.on('end', () => {
+            parser.close();
         });
 
         readStream.on('error', (err) => {
