@@ -72,6 +72,7 @@
         "@types/jest": "^30.0.0",
         "@types/lodash": "^4.17.21",
         "@types/node": "^24.10.4",
+        "@types/osrm": "^5.25.5",
         "@types/proj4": "^2.5.5",
         "eslint": "^10.13.0",
         "eslint-plugin-n": "^18.5.0",
