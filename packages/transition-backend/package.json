@@ -39,7 +39,6 @@
         "connect-session-knex": "^4.0.2",
         "express": "^5.2.1",
         "express-session": "^1.18.2",
-        "fetch-retry": "^6.0.0",
         "geobuf": "^4.0.0",
         "glob": "^14.0.4",
         "inquirer-file-selector": "^1.0.1",
