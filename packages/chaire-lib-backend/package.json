@@ -91,7 +91,6 @@
         "rimraf": "^6.1.4",
         "socket.io": "^4.8.4",
         "supertest": "^7.1.4",
-        "supertest-session": "^5.0.1",
         "ts-jest": "^29.4.15",
         "typescript": "^5.9.3",
         "typescript-eslint": "^8.72.0"
