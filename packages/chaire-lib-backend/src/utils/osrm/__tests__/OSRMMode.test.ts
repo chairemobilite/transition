@@ -11,7 +11,6 @@ import OSRMMode from '../OSRMMode';
 
 import TestUtils from 'chaire-lib-common/src/test/TestUtils';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import osrm from 'osrm';
 
 // Setup fetch mock
 beforeEach(() => {
