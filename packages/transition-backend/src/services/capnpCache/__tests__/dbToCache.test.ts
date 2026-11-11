@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import { v4 as uuidV4 } from 'uuid';
-import { lineString as turfLineString } from '@turf/helpers';
+import { lineString as turfLineString } from '@turf/turf';
 
 import { saveAndUpdateAllNodes, saveAllNodesToCache } from '../../nodes/NodeCollectionUtils';
 
