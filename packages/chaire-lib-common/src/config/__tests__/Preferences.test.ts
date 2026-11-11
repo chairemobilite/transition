@@ -8,7 +8,7 @@ import _cloneDeep from 'lodash/cloneDeep';
 import { default as Preferences, PreferencesClass } from '../Preferences';
 import { default as defaultPreferences, PreferencesModel } from '../defaultPreferences.config';
 import { EventEmitter } from 'events';
-import * as Status from 'chaire-lib-common/lib/utils/Status';
+import * as Status from '../../utils/Status';
 import fetchMock from 'jest-fetch-mock';
 
 jest.mock('../../config/shared/project.config', () => {
