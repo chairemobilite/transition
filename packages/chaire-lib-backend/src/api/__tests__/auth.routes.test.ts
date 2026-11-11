@@ -6,7 +6,6 @@
  */
 import express from 'express';
 import request from 'supertest';
-import session from 'supertest-session';
 import passport from 'passport';
 
 import authRoutes from '../auth.routes';
@@ -131,7 +130,7 @@ test('Login, valid user', async () => {
         error: null,
         user: { username: validUsername }
     };
-    const res = await session(app)
+    const res = await request(app)
         .post('/login')
         .send({ usernameOrEmail: validUsername, password })
         .set('Accept', 'application/json')
@@ -147,7 +146,7 @@ test('Login, invalid user', async () => {
         error: 'UnknownUser',
         user: false
     };
-    const res = await session(app)
+    const res = await request(app)
         .post('/login')
         .send({ usernameOrEmail: validUsername, password })
         .set('Accept', 'application/json')
@@ -165,7 +164,7 @@ test('Login, unconfirmed user', async () => {
         user: false,
         statusCode: 401
     };
-    const res = await session(app)
+    const res = await request(app)
         .post('/login')
         .send({ usernameOrEmail: validUsername, password })
         .set('Accept', 'application/json')
@@ -182,7 +181,7 @@ test('Signup, valid user', async () => {
         error: null,
         user: { username: validUsername }
     };
-    const res = await session(app)
+    const res = await request(app)
         .post('/register')
         .send({ usernameOrEmail: validUsername, password })
         .set('Accept', 'application/json')
@@ -198,7 +197,7 @@ test('Signup, user exists', async () => {
         error: 'UserExists',
         user: false
     };
-    const res = await session(app)
+    const res = await request(app)
         .post('/register')
         .send({ usernameOrEmail: validUsername, password })
         .set('Accept', 'application/json')
@@ -215,7 +214,7 @@ test('Signup, unconfirmed user', async () => {
         user: false,
         statusCode: 401
     };
-    const res = await session(app)
+    const res = await request(app)
         .post('/register')
         .send({ usernameOrEmail: validUsername, password })
         .set('Accept', 'application/json')
@@ -455,7 +454,7 @@ describe('Passwordless and anonymous auth routes, supported', () => {
             error: null,
             user: { username: validUsername }
         };
-        const res = await session(secondApp)
+        const res = await request(secondApp)
             .get('/anonymous')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
@@ -470,7 +469,7 @@ describe('Passwordless and anonymous auth routes, supported', () => {
             error: null,
             user: { username: validUsername }
         };
-        const res = await session(secondApp)
+        const res = await request(secondApp)
             .get('/direct-token')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
