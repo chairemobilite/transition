@@ -136,85 +136,55 @@ describe('osrm service routes', () => {
 });
 
 describe('trRouting process manager routes', () => {
-    // Parameter to pass to socket route
-    const trRoutingParameters = {
-        // Can be empty object, only port is required
+    // Options a client could send to control trRouting, they must not be used
+    const clientOptions = {
+        port: 1234,
+        debug: true,
+        cacheDirectoryPath: '/path/to/other/cache'
     };
 
-    test('Stop process correctly', (done) => {
-        const stopResponse = { status: 'stopped' };
-        mockedStop.mockResolvedValueOnce(stopResponse);
-        socketStub.emit('service.trRouting.stop', trRoutingParameters, (response) => {
-            expect(mockedStop).toHaveBeenCalledWith(trRoutingParameters);
-            expect(response).toEqual(stopResponse);
-            done();
-        });
-    });
-
-    test('Stop process with error', (done) => {
-        const message = 'Error stopping process';
-        const code = 'CODE';
-        const localizedMessage = 'transit:Message';
-        const error = new TrError(message, code, localizedMessage);
-        mockedStop.mockRejectedValueOnce(error);
-        socketStub.emit('service.trRouting.stop', trRoutingParameters, function (status) {
-            expect(mockedStop).toHaveBeenCalledWith(trRoutingParameters);
-            expect(Status.isStatusError(status)).toBe(true);
-            expect((status as any).error).toEqual(message);
-            done();
-        });
-    });
-
-    test('Restart process correctly', (done) => {
+    test('Restart the default process correctly', async () => {
         const restartResponse = { status: 'started' };
         mockedRestart.mockResolvedValueOnce(restartResponse);
-        socketStub.emit('service.trRouting.restart', trRoutingParameters, (response) => {
-            expect(mockedRestart).toHaveBeenCalledWith(trRoutingParameters);
-            expect(response).toEqual(restartResponse);
-            done();
-        });
+        const response = await new Promise((resolve) => socketStub.emit('service.trRouting.restart', resolve));
+        expect(mockedRestart).toHaveBeenCalledWith({});
+        expect(response).toEqual(restartResponse);
     });
 
-    test('Restart process with error', (done) => {
+    test('Restart process with error', async () => {
         const message = 'Error restarting process';
         const code = 'CODE';
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedRestart.mockRejectedValueOnce(error);
-        socketStub.emit('service.trRouting.restart', trRoutingParameters, function (status) {
-            expect(mockedRestart).toHaveBeenCalledWith(trRoutingParameters);
-            expect(Status.isStatusError(status)).toBe(true);
-            expect((status as any).error).toEqual(message);
-            done();
-        });
+        const status = await new Promise((resolve) => socketStub.emit('service.trRouting.restart', resolve));
+        expect(mockedRestart).toHaveBeenCalledWith({});
+        expect(Status.isStatusError(status as Status.Status<unknown>)).toBe(true);
+        expect((status as any).error).toEqual(message);
     });
 
-    test('Get status correctly', (done) => {
+    test('Get status of the default process, ignoring the client options', async () => {
         const statusResponse = {
             status: 'started',
             service: 'trRouting',
             name: 'trRouting'
         };
         mockedStatus.mockResolvedValueOnce(statusResponse);
-        socketStub.emit('service.trRouting.status', trRoutingParameters, (response) => {
-            expect(mockedStatus).toHaveBeenCalledWith(trRoutingParameters);
-            expect(response).toEqual(statusResponse);
-            done();
-        });
+        const response = await new Promise((resolve) => socketStub.emit('service.trRouting.status', clientOptions, resolve));
+        expect(mockedStatus).toHaveBeenCalledWith({});
+        expect(response).toEqual(statusResponse);
     });
 
-    test('Get status with error', (done) => {
+    test('Get status with error', async () => {
         const message = 'Error getting status';
         const code = 'CODE';
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedStatus.mockRejectedValueOnce(error);
-        socketStub.emit('service.trRouting.status', trRoutingParameters, function (status) {
-            expect(mockedStatus).toHaveBeenCalledWith(trRoutingParameters);
-            expect(Status.isStatusError(status)).toBe(true);
-            expect((status as any).error).toEqual(message);
-            done();
-        });
+        const status = await new Promise((resolve) => socketStub.emit('service.trRouting.status', {}, resolve));
+        expect(mockedStatus).toHaveBeenCalledWith({});
+        expect(Status.isStatusError(status as Status.Status<unknown>)).toBe(true);
+        expect((status as any).error).toEqual(message);
     });
 });
 

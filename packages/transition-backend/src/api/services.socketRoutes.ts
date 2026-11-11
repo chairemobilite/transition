@@ -98,22 +98,11 @@ export default function (socket: EventEmitter, userId?: number) {
         }
     );
 
-    socket.on('service.trRouting.stop', async (parameters, callback) => {
+    // Any user can restart trRouting when it has issues, but only the default
+    // instance, with the server's configuration, so it takes no parameters.
+    socket.on('service.trRouting.restart', async (callback) => {
         try {
-            const response = await trRoutingProcessManager.stop(parameters);
-            if (response.status === 'stopped' && isSocketIo(socket)) {
-                socket.broadcast.emit('service.trRouting.stopped');
-            }
-            callback(response);
-        } catch (error) {
-            console.error(error);
-            callback(Status.createError(TrError.isTrError(error) ? error.message : error));
-        }
-    });
-
-    socket.on('service.trRouting.restart', async (parameters, callback) => {
-        try {
-            const response = await trRoutingProcessManager.restart(parameters);
+            const response = await trRoutingProcessManager.restart({});
             if (response.status === 'started' && isSocketIo(socket)) {
                 socket.broadcast.emit('service.trRouting.started');
             }
@@ -124,9 +113,10 @@ export default function (socket: EventEmitter, userId?: number) {
         }
     });
 
-    socket.on('service.trRouting.status', async (parameters, callback) => {
+    // Status of the default trRouting instance
+    socket.on('service.trRouting.status', async (_parameters, callback) => {
         try {
-            const response = await trRoutingProcessManager.status(parameters);
+            const response = await trRoutingProcessManager.status({});
             callback(response);
         } catch (error) {
             console.error(error);

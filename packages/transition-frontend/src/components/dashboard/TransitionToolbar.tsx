@@ -107,26 +107,19 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps> = (_props) => {
         };
     }, [checkTrRoutingStatus]);
 
-    const _restartTrRouting = useCallback(
-        (parameters: Record<string, unknown> = {}) => {
-            serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 0.0 });
-            serviceLocator.socketEventManager.emit(
-                'service.trRouting.restart',
-                parameters,
-                (response: { status: string }) => {
-                    if (response.status !== 'started' && response.status !== 'no_restart_required') {
-                        serviceLocator.eventManager.emit('error', {
-                            name: 'RestartTrRoutingError',
-                            error: response.status
-                        });
-                    }
-                    serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 1.0 });
-                    checkTrRoutingStatus();
-                }
-            );
-        },
-        [checkTrRoutingStatus]
-    );
+    const restartTrRouting = useCallback(() => {
+        serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 0.0 });
+        serviceLocator.socketEventManager.emit('service.trRouting.restart', (response: { status: string }) => {
+            if (response.status !== 'started') {
+                serviceLocator.eventManager.emit('error', {
+                    name: 'RestartTrRoutingError',
+                    error: response.status
+                });
+            }
+            serviceLocator.eventManager.emit('progress', { name: 'RestartTrRouting', progress: 1.0 });
+            checkTrRoutingStatus();
+        });
+    }, [checkTrRoutingStatus]);
 
     const fetchData = useCallback(async () => {
         try {
@@ -173,10 +166,6 @@ const Toolbar: React.FunctionComponent<LayoutSectionProps> = (_props) => {
             }
         );
     }, []);
-
-    const restartTrRouting = useCallback(() => {
-        _restartTrRouting({});
-    }, [_restartTrRouting]);
 
     return (
         <React.Fragment>
