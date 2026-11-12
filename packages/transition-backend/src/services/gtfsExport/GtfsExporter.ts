@@ -6,6 +6,7 @@
  */
 import fs from 'fs';
 import zlib from 'zlib';
+import { randomUUID } from 'crypto';
 import { once, type EventEmitter } from 'events';
 import { Transform } from 'stream';
 import { finished, pipeline } from 'stream/promises';
@@ -51,7 +52,11 @@ const writeZipFile = async (
         }
 
         console.log('Start creating zip file ...');
-        const output = fs.createWriteStream(zipAbsoluteFilePath);
+        // Write to a temporary file, renamed once complete, so the zip file is never partial,
+        // even while it is being written or when the export fails. Its name is unique, so
+        // exports running at the same time do not write to the same temporary file.
+        const temporaryZipFilePath = `${zipAbsoluteFilePath}.${randomUUID()}.tmp`;
+        const output = fs.createWriteStream(temporaryZipFilePath);
         // First error from the zip or the output file. Listening to the output's
         // errors also keeps an unwritable path from crashing the process.
         let zipError: Error | null = null;
@@ -112,9 +117,13 @@ const writeZipFile = async (
             }
             zipper.end();
             await finished(output);
+            await fs.promises.rename(temporaryZipFilePath, zipAbsoluteFilePath);
         } catch (error) {
             zipper.terminate();
             output.destroy();
+            // Wait for the file to be closed, then remove it, without hiding the original error
+            await finished(output).catch(() => undefined);
+            await fs.promises.rm(temporaryZipFilePath, { force: true }).catch(() => undefined);
             throw error;
         }
         console.log('Creating zip file complete.');

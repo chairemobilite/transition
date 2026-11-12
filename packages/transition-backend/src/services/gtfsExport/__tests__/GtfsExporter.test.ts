@@ -514,6 +514,8 @@ test('Test ZIP file compression validation', async() => {
 
         // Verify ZIP file exists
         expect(fs.existsSync(zipFilePath)).toBe(true);
+        // No temporary zip file is left
+        expect(fs.readdirSync(testDirectory).filter((fileName) => fileName.endsWith('.tmp'))).toEqual([]);
 
         // Calculate uncompressed size
         let uncompressedSize = 0;
@@ -549,7 +551,7 @@ test('Test ZIP file compression validation', async() => {
 
 test('Test ZIP file cannot be written', async() => {
     const testDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gtfs-zip-error-'));
-    // A directory with the zip file's name makes opening the zip file fail
+    // A directory with the zip file's name makes replacing the zip file fail
     fs.mkdirSync(path.join(testDirectory, 'gtfs.zip'));
 
     try {
@@ -575,6 +577,34 @@ test('Test ZIP file cannot be written', async() => {
         await expect(exportGtfs(gtfsExportOptions, testDirectory, progressEmitter)).rejects.toMatchObject({ code: 'EISDIR' });
         // The zipping progress is completed anyway, so the notification does not stay forever
         expect(zippingProgress[zippingProgress.length - 1]).toEqual(1.0);
+        // The temporary zip file is removed
+        expect(fs.readdirSync(testDirectory).filter((fileName) => fileName.endsWith('.tmp'))).toEqual([]);
+    } finally {
+        await fs.promises.rm(testDirectory, { recursive: true, force: true });
+    }
+});
+
+test('Test previous ZIP file is kept when the new one cannot be written', async() => {
+    const testDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'gtfs-zip-keep-'));
+    const zipFilePath = path.join(testDirectory, 'gtfs.zip');
+    fs.writeFileSync(zipFilePath, 'previous export');
+
+    try {
+        mockedAgencyExport.mockImplementationOnce(async (_agencyIds, options) => {
+            await fs.promises.writeFile(path.join(options.directoryPath, 'agency.txt'), 'agency_id\nagency\n');
+            // A directory among the gtfs files makes reading it fail while the new zip is written
+            await fs.promises.mkdir(path.join(options.directoryPath, 'stops.txt'));
+            return { status: 'success', lineIds: [], agencyToGtfsId: {} };
+        });
+        mockedLineExport.mockResolvedValueOnce({ status: 'success' });
+        mockedServiceExport.mockResolvedValue({ status: 'success', serviceToGtfsId: {} });
+        mockedScheduleExport.mockResolvedValue({ status: 'success', pathIds: [], nodeIds: [] });
+        mockedStopExport.mockResolvedValue({ status: 'success' });
+        mockedPathExport.mockResolvedValue({ status: 'success' });
+
+        await expect(exportGtfs(gtfsExportOptions, testDirectory)).rejects.toMatchObject({ code: 'EISDIR' });
+        expect(fs.readFileSync(zipFilePath, 'utf8')).toEqual('previous export');
+        expect(fs.readdirSync(testDirectory).filter((fileName) => fileName.endsWith('.tmp'))).toEqual([]);
     } finally {
         await fs.promises.rm(testDirectory, { recursive: true, force: true });
     }
