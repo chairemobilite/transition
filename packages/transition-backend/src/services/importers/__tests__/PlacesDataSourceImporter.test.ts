@@ -4,24 +4,16 @@
  * This file is licensed under the MIT License.
  * License text available at https://opensource.org/licenses/MIT
  */
-import { promisify } from 'util';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import importPlacesFromGeojson from '../PlacesDataSourceImporter';
 import placesDbQueries from '../../../models/db/places.db.queries';
 import dataSourcesDbQuery from 'chaire-lib-backend/lib/models/db/dataSources.db.queries';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 
-jest.mock('fs');
-jest.mock('util', () => {
-    const originalModule = jest.requireActual('util');
-    return {
-        ...originalModule,
-        promisify: jest.fn().mockImplementation((fn) => fn)
-    };
-});
-const pipelineAsync = promisify(jest.fn());
 jest.mock('../../../models/db/places.db.queries');
 jest.mock('chaire-lib-backend/lib/models/db/dataSources.db.queries');
-jest.mock('chaire-lib-common/lib/services/dataSource/DataSource');
 
 jest.mock('@inquirer/prompts', () => ({
     confirm: jest.fn()
@@ -36,9 +28,16 @@ jest.mock('chaire-lib-backend/lib/utils/filesystem/fileManager', () => ({
 }));
 const fileExistsMock = fileManager.fileExistsAbsolute as jest.MockedFunction<typeof fileManager.fileExistsAbsolute>;
 
-// const pipelineAsync = jest.fn();
-
 describe('ImportPlacesFromGeojson', () => {
+    let tmpDir: string;
+
+    beforeAll(() => {
+        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'placesImporter-'));
+    });
+
+    afterAll(() => {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -61,32 +60,37 @@ describe('ImportPlacesFromGeojson', () => {
         expect(placesDbQueries.createMultiple).not.toHaveBeenCalled();
     });
 
-    // FIXME This test does not work. Not sure how to mock the promisified pipeline function, but copilot generated this and it no good.
-    test('should import places from GeoJSON file', async () => {
-        /*(dataSourcesDbQuery.findByName as any).mockResolvedValue(undefined);
-        mockConfirm.mockResolvedValueOnce(true);
+    test('should import the point features of the GeoJSON file as places', async () => {
+        (dataSourcesDbQuery.findByName as jest.Mock).mockResolvedValue(undefined);
+        const filename = path.join(tmpDir, 'places.geojson');
+        fs.writeFileSync(filename, JSON.stringify({
+            type: 'FeatureCollection',
+            features: [
+                { type: 'Feature', geometry: { type: 'Point', coordinates: [0, 1] }, properties: { name: 'Place 1', description: 'First place', other: 'value' } },
+                { type: 'Feature', geometry: { type: 'LineString', coordinates: [[0, 1], [1, 2]] }, properties: { name: 'Not a place' } },
+                { type: 'Feature', geometry: { type: 'Point', coordinates: [1, 2] }, properties: { name: 'Place 2' } }
+            ]
+        }));
 
-        const mockReadStream = jest.fn();
-        const mockJsonStream = jest.fn();
-        (fs.createReadStream as any).mockReturnValue(mockReadStream);
-        (createJsonArrayStream as jest.Mock).mockReturnValue(mockJsonStream);
+        await importPlacesFromGeojson(filename, 'data source');
 
-        const mockFeatureStream = (async function* () {
-            yield { geometry: { type: 'Point', coordinates: [0, 1] }, properties: { name: 'Place 1' } };
-            yield { geometry: { type: 'Point', coordinates: [1, 2] }, properties: { name: 'Place 2' } };
-        })();
-
-        // FIXME pipelineAsync in this file is not the same as the one in the other file, they use different references.
-        (pipelineAsync as any).mockImplementation((readStream, jsonStream, featureStream) => {
-            return featureStream(mockFeatureStream);
+        expect(mockConfirm).not.toHaveBeenCalled();
+        expect(dataSourcesDbQuery.create).toHaveBeenCalledWith(expect.objectContaining({ name: 'data source', type: 'places' }));
+        const dataSourceId = (dataSourcesDbQuery.create as jest.Mock).mock.calls[0][0].id;
+        expect(placesDbQueries.create).toHaveBeenCalledTimes(2);
+        expect(placesDbQueries.create).toHaveBeenCalledWith({
+            id: expect.any(String),
+            data_source_id: dataSourceId,
+            geography: { type: 'Point', coordinates: [0, 1] },
+            name: 'Place 1',
+            description: 'First place',
+            data: { name: 'Place 1', description: 'First place', other: 'value' }
         });
-
-        await importPlacesFromGeojson('filename', 'data source');
-
-        expect(placesDbQueries.createMultiple).toHaveBeenCalledTimes(1);
-        expect(placesDbQueries.createMultiple).toHaveBeenCalledWith(expect.arrayContaining([
-            expect.objectContaining({ name: 'Place 1' }),
-            expect.objectContaining({ name: 'Place 2' })
-        ])); */
-    }); 
+        expect(placesDbQueries.create).toHaveBeenCalledWith(expect.objectContaining({
+            data_source_id: dataSourceId,
+            geography: { type: 'Point', coordinates: [1, 2] },
+            name: 'Place 2'
+        }));
+    });
 });
+
