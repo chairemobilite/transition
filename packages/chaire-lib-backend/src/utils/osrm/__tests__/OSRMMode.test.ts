@@ -74,6 +74,38 @@ describe('OSRM Mode tests', () => {
 
     });
 
+    test('Route geometries are always GeoJSON', async () => {
+        const aMode = new OSRMMode('walking', '', 4000);
+
+        // A socket client could send any option, even if the type does not allow it
+        const params = {
+            mode: 'walking' as const,
+            points: [TestUtils.makePoint([-73, 45]), TestUtils.makePoint([-73.1, 45.1])],
+            geometries: 'polyline'
+        };
+        mockedFetch.mockResolvedValue(new Response(JSON.stringify({ code: 'Ok' }), { status: 200 }));
+
+        await aMode.route(params);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/route/v1/walking/-73,45;-73.1,45.1?alternatives=false&steps=false&annotations=false&continue_straight=default&geometries=geojson&overview=full', {"headers": {"Accept-Encoding": "identity"}});
+    });
+
+    test('Match geometries are always GeoJSON', async () => {
+        const aMode = new OSRMMode('bus_urban', '', 4000);
+
+        // A socket client could send any option, even if the type does not allow it
+        const params = {
+            mode: 'bus_urban' as const,
+            points: [TestUtils.makePoint([-73.576361, 45.454669]), TestUtils.makePoint([-73.576504, 45.454872])],
+            radiuses: [17, 17],
+            timestamps: [0, 189],
+            geometries: 'polyline6'
+        };
+        mockedFetch.mockResolvedValue(new Response(JSON.stringify({ code: 'Ok' }), { status: 200 }));
+
+        await aMode.match(params);
+        expect(mockedFetch).toHaveBeenCalledWith('http://localhost:4000/match/v1/busUrban/-73.576361,45.454669;-73.576504,45.454872?radiuses=17;17&timestamps=0;189&steps=true&annotations=false&gaps=ignore&geometries=geojson&overview=full', {"headers": {"Accept-Encoding": "identity"}});
+    });
+
     test('Test invalid fetch with bad json', async () => {
 
         // TODO: This test should be updated when a better way to manage errors is implemented

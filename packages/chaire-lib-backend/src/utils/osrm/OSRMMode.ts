@@ -76,17 +76,18 @@ class OSRMMode {
         this.validateParamMode(params.mode);
         //TODO validate that points is not empty?? Does it make sense ?
 
-        // Fill in default values if they are not defined
+        // Fill in default values if they are not defined. The geometries are
+        // always GeoJSON, even if the parameters ask otherwise.
         const parameters = _merge(
             {
                 alternatives: params?.withAlternatives === true ? true : false,
                 steps: false,
                 annotations: false, // use "nodes" to get all osm nodes ids
-                geometries: 'geojson',
                 overview: 'full',
                 continue_straight: 'default'
             },
-            params
+            params,
+            { geometries: 'geojson' as const }
         );
 
         const optionKeys = ['alternatives', 'steps', 'annotations', 'continue_straight', 'geometries', 'overview'];
@@ -114,7 +115,8 @@ class OSRMMode {
         //TODO validate that points is not empty?? Does it make sense ?
 
         //TODO Maybe default values should be handled by a params object directly?
-        // Fill in default values if they are not defined
+        // Fill in default values if they are not defined. The geometries are
+        // always GeoJSON, even if the parameters ask otherwise.
         const parameters = _merge(
             {
                 radiuses: [],
@@ -123,11 +125,10 @@ class OSRMMode {
                 steps: true,
                 annotations: false,
                 gaps: 'ignore',
-                geometries: 'geojson',
-                overview: 'full',
-                toto: 'oui'
+                overview: 'full'
             },
-            params
+            params,
+            { geometries: 'geojson' as const }
         );
 
         const optionKeys = ['radiuses', 'timestamps', 'steps', 'annotations', 'gaps', 'geometries', 'overview'];
