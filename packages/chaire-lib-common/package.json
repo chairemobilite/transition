@@ -19,7 +19,6 @@
     "format": "prettier --write --log-level warn \"./src/**/*.{ts,tsx}\" && eslint --fix --quiet \"./src/**/*.{ts,tsx}\""
   },
   "dependencies": {
-    "@mapbox/polyline": "^1.2.1",
     "@turf/turf": "^7.3.5",
     "geobuf": "^4.0.0",
     "geojson-validation": "^1.0.2",

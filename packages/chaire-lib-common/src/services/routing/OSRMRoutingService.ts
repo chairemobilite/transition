@@ -7,7 +7,6 @@
 import * as turf from '@turf/turf';
 import type osrm from 'osrm';
 import type GeoJSON from 'geojson';
-import polyline from '@mapbox/polyline';
 
 import * as RoutingService from './RoutingService';
 import serviceLocator from '../../utils/ServiceLocator';
@@ -23,9 +22,8 @@ const osrmStepToResult = (step: osrm.RouteStep) => {
     return {
         distance: step.distance,
         duration: step.duration,
-        geometry: (step.geometry as osrm.LineString).type
-            ? (step.geometry as GeoJSON.LineString)
-            : polyline.decode(step.geometry as string)
+        // OSRMMode always queries OSRM with `geometries: 'geojson'`, so the geometry is never an encoded polyline
+        geometry: step.geometry as GeoJSON.LineString
     };
 };
 
