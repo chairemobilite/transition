@@ -5,25 +5,71 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import fs from 'fs';
-import type { Duplex } from 'stream';
-import { chain } from 'stream-chain';
-import { parser as jsonParser } from 'stream-json';
-import type jsonFilter from 'stream-json/filters/FilterBase';
-import { pick as jsonPick } from 'stream-json/filters/Pick';
-import { streamArray as jsonStreamArray } from 'stream-json/streamers/StreamArray';
+import { type Duplex, Transform, type TransformCallback } from 'stream';
+import { JSONParser, TokenType } from '@streamparser/json';
 
 export interface JsonReaderOptions {
     /**
-     * The filter for elements in the json file to parse (for example, to read
-     * features of a feature collection, the filter can be {filter: 'features'})
-     *
-     * @type {jsonFilter}
-     * @memberof JsonReaderOptions
+     * The filter for elements in the json file to parse: `filter` is the path
+     * of the array to read, with the fields of nested objects separated by
+     * dots (for example, to read features of a feature collection, the filter
+     * can be {filter: 'features'}). Without a filter, the whole file must be an
+     * array.
      */
-    filter?: jsonFilter.FilterOptions;
+    filter?: { filter: string };
 }
 
 export type FileReaderCallback = (object: { [key: string]: any }, rowNumber: number) => void;
+
+/**
+ * JSON parser that calls `onElement` with each element of the array at
+ * `arrayPath`, or of the whole document if `arrayPath` is not set. It does not
+ * keep the elements once they are passed to `onElement`, so arrays larger than
+ * the memory can be read. An error thrown by `onElement` is thrown by `write`.
+ */
+class JsonArrayParser {
+    private parser: JSONParser;
+    private isEmpty = true;
+
+    /**
+     * @param arrayPath The path of the array in the JSON document, with the
+     * fields of nested objects separated by dots
+     * @param onElement The function to call with each element and its index
+     */
+    constructor(arrayPath: string | undefined, onElement: (element: unknown, index: number) => void) {
+        this.parser = new JSONParser({ paths: [arrayPath ? `$.${arrayPath}.*` : '$.*'], keepStack: false });
+        this.parser.onToken = ({ token }) => {
+            if (this.isEmpty && arrayPath === undefined && token !== TokenType.LEFT_BRACKET) {
+                throw new Error('The JSON value at the root is not an array');
+            }
+            this.isEmpty = false;
+        };
+        this.parser.onValue = ({ value, key }) => {
+            // The path also matches the fields of an object, which have string keys
+            if (typeof key !== 'number') {
+                throw new Error(`The JSON value at ${arrayPath ?? 'the root'} is not an array`);
+            }
+            onElement(value, key);
+        };
+    }
+
+    /** Parse the next chunk of the document. */
+    write(chunk: Uint8Array | string): void {
+        this.parser.write(chunk);
+    }
+
+    /** Signal the end of the document. Throws if it is empty or incomplete. */
+    end(): void {
+        // The parser ends by itself after a complete document. Otherwise,
+        // ending it emits a number at the end of the document, if any
+        if (!this.parser.isEnded) {
+            this.parser.end();
+        }
+        if (this.isEmpty) {
+            throw new Error('The JSON document is empty');
+        }
+    }
+}
 
 /**
  * Wrapper around the parser for JSON files. It transforms the whole file
@@ -45,31 +91,32 @@ export const parseJsonFile = async (
 ): Promise<'completed' | 'notfound'> => {
     return new Promise((resolve, reject) => {
         if (fs.existsSync(filePath)) {
+            // The callback is called while a chunk is parsed, so its errors
+            // are thrown by `write`, like the parsing errors
+            const parser = new JsonArrayParser(options.filter?.filter, (element, index) =>
+                rowCallback(element as { [key: string]: any }, index)
+            );
             const readStream = fs.createReadStream(filePath);
-            const pipelineArray = [readStream, jsonParser(), jsonStreamArray()];
-            if (options.filter) {
-                pipelineArray.splice(2, 0, jsonPick(options.filter));
-            }
-            const pipeline = chain(pipelineArray as [any]);
 
-            pipeline.on('data', (data) => {
+            readStream.on('data', (chunk) => {
                 try {
-                    rowCallback(data.value, data.key);
+                    parser.write(chunk);
                 } catch (error) {
-                    if (typeof (pipeline.streams[0] as any).close === 'function') {
-                        (pipeline.streams[0] as any).close();
-                    }
-                    pipeline.streams[0].destroy();
-                    pipeline.destroy();
+                    readStream.destroy();
                     reject(error);
                 }
             });
 
-            pipeline.on('end', () => {
-                resolve('completed');
+            readStream.on('end', () => {
+                try {
+                    parser.end();
+                    resolve('completed');
+                } catch (error) {
+                    reject(error);
+                }
             });
 
-            pipeline.on('error', (e) => {
+            readStream.on('error', (e) => {
                 console.error(e);
                 reject(e);
             });
@@ -79,6 +126,41 @@ export const parseJsonFile = async (
         }
     });
 };
+
+/**
+ * Stream that parses JSON text and emits each non-null element of an array in
+ * the document.
+ */
+class JsonArrayStream extends Transform {
+    private parser: JsonArrayParser;
+
+    constructor(arrayPath: string) {
+        super({ readableObjectMode: true });
+        this.parser = new JsonArrayParser(arrayPath, (element) => {
+            if (element !== null) {
+                this.push(element);
+            }
+        });
+    }
+
+    _transform(chunk: Buffer, _encoding: BufferEncoding, callback: TransformCallback): void {
+        try {
+            this.parser.write(chunk);
+            callback();
+        } catch (error) {
+            callback(error as Error);
+        }
+    }
+
+    _flush(callback: TransformCallback): void {
+        try {
+            this.parser.end();
+            callback();
+        } catch (error) {
+            callback(error as Error);
+        }
+    }
+}
 
 /**
  * Create a stream that parses JSON text and emits each element of the array
@@ -92,13 +174,4 @@ export const parseJsonFile = async (
  * @return {*}  {Duplex} A duplex stream that emits the array's elements in
  * object mode
  */
-export const createJsonArrayStream = (arrayPath: string): Duplex => {
-    const streams = [
-        jsonParser(),
-        jsonPick({ filter: arrayPath }),
-        jsonStreamArray(),
-        // Emit the element itself instead of its index and value
-        (data: { key: number; value: unknown }) => data.value
-    ];
-    return chain(streams as [any]);
-};
+export const createJsonArrayStream = (arrayPath: string): Duplex => new JsonArrayStream(arrayPath);
