@@ -7,6 +7,7 @@
 import fs from 'fs';
 import type { EventEmitter } from 'events';
 import path from 'path';
+import moment from 'moment';
 
 import Job, {
     type JobAttributes,
@@ -276,6 +277,23 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
         return filePath;
     };
+
+    /**
+     * Get the name to give to a file of this job when a user downloads it.
+     * It is the name of the file, followed by the date and time of creation
+     * of the job, so that the same file downloaded from two jobs gets two
+     * names.
+     *
+     * @param fileName The name of the file in the job directory, for example
+     * `results.csv`
+     * @returns The download name, for example `results_20220808_132134.csv`.
+     * The date and time are added before the extension, if there is one.
+     */
+    getDownloadName(fileName: string): string {
+        const match = fileName.match(/([^/]+)\.([^/]+)$/);
+        const formattedTime = moment(this.attributes.created_at || '').format('YYYYMMDD_HHmmss');
+        return match === null ? `${fileName}_${formattedTime}` : `${match[1]}_${formattedTime}.${match[2]}`;
+    }
 
     /** Check if the job has a input file specified */
     hasInputFile(): boolean {
