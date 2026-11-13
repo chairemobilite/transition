@@ -114,20 +114,34 @@ describe('Job files', () => {
         resources: { files: { testFile: 'file.csv', testFile2: 'noExtension', testFile3: 'doesNotExist.csv' } },
     };
 
-    test('Get job files properly', (done) => {
-        mockedRead.mockResolvedValue(jobAttributes);
+    test.each([
+        { title: 'without calculation name', name: 'test', data: jobAttributes.data, prefix: '' },
+        {
+            title: 'with calculation name',
+            name: 'batchRoute',
+            data: { parameters: { transitRoutingAttributes: { calculationName: 'My scenario: été 2026, with a long name' } } },
+            prefix: 'My_scenario_ete_2026_'
+        },
+        {
+            title: 'with calculation name without valid characters',
+            name: 'batchRoute',
+            data: { parameters: { transitRoutingAttributes: { calculationName: '/:*?' } } },
+            prefix: ''
+        }
+    ])('Get job files properly, $title', ({ name, data, prefix }, done) => {
+        mockedRead.mockResolvedValue({ ...jobAttributes, name, data } as any);
         socketStub.emit('executableJobs.getFiles', jobAttributes.id, async (status) => {
             expect(Status.isStatusOk(status)).toEqual(true);
             expect(Status.unwrap(status)).toEqual({ 
                 testFile: { 
                     url: `/job/${jobAttributes.id}/file.csv`, 
-                    downloadName: `file_20220808_132134.csv`,
-                    title: { text: `transit:jobs:test:files:testFile`, fileName: `file.csv` }
+                    downloadName: `${prefix}file_20220808_132134.csv`,
+                    title: { text: `transit:jobs:${name}:files:testFile`, fileName: `file.csv` }
                 }, 
                 testFile2: { 
                     url: `/job/${jobAttributes.id}/noExtension`, 
-                    downloadName: `noExtension_20220808_132134`,
-                    title: { text: `transit:jobs:test:files:testFile2`, fileName: `noExtension` }
+                    downloadName: `${prefix}noExtension_20220808_132134`,
+                    title: { text: `transit:jobs:${name}:files:testFile2`, fileName: `noExtension` }
                 } 
             });
             expect(mockedRead).toHaveBeenCalledTimes(1);

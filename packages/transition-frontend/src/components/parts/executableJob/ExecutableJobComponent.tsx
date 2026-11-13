@@ -16,6 +16,7 @@ import { faPlayCircle } from '@fortawesome/free-solid-svg-icons/faPlayCircle';
 import ExecutableJobList, { type ReturnedJobAttributes } from './ExecutableJobList';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
 import { JobsConstants } from 'transition-common/lib/api/jobs';
+import { getJobCalculationName } from 'transition-common/lib/services/jobs/JobCalculationName';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import ExpandableText from './ExpandableText';
 import ExpandableFiles from './ExpandableFileWidget';
@@ -160,6 +161,12 @@ const ExecutableJobComponent: React.FunctionComponent<ExecutableJobComponentProp
     // TODO Add column to delete and retrigger, when files are supported
     const columns = React.useMemo(() => {
         const columns = [
+            {
+                Header: t('transit:transitRouting:CalculationName'),
+                id: 'calculationName',
+                width: 80,
+                accessor: (job: ReturnedJobAttributes) => getJobCalculationName(job) || '--'
+            },
             {
                 Header: t('transit:jobs:Date'),
                 accessor: 'created_at',
