@@ -39,10 +39,13 @@ const widthRatioForZoom = (zoom: number): number => {
 };
 
 /**
- * Path details smaller than this, in CSS pixels at the integer zoom below the current one, are
- * removed, so short segments do not show their shape when zoomed out.
+ * Default of the `tolerance` option: path details smaller than this, in CSS pixels at the integer
+ * zoom below the current one, are removed, so short segments do not show their shape when zoomed
+ * out. It is the default `tolerance` of a MapLibre GeoJSON source
+ * (https://maplibre.org/maplibre-style-spec/sources/#tolerance), so the paths are as precise as a
+ * MapLibre line layer of the same data.
  */
-const SIMPLIFY_TOLERANCE_PX = 1.5;
+const DEFAULT_TOLERANCE_PX = 0.375;
 
 /** Duration of the crossfade between the arrows of 2 zoom levels, when arrows are added or removed */
 const LEVEL_FADE_MS = 300;
@@ -323,6 +326,7 @@ export default class AnimatedArrowPathLayer implements AnimatedCustomLayer {
     private readonly widthCssPixels: number;
     private readonly arrowSpacing: number;
     private readonly halo: PathHalo | undefined;
+    private readonly toleranceCssPixels: number;
     private map: MapLibreMap | undefined;
     private resources: GlResources | undefined;
     private features: Feature[] = [];
@@ -349,6 +353,9 @@ export default class AnimatedArrowPathLayer implements AnimatedCustomLayer {
      * also the length of the arrow pattern, the arrow being 3/4 of it. Defaults to 30.
      * @param options.halo Halo drawn around the line. Defaults to no halo.
      * @param options.disableAnimation Set to `true` to draw static arrows, without continuous repaint
+     * @param options.tolerance Douglas-Peucker simplification tolerance of the paths, with the same meaning as the
+     * `tolerance` option of a MapLibre GeoJSON source: path details smaller than this, in CSS pixels at the integer
+     * zoom below the current one, are removed. 0 keeps all the points. Defaults to 0.375, as in MapLibre.
      */
     constructor(options: {
         id: string;
@@ -356,12 +363,14 @@ export default class AnimatedArrowPathLayer implements AnimatedCustomLayer {
         arrowSpacing?: number;
         halo?: PathHalo;
         disableAnimation?: boolean;
+        tolerance?: number;
     }) {
         this.id = options.id;
         this.widthCssPixels = options.widthPx ?? 12;
         this.arrowSpacing = options.arrowSpacing ?? 30;
         this.halo = options.halo;
         this.animationEnabled = !options.disableAnimation;
+        this.toleranceCssPixels = options.tolerance ?? DEFAULT_TOLERANCE_PX;
     }
 
     /**
@@ -471,7 +480,7 @@ export default class AnimatedArrowPathLayer implements AnimatedCustomLayer {
         if (zoomLevel === this.instancesZoomLevel) {
             return;
         }
-        this.instances = buildPathInstances(this.features, SIMPLIFY_TOLERANCE_PX / Math.pow(2, zoomLevel));
+        this.instances = buildPathInstances(this.features, this.toleranceCssPixels / Math.pow(2, zoomLevel));
         this.instancesZoomLevel = zoomLevel;
         this.instancesDirty = true;
     }
