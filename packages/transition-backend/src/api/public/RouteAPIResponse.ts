@@ -12,10 +12,13 @@ import type {
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson';
 import type { RoutingMode, RoutingOrTransitMode } from 'chaire-lib-common/lib/config/routingModes';
 import type * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
-import type { TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import type { TrRoutingRoute, TrRoutingErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
 import type { Route } from 'chaire-lib-common/lib/services/routing/RoutingService';
 import APIResponseBase from './APIResponseBase';
-import type { TripRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
+import type { TripRoutingQueryAttributes, RoutingErrorCodes } from 'chaire-lib-common/lib/services/routing/types';
+
+// Error codes the route API can return, keep in sync with docs/APIv1/route.yml
+export type RouteAPIErrorCode = TrRoutingErrorCodes | RoutingErrorCodes;
 
 type RouteAPIUnimodalResultResponse = {
     paths: Array<{
@@ -37,7 +40,7 @@ type RouteAPIUnimodalResultResponse = {
     }>;
     noRoutingReason?: {
         message: string;
-        code: string;
+        code: RouteAPIErrorCode;
     };
 };
 
@@ -58,7 +61,7 @@ type RouteAPITransitResultResponse = {
     }>;
     noRoutingReason?: {
         message: string;
-        code: string;
+        code: RouteAPIErrorCode;
     };
 };
 
@@ -191,7 +194,10 @@ export default class RouteAPIResponse extends APIResponseBase<
             noRoutingReason:
                 transitResultParams.error === undefined
                     ? undefined
-                    : { message: transitResultParams.error?.error, code: transitResultParams.error?.errorCode }
+                    : {
+                        message: transitResultParams.error?.error,
+                        code: transitResultParams.error?.errorCode as RouteAPIErrorCode
+                    }
         };
     }
 
@@ -219,7 +225,10 @@ export default class RouteAPIResponse extends APIResponseBase<
             noRoutingReason:
                 unimodalResultParams.error === undefined
                     ? undefined
-                    : { message: unimodalResultParams.error?.error, code: unimodalResultParams.error?.errorCode }
+                    : {
+                        message: unimodalResultParams.error?.error,
+                        code: unimodalResultParams.error?.errorCode as RouteAPIErrorCode
+                    }
         };
     }
 }
