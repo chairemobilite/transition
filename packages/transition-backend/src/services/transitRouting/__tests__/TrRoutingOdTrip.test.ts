@@ -10,7 +10,7 @@ import routeOdTrip from '../TrRoutingOdTrip';
 import { simplePathResult,  alternativesResult, walkingRouteResult, cyclingRouteResult } from './TrRoutingResultStub';
 import { BaseOdTrip } from 'transition-common/lib/services/odTrip/BaseOdTrip';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
+import { TrRoutingErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
 import { routeToUserObject } from 'chaire-lib-common/src/services/transitRouting/TrRoutingResultConversion';
 import { Routing } from 'chaire-lib-backend/lib/services/routing/Routing';
 import { TransitRoutingQueryAttributes } from 'chaire-lib-common/lib/services/routing/types';
@@ -167,7 +167,7 @@ describe('Various scenario of trip calculation', () => {
                 paths: [],
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
-                    ErrorCodes.NoRoutingFound,
+                    TrRoutingErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             },

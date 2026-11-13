@@ -11,6 +11,10 @@ import type { UnimodalRoutingResultData } from './RoutingResult';
 
 // This file contains the types for routing functions, used by both frontend and backend
 
+export enum RoutingErrorCodes {
+    CalculatorError = 'TR_CALCULATOR_ERROR'
+}
+
 /**
  * Attributes to parameterize any routing calculation, no matter the mode. It is
  * not specific to a trip, but specific to a calculation query
