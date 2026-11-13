@@ -82,10 +82,14 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     protected static async createJobInternal<TData extends JobDataType>(
         {
             inputFiles,
+            name,
             ...attributes
         }: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data'> & InitialJobData<TData>,
         jobListener?: EventEmitter
     ): Promise<ExecutableJob<TData>> {
+        // The name is typed by a user and comes from the client: a blank name
+        // or a value that is not a string is the same as no name
+        const jobName = typeof name === 'string' && name.trim() !== '' ? name.trim() : undefined;
         const jobProgressEmitter =
             jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(attributes.user_id);
 
@@ -117,9 +121,15 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             attributes.resources = { ...(attributes.resources || {}), files: jobFiles };
         }
 
-        const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes });
+        const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes, name: jobName });
         jobProgressEmitter.emit('executableJob.updated', { id, type: attributes.type });
-        const job = new ExecutableJob<TData>({ id, status: 'pending', internal_data: {}, ...attributes });
+        const job = new ExecutableJob<TData>({
+            id,
+            status: 'pending',
+            internal_data: {},
+            ...attributes,
+            name: jobName
+        });
         toCopy.forEach(({ filePath, jobFileName }) =>
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
         );
