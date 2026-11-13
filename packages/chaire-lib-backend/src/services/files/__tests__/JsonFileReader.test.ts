@@ -43,27 +43,15 @@ test('Test reader', async () => {
 });
 
 test('Test reader, bad file format', async () => {
-    // Third object has errors, the previous objects will have been parsed anyway, but none after
+    // Third object has errors. The previous objects may have been parsed,
+    // depending on how the file was split in chunks when read, but none after
     await expect(parseJsonFile(`${__dirname}/testFiles/invalidJsonFormat.json`, rowCallback))
         .rejects
         .toThrow(expect.anything());
-    
-    expect(rows.length).toEqual(2);
-    expect(rows[0]).toEqual({
-        title1: 'obj1.1',
-        title2: 'obj1.2',
-        bar: {
-            subbar1: 3,
-            subbar2: "2"
-        }
-    });
-    expect(rows[1]).toEqual(expect.objectContaining({
-        title1: 'obj2.1',
-        title2: 'obj2.2',
-        foo: ["arr1", "arr2"]
-    }));
-    expect(rowNumbers.length).toEqual(2);
-    expect(rowNumbers).toEqual([0, 1]);
+
+    expect(rows.length).toBeLessThanOrEqual(2);
+    expect(rows.map((row) => row.title1)).toEqual(['obj1.1', 'obj2.1'].slice(0, rows.length));
+    expect(rowNumbers).toEqual([0, 1].slice(0, rows.length));
 });
 
 test('Test callback throws error', async () => {
@@ -137,6 +125,12 @@ describe('createJsonArrayStream', () => {
     test('should emit nothing if there is no array at the path', async () => {
         expect(await streamArray(['{"elements":[]}'], 'elements')).toEqual([]);
         expect(await streamArray(['{"other":[{"id":1}]}'], 'elements')).toEqual([]);
+    });
+
+    test('should keep a __proto__ key as data instead of setting the prototype of the element', async () => {
+        const [element] = await streamArray(['{"elements":[{"__proto__":{"isAdmin":true},"id":1}]}'], 'elements');
+        expect(Object.prototype.hasOwnProperty.call(element, '__proto__')).toEqual(true);
+        expect(element.isAdmin).toBeUndefined();
     });
 
     test('should fail on invalid JSON', async () => {

@@ -6,11 +6,11 @@
  */
 import fs from 'fs';
 import type { Duplex } from 'stream';
-import { chain } from 'stream-chain';
+import { chain, none } from 'stream-chain';
 import { parser as jsonParser } from 'stream-json';
-import type jsonFilter from 'stream-json/filters/FilterBase';
-import { pick as jsonPick } from 'stream-json/filters/Pick';
-import { streamArray as jsonStreamArray } from 'stream-json/streamers/StreamArray';
+import type jsonFilter from 'stream-json/filters/filter-base.js';
+import { pick as jsonPick } from 'stream-json/filters/pick.js';
+import { streamArray as jsonStreamArray } from 'stream-json/streamers/stream-array.js';
 
 export interface JsonReaderOptions {
     /**
@@ -20,7 +20,7 @@ export interface JsonReaderOptions {
      * @type {jsonFilter}
      * @memberof JsonReaderOptions
      */
-    filter?: jsonFilter.FilterOptions;
+    filter?: jsonFilter.FilterBaseOptions;
 }
 
 export type FileReaderCallback = (object: { [key: string]: any }, rowNumber: number) => void;
@@ -29,8 +29,9 @@ export type FileReaderCallback = (object: { [key: string]: any }, rowNumber: num
  * Wrapper around the parser for JSON files. It transforms the whole file
  * reading into a promise which returns the status of the file read or throws
  * any error thrown in the callback. If there are errors in the data read, the
- * callback will have been called for each parsed row before the error, but the
- * parsing will stop at the error and the promise will be rejected.
+ * parsing stops at the error and the promise is rejected. The callback may
+ * already have been called for rows before the error, depending on how the file
+ * was split in chunks when read, but never for rows after it.
  *
  * @param {string} filePath The path of the file to read
  * @param {FileReaderCallback} rowCallback The callback function to call for
@@ -46,7 +47,7 @@ export const parseJsonFile = async (
     return new Promise((resolve, reject) => {
         if (fs.existsSync(filePath)) {
             const readStream = fs.createReadStream(filePath);
-            const pipelineArray = [readStream, jsonParser(), jsonStreamArray()];
+            const pipelineArray: unknown[] = [readStream, jsonParser(), jsonStreamArray()];
             if (options.filter) {
                 pipelineArray.splice(2, 0, jsonPick(options.filter));
             }
@@ -97,8 +98,9 @@ export const createJsonArrayStream = (arrayPath: string): Duplex => {
         jsonParser(),
         jsonPick({ filter: arrayPath }),
         jsonStreamArray(),
-        // Emit the element itself instead of its index and value
-        (data: { key: number; value: unknown }) => data.value
+        // Emit the element itself instead of its index and value, `none` skips
+        // null elements
+        (data: { key: number; value: unknown }) => (data.value === null ? none : data.value)
     ];
     return chain(streams as [any]);
 };
