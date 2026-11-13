@@ -17,6 +17,7 @@ const tableName = 'tr_jobs';
 // status_messages field to the statusMessages property and change nulls to
 // undefined
 const attributesParser = <U extends JobDataType>({
+    name,
     resources,
     updated_at,
     status_messages,
@@ -26,6 +27,7 @@ const attributesParser = <U extends JobDataType>({
     status_messages: JobAttributes<U>['statusMessages'];
     parent_job_id: number | null;
 }): JobAttributes<U> => ({
+        name: name || undefined,
         resources: resources || undefined,
         updated_at: updated_at || undefined,
         statusMessages: status_messages || undefined,

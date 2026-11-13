@@ -69,6 +69,12 @@ export interface JobAttributes<TData extends JobDataType> {
     id: number;
     user_id: number;
     type: TData[JobTypeKey];
+    /**
+     * Name given to the job by the user who created it, to tell jobs of the
+     * same type apart. It is free text, without leading or trailing spaces
+     * and not blank. It is undefined when the user gave no name.
+     */
+    name?: string;
     status: JobStatus;
     statusMessages?: {
         errors?: TranslatableMessage[];

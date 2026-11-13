@@ -44,6 +44,7 @@ const userAttributes = {
 const newObjectAttributes: Omit<JobAttributes<TestJobType>, 'id'> = {
     status: 'pending' as const,
     type: 'test' as const,
+    name: 'Job name',
     user_id: userAttributes.id,
     internal_data: {},
     data: data.data,
@@ -142,6 +143,13 @@ describe(`${objectName}`, () => {
         
         currentIdForObject2 = await dbQueries.create(newObjectAttributes2);
         expect(await dbQueries.exists(currentIdForObject2 as number)).toBe(true);
+
+    });
+
+    test('should read undefined as the name of an object without name', async () => {
+
+        const attributes = await dbQueries.read(currentIdForObject2 as number);
+        expect(attributes.name).toBeUndefined();
 
     });
 
