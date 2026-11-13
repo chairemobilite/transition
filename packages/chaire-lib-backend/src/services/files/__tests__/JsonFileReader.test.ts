@@ -89,6 +89,14 @@ test('File not of json type', async () => {
         .toThrow(expect.anything());
 });
 
+test('File not containing an array', async () => {
+    // Without a filter, the root of the file must be an array
+    await expect(parseJsonFile(`${__dirname}/testFiles/testInnerJson.json`, rowCallback))
+        .rejects
+        .toThrow('The JSON value at the root is not an array');
+    expect(rows).toEqual([]);
+});
+
 test('Test reader with filter', async () => {
     const result = await parseJsonFile(`${__dirname}/testFiles/testInnerJson.json`, rowCallback, { filter: { filter: 'level2Root' } });
     expect(result).toEqual('completed');
@@ -139,7 +147,32 @@ describe('createJsonArrayStream', () => {
         expect(await streamArray(['{"other":[{"id":1}]}'], 'elements')).toEqual([]);
     });
 
+    test('should keep a __proto__ key as data instead of setting the prototype of the element', async () => {
+        const [element] = await streamArray(['{"elements":[{"__proto__":{"isAdmin":true},"id":1}]}'], 'elements');
+        expect(Object.prototype.hasOwnProperty.call(element, '__proto__')).toEqual(true);
+        expect(element.isAdmin).toBeUndefined();
+    });
+
+    test('should decode a character split between two chunks', async () => {
+        const json = Buffer.from('{"elements":[{"name":"Montréal"}]}');
+        const splitIndex = json.indexOf('é') + 1;
+        const elements = await Readable.from([json.subarray(0, splitIndex), json.subarray(splitIndex)])
+            .pipe(createJsonArrayStream('elements'))
+            .toArray();
+        expect(elements).toEqual([{ name: 'Montréal' }]);
+    });
+
     test('should fail on invalid JSON', async () => {
         await expect(streamArray(['{"elements":[{"id":1},{"id"', ']}'], 'elements')).rejects.toThrow();
+    });
+
+    test('should fail on truncated JSON', async () => {
+        await expect(streamArray(['{"elements":[{"id":1},{"id":2}'], 'elements')).rejects.toThrow();
+    });
+
+    test('should fail if the value at the path is not an array', async () => {
+        await expect(streamArray(['{"elements":{"id":1}}'], 'elements')).rejects.toThrow(
+            'The JSON value at elements is not an array'
+        );
     });
 });
