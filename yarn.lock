@@ -4386,25 +4386,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/stream-chain@npm:*, @types/stream-chain@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "@types/stream-chain@npm:2.1.0"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/b9acf2740068c20defed8a0066040375d7b75ce3f51100b61b888c9425818d92ef794110468350f51109d9c1aa890a645953abe8fcb25a57ee4e86a19559bda4
-  languageName: node
-  linkType: hard
-
-"@types/stream-json@npm:^1.7.8":
-  version: 1.7.8
-  resolution: "@types/stream-json@npm:1.7.8"
-  dependencies:
-    "@types/node": "npm:*"
-    "@types/stream-chain": "npm:*"
-  checksum: 10c0/c88f4dca65332d3847b37b16a60dc9d9a7401a6c47b0553e5a424e35f989757afeede32397b1a9ee9c1e5ba4a013832d2938fa60590e2b1dffa848185ac33b93
-  languageName: node
-  linkType: hard
-
 "@types/tough-cookie@npm:*":
   version: 4.0.5
   resolution: "@types/tough-cookie@npm:4.0.5"
@@ -6138,8 +6119,6 @@ __metadata:
     "@types/passport-http-bearer": "npm:^1.0.42"
     "@types/passport-local": "npm:^1.0.38"
     "@types/sax": "npm:^1.2.7"
-    "@types/stream-chain": "npm:^2.1.0"
-    "@types/stream-json": "npm:^1.7.8"
     "@types/validator": "npm:^13.15.10"
     bcryptjs: "npm:^3.0.3"
     bytes: "npm:^3.1.2"
@@ -6177,8 +6156,8 @@ __metadata:
     rimraf: "npm:^6.1.4"
     sax: "npm:^1.6.1"
     socket.io: "npm:^4.8.4"
-    stream-chain: "npm:^3.4.0"
-    stream-json: "npm:^1.9.1"
+    stream-chain: "npm:^4.4.2"
+    stream-json: "npm:^3.9.0"
     supertest: "npm:^7.1.4"
     ts-jest: "npm:^29.4.15"
     typescript: "npm:^5.9.3"
@@ -13048,26 +13027,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chain@npm:^2.2.5":
-  version: 2.2.5
-  resolution: "stream-chain@npm:2.2.5"
-  checksum: 10c0/c512f50190d7c92d688fa64e7af540c51b661f9c2b775fc72bca38ea9bca515c64c22c2197b1be463741daacbaaa2dde8a8ea24ebda46f08391224f15249121a
+"stream-chain@npm:^4.4.2":
+  version: 4.4.2
+  resolution: "stream-chain@npm:4.4.2"
+  checksum: 10c0/171d4f0ee4f4b697a22fed9734ad5e39a1190cb3dc9ffbae5682fd6036dddf3aefd3685a00a935c72b8478c34c800c031c078c2ec382356127df537fad6c30c9
   languageName: node
   linkType: hard
 
-"stream-chain@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "stream-chain@npm:3.4.0"
-  checksum: 10c0/d4ac6c33875ad39dc082aa2022bfc9c77b70f809bbe1b9d67c959b4caaabada4cff4b5611b95de416a11bfdb1032e91560b226fe7d2787443543b72f3d3b3435
-  languageName: node
-  linkType: hard
-
-"stream-json@npm:^1.9.1":
-  version: 1.9.1
-  resolution: "stream-json@npm:1.9.1"
+"stream-json@npm:^3.9.0":
+  version: 3.9.0
+  resolution: "stream-json@npm:3.9.0"
   dependencies:
-    stream-chain: "npm:^2.2.5"
-  checksum: 10c0/0521e5cb3fb6b0e2561d715975e891bd81fa77d0239c8d0b1756846392bc3c7cdd7f1ddb0fe7ed77e6fdef58daab9e665d3b39f7d677bd0859e65a2bff59b92c
+    stream-chain: "npm:^4.4.2"
+  checksum: 10c0/07c2691057d874f78bb9dd1453666dbdd4e66819125def54140665677fd344f1156b756c9529aec212e6145bcb9a0c4ff3f5fc794fc607c58aa3881d596febb4
   languageName: node
   linkType: hard
 
