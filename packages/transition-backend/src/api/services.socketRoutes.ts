@@ -28,7 +28,7 @@ import { ExecutableJob } from '../services/executableJob/ExecutableJob';
 import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/directoryManager';
 import type { BatchRouteJobType } from '../services/transitRouting/BatchRoutingJob';
 import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
-import type { fileKey } from 'transition-common/lib/services/jobs/Job';
+import type { fileKey, JobAttributes } from 'transition-common/lib/services/jobs/Job';
 import type {
     TransitMapCalculationOptions,
     TransitMapColorOptions
@@ -188,6 +188,7 @@ export default function (socket: EventEmitter, userId?: number) {
             async (
                 parameters: BatchRoutingOdDemandFromCsvAttributes,
                 transitRoutingAttributes: BatchCalculationParameters,
+                jobAttributes: Pick<JobAttributes<BatchRouteJobType>, 'name'>,
                 callback
             ) => {
                 try {
@@ -215,6 +216,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob({
                         user_id: userId,
                         type: 'batchRoute',
+                        name: jobAttributes.name,
                         data: {
                             parameters: {
                                 demandAttributes: parameters.fileAndMapping.fieldMappings,
@@ -245,6 +247,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     status: Status.Status<{
                         parameters: BatchCalculationParameters;
                         demand: BatchRoutingOdDemandFromCsvAttributes;
+                        name?: string;
                     }>
                 ) => void
             ) => {
@@ -284,7 +287,8 @@ export default function (socket: EventEmitter, userId?: number) {
                     callback(
                         Status.createOk({
                             parameters: attributes.transitRoutingAttributes,
-                            demand: demand.getCurrentFileAndMapping()!
+                            demand: demand.getCurrentFileAndMapping()!,
+                            name: batchRouteJob.attributes.name
                         })
                     );
                 } catch (error) {
@@ -307,6 +311,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     const job = await ExecutableJob.createJob({
                         user_id: userId,
                         type: 'batchAccessMap',
+                        name: parameters.calculationName,
                         data: {
                             parameters: {
                                 batchAccessMapAttributes: parameters,
