@@ -206,6 +206,21 @@ beforeEach(async () => {
 
 describe('batchRoute function', () => {
 
+    test('Batch route cancelled', async () => {
+        // Cancel the job when the third od trip starts: the fourth one, still in
+        // the queue, is not routed
+        const allOdTrips = odTrips;
+        odTrips = [...allOdTrips, ...allOdTrips];
+        isCancelledMock.mockReturnValueOnce(false).mockReturnValueOnce(false).mockReturnValueOnce(true);
+
+        try {
+            await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });
+            expect(routeOdTripMock).toHaveBeenCalledTimes(3);
+        } finally {
+            odTrips = allOdTrips;
+        }
+    });
+
     test('Batch route to csv', async () => {
 
         const result = await batchRoute(job, { progressEmitter: socketMock, isCancelled: isCancelledMock });

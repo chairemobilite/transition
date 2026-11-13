@@ -3,6 +3,10 @@
     "compilerOptions": {
         "outDir": "lib",
         "rootDir": "src",
+        // Resolve the `exports` of ES module packages, like p-queue, which
+        // Node loads with `require()`. The emitted code is still CommonJS.
+        "module": "node20",
+        "moduleResolution": "node16",
         "isolatedModules": false, // Should be removed to inherit the true eventually
         "noImplicitAny": false, // Should be removed to inherit the true eventually
     },
