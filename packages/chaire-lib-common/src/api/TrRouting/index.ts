@@ -19,16 +19,6 @@ export type HostPort = {
 
 export class TrRoutingConstants {
     /**
-     * Socket route name to call a batch routing calculation. It
-     * takes a parameter of type {@link TrRoutingTypes.TransitRouteQueryOptions}
-     * and will return a {@link Status} with a {@link TrRoutingV2.RouteResponse}
-     * on success
-     *
-     * @static
-     * @memberof TrRoutingConstants
-     */
-    static readonly ROUTE = 'service.trRouting.route';
-    /**
      * Socket route name to call a batch routing calculation. It takes parameter
      * of type {@link BatchRoutingOdDemandFromCsvAttributes}. It returns a
      * {@link Status}, with a {@link TransitBatchCalculationResult} on success
@@ -61,14 +51,4 @@ export class TrRoutingConstants {
      * @memberof TrRoutingConstants
      */
     static readonly BATCH_ACCESS_MAP = 'service.trRouting.batchAccessMap';
-    /**
-     * Socket route name to call an accessibility map calculation. It
-     * takes a parameter of type {@link TrRoutingTypes.AccessibilityMapQueryOptions}
-     * and will return a {@link Status} with a {@link TrRoutingV2.AccessibilityMapResponse}
-     * on success
-     *
-     * @static
-     * @memberof TrRoutingConstants
-     */
-    static readonly ACCESSIBILITY_MAP = 'service.trRouting.accessibilityMap';
 }
