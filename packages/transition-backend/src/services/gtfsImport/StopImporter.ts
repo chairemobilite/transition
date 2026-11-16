@@ -160,8 +160,18 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
             promiseQueue.add(async () => promiseProducer(feature))
         );
 
-        // Run all the promises, no matter their result.
-        await Promise.allSettled(nodesInRangePromises);
+        // Run all the promises, no matter their result, but log the stops that
+        // failed, as they are not in any node and the paths using them will be
+        // missing a node.
+        const stopResults = await Promise.allSettled(nodesInRangePromises);
+        stopResults.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.error(
+                    `GTFS Stop import: Error importing stop ${stops[index].stop.stop_id}, it was not added to any node:`,
+                    result.reason
+                );
+            }
+        });
 
         // TODO: Update the radius of nodes to make sure all of their included stops are inside the radius.
 
@@ -182,7 +192,12 @@ export class StopImporter implements GtfsObjectPreparator<StopImportData> {
                 }
             })
         );
-        await Promise.allSettled(updatePromises);
+        const saveResults = await Promise.allSettled(updatePromises);
+        saveResults.forEach((result, index) => {
+            if (result.status === 'rejected') {
+                console.error(`GTFS Stop import: Error saving node ${nodeKeys[index]}:`, result.reason);
+            }
+        });
 
         return importedStops;
     }

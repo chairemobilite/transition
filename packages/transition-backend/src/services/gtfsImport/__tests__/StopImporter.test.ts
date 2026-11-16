@@ -347,4 +347,35 @@ describe('GTFS Stops import', () => {
         }
     });
 
+    test('Test import stop data, log the stops that could not be imported', async () => {
+        currentData = gtfsValidSimpleData;
+        const collection = new NodeCollection([], {}, undefined)
+        const failingStop = gtfsValidSimpleData['stops.txt'].find(stop => stop.stop_code === '1211')!;
+        const nodesInRange = getNodesInRangeImplementation(collection);
+        const routingError = new Error('Walking routing error');
+        nodesInRangeFct.mockImplementation(async (geometry, maxWalkingTravelTimeRadiusSeconds) => {
+            if (geometry.coordinates[0] === parseFloat(failingStop.stop_lon) && geometry.coordinates[1] === parseFloat(failingStop.stop_lat)) {
+                throw routingError;
+            }
+            return nodesInRange(geometry, maxWalkingTravelTimeRadiusSeconds);
+        });
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+        const importData = gtfsValidSimpleData['stops.txt'].map(stop => ({
+            stop: stopToImportData(stop)
+        }));
+
+        const objectImporter = new StopImporter({ directoryPath: '', nodes: collection });
+        const data = await objectImporter.import(importData, Object.assign({}, defaultImportData));
+
+        // The failing stop is not imported, the other stops are
+        expect(data[failingStop.stop_id]).toBeUndefined();
+        expect(Object.keys(data).length).toEqual(importData.length - 1);
+
+        // The error is logged with the stop ID
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(failingStop.stop_id), routingError);
+        consoleErrorSpy.mockRestore();
+    });
+
 });
