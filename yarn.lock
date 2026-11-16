@@ -6157,7 +6157,7 @@ __metadata:
     iso-3166-ts: "npm:^2.2.0"
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
-    knex: "npm:^3.1.0"
+    knex: "npm:^3.3.0"
     knex-postgis: "npm:^0.14.3"
     lodash: "npm:^4.18.1"
     mock-spawn: "npm:^0.2.6"
@@ -6171,8 +6171,8 @@ __metadata:
     passport-http-bearer: "npm:^1.0.1"
     passport-local: "npm:^1.0.0"
     passport-magic-login: "npm:^1.2.4"
-    pg: "npm:^8.16.3"
-    pg-query-stream: "npm:^4.10.3"
+    pg: "npm:^8.23.1"
+    pg-query-stream: "npm:^4.17.1"
     prettier: "npm:^3.9.10"
     rimraf: "npm:^6.1.4"
     sax: "npm:^1.6.1"
@@ -9952,9 +9952,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"knex@npm:3, knex@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "knex@npm:3.1.0"
+"knex@npm:3, knex@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "knex@npm:3.3.0"
   dependencies:
     colorette: "npm:2.0.19"
     commander: "npm:^10.0.0"
@@ -9964,14 +9964,18 @@ __metadata:
     get-package-type: "npm:^0.1.0"
     getopts: "npm:2.3.0"
     interpret: "npm:^2.2.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.18.1"
     pg-connection-string: "npm:2.6.2"
     rechoir: "npm:^0.8.0"
     resolve-from: "npm:^5.0.0"
-    tarn: "npm:^3.0.2"
+    tarn: "npm:^3.1.0"
     tildify: "npm:2.0.0"
+  peerDependencies:
+    pg-query-stream: ^4.14.0
   peerDependenciesMeta:
     better-sqlite3:
+      optional: true
+    mariadb:
       optional: true
     mysql:
       optional: true
@@ -9981,13 +9985,15 @@ __metadata:
       optional: true
     pg-native:
       optional: true
+    pg-query-stream:
+      optional: true
     sqlite3:
       optional: true
     tedious:
       optional: true
   bin:
     knex: bin/cli.js
-  checksum: 10c0/d8a1f99fad143c6057e94759b2ae700ae661a0b0b2385f643011962ef501dcc7b32cfdb5bda66ef81283ca56f13630f47691c579ce66ad0e8128e209533c3785
+  checksum: 10c0/946fb4d0a55894075fbdd45d8bcd8d14a358f1a89f413e205ee7867b8b3c58eb897b49facd3062f2be2abedaeb6ae98b5a593e6247848830088ceb55af2b4e8a
   languageName: node
   linkType: hard
 
@@ -11301,10 +11307,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-cloudflare@npm:^1.2.7":
-  version: 1.2.7
-  resolution: "pg-cloudflare@npm:1.2.7"
-  checksum: 10c0/8a52713dbdecc9d389dc4e65e3b7ede2e199ec3715f7491ee80a15db171f2d75677a102e9c2cef0cb91a2f310e91f976eaec0dd6ef5d8bf357de0b948f9d9431
+"pg-cloudflare@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "pg-cloudflare@npm:1.4.1"
+  checksum: 10c0/32e62c987073472e81c0dc218f850b1212b4e2c1f35d50433d87d054fe268f549ebaf8fc6c1227ab24c12b318f3e3a2a191ffbdfb2daa30b39aa6802ab8fe2f6
   languageName: node
   linkType: hard
 
@@ -11315,19 +11321,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:^2.9.1":
-  version: 2.9.1
-  resolution: "pg-connection-string@npm:2.9.1"
-  checksum: 10c0/9a646529bbc0843806fc5de98ce93735a4612b571f11867178a85665d11989a827e6fd157388ca0e34ec948098564fce836c178cfd499b9f0e8cd9972b8e2e5c
+"pg-connection-string@npm:^2.14.1":
+  version: 2.14.1
+  resolution: "pg-connection-string@npm:2.14.1"
+  checksum: 10c0/7321eed97579b4972a714909e7a444beb2186780fe7fd86ea719ff7c8f1fad07d7e5f85722c4992245b23683ed7d2fe2bdda8f7469fed4c016bb5c3379c575ca
   languageName: node
   linkType: hard
 
-"pg-cursor@npm:^2.15.3":
-  version: 2.15.3
-  resolution: "pg-cursor@npm:2.15.3"
+"pg-cursor@npm:^2.22.1":
+  version: 2.22.1
+  resolution: "pg-cursor@npm:2.22.1"
   peerDependencies:
     pg: ^8
-  checksum: 10c0/60ea02689af0b6bd89946a7abb123260506e6fe9be1ea3c547e7d6fbbde5a6c8ca066f4114d6bd6699a87c47c93c9c5d7bfa6ff39bb62290221f5a3c0e1516b2
+  checksum: 10c0/fb98152b01b43a5de79fb515adca26137b75ca4c96007ce7195e969c180c9922d72b1c97d9349f7213bcc1ca64d945cc15fa242c5e04eedd8c5933e31cd10e78
   languageName: node
   linkType: hard
 
@@ -11338,30 +11344,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-pool@npm:^3.10.1":
-  version: 3.10.1
-  resolution: "pg-pool@npm:3.10.1"
+"pg-pool@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "pg-pool@npm:3.14.0"
   peerDependencies:
     pg: ">=8.0"
-  checksum: 10c0/a00916b7df64226cc597fe769e3a757ff9b11562dc87ce5b0a54101a18c1fe282daaa2accaf27221e81e1e4cdf4da6a33dab09614734d32904d6c4e11c44a079
+  checksum: 10c0/3dd706e67e3b317e29409d9eb3bd44e960eabd86db2a9711a9391bbd43881f8ce7a5f7054a341509558ee05e9bf0a3cc7aef037039da0790ce1e16762ade3ba6
   languageName: node
   linkType: hard
 
-"pg-protocol@npm:^1.10.3":
-  version: 1.10.3
-  resolution: "pg-protocol@npm:1.10.3"
-  checksum: 10c0/f7ef54708c93ee6d271e37678296fc5097e4337fca91a88a3d99359b78633dbdbf6e983f0adb34b7cdd261b7ec7266deb20c3233bf3dfdb498b3e1098e8750b9
+"pg-protocol@npm:^1.16.1":
+  version: 1.16.1
+  resolution: "pg-protocol@npm:1.16.1"
+  checksum: 10c0/84e8bf05c3548c8ffcad29247c075f8f1cf477600c92a7eb0ab27c6c4cbdbe1280433582bfba91f629b1f68bcaf4ae26436a898f430e884d7887543931e8ade6
   languageName: node
   linkType: hard
 
-"pg-query-stream@npm:^4.10.3":
-  version: 4.10.3
-  resolution: "pg-query-stream@npm:4.10.3"
+"pg-query-stream@npm:^4.17.1":
+  version: 4.17.1
+  resolution: "pg-query-stream@npm:4.17.1"
   dependencies:
-    pg-cursor: "npm:^2.15.3"
+    pg-cursor: "npm:^2.22.1"
   peerDependencies:
     pg: ^8
-  checksum: 10c0/b39231104ed9c511036ac0abb402cc9a3d145503c93a69cbc7cef7ebfed1b323a9b8b98a7685620675da68fd48d5404e20e95a2804edd32fad09df18b5192c69
+  checksum: 10c0/d9dc0bbcad005327b57c10323eb99ad64e38531315476b633dc405d3d2004d5b2fd83c802c347bf6a1b638a5df2d3b1d8938fd1e652469c776fa0980c661c7a6
   languageName: node
   linkType: hard
 
@@ -11378,14 +11384,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:^8.16.3":
-  version: 8.16.3
-  resolution: "pg@npm:8.16.3"
+"pg@npm:^8.23.1":
+  version: 8.23.1
+  resolution: "pg@npm:8.23.1"
   dependencies:
-    pg-cloudflare: "npm:^1.2.7"
-    pg-connection-string: "npm:^2.9.1"
-    pg-pool: "npm:^3.10.1"
-    pg-protocol: "npm:^1.10.3"
+    pg-cloudflare: "npm:^1.4.1"
+    pg-connection-string: "npm:^2.14.1"
+    pg-pool: "npm:^3.14.0"
+    pg-protocol: "npm:^1.16.1"
     pg-types: "npm:2.2.0"
     pgpass: "npm:1.0.5"
   peerDependencies:
@@ -11396,7 +11402,7 @@ __metadata:
   peerDependenciesMeta:
     pg-native:
       optional: true
-  checksum: 10c0/a6a407ff0efb7599760d72ffdcda47a74c34c0fd71d896623caac45cf2cfb0f49a10973cce23110f182b9810639a1e9f6904454d7358c7001574ee0ffdcbce2a
+  checksum: 10c0/084ce2bcd025705105d4d9a4c4438b178117acbaae5c766e3d3c9fb812cc55d826a212189e19937b8e3b0a8914a3c3e4ba78ad62af73890f37406a676c1f9e0c
   languageName: node
   linkType: hard
 
@@ -13373,10 +13379,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tarn@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "tarn@npm:3.0.2"
-  checksum: 10c0/ea2344e3d21936111176375bd6f34eba69a38ef1bc59434d523fd313166f8a28a47b0a847846c119f72dcf2c1e1231596d74ac3fcfc3cc73966b3d293a327269
+"tarn@npm:^3.1.0":
+  version: 3.1.2
+  resolution: "tarn@npm:3.1.2"
+  checksum: 10c0/fae37a0f2a9ee4b0ba5c309b213a1111e65bbc72cab5056be26beebcfa2980613aa0dd66f054fa0433e0cc6951875137e37c0ac52edb56812fbf05957130a795
   languageName: node
   linkType: hard
 
@@ -13655,7 +13661,7 @@ __metadata:
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
     jest-fetch-mock: "npm:^3.0.3"
-    knex: "npm:^3.1.0"
+    knex: "npm:^3.3.0"
     knex-postgis: "npm:^0.14.3"
     lodash: "npm:^4.18.1"
     moment: "npm:^2.31.0"
@@ -13803,7 +13809,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "transition@workspace:."
   dependencies:
-    knex: "npm:^3.1.0"
+    knex: "npm:^3.3.0"
   languageName: unknown
   linkType: soft
 
