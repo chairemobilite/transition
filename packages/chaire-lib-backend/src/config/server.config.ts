@@ -373,6 +373,29 @@ const checkRemovedLocalLoginOptions = (newConfig: Record<string, unknown>) => {
 };
 
 /**
+ * The `separateAdminLoginPage` option used to enable the local login on every
+ * server reading the configuration. It is now ignored: only `auth.localLogin`
+ * enables the local login. Ignoring it can only remove access, so warn about it
+ * instead of refusing the configuration, and do not keep it in the
+ * configuration.
+ *
+ * TODO Remove this warning in November 2027, a year after the option was
+ * removed
+ *
+ * @param newConfig The configuration to check. It is typed as a record, as the
+ * removed option is not part of the configuration type anymore
+ */
+const ignoreRemovedSeparateAdminLoginPage = (newConfig: Record<string, unknown>) => {
+    if (newConfig.separateAdminLoginPage === undefined) {
+        return;
+    }
+    console.warn(
+        'The `separateAdminLoginPage` option was removed and is ignored. To enable the local login (username and password) on a server, configure `auth.localLogin` instead.'
+    );
+    delete newConfig.separateAdminLoginPage;
+};
+
+/**
  * Set the project configuration. This method handles deprecated values
  * @param newConfig The additional configuration to set
  * @throws InvalidConfigurationError if the configuration uses options that
@@ -380,6 +403,7 @@ const checkRemovedLocalLoginOptions = (newConfig: Record<string, unknown>) => {
  */
 export const setProjectConfiguration = (newConfig: Partial<ProjectConfiguration<ServerSideProjectConfiguration>>) => {
     checkRemovedLocalLoginOptions(newConfig);
+    ignoreRemovedSeparateAdminLoginPage(newConfig);
 
     // If the configuration file has a `trRoutingCacheAllScenarios` option, but the engine configuration does not have a `cacheAllScenarios` option, set it
     // FIXME Remove once the trRoutingCacheAllScenarios is fully deprecated
