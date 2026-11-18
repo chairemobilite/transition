@@ -23,7 +23,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ config }) => {
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
     // Check if registration is allowed based on config
-    const allowRegistration = React.useMemo(() => config.auth?.localLogin?.allowRegistration !== false, [config]);
+    const allowRegistration = React.useMemo(() => config.auth?.localLogin?.allowRegistration === true, [config]);
 
     // Handle email-only registration configuration
     const withEmailOnly = React.useMemo(() => config.auth?.localLogin?.registerWithEmailOnly, [config]);
@@ -35,7 +35,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ config }) => {
 
     // Return null if registration is not allowed
     if (!allowRegistration) {
-        return null;
+        return <Navigate to="/login" replace />;
     }
 
     return (

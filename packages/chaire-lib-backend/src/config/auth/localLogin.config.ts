@@ -21,11 +21,11 @@ const getConfirmEmail = () => config.auth?.localLogin?.confirmEmail;
 export const getConfirmEmailStrategy = () => config.auth?.localLogin?.confirmEmailStrategy;
 
 /**
- * Whether users can create an account. Registration is allowed unless
- * explicitly disabled. Keep in sync with the frontend's register page, so the
+ * Whether users can create an account. Registration is allowed only if
+ * explicitly enabled. Keep in sync with the frontend's register page, so the
  * server rejects what the interface does not offer.
  */
-export const isRegistrationAllowed = (): boolean => config.auth?.localLogin?.allowRegistration !== false;
+export const isRegistrationAllowed = (): boolean => config.auth?.localLogin?.allowRegistration === true;
 
 /**
  * Whether users can reset their password. Password reset is only available

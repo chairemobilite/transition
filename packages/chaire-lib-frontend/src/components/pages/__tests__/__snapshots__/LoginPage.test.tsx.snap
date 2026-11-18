@@ -86,6 +86,85 @@ exports[`Login page rendering Allow registration, no forgot password page 1`] = 
 </div>
 `;
 
+exports[`Login page rendering Local login not set 1`] = `
+<div>
+  <form
+    class="apptr__form apptr__form-auth"
+  >
+    <div
+      class="apptr__form-label-container center"
+    >
+      <div
+        class="apptr__form__label-standalone no-question"
+      >
+        <p>
+          auth:pleaseEnterLoginCredentials
+        </p>
+      </div>
+    </div>
+    <div
+      class="apptr__form-container question-empty"
+    >
+      <div
+        class="apptr__form-input-container"
+      >
+        <label
+          class="_flex"
+          for="usernameOrEmail"
+        >
+          auth:UsernameOrEmail
+        </label>
+        <input
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          id="usernameOrEmail"
+          name="usernameOrEmail"
+          type="text"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="apptr__form-container question-empty"
+    >
+      <div
+        class="apptr__form-input-container"
+      >
+        <label
+          class="_flex"
+          for="password"
+        >
+          auth:Password
+        </label>
+        <input
+          class="apptr__form-input apptr__form-input-string apptr__input apptr__input-string"
+          id="password"
+          name="password"
+          type="password"
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="center"
+    >
+      <button
+        class="button green large"
+        type="submit"
+      >
+         
+        auth:Login
+      </button>
+    </div>
+  </form>
+  <div
+    class="apptr__separator-medium"
+  />
+  <div
+    class="apptr__footer-link-container"
+  />
+</div>
+`;
+
 exports[`Login page rendering Registration allowed, allow forget password 1`] = `
 <div>
   <form

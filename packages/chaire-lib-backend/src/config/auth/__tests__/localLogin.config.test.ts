@@ -5,7 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import passport from 'passport';
-import localLogin from '../localLogin.config';
+import localLogin, { isRegistrationAllowed } from '../localLogin.config';
 import { sendConfirmationEmail } from '../../../services/auth/userEmailNotifications';
 import config from '../../server.config';
 
@@ -64,6 +64,22 @@ const unconfirmedUser = {
 
 const newUserId = 7;
 const validToken = "thisisavalidtoken"
+
+describe('isRegistrationAllowed', () => {
+    test.each([
+        { allowRegistration: true, expected: true },
+        { allowRegistration: false, expected: false },
+        { allowRegistration: undefined, expected: false }
+    ])('Registration allowed is %s when configured as %s', ({ allowRegistration, expected }) => {
+        config.auth = { localLogin: { allowRegistration } };
+        expect(isRegistrationAllowed()).toBe(expected);
+    });
+
+    test('Registration not allowed when localLogin is not set', () => {
+        config.auth = { anonymous: true };
+        expect(isRegistrationAllowed()).toBe(false);
+    });
+});
 
 beforeEach(() => {
     logInFct.mockClear();
@@ -299,12 +315,12 @@ test('Local signup strategy, with email confirmation by user', async () => {
             confirmUrl: `${url}verify/${insertedUser.confirmation_token}`
         });
     expect(mockSetLastLogin).not.toHaveBeenCalled();
-    
+
 });
 
 test('Local signup strategy, with email confirmation by admin', async () => {
     const endFct = jest.fn();
-    config.auth = { localLogin: { 
+    config.auth = { localLogin: {
         confirmEmail: true,
         confirmEmailStrategy: 'confirmByAdmin'
     }};
@@ -359,7 +375,7 @@ test('Local signup strategy, with email confirmation by admin, urls without endi
     const urlWithoutSlash = 'https://test.transition';
     process.env.HOST = urlWithoutSlash;
     const endFct = jest.fn();
-    config.auth = { localLogin: { 
+    config.auth = { localLogin: {
         confirmEmail: true,
         confirmEmailStrategy: 'confirmByAdmin'
     }};

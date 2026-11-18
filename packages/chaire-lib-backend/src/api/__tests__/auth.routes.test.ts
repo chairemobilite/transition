@@ -18,6 +18,7 @@ import usersDbQueries from '../../models/db/users.db.queries';
 jest.mock('../../config/server.config', () => ({
     auth: {
         localLogin: {
+            allowRegistration: true,
             forgotPasswordPage: true
         }
     }
@@ -244,14 +245,14 @@ test('Forgot password, user exists', async () => {
     // FIXME: For some reason here expect(mockedResetPwdEmail).toHaveBeenCalledWith(expect.objectContaining({attributes: updatedUser})) does not work, it says it receives a json, while the actual argument is the right object.
     expect(mockedResetPwdEmail).toHaveBeenCalledTimes(1);
     expect((mockedResetPwdEmail as any).mock.calls).toHaveLength(1);
-    
+
     const args = (mockedResetPwdEmail as any).mock.calls[0];
     expect(args[0]).toMatchObject({_attributes: {
         ...validUser,
         password_reset_token: expect.anything(),
         password_reset_expire_at: expect.anything()
     }});
-    
+
 });
 
 test('Forgot password, user does not exist', async () => {
@@ -776,7 +777,7 @@ describe('Registration and password reset with default configuration', () => {
         config.auth = {};
     });
 
-    test('Signup is available by default', async () => {
+    test('Signup is not available if not explicitly set', async () => {
         authResponse = {
             error: null,
             user: { username: validUsername }
@@ -785,10 +786,29 @@ describe('Registration and password reset with default configuration', () => {
             .post('/register')
             .send({ usernameOrEmail: validUsername, password })
             .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-            .expect(200);
-        expect(res.body.status).toEqual('Registration successful!');
-        expect(authMockFunctions['local-signup']).toHaveBeenCalledTimes(1);
+            .expect(404);
+        expect(res.body).toEqual({});
+        expect(authMockFunctions['local-signup']).not.toHaveBeenCalled();
+    });
+
+    test('Signup is not available if `allowRegistration` set to `false`', async () => {
+        const authConfig = config.auth;
+        try {
+            config.auth = { localLogin: { allowRegistration: false } };
+            authResponse = {
+                error: null,
+                user: { username: validUsername }
+            };
+            const res = await request(defaultApp)
+                .post('/register')
+                .send({ usernameOrEmail: validUsername, password })
+                .set('Accept', 'application/json')
+                .expect(404);
+            expect(res.body).toEqual({});
+            expect(authMockFunctions['local-signup']).not.toHaveBeenCalled();
+        } finally {
+            config.auth = authConfig;
+        }
     });
 
     test('Forgot password is not available by default', async () => {

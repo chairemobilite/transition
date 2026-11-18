@@ -92,6 +92,17 @@ describe('Login page rendering', () => {
         expect(container).toMatchSnapshot();
     });
 
+    test('Local login not set', () => {
+        const { container } = renderWithProviders(
+            <LoginPage config={{
+                auth: {
+                    anonymous: true
+                } as any
+            }}/>
+        );
+        expect(container).toMatchSnapshot();
+    });
+
     test('Registration allowed, allow forget password', () => {
         const { container } = renderWithProviders(
             <LoginPage config={{
