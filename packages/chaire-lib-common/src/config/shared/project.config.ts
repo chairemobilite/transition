@@ -88,7 +88,6 @@ export type ProjectConfiguration<AdditionalConfig> = {
               };
         google?: boolean;
     };
-    separateAdminLoginPage: boolean;
     /**
      * The type of captcha to use in the application, where required. `capjs`
      * is a proof of work captcha, from Cap.js, that the server validates.
@@ -135,7 +134,6 @@ export type ProjectConfiguration<AdditionalConfig> = {
 // Initialize default configuration
 const projectConfig: ProjectConfiguration<any> = {
     mapDefaultCenter: { lon: -73.6131, lat: 45.5041 },
-    separateAdminLoginPage: false,
     projectShortname: 'default',
     userDiskQuota: '1gb',
     maxFileUploadMB: 256,

@@ -52,7 +52,6 @@ test('setProjectConfiguration', () => {
         maxParallelCalculators: 3
     });
     expect(config.mapDefaultCenter).toEqual({ lon: -73, lat: 45 });
-    expect(config.separateAdminLoginPage).toEqual(false);
     expect(config.maxParallelCalculators).toEqual(3);
     expect(config.projectShortname).toEqual('newProject');
     // Make sure the deep merge works for object configs

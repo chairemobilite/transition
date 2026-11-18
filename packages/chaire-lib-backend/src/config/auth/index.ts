@@ -54,7 +54,9 @@ export default <U extends IUserModel>(authModel: IAuthModel<U>): PassportStatic 
         }
     }
 
-    if (!config.auth || config.auth.localLogin !== undefined || config.separateAdminLoginPage === true) {
+    // The local login (username and password) is only available when it is
+    // configured, or when no login method is configured at all
+    if (!config.auth || config.auth.localLogin !== undefined) {
         localLogin(passport, authModel);
     }
     if (config.auth && config.auth.passwordless !== undefined) {
