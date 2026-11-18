@@ -34,7 +34,7 @@ export const LoginPage: React.FunctionComponent<LoginPageProps & WithTranslation
         }
     }, []);
 
-    const allowRegistration = props.config.auth?.localLogin?.allowRegistration !== false;
+    const allowRegistration = props.config.auth?.localLogin?.allowRegistration === true;
 
     return (
         <React.Fragment>
