@@ -15,7 +15,8 @@ import config , { setProjectConfiguration }from '../../../config/server.config';
 jest.mock('../ProcessManager', () => ({
     startProcess: jest.fn(),
     stopProcess: jest.fn(),
-    isServiceRunning: jest.fn().mockResolvedValue(false)
+    isServiceRunning: jest.fn().mockResolvedValue(false),
+    getLogFilePath: jest.fn().mockImplementation((tagName: string, serviceName: string) => `/path/to/logs/${tagName}_${serviceName}.log`)
 }));
 jest.mock('../../osrm/OSRMService', () => ({
     getMode: jest.fn()
@@ -259,6 +260,70 @@ describe('TrRouting Process Manager: start', () => {
                 maxFileSizeKB: logFiles.maxFileSizeKB
             }
         });
+    });
+});
+
+describe('TrRouting Process Manager: start failures', () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        delete process.env.TR_ROUTING_PATH;
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+        consoleErrorSpy.mockRestore();
+    });
+
+    test('process started successfully, no error logged', async () => {
+        await TrRoutingProcessManager.start({});
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+    });
+
+    test.each([
+        ['not_running', {}],
+        ['error', { error: new Error('Some error') }]
+    ])('process did not start, status %s, log file path logged', async (status, extraStatus) => {
+        startProcessMock.mockResolvedValueOnce({
+            status,
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000',
+            ...extraStatus
+        });
+        const result = await TrRoutingProcessManager.start({});
+        expect(result.status).toEqual(status);
+        expect(ProcessManager.getLogFilePath).toHaveBeenCalledWith('trRouting', 'trRouting4000');
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('/path/to/logs/trRouting_trRouting4000.log'));
+    });
+
+    test('batch process did not start, log file path logged', async () => {
+        startProcessMock.mockResolvedValueOnce({
+            status: 'not_running',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting14000'
+        });
+        await TrRoutingProcessManager.startBatch(1);
+        expect(ProcessManager.getLogFilePath).toHaveBeenCalledWith('trRouting', 'trRouting14000');
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('/path/to/logs/trRouting_trRouting14000.log'));
+    });
+
+    test('executable not found, log file path not logged', async () => {
+        const error = Object.assign(new Error('spawn trRouting ENOENT'), { code: 'ENOENT' });
+        startProcessMock.mockResolvedValueOnce({
+            status: 'error',
+            action: 'start',
+            service: 'trRouting',
+            name: 'trRouting4000',
+            error
+        });
+        await TrRoutingProcessManager.start({});
+        expect(ProcessManager.getLogFilePath).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('trRouting executable does not exist'));
     });
 });
 
