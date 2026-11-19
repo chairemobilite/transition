@@ -1,0 +1,18 @@
+
+[out:json][timeout:25][bbox:{{bbox}}];
+(
+
+  // amenities:
+  node[~"amenity|building"~"^(pharmacy|hospital|clinic|dentist|doctor|nursing_home|social_facility|baby_hatch)$"];
+	way[~"amenity|building"~"^(pharmacy|hospital|clinic|dentist|doctor|nursing_home|social_facility|baby_hatch)$"];
+	relation[~"amenity|building"~"^(pharmacy|hospital|clinic|dentist|doctor|nursing_home|social_facility|baby_hatch)$"];
+  
+
+
+node["healthcare"];
+way["healthcare"];
+relation["healthcare"];
+
+  
+);
+out center body;

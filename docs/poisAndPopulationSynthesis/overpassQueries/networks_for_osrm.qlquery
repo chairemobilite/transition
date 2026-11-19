@@ -1,0 +1,25 @@
+[timeout:100]
+[out:xml]
+[bbox:{{bbox}}]
+;
+(
+  way["highway"];
+  node(w);
+  node(r);
+  way(r);
+  way["railway"];
+  node(w);
+  node(r);
+  way(r);
+  way["man_made"="pier"];
+  node(w);
+  node(r);
+  way(r);
+  way["leisure"="track"];
+  node(w);
+  node(r);
+  way(r);
+
+);
+out meta;
+>;

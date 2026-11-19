@@ -1,0 +1,16 @@
+[out:json][timeout:100];
+
+(
+{{polyboundary="BOUNDARY"}}
+
+node["natural"~"^(tree)$"](poly:{{polyboundary}});
+way["natural"~"^(tree_row)$"](poly:{{polyboundary}});
+way["natural"~"^(wood)$"](poly:{{polyboundary}});
+way["landuse"~"^(forest)$"](poly:{{polyboundary}});
+
+relation["natural"~"^(tree_row)$"](poly:{{polyboundary}});
+relation["natural"~"^(wood)$"](poly:{{polyboundary}});
+relation["landuse"~"^(forest)$"](poly:{{polyboundary}});
+
+);
+out geom;
