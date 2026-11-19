@@ -13,6 +13,8 @@ import ServerConfig from '../../config/ServerConfig';
 import { setProjectConfiguration } from '../../config/server.config';
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 
+const OSRM_TAG_NAME = 'osrm';
+
 const getServiceName = function (mode: RoutingMode = 'walking', port: number | null = 5000) {
     return `osrmMode__${mode}__port${port}`;
 };
@@ -101,6 +103,13 @@ const configureAllOsrmServers = async function (startServers = true): Promise<vo
                         const restartResponse = await restart({ mode: routingMode, port: port });
                         if (restartResponse.status !== 'started') {
                             errorConfiguringMode(routingMode, 'Cannot start local process');
+                            const logFilePath = ProcessManager.getLogFilePath(
+                                OSRM_TAG_NAME,
+                                getServiceName(routingMode, port)
+                            );
+                            console.error(
+                                `See the osrm-routed log file for mode ${routingMode} for details: ${logFilePath}`
+                            );
                             continue;
                         }
                     } else {
@@ -136,7 +145,7 @@ const start = function (parameters = {} as any): Promise<any> {
     const mode = parameters.mode || 'walking';
     const port = parameters.port || ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').port;
     const serviceName = getServiceName(mode, port);
-    const tagName = 'osrm';
+    const tagName = OSRM_TAG_NAME;
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
 
     return new Promise((resolve, _reject) => {
@@ -155,7 +164,7 @@ const stop = function (parameters): Promise<any> {
     const mode = parameters.mode || 'walking';
     const port = parameters.port || ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').port;
     const serviceName = getServiceName(mode, port);
-    const tagName = 'osrm';
+    const tagName = OSRM_TAG_NAME;
 
     return new Promise((resolve, _reject) => {
         resolve(ProcessManager.stopProcess(tagName, serviceName));
@@ -167,7 +176,7 @@ const restart = function (parameters): Promise<any> {
     const mode = parameters.mode || 'walking';
     const port = parameters.port || ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').port;
     const serviceName = getServiceName(mode, port);
-    const tagName = 'osrm';
+    const tagName = OSRM_TAG_NAME;
     const osrmDirectoryPath = getOsrmDirectoryPathForMode(mode, parameters.directoryPrefix);
 
     return new Promise((resolve, _reject) => {

@@ -61,6 +61,20 @@ const getLoggerName = function (tagName: string, serviceName: string) {
     return `${tagName}Logger_${serviceName}_`;
 };
 
+/**
+ * Get the absolute path of the file where the output of a process started
+ * with `startProcess` is logged. If the file was rotated, the latest output
+ * may be in a file with the same name and a numeric suffix.
+ *
+ * @param tagName The tag name of the process, as passed to `startProcess`
+ * @param serviceName The service name of the process, as passed to
+ * `startProcess`
+ * @returns The absolute path of the log file
+ */
+const getLogFilePath = function (tagName: string, serviceName: string): string {
+    return fileManager.directoryManager.getAbsolutePath(`logs/${getLoggerName(tagName, serviceName)}.log`);
+};
+
 const setupLogger = function ({
     tagName,
     serviceName,
@@ -80,7 +94,7 @@ const setupLogger = function ({
             format: winston.format.simple(),
             transports: [
                 new winston.transports.File({
-                    filename: fileManager.directoryManager.getAbsolutePath(`logs/${loggerName}.log`),
+                    filename: getLogFilePath(tagName, serviceName),
                     // In winston, size is in bytes
                     maxsize: maxFileSizeKB * 1024,
                     maxFiles: nbFiles,
@@ -319,6 +333,7 @@ const stopProcess = async function (serviceName: string, tagName: string): Promi
 
 export default {
     getServiceRunningPid,
+    getLogFilePath,
     isServiceRunning,
     startProcess,
     stopProcess

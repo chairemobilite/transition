@@ -213,7 +213,9 @@ describe('OSRM Service Manager', () => {
                 autoStartOsrm.push(routingMode);
             }
         }
+        const enabledAutoStartOsrm = autoStartOsrm.filter((mode) => ServerConfig.getRoutingEngineConfigForMode(mode, 'osrmRouting').enabled === true);
 
+        const consoleErrorSpy = jest.spyOn(console, 'error');
         await OSRMProcessManager.configureAllOsrmServers();
 
         expect(osrmSpawn.calls[2].command).toBe('osrm-routed');
@@ -232,6 +234,16 @@ describe('OSRM Service Manager', () => {
         const containsAll = (baseArray: string[], contained: string[]): boolean => contained.every((v) => baseArray.includes(v));
         expect(containsAll(autoStartOsrm, availableOsrms)).toBe(true);
         expect(containsAll(availableOsrms, autoStartOsrm)).toBe(false);
+
+        // Modes that failed to start should point to their log file
+        const failedOsrms = enabledAutoStartOsrm.filter((mode) => !availableOsrms.includes(mode));
+        expect(failedOsrms.length).toBeGreaterThan(0);
+        for (const failedMode of failedOsrms) {
+            const port = ServerConfig.getRoutingEngineConfigForMode(failedMode, 'osrmRouting').port;
+            const logFilePath = directoryManager.getAbsolutePath(`logs/osrmLogger_osrmMode__${failedMode}__port${port}_.log`);
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining(logFilePath));
+        }
+        consoleErrorSpy.mockRestore();
 
     });
 
