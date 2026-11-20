@@ -19,7 +19,7 @@ import {
     deleteForDataSourceId,
     truncate,
     destroy,
-    dataSourceIdsToArray,
+    uuidsToArray,
     validateSampleSize
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -85,7 +85,7 @@ const attributesParser = (dbAttributes: {
 
 const collection = async (dataSourceIds?: string[], sampleSize?: number): Promise<BaseOdTripAttributes[]> => {
     // These parameters can come from a client, they must only be passed to the query builder, never in raw SQL
-    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const dataSourceIdsArray = uuidsToArray(dataSourceIds);
     const limit = validateSampleSize(sampleSize);
     try {
         const query = knex(tableName).select(

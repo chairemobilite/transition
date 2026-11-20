@@ -20,7 +20,7 @@ import {
     deleteForDataSourceId,
     truncate,
     destroy,
-    dataSourceIdsToArray,
+    uuidsToArray,
     validateSampleSize
 } from 'chaire-lib-backend/lib/models/db/default.db.queries';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -50,7 +50,7 @@ const attributesCleaner = function (attributes: Partial<PlaceAttributes>): { [ke
 
 const collection = async (dataSourceIds: string[] = [], sampleSize?: number): Promise<PlaceAttributes[]> => {
     // These parameters can come from a client, they must only be passed to the query builder, never in raw SQL
-    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const dataSourceIdsArray = uuidsToArray(dataSourceIds);
     const limit = validateSampleSize(sampleSize);
     try {
         const query = knex(tableName).select(
@@ -139,7 +139,7 @@ const geojsonCollection = async (
 ): Promise<GeoJSON.FeatureCollection<GeoJSON.Point, PlaceAttributes>> => {
     // TODO: we should not fetch the whole data content, we should read place when modifying one instead of creating a Place from the geojson
     // These parameters can come from a client, they must only be passed to the query builder, never in raw SQL
-    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const dataSourceIdsArray = uuidsToArray(dataSourceIds);
     const limit = validateSampleSize(sampleSize);
     try {
         const inputsQuery = knex(tableName).select(
@@ -208,7 +208,7 @@ const geojsonCollection = async (
 };
 
 const countForDataSources = async (dataSourceIds: string[] = []): Promise<{ [key: string]: number }> => {
-    const dataSourceIdsArray = dataSourceIdsToArray(dataSourceIds);
+    const dataSourceIdsArray = uuidsToArray(dataSourceIds);
     try {
         const query = knex(tableName).select('data_source_id', knex.raw('count(id)'));
         if (dataSourceIdsArray.length > 0) {

@@ -6,9 +6,9 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { dataSourceIdsToArray, validateSampleSize } from '../default.db.queries';
+import { uuidsToArray, validateSampleSize } from '../default.db.queries';
 
-describe('dataSourceIdsToArray', () => {
+describe('uuidsToArray', () => {
     const id1 = uuidV4();
     const id2 = uuidV4();
 
@@ -19,7 +19,7 @@ describe('dataSourceIdsToArray', () => {
         ['array', [id1, id2], [id1, id2]],
         ['single id', id1, [id1]]
     ])('Valid: %s', (_title, dataSourceIds, expected) => {
-        expect(dataSourceIdsToArray(dataSourceIds)).toEqual(expected);
+        expect(uuidsToArray(dataSourceIds)).toEqual(expected);
     });
 
     test.each([
@@ -32,7 +32,7 @@ describe('dataSourceIdsToArray', () => {
         ['object', { id: id1 }],
         ['array in array', [[id1]]]
     ])('Invalid: %s', (_title, dataSourceIds) => {
-        expect(() => dataSourceIdsToArray(dataSourceIds as unknown as string[])).toThrow(TrError);
+        expect(() => uuidsToArray(dataSourceIds as unknown as string[])).toThrow(TrError);
     });
 });
 
