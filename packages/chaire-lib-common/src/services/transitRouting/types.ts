@@ -7,7 +7,7 @@
 // This file contains types for the trRouting calculations
 import type * as TrRoutingApi from '../../api/TrRouting';
 
-export enum ErrorCodes {
+export enum TrRoutingErrorCodes {
     NoRoutingFound = 'TRROUTING_NO_ROUTING_FOUND',
     NoAccessAtOrigin = 'TRROUTING_NO_ROUTING_NO_ACCESS_AT_ORIGIN',
     NoAccessAtDestination = 'TRROUTING_NOT_ROUTING_NO_ACCESS_AT_DESTINATION',

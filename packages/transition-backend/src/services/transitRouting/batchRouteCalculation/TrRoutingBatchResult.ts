@@ -13,7 +13,7 @@ import { SegmentToGeoJSONFromPaths } from 'transition-common/lib/services/transi
 import { getDefaultCsvAttributes, getDefaultStepsAttributes } from '../ResultAttributes';
 import type { OdTripRouteOutput, OdTripRouteResult } from '../types';
 import { unparse } from 'papaparse';
-import { ErrorCodes, type TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
+import { TrRoutingErrorCodes, type TrRoutingRoute } from 'chaire-lib-common/lib/services/transitRouting/types';
 import type { TransitRoutingResultData } from 'chaire-lib-common/lib/services/routing/TransitRoutingResult';
 import { routeToUserObject } from 'chaire-lib-common/lib/services/transitRouting/TrRoutingResultConversion';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
@@ -335,7 +335,7 @@ const generateCsvErrorRow = (
 ): string => {
     csvAttributes.status = error !== undefined && TrError.isTrError(error) ? error.getCode() : 'error';
 
-    if (error !== undefined && TrError.isTrError(error) && error.getCode() === ErrorCodes.OtherError) {
+    if (error !== undefined && TrError.isTrError(error) && error.getCode() === TrRoutingErrorCodes.OtherError) {
         console.error(`cannot calculate transit route with trRouting: ${error.message}`);
     }
 

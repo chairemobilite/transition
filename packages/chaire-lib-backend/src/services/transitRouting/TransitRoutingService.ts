@@ -20,31 +20,31 @@ import * as Status from 'chaire-lib-common/lib/utils/Status';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import * as TrRoutingApi from 'chaire-lib-common/lib/api/TrRouting';
 import {
-    ErrorCodes,
+    TrRoutingErrorCodes,
     type TrRoutingResultAccessibilityMap,
     type TrRoutingRouteResult
 } from 'chaire-lib-common/lib/services/transitRouting/types';
 
 const errorCodeByReason = (
     reason: TrRoutingApi.TrRoutingNoRoutingReason | TrRoutingApi.TrRoutingV2.NoRoutingAccessibilityReason
-): ErrorCodes => {
+): TrRoutingErrorCodes => {
     switch (reason) {
     case 'NO_ACCESS_AT_ORIGIN':
-        return ErrorCodes.NoAccessAtOrigin;
+        return TrRoutingErrorCodes.NoAccessAtOrigin;
     case 'NO_ACCESS_AT_DESTINATION':
-        return ErrorCodes.NoAccessAtDestination;
+        return TrRoutingErrorCodes.NoAccessAtDestination;
     case 'NO_SERVICE_FROM_ORIGIN':
-        return ErrorCodes.NoServiceAtOrigin;
+        return TrRoutingErrorCodes.NoServiceAtOrigin;
     case 'NO_SERVICE_TO_DESTINATION':
-        return ErrorCodes.NoServiceAtDestination;
+        return TrRoutingErrorCodes.NoServiceAtDestination;
     case 'NO_ACCESS_AT_ORIGIN_AND_DESTINATION':
-        return ErrorCodes.NoAccessAtOriginAndDestination;
+        return TrRoutingErrorCodes.NoAccessAtOriginAndDestination;
     case 'NO_ACCESS_AT_PLACE':
-        return ErrorCodes.NoAccessAtPlace;
+        return TrRoutingErrorCodes.NoAccessAtPlace;
     case 'NO_SERVICE_AT_PLACE':
-        return ErrorCodes.NoServiceAtPlace;
+        return TrRoutingErrorCodes.NoServiceAtPlace;
     default:
-        return ErrorCodes.NoRoutingFound;
+        return TrRoutingErrorCodes.NoRoutingFound;
     }
 };
 
@@ -138,11 +138,11 @@ class TransitRoutingService {
         if (errorCode === 'ECONNREFUSED') {
             throw new TrError(
                 `cannot handle call to trRouting: ${error}`,
-                ErrorCodes.ServerNotRunning,
+                TrRoutingErrorCodes.ServerNotRunning,
                 'transit:transitRouting:errors:TrRoutingServerNotRunning'
             );
         }
-        throw new TrError(`cannot handle call to trRouting: ${errorCode || error}`, ErrorCodes.OtherError, {
+        throw new TrError(`cannot handle call to trRouting: ${errorCode || error}`, TrRoutingErrorCodes.OtherError, {
             text: 'transit:transitRouting:errors:TrRoutingServerError',
             params: { error: String(error || '-') }
         });
@@ -161,7 +161,7 @@ class TransitRoutingService {
                 `cannot calculate transit route with trRouting: ${
                     (routingResult as TrRoutingApi.TrRoutingErrorWithCode).status
                 }`,
-                ErrorCodes.DataError,
+                TrRoutingErrorCodes.DataError,
                 'transit:transitRouting:errors:DataError'
             );
         } else if (routingResult.status === 'query_error') {
@@ -169,7 +169,7 @@ class TransitRoutingService {
             if (errorCode.startsWith('MISSING_DATA_')) {
                 throw new TrError(
                     `cannot calculate transit route with trRouting: ${errorCode}`,
-                    ErrorCodes.MissingData,
+                    TrRoutingErrorCodes.MissingData,
                     `transit:transitRouting:errors:${errorCode}`
                 );
             }
@@ -187,7 +187,7 @@ class TransitRoutingService {
             const reason = routingResult.reason;
             throw new TrError(
                 'cannot calculate transit route with trRouting: no_routing_found',
-                reason !== undefined ? errorCodeByReason(reason) : ErrorCodes.NoRoutingFound,
+                reason !== undefined ? errorCodeByReason(reason) : TrRoutingErrorCodes.NoRoutingFound,
                 `transit:transitRouting:errors:${reason !== undefined ? reason : 'NoResultFound'}`
             );
         } else if (routingResult.status === 'data_error') {
@@ -195,22 +195,26 @@ class TransitRoutingService {
             // Data error on the server, data may be missing
             throw new TrError(
                 `cannot calculate transit route with trRouting because of an error on server: ${routingResult.errorCode}`,
-                isMissingData ? ErrorCodes.MissingData : ErrorCodes.DataError,
+                isMissingData ? TrRoutingErrorCodes.MissingData : TrRoutingErrorCodes.DataError,
                 `transit:transitRouting:errors:${isMissingData ? routingResult.errorCode : 'DataError'}`
             );
         } else if (routingResult.status === 'query_error') {
             throw new TrError(
                 `cannot calculate transit route with trRouting because of a query error: ${routingResult.errorCode}`,
-                ErrorCodes.QueryError,
+                TrRoutingErrorCodes.QueryError,
                 `transit:transitRouting:errors:${routingResult.errorCode}`
             );
         }
         console.log('Cannot calculate transit route with trRouting: unknown response status', routingResult);
         // throw unknown error
-        throw new TrError('cannot calculate transit route with trRouting: unknown error', ErrorCodes.OtherError, {
-            text: 'transit:transitRouting:errors:TrRoutingServerError',
-            params: { error: '-' }
-        });
+        throw new TrError(
+            'cannot calculate transit route with trRouting: unknown error',
+            TrRoutingErrorCodes.OtherError,
+            {
+                text: 'transit:transitRouting:errors:TrRoutingServerError',
+                params: { error: '-' }
+            }
+        );
     }
 
     private handleAccessMapResponse(
@@ -224,7 +228,7 @@ class TransitRoutingService {
             const reason = routingResult.reason;
             throw new TrError(
                 'cannot calculate accessible nodes with trRouting: no_routing_found',
-                reason !== undefined ? errorCodeByReason(reason) : ErrorCodes.NoRoutingFound,
+                reason !== undefined ? errorCodeByReason(reason) : TrRoutingErrorCodes.NoRoutingFound,
                 `transit:transitRouting:errors:${reason !== undefined ? reason : 'NoResultFound'}`
             );
         } else if (routingResult.status === 'data_error') {
@@ -232,22 +236,26 @@ class TransitRoutingService {
             // Data error on the server, data may be missing
             throw new TrError(
                 `cannot calculate accessible nodes with trRouting because of an error on server: ${routingResult.errorCode}`,
-                isMissingData ? ErrorCodes.MissingData : ErrorCodes.DataError,
+                isMissingData ? TrRoutingErrorCodes.MissingData : TrRoutingErrorCodes.DataError,
                 `transit:transitRouting:errors:${isMissingData ? routingResult.errorCode : 'DataError'}`
             );
         } else if (routingResult.status === 'query_error') {
             throw new TrError(
                 `cannot calculate accessible nodes with trRouting because of a query error: ${routingResult.errorCode}`,
-                ErrorCodes.QueryError,
+                TrRoutingErrorCodes.QueryError,
                 `transit:transitRouting:errors:${routingResult.errorCode}`
             );
         }
         console.log('Cannot calculate accessible nodes with trRouting: unknown response status', routingResult);
         // throw unknown error
-        throw new TrError('cannot calculate accessible nodes with trRouting: unknown error', ErrorCodes.OtherError, {
-            text: 'transit:transitRouting:errors:TrRoutingServerError',
-            params: { error: '-' }
-        });
+        throw new TrError(
+            'cannot calculate accessible nodes with trRouting: unknown error',
+            TrRoutingErrorCodes.OtherError,
+            {
+                text: 'transit:transitRouting:errors:TrRoutingServerError',
+                params: { error: '-' }
+            }
+        );
     }
 
     public async route(

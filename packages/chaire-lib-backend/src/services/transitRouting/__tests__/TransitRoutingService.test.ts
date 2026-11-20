@@ -10,7 +10,7 @@ import { TransitRouteQueryOptions } from 'chaire-lib-common/lib/api/TrRouting';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 import { TestUtils } from 'chaire-lib-common/lib/test';
 import { pathNoTransferRouteV2 } from 'chaire-lib-common/lib/test/services/transitRouting/TrRoutingConstantsStubs';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
+import { TrRoutingErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
 
 const origin = TestUtils.makePoint([-73.745618, 45.368994]);
 const destination = TestUtils.makePoint([-73.742861, 45.361682]);
@@ -152,7 +152,7 @@ describe('Test accessibility map calls', () => {
         expect(exception instanceof TrError).toBeTruthy();
         const exceptionObject = (exception as TrError).export();
         expect(exceptionObject.error).toEqual('cannot handle call to trRouting: Error: Accessibility map error');
-        expect(exceptionObject.errorCode).toEqual(ErrorCodes.OtherError);
+        expect(exceptionObject.errorCode).toEqual(TrRoutingErrorCodes.OtherError);
         expect((exceptionObject.localizedMessage as any).text).toContain('TrRoutingServerError');
         expect(mockAccessibilityMapBackend).toHaveBeenCalledTimes(1);
         expect(mockAccessibilityMapBackend).toHaveBeenLastCalledWith(parameters, undefined);
@@ -228,7 +228,7 @@ describe('Test route call', () => {
         expect(exception instanceof TrError).toBeTruthy();
         const exceptionObject = (exception as TrError).export();
         expect(exceptionObject.error).toEqual('cannot calculate transit route with trRouting: no_routing_found');
-        expect(exceptionObject.errorCode).toEqual(ErrorCodes.NoRoutingFound);
+        expect(exceptionObject.errorCode).toEqual(TrRoutingErrorCodes.NoRoutingFound);
         expect(exceptionObject.localizedMessage).toContain('NoResultFound');
         expect(mockRouteBackend).toHaveBeenCalledTimes(1);
         expect(mockRouteBackend).toHaveBeenLastCalledWith(parameters, undefined);
@@ -251,7 +251,7 @@ describe('Test route call', () => {
         expect(exception instanceof TrError).toBeTruthy();
         const exceptionObject = (exception as TrError).export();
         expect(exceptionObject.error).toEqual('cannot calculate transit route with trRouting: no_routing_found');
-        expect(exceptionObject.errorCode).toEqual(ErrorCodes.NoAccessAtOrigin);
+        expect(exceptionObject.errorCode).toEqual(TrRoutingErrorCodes.NoAccessAtOrigin);
         expect(exceptionObject.localizedMessage).toContain('NO_ACCESS_AT_ORIGIN');
         expect(mockRouteBackend).toHaveBeenCalledTimes(1);
         expect(mockRouteBackend).toHaveBeenLastCalledWith(parameters, undefined);
@@ -269,7 +269,7 @@ describe('Test route call', () => {
         expect(exception instanceof TrError).toBeTruthy();
         const exceptionObject = (exception as TrError).export();
         expect(exceptionObject.error).toEqual('cannot handle call to trRouting: Error: Route error');
-        expect(exceptionObject.errorCode).toEqual(ErrorCodes.OtherError);
+        expect(exceptionObject.errorCode).toEqual(TrRoutingErrorCodes.OtherError);
         expect((exceptionObject.localizedMessage as any).text).toContain('TrRoutingServerError');
         expect(mockRouteBackend).toHaveBeenCalledTimes(1);
         expect(mockRouteBackend).toHaveBeenLastCalledWith(parameters, undefined);
@@ -333,7 +333,7 @@ describe('Test summary query', () => {
         expect(exception instanceof TrError).toBeTruthy();
         const exceptionObject = (exception as TrError).export();
         expect(exceptionObject.error).toEqual('cannot handle call to trRouting: Error: Summary error');
-        expect(exceptionObject.errorCode).toEqual(ErrorCodes.OtherError);
+        expect(exceptionObject.errorCode).toEqual(TrRoutingErrorCodes.OtherError);
         expect((exceptionObject.localizedMessage as any).text).toContain('TrRoutingServerError');
         expect(mockSummaryBackend).toHaveBeenCalledTimes(1);
         expect(mockSummaryBackend).toHaveBeenLastCalledWith(params);

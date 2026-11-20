@@ -8,7 +8,11 @@
 import type GeoJSON from 'geojson';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
-import type { TripRoutingQueryAttributes, RoutingResultsByMode } from 'chaire-lib-common/lib/services/routing/types';
+import {
+    RoutingErrorCodes,
+    type TripRoutingQueryAttributes,
+    type RoutingResultsByMode
+} from 'chaire-lib-common/lib/services/routing/types';
 import { getRouteByMode } from 'chaire-lib-common/lib/services/routing/RoutingUtils';
 import transitRoutingService from '../transitRouting/TransitRoutingService';
 import type { TransitMode, RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
@@ -186,10 +190,14 @@ export class Routing {
             return {
                 routingMode,
                 result: !TrError.isTrError(error)
-                    ? new TrError(`cannot calculate routing for mode ${routingMode}:  ${error}`, 'TRCalculatorError', {
-                        text: 'transit:transitRouting:errors:ErrorForMode',
-                        params: { mode: routingMode }
-                    })
+                    ? new TrError(
+                        `cannot calculate routing for mode ${routingMode}:  ${error}`,
+                        RoutingErrorCodes.CalculatorError,
+                        {
+                            text: 'transit:transitRouting:errors:ErrorForMode',
+                            params: { mode: routingMode }
+                        }
+                    )
                     : error
             };
         }

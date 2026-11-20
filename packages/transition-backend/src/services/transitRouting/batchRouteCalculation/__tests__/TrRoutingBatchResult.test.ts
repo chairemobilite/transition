@@ -18,7 +18,7 @@ import { routeToUserObject, TrRoutingBoardingStep, TrRoutingUnboardingStep, TrRo
 import Path from 'transition-common/lib/services/path/Path';
 import PathCollection from 'transition-common/lib/services/path/PathCollection';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { ErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
+import { TrRoutingErrorCodes } from 'chaire-lib-common/lib/services/transitRouting/types';
 import jobsDbQueries from '../../../../models/db/jobs.db.queries';
 import { ExecutableJob } from '../../../executableJob/ExecutableJob';
 import { BatchRouteJobType } from '../../BatchRoutingJob';
@@ -532,7 +532,7 @@ describe('Generate CSV results only', () => {
                 paths: [],
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
-                    ErrorCodes.NoRoutingFound,
+                    TrRoutingErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             },
@@ -890,7 +890,7 @@ describe('detailed csv only result', () => {
                 paths: [],
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
-                    ErrorCodes.NoRoutingFound,
+                    TrRoutingErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             }
@@ -1039,7 +1039,7 @@ describe('geometries result', () => {
                 paths: [],
                 error: new TrError(
                     `cannot calculate transit route with trRouting: no_routing_found`,
-                    ErrorCodes.NoRoutingFound,
+                    TrRoutingErrorCodes.NoRoutingFound,
                     'transit:transitRouting:errors:NoResultFound'
                 ).export()
             }
