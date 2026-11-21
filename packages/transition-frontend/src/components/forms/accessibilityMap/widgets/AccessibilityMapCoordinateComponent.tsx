@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import _toString from 'lodash/toString';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
@@ -87,7 +86,7 @@ const AccessibilityMapCoordinatesComponent: React.FunctionComponent<Accessibilit
                     key={`od${state.externalUpdate}`}
                     value={state.lat}
                     stringToValue={parseFloat}
-                    valueToString={_toString}
+                    valueToString={(val) => val.toFixed(6)}
                     onValueUpdated={(newValue) => {
                         if (newValue.valid) {
                             const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
@@ -108,7 +107,7 @@ const AccessibilityMapCoordinatesComponent: React.FunctionComponent<Accessibilit
                     value={state.lon}
                     key={`od${state.externalUpdate}`}
                     stringToValue={parseFloat}
-                    valueToString={_toString}
+                    valueToString={(val) => val.toFixed(6)}
                     onValueUpdated={(newValue) => {
                         if (newValue.valid) {
                             const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
