@@ -8,13 +8,6 @@ import type EventEmitter from 'events';
 import { encode } from 'geobuf';
 import { PbfWriter } from 'pbf';
 
-import AgencyCollection from 'transition-common/lib/services/agency/AgencyCollection';
-import LineCollection from 'transition-common/lib/services/line/LineCollection';
-import NodeCollection from 'transition-common/lib/services/nodes/NodeCollection';
-import PathCollection from 'transition-common/lib/services/path/PathCollection';
-import ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
-import ServiceCollection from 'transition-common/lib/services/service/ServiceCollection';
-
 import agenciesDbQueries from '../../models/db/transitAgencies.db.queries';
 import linesDbQueries from '../../models/db/transitLines.db.queries';
 import nodesDbQueries from '../../models/db/transitNodes.db.queries';
@@ -53,7 +46,6 @@ interface TransitClassConfig<TDuplicateOptions = never> {
     hasIntegerId?: boolean;
     dbQueries: any;
     cacheQueries: any;
-    collection?: unknown;
     saveCollectionToCacheFct?: () => Promise<unknown>;
     deleteMultiple?: (ids: string[]) => Promise<string[] | number[]>;
     duplicate?: DuplicateFunction<TDuplicateOptions>;
@@ -95,7 +87,6 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         classNamePlural: 'Agencies',
         dbQueries: agenciesDbQueries,
         cacheQueries: agenciesCacheQueries,
-        collection: new AgencyCollection([], {}),
         saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveAgenciesToCache,
         duplicate: duplicateAgencies
     },
@@ -105,7 +96,6 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         classNamePlural: 'Lines',
         dbQueries: linesDbQueries,
         cacheQueries: linesCacheQueries,
-        collection: new LineCollection([], {}),
         saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveLinesToCache,
         duplicate: duplicateLines
     },
@@ -116,7 +106,6 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         hasIntegerId: true,
         dbQueries: nodesDbQueries,
         cacheQueries: nodesCacheQueries,
-        collection: new NodeCollection([], {}),
         saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveNodesToCache
     },
     paths: {
@@ -126,7 +115,6 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         hasIntegerId: true,
         dbQueries: pathsDbQueries,
         cacheQueries: pathsCacheQueries,
-        collection: new PathCollection([], {}),
         saveCollectionToCacheFct: dbToCacheQueries.loadAndSavePathsToCache,
         duplicate: duplicatePaths
     },
@@ -136,7 +124,6 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         classNamePlural: 'Scenarios',
         dbQueries: scenariosDbQueries,
         cacheQueries: scenariosCacheQueries,
-        collection: new ScenarioCollection([], {}),
         saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveScenariosToCache,
         deleteMultiple: scenariosDbQueries.deleteMultiple
     },
@@ -146,7 +133,6 @@ const transitClassesConfig: Record<string, TransitClassConfig> = {
         classNamePlural: 'Services',
         dbQueries: servicesDbQueries,
         cacheQueries: servicesCacheQueries,
-        collection: new ServiceCollection([], {}),
         saveCollectionToCacheFct: dbToCacheQueries.loadAndSaveServicesToCache,
         duplicate: duplicateServices
     },
