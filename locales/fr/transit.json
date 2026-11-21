@@ -1014,6 +1014,7 @@
         }
     },
     "jobs": {
+        "Name": "Nom",
         "Date": "Date",
         "EndTime": "Fin",
         "Status": "Status",
@@ -1056,6 +1057,7 @@
     "batchCalculation": {
         "List": "Tâches de calcul",
         "New": "Nouveau calcul",
+        "CalculationNameHelp": "Optionnel. Ce nom identifie le calcul dans la liste des calculs. Il n'a aucun effet sur les résultats.",
         "UploadFile": "Téléverser le fichier",
         "DemandData": "Données de la demande",
         "AnalysisParameters": "Paramètres",

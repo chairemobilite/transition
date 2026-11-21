@@ -222,7 +222,7 @@ describe('trRouting routes', () => {
     test('Batch route correctly', (done) => {
         mockedEnqueue.mockResolvedValueOnce(true);
         mockedRefresh.mockResolvedValueOnce(true);
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, (status) => {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, {}, (status) => {
             expect(Status.isStatusOk(status));
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
@@ -241,6 +241,27 @@ describe('trRouting routes', () => {
         });
     });
 
+    test('Batch route with a job name', (done) => {
+        mockedEnqueue.mockResolvedValueOnce(true);
+        mockedRefresh.mockResolvedValueOnce(true);
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, { name: 'My calculation' }, (status) => {
+            expect(Status.isStatusOk(status)).toBe(true);
+            expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+            expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
+                type: 'batchRoute',
+                name: 'My calculation',
+                user_id: 1,
+                data: {
+                    parameters: {
+                        demandAttributes: demandParameters.fileAndMapping.fieldMappings,
+                        transitRoutingAttributes: transitAttributes
+                    }
+                }
+            }));
+            done();
+        });
+    });
+
     test('Batch route auto add walking', (done) => {
         const transitAttributesOnlyTransit = {
             minWaitingTimeSeconds: 180,
@@ -250,7 +271,7 @@ describe('trRouting routes', () => {
 
         mockedEnqueue.mockResolvedValueOnce(true);
         mockedRefresh.mockResolvedValueOnce(true);
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributesOnlyTransit, (status) => {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributesOnlyTransit, {}, (status) => {
             expect(Status.isStatusOk(status));
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
@@ -279,7 +300,7 @@ describe('trRouting routes', () => {
         const localizedMessage = 'transit:Message';
         const error = new TrError(message, code, localizedMessage);
         mockedEnqueue.mockRejectedValueOnce(error);
-        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, function (status) {
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributes, {}, function (status) {
             expect(Status.isStatusError(status)).toBe(true);
             expect((status as any).error).toEqual(message);
             expect(mockedJobCreate).toHaveBeenCalledTimes(1);
@@ -307,6 +328,7 @@ describe('trRouting routes', () => {
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
                 user_id: 1,
                 type: 'batchAccessMap',
+                name: batchAccessMapParameters.calculationName,
                 data: {
                     parameters: {
                         batchAccessMapAttributes: batchAccessMapParameters,
@@ -333,6 +355,7 @@ describe('trRouting routes', () => {
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
                 user_id: 1,
                 type: 'batchAccessMap',
+                name: batchAccessMapParameters.calculationName,
                 data: {
                     parameters: {
                         batchAccessMapAttributes: batchAccessMapParameters,
