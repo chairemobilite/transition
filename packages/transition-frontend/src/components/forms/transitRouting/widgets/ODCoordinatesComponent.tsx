@@ -6,7 +6,6 @@
  */
 import React from 'react';
 import { withTranslation, type WithTranslation } from 'react-i18next';
-import _toString from 'lodash/toString';
 import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons/faExchangeAlt';
 
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
@@ -15,6 +14,7 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 import Button from 'chaire-lib-frontend/lib/components/input/Button';
 
 export interface ODCoordinatesComponentProps extends WithTranslation {
+    numberOfDecimals?: number;
     originGeojson?: GeoJSON.Feature<GeoJSON.Point>;
     destinationGeojson?: GeoJSON.Feature<GeoJSON.Point>;
     onUpdateOD: (
@@ -33,6 +33,10 @@ interface ODCoordinatesComponentState {
 }
 
 class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps, ODCoordinatesComponentState> {
+    static defaultProps: Partial<ODCoordinatesComponentProps> = {
+        numberOfDecimals: 5
+    };
+
     constructor(props: ODCoordinatesComponentProps) {
         super(props);
         this.state = {
@@ -174,7 +178,7 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                         key={`od${this.state.externalUpdate}`}
                         value={this.state.originLat}
                         stringToValue={parseFloat}
-                        valueToString={_toString}
+                        valueToString={(val) => val.toFixed(this.props.numberOfDecimals) }
                         onValueUpdated={(newValue) => {
                             if (newValue.valid) {
                                 const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
@@ -191,7 +195,7 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                         value={this.state.originLon}
                         key={`od${this.state.externalUpdate}`}
                         stringToValue={parseFloat}
-                        valueToString={_toString}
+                        valueToString={(val) => val.toFixed(this.props.numberOfDecimals) }
                         onValueUpdated={(newValue) => {
                             if (newValue.valid) {
                                 const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
@@ -220,7 +224,7 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                         value={this.state.destinationLat}
                         key={`od${this.state.externalUpdate}`}
                         stringToValue={parseFloat}
-                        valueToString={_toString}
+                        valueToString={(val) => val.toFixed(this.props.numberOfDecimals) }
                         onValueUpdated={(newValue) => {
                             if (newValue.valid) {
                                 const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
@@ -237,7 +241,7 @@ class ODCoordinatesComponent extends React.Component<ODCoordinatesComponentProps
                         value={this.state.destinationLon}
                         key={`od${this.state.externalUpdate}`}
                         stringToValue={parseFloat}
-                        valueToString={_toString}
+                        valueToString={(val) => val.toFixed(this.props.numberOfDecimals) }
                         onValueUpdated={(newValue) => {
                             if (newValue.valid) {
                                 const value = Number.isNaN(newValue.value) ? undefined : newValue.value;

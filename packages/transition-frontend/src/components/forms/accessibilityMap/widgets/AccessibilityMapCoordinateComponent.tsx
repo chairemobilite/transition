@@ -15,6 +15,7 @@ import InputStringFormatted from 'chaire-lib-frontend/lib/components/input/Input
 interface AccessibilityMapCoordinatesComponentProps {
     locationGeojson?: GeoJSON.Feature<GeoJSON.Point>;
     onUpdateCoordinates: (coordinates?: GeoJSON.Position, checkIfHasLocation?: boolean) => void;
+    numberOfDecimals?: number;
     id: string;
     locationName?: string;
 }
@@ -27,9 +28,10 @@ interface AccessibilityMapCoordinatesComponentState {
 
 // TODO: Generalize this component to make it work with any parent component, and replace the coordinates component used in the routing tab with it.
 // See issue #1402
-const AccessibilityMapCoordinatesComponent: React.FunctionComponent<AccessibilityMapCoordinatesComponentProps> = (
-    props: AccessibilityMapCoordinatesComponentProps
-) => {
+const AccessibilityMapCoordinatesComponent: React.FunctionComponent<AccessibilityMapCoordinatesComponentProps> = ({
+    numberOfDecimals = 5,
+    ...props
+}: AccessibilityMapCoordinatesComponentProps) => {
     const { t } = useTranslation(['transit']);
 
     const [state, setState] = React.useState<AccessibilityMapCoordinatesComponentState>({
@@ -87,7 +89,7 @@ const AccessibilityMapCoordinatesComponent: React.FunctionComponent<Accessibilit
                     key={`od${state.externalUpdate}`}
                     value={state.lat}
                     stringToValue={parseFloat}
-                    valueToString={_toString}
+                    valueToString={(val) => val.toFixed(numberOfDecimals)}
                     onValueUpdated={(newValue) => {
                         if (newValue.valid) {
                             const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
@@ -108,7 +110,7 @@ const AccessibilityMapCoordinatesComponent: React.FunctionComponent<Accessibilit
                     value={state.lon}
                     key={`od${state.externalUpdate}`}
                     stringToValue={parseFloat}
-                    valueToString={_toString}
+                    valueToString={(val) => val.toFixed(numberOfDecimals)}
                     onValueUpdated={(newValue) => {
                         if (newValue.valid) {
                             const value = Number.isNaN(newValue.value) ? undefined : newValue.value;
