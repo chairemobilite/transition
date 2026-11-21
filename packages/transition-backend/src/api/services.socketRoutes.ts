@@ -215,6 +215,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     const job: ExecutableJob<BatchRouteJobType> = await ExecutableJob.createJob({
                         user_id: userId,
                         type: 'batchRoute',
+                        name: transitRoutingAttributes.calculationName,
                         data: {
                             parameters: {
                                 demandAttributes: parameters.fileAndMapping.fieldMappings,
@@ -307,6 +308,7 @@ export default function (socket: EventEmitter, userId?: number) {
                     const job = await ExecutableJob.createJob({
                         user_id: userId,
                         type: 'batchAccessMap',
+                        name: parameters.calculationName,
                         data: {
                             parameters: {
                                 batchAccessMapAttributes: parameters,

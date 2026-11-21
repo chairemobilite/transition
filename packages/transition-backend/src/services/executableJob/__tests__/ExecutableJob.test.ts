@@ -109,6 +109,20 @@ describe('Test jobs creation', () => {
         expect(jobUpdatedListener).toHaveBeenCalledWith({ id: jobObj.attributes.id, type: jobObj.attributes.type });
     });
 
+    test.each([
+        { description: 'a name is kept', name: 'My job', expectedName: 'My job' },
+        { description: 'spaces around the name are removed', name: '  My job ', expectedName: 'My job' },
+        { description: 'an empty name is no name', name: '', expectedName: undefined },
+        { description: 'a blank name is no name', name: '   ', expectedName: undefined },
+        { description: 'a name that is not a string is no name', name: 3 as unknown as string, expectedName: undefined }
+    ])('Test create job with a name: $description', async ({ name, expectedName }) => {
+        mockedJobCreate.mockResolvedValueOnce(jobAttributes.id);
+        const jobObj = await ExecutableJob.createJob({ ...newJobAttributes, name });
+        expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+        expect(mockedJobCreate.mock.calls[0][0].name).toEqual(expectedName);
+        expect(jobObj.attributes.name).toEqual(expectedName);
+    });
+
     test('Test create job with input files', async () => {
         const filename = 'blabla.csv';
         const absoluteFilePath = `/path/to/file/${filename}`;

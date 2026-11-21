@@ -241,6 +241,29 @@ describe('trRouting routes', () => {
         });
     });
 
+    test('Batch route with a calculation name', (done) => {
+        const transitAttributesWithName = { ...transitAttributes, calculationName: 'My calculation' };
+
+        mockedEnqueue.mockResolvedValueOnce(true);
+        mockedRefresh.mockResolvedValueOnce(true);
+        socketStub.emit(TrRoutingConstants.BATCH_ROUTE, demandParameters, transitAttributesWithName, (status) => {
+            expect(Status.isStatusOk(status));
+            expect(mockedJobCreate).toHaveBeenCalledTimes(1);
+            expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
+                type: 'batchRoute',
+                name: 'My calculation',
+                user_id: 1,
+                data: {
+                    parameters: {
+                        demandAttributes: demandParameters.fileAndMapping.fieldMappings,
+                        transitRoutingAttributes: transitAttributesWithName
+                    }
+                }
+            }));
+            done();
+        });
+    });
+
     test('Batch route auto add walking', (done) => {
         const transitAttributesOnlyTransit = {
             minWaitingTimeSeconds: 180,
@@ -307,6 +330,7 @@ describe('trRouting routes', () => {
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
                 user_id: 1,
                 type: 'batchAccessMap',
+                name: batchAccessMapParameters.calculationName,
                 data: {
                     parameters: {
                         batchAccessMapAttributes: batchAccessMapParameters,
@@ -333,6 +357,7 @@ describe('trRouting routes', () => {
             expect(mockedJobCreate).toHaveBeenCalledWith(expect.objectContaining({
                 user_id: 1,
                 type: 'batchAccessMap',
+                name: batchAccessMapParameters.calculationName,
                 data: {
                     parameters: {
                         batchAccessMapAttributes: batchAccessMapParameters,
