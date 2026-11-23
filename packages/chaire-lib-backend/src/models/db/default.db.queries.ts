@@ -12,6 +12,31 @@ import TrError from 'chaire-lib-common/lib/utils/TrError';
 // TODO Move these to a generic class, so we can use identical types for U and T in generic methods.
 
 /**
+ * Validate that all strings in an array are uuids. The function also validates
+ * that the received parameter is an array, as it may come from untrusted
+ * clients and this is part of sanitation for a database query.
+ *
+ * The IDs can come from a client, so each one must be a valid uuid, and they
+ * must never be inserted in the query text: use them with `whereIn` or as
+ * bindings of `?` placeholders.
+ *
+ * @param uuids The incoming IDs, or `undefined` or `null` for no filter
+ * @throws TrError if one of the IDs is not a valid uuid
+ */
+export const assertUuidArray = (uuids: string[] | undefined | null) => {
+    // If null or undefined, this is valid
+    if (uuids === undefined || uuids === null) {
+        return;
+    }
+    if (!Array.isArray(uuids)) {
+        throw new TrError('Expected an array of uuids', 'DBQUUID0001', 'InvalidUuid');
+    }
+    if (!uuids.every((uuid) => uuidValidate(uuid))) {
+        throw new TrError('Invalid IDs, it must be a uuid', 'DBQUUID0002', 'InvalidUuid');
+    }
+};
+
+/**
  * Get the data source IDs to filter a query on as an array. Some callers, like
  * socket routes, may receive a single ID instead of an array.
  *
@@ -29,9 +54,7 @@ export const dataSourceIdsToArray = (dataSourceIds: string[] | string | undefine
         return [];
     }
     const dataSourceIdsArray = Array.isArray(dataSourceIds) ? dataSourceIds : [dataSourceIds];
-    if (!dataSourceIdsArray.every((dataSourceId) => uuidValidate(dataSourceId))) {
-        throw new TrError('Invalid data source ID, it must be a uuid', 'DBQDS0001', 'InvalidDataSourceId');
-    }
+    assertUuidArray(dataSourceIdsArray);
     return dataSourceIdsArray;
 };
 
