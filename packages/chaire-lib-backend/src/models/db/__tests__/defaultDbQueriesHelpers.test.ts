@@ -6,7 +6,7 @@
  */
 import { v4 as uuidV4 } from 'uuid';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
-import { dataSourceIdsToArray, validateSampleSize } from '../default.db.queries';
+import { assertUuidArray, dataSourceIdsToArray, validateSampleSize } from '../default.db.queries';
 
 describe('dataSourceIdsToArray', () => {
     const id1 = uuidV4();
@@ -33,6 +33,32 @@ describe('dataSourceIdsToArray', () => {
         ['array in array', [[id1]]]
     ])('Invalid: %s', (_title, dataSourceIds) => {
         expect(() => dataSourceIdsToArray(dataSourceIds as unknown as string[])).toThrow(TrError);
+    });
+});
+
+describe('assertUuidArray', () => {
+    const id1 = uuidV4();
+    const id2 = uuidV4();
+
+    test.each([
+        ['undefined', undefined,],
+        ['null', null],
+        ['empty array', []],
+        ['array of uuids', [id1, id2]]
+    ])('Valid: %s', (_title, uuids) => {
+        expect(() => assertUuidArray(uuids)).not.toThrow();
+    });
+
+    test.each([
+        ['not an array', 'id1'],
+        ['SQL after one of the uuid', [id1, `${id1}'); DROP TABLE users; --`]],
+        ['one invalid id in array', [id1, 'id2']],
+        ['null in array', [id1, null]],
+        ['number', 1],
+        ['object', { id: id1 }],
+        ['array in array', [[id1]]]
+    ])('Invalid: %s', (_title, uuids) => {
+        expect(() => assertUuidArray(uuids as unknown as string[])).toThrow(TrError);
     });
 });
 
