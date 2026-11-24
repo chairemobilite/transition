@@ -76,7 +76,7 @@
         "eslint": "^10.13.0",
         "eslint-plugin-n": "^18.5.0",
         "gtfs-types": "^4.0.0",
-        "i18next": "^26.0.6",
+        "i18next": "^26.3.4",
         "jest": "^30.5.2",
         "jest-each": "^30.5.2",
         "jest-fetch-mock": "^3.0.3",
