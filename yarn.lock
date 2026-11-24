@@ -358,7 +358,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.11.1, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.18.0, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.27.6, @babel/runtime@npm:^7.29.2, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
+"@babel/runtime@npm:^7.10.1, @babel/runtime@npm:^7.11.1, @babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.18.0, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.27.6, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
   version: 7.29.2
   resolution: "@babel/runtime@npm:7.29.2"
   checksum: 10c0/30b80a0140d16467792e1bbeb06f655b0dab70407da38dfac7fedae9c859f9ae9d846ef14ad77bd3814c064295fe9b1bc551f1541ea14646ae9f22b71a8bc17a
@@ -6138,7 +6138,7 @@ __metadata:
     fetch-retry: "npm:^6.0.0"
     geojson-validation: "npm:^1.0.2"
     glob: "npm:^14.0.4"
-    i18next: "npm:^26.0.6"
+    i18next: "npm:^26.3.4"
     i18next-fs-backend: "npm:^2.6.6"
     inquirer-file-selector: "npm:^1.0.1"
     iso-3166-ts: "npm:^2.2.0"
@@ -6192,7 +6192,7 @@ __metadata:
     geobuf: "npm:^4.0.0"
     geojson-validation: "npm:^1.0.2"
     geokdbush: "npm:^2.1.0"
-    i18next: "npm:^26.0.6"
+    i18next: "npm:^26.3.4"
     iso-3166-ts: "npm:^2.2.0"
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
@@ -6242,7 +6242,7 @@ __metadata:
     geojson-validation: "npm:^1.0.2"
     gl-matrix: "npm:^3.4.3"
     globals: "npm:^17.13.0"
-    i18next: "npm:^26.0.6"
+    i18next: "npm:^26.3.4"
     i18next-browser-languagedetector: "npm:^8.2.1"
     i18next-http-backend: "npm:^4.0.4"
     jest: "npm:^30.5.2"
@@ -8688,17 +8688,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"i18next@npm:^26.0.6":
-  version: 26.0.6
-  resolution: "i18next@npm:26.0.6"
-  dependencies:
-    "@babel/runtime": "npm:^7.29.2"
+"i18next@npm:^26.3.4":
+  version: 26.3.4
+  resolution: "i18next@npm:26.3.4"
   peerDependencies:
     typescript: ^5 || ^6
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/3a2d81352393657fabf9903990e6cc3232ff4935ea131ecf6326d80aaf8394f7cb1099a00cad705ecc5b083ffcba80f45e6e77dfa2ca16c64ce1ef4c9de2d9c9
+  checksum: 10c0/09b2e578660b1cdcb284ed00e1f1c8559871fa66cbf85e58f9b78bf782e3b575341f0668ca7230fc80d30104bec42f8ac3ac221096d0f6e6bfbf18255dcccc94
   languageName: node
   linkType: hard
 
@@ -13618,7 +13616,7 @@ __metadata:
     geobuf: "npm:^4.0.0"
     glob: "npm:^14.0.4"
     gtfs-types: "npm:^4.0.0"
-    i18next: "npm:^26.0.6"
+    i18next: "npm:^26.3.4"
     inquirer-file-selector: "npm:^1.0.1"
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
@@ -13715,7 +13713,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.5"
     globals: "npm:^17.13.0"
     html-webpack-plugin: "npm:^5.6.5"
-    i18next: "npm:^26.0.6"
+    i18next: "npm:^26.3.4"
     jest: "npm:^30.5.2"
     jest-each: "npm:^30.5.2"
     jest-environment-jsdom: "npm:^30.5.2"
