@@ -52,6 +52,7 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
     const [, setRoutingAttributes] = useState<TransitRoutingAttributes>(transitRouting.attributes);
     // FIXME using any to avoid typing the formValues, which would be tedious, will be rewritten soon anyway
     const [formValues, setFormValues] = useState<any>(() => ({
+        engine: transitRouting.attributes.engine || 'osrm',
         routingName: transitRouting.attributes.routingName || '',
         routingModes: transitRouting.attributes.routingModes || ['transit'],
         minWaitingTimeSeconds: transitRouting.attributes.minWaitingTimeSeconds,
@@ -323,6 +324,14 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
         };
     });
 
+    // TODO: populate using truely available engines instead of hardcoding here.
+    const routingEnginesChoices = [
+        { value: 'osrm', label: 'OSRM' },
+        { value: 'valhalla', label: 'Valhalla' },
+    ];
+    const selectedRoutingEngine = formValues.engine || 'osrm';
+    console.log("selectedRoutingEngine", selectedRoutingEngine);
+
     return (
         <React.Fragment>
             <form id="tr__form-transit-routing" className="tr__form-transit-routing apptr__form">
@@ -409,6 +418,20 @@ const TransitRoutingForm: React.FC<TransitRoutingFormProps> = (props) => {
                                     pattern={'[^,"\':;\r\n\t\\\\]*'}
                                 />
                             </InputWrapper>
+                            <Collapsible trigger={t('form:advancedFields')} transitionTime={100}>
+                            <div className="tr__form-section">
+                                <div className="apptr__form-input-container _two-columns">
+                                    <label>{t('transit:transitRouting:RoutingEngine')}</label>
+                                    <InputSelect
+                                        id={'formFieldTransitRoutingEngine'}
+                                        value={selectedRoutingEngine}
+                                        choices={routingEnginesChoices}
+                                        noBlank={true}
+                                        onValueChange={(e) => onValueChange('engine', { value: e.target.value })}
+                                    />
+                                </div>
+                            </div>
+                        </Collapsible>
                             <div className="tr__form-buttons-container">
                                 <Button
                                     size="small"

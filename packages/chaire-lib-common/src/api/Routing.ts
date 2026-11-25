@@ -5,6 +5,7 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import type osrm from 'osrm';
+import type * as Valhalla from './Valhalla';
 
 /*
 Content of the osrm type can be found at
@@ -14,22 +15,24 @@ https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/osrm/index.
 import type { RoutingMode } from '../config/routingModes';
 import type { TripRoutingQueryAttributes } from '../services/routing/types';
 
-/**
- * Options of a match query. The geometries of the results are always GeoJSON,
- * so the `geometries` option cannot be set.
- */
-export interface TransitionMatchOptions extends Omit<osrm.MatchOptions, 'geometries'> {
-    mode: RoutingMode;
-    points: GeoJSON.Feature<GeoJSON.Point>[];
-}
-
-/**
- * Options of a route query. The geometries of the results are always GeoJSON,
- * so the `geometries` option cannot be set.
- */
-export interface TransitionRouteOptions extends Omit<osrm.RouteOptions, 'geometries'> {
+interface TransitionRoutingOptions {
     mode: RoutingMode;
     points: GeoJSON.Feature<GeoJSON.Point>[];
     routingAttributes?: TripRoutingQueryAttributes;
     withAlternatives?: boolean;
 }
+
+/**
+ * Options of a match query. The geometries of the results are always GeoJSON,
+ * so the `geometries` option cannot be set.
+ */
+export type OSRMMatchOptions = TransitionRoutingOptions & Omit<osrm.MatchOptions, 'geometries'>;
+export type ValhallaMatchOptions = TransitionRoutingOptions & Valhalla.ValhallaMatchOptions;
+export type ValhallaIsochroneOptions = Valhalla.ValhallaIsochroneOptions & { mode: RoutingMode };
+
+/**
+ * Options of a route query. The geometries of the results are always GeoJSON,
+ * so the `geometries` option cannot be set.
+ */
+export type ValhallaRouteOptions = TransitionRoutingOptions & Valhalla.ValhallaRouteOptions;
+export type OSRMRouteOptions = TransitionRoutingOptions & Omit<osrm.RouteOptions, 'geometries'>;

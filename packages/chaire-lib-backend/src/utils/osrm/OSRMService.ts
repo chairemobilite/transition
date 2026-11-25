@@ -7,7 +7,7 @@
 import type osrm from 'osrm';
 
 import type * as Status from 'chaire-lib-common/lib/utils/Status';
-import type { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import type { OSRMRouteOptions, OSRMMatchOptions } from 'chaire-lib-common/lib/api/Routing';
 import type * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
 import type { RoutingMode } from 'chaire-lib-common/lib/config/routingModes';
 
@@ -20,11 +20,11 @@ class OSRMService {
         this._modeRegistry = {} as Record<RoutingMode, OSRMMode>;
     }
 
-    public route(parameters: TransitionRouteOptions): Promise<Status.Status<osrm.RouteResults>> {
+    public route(parameters: OSRMRouteOptions): Promise<Status.Status<osrm.RouteResults>> {
         return this.getMode(parameters.mode).route(parameters);
     }
 
-    public match(parameters: TransitionMatchOptions): Promise<Status.Status<osrm.MatchResults>> {
+    public match(parameters: OSRMMatchOptions): Promise<Status.Status<osrm.MatchResults>> {
         return this.getMode(parameters.mode).match(parameters);
     }
 

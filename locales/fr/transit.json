@@ -618,6 +618,7 @@
         "DownloadBatchRoutingCsv": "Calculs sauvegardés (CSV)",
         "ResetBatchRoutingExport": "Réinitialiser calculs sauvegardés",
         "RoutingPort": "Port du serveur de calcul",
+        "RoutingEngine": "Moteur de calcul",
         "SampleRatio": "Ratio de l'échantillon [0,1]",
         "WithAlternatives": "Calcul avec alternatives",
         "CalculatePois": "Calcul avec lieux d'activité",

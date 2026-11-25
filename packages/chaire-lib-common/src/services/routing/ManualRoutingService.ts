@@ -100,4 +100,8 @@ export default class ManualRoutingService extends RoutingService.default {
         // TODO: Implement using bird distances
         throw new Error('ManualRoutingService tableTo Method not implemented.');
     }
+
+    public async isochrone(_params: RoutingService.IsochroneParameters): Promise<RoutingService.IsochroneResults> {
+        throw new Error("ManualRoutingService isochrone Method not implemented.")
+    }
 }
