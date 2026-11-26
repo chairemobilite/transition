@@ -8,6 +8,7 @@ const mockSpawn = require('mock-spawn');
 
 let testSpawn = mockSpawn();
 
+import path from 'path';
 import { DEFAULT_LOG_FILE_SIZE_KB } from '../../../config/server.config';
 //TODO maybe use just fs object calls
 import { fileManager } from '../../filesystem/fileManager';
@@ -438,6 +439,7 @@ describe('Process Manager testing', () => {
         const fileTransport = (logger as any).transports[0] as winston.transports.FileTransportInstance;
         expect(fileTransport.maxsize).toEqual(2048 * 1024);
         expect(fileTransport.maxFiles).toEqual(5);
+        expect(path.join(fileTransport.dirname, fileTransport.filename)).toEqual(ProcessManager.getLogFilePath('TEST', testServiceName));
     });
 
     test('Start no wait string', async () => {

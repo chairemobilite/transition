@@ -105,6 +105,11 @@ const startTrRoutingProcess = async (
                 process.env.TR_ROUTING_PATH === undefined ? process.env.PATH : process.env.TR_ROUTING_PATH
             }`
         );
+    } else if (processStatus.status === 'not_running' || processStatus.status === 'error') {
+        // The process was started, but exited or failed before being ready, its output may explain why
+        console.error(
+            `trRouting on port ${port} failed to start, see its log file for details: ${ProcessManager.getLogFilePath(tagName, serviceName)}`
+        );
     }
     return processStatus;
 };
