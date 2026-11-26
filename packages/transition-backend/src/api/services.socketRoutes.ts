@@ -6,6 +6,7 @@
  */
 import type { EventEmitter } from 'events';
 import type osrm from 'osrm';
+import * as Valhalla from 'chaire-lib-common/lib/api/Valhalla';
 import fs from 'fs';
 
 import { isSocketIo } from './socketUtils';
@@ -13,8 +14,15 @@ import serverConfig from 'chaire-lib-backend/lib/config/server.config';
 import trRoutingProcessManager from 'chaire-lib-backend/lib/utils/processManagers/TrRoutingProcessManager';
 import osrmProcessManager from 'chaire-lib-backend/lib/utils/processManagers/OSRMProcessManager';
 import osrmService from 'chaire-lib-backend/lib/utils/osrm/OSRMService';
+import valhallaService from 'chaire-lib-backend/lib/utils/valhalla/ValhallaService';
 import { TrRoutingConstants } from 'chaire-lib-common/lib/api/TrRouting';
-import type { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import type {
+    OSRMRouteOptions,
+    OSRMMatchOptions,
+    ValhallaRouteOptions,
+    ValhallaMatchOptions,
+    ValhallaIsochroneOptions
+} from 'chaire-lib-common/lib/api/Routing';
 import type { AccessibilityMapAttributes } from 'transition-common/lib/services/accessibilityMap/TransitAccessibilityMapRouting';
 import type {
     BatchRoutingOdDemandFromCsvAttributes,
@@ -53,13 +61,53 @@ export default function (socket: EventEmitter, userId?: number) {
 
     socket.on(
         'service.osrmRouting.route',
-        async (parameters: TransitionRouteOptions, callback: (status: Status.Status<osrm.RouteResults>) => void) => {
+        async (parameters: OSRMRouteOptions, callback: (status: Status.Status<osrm.RouteResults>) => void) => {
             try {
                 const routingResults = await osrmService.route(parameters);
                 callback(routingResults);
             } catch (error) {
                 console.error(error);
                 callback(Status.createError(TrError.isTrError(error) ? error.message : 'Error routing points'));
+            }
+        }
+    );
+
+    socket.on(
+        'service.valhallaRouting.route',
+        async (
+            parameters: ValhallaRouteOptions,
+            callback: (status: Status.Status<Valhalla.ValhallaRouteResults>) => void
+        ) => {
+            try {
+                const routingResults = await valhallaService.route(parameters);
+                callback(routingResults);
+            } catch (error) {
+                console.error(error);
+                callback(
+                    Status.createError(
+                        TrError.isTrError(error) ? error.message : 'Error routing points'
+                    )
+                );
+            }
+        }
+    );
+        
+    socket.on(
+        'service.valhallaRouting.isochrone',
+        async (
+            parameters: ValhallaIsochroneOptions,
+            callback: (status: Status.Status<Valhalla.ValhallaIsochroneResults>) => void
+        ) => {
+            try {
+                const routingResults = await valhallaService.isochrone(parameters);
+                callback(routingResults);
+            } catch (error) {
+                console.error(error);
+                callback(
+                    Status.createError(
+                        TrError.isTrError(error) ? error.message : 'Error calculating isochrone'
+                    )
+                );
             }
         }
     );
@@ -87,7 +135,7 @@ export default function (socket: EventEmitter, userId?: number) {
     // TODO: Better type the match method and the status in the callback (see PR #1719)
     socket.on(
         'service.osrmRouting.match',
-        async (parameters: TransitionMatchOptions, callback: (status: unknown) => void) => {
+        async (parameters: OSRMMatchOptions, callback: (status: unknown) => void) => {
             try {
                 const routingResults = await osrmService.match(parameters);
                 callback(routingResults);

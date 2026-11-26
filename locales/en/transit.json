@@ -618,6 +618,7 @@
         "DownloadBatchRoutingCsv": "Saved routes (CSV)",
         "ResetBatchRoutingExport": "Reset saved routes",
         "RoutingPort": "Routing server port",
+        "RoutingEngine": "Routing engine",
         "SampleRatio": "Sample ratio [0,1]",
         "WithAlternatives": "Calculate with alternatives",
         "CalculatePois": "Calculate with points of interest",

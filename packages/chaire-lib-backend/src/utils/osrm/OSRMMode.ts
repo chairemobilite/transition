@@ -13,14 +13,14 @@ import type osrm from 'osrm'; // Types from the osrm API definition see https://
 
 import type * as RoutingService from 'chaire-lib-common/lib/services/routing/RoutingService';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
-import type { TransitionRouteOptions, TransitionMatchOptions } from 'chaire-lib-common/lib/api/OSRMRouting';
+import type { OSRMRouteOptions, OSRMMatchOptions } from 'chaire-lib-common/lib/api/Routing';
 
 import fetchRetry from 'fetch-retry';
 const fetch = fetchRetry(global.fetch);
 
 type OSRMServiceTypes = 'route' | 'nearest' | 'table' | 'match' | 'trip' | 'tile';
 
-type OSRMOptions = osrm.MatchOptions | osrm.RouteOptions | osrm.TableOptions;
+type OSRMOptions = OSRMRouteOptions | OSRMMatchOptions | osrm.TableOptions;
 
 const COMMON_FETCH_OPTIONS = {
     headers: {
@@ -72,7 +72,7 @@ class OSRMMode {
         }
     }
 
-    public async route(params: TransitionRouteOptions): Promise<Status.Status<osrm.RouteResults>> {
+    public async route(params: OSRMRouteOptions): Promise<Status.Status<osrm.RouteResults>> {
         this.validateParamMode(params.mode);
         //TODO validate that points is not empty?? Does it make sense ?
 
@@ -109,7 +109,7 @@ class OSRMMode {
         }
     }
 
-    public async match(params: TransitionMatchOptions): Promise<Status.Status<osrm.MatchResults>> {
+    public async match(params: OSRMMatchOptions): Promise<Status.Status<osrm.MatchResults>> {
         this.validateParamMode(params.mode);
 
         //TODO validate that points is not empty?? Does it make sense ?

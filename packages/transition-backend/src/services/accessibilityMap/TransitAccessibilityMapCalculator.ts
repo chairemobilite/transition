@@ -7,6 +7,8 @@
 import {
     featureCollection as turfFeatureCollection,
     area as turfArea,
+    point as turfPoint,
+    union as turfUnion,
     intersect as turfIntersect,
     difference as turfDifference
 } from '@turf/turf';
@@ -24,6 +26,7 @@ import { secondsSinceMidnightToTimeStr } from 'chaire-lib-common/lib/utils/DateT
 import { _isBlank } from 'chaire-lib-common/lib/utils/LodashExtensions';
 import serviceLocator from 'chaire-lib-common/lib/utils/ServiceLocator';
 import transitRoutingService from 'chaire-lib-backend/lib/services/transitRouting/TransitRoutingService';
+import routingServiceManager from 'chaire-lib-common/lib/services/routing/RoutingServiceManager';
 import {
     TransitAccessibilityMapResultByNode,
     type TransitAccessibilityMapWithPolygonResult,
@@ -471,14 +474,48 @@ export class TransitAccessibilityMapCalculator {
                 });
             }
 
-            // Generate and union circles using PostGIS (auto-selects single query or batching)
-            const polygonCoordinates = await clipPolygonWithPostGIS(circles);
+            // TODO: make a frontend parameter
+            const polygonMethod: string = 'isochrone';
+            let polygon: Feature<MultiPolygon>;
 
-            const polygon = _cloneDeep(defaultGeojsonPolygon);
-            polygon.geometry.coordinates = polygonCoordinates;
+            if (polygonMethod === 'buffer') {
+                // Generate and union circles using PostGIS
+                const polygonCoordinates = await clipPolygonWithPostGIS(circles);
+
+                polygon = _cloneDeep(defaultGeojsonPolygon);
+                polygon.geometry.coordinates = polygonCoordinates;
+            } else if (polygonMethod === 'isochrone') {
+                const routingService = routingServiceManager.getRoutingServiceForEngine('valhalla');
+
+                // Generate isochrones using Valhalla, one per circle
+                const isochroneResults = await Promise.all(
+                    circles.map((circle) =>
+                        routingService.isochrone({
+                            mode: 'walking',
+                            center: turfPoint(circle.center).geometry,
+                            distanceContours: [circle.radiusKm * 1000]
+                        })
+                    )
+                );
+
+                const polygons = isochroneResults.flatMap((result) => result.features);
+                const polygonFeature = turfUnion(turfFeatureCollection(polygons));
+
+                if (!polygonFeature) {
+                    throw new Error('Could not generate accessibility polygon from Valhalla isochrones');
+                }
+
+                // Normalize Polygon to MultiPolygon
+                polygon = _cloneDeep(defaultGeojsonPolygon);
+                polygon.geometry.coordinates =
+                    polygonFeature.geometry.type === 'Polygon'
+                        ? [polygonFeature.geometry.coordinates]
+                        : polygonFeature.geometry.coordinates;
+            } else {
+                throw new Error(`Unsupported polygon method: ${polygonMethod}`);
+            }
 
             const area = turfArea(polygon);
-
             let accessiblePlacesCountByCategory;
             let accessiblePlacesCountByDetailedCategory;
 

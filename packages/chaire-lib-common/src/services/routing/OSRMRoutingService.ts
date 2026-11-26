@@ -13,12 +13,12 @@ import serviceLocator from '../../utils/ServiceLocator';
 import { _isBlank } from '../../utils/LodashExtensions';
 import Preferences from '../../config/Preferences';
 import * as Status from '../../utils/Status';
-import type * as OSRMRoutingAPI from '../../api/OSRMRouting';
+import type * as RoutingAPI from '../../api/Routing';
 import { ceilToPositiveInteger } from '../../utils/MathUtils';
 
 const defaultRoutingRadiusMeters = 20;
 
-const osrmStepToResult = (step: osrm.RouteStep) => {
+export const osrmStepToResult = (step: osrm.RouteStep) => {
     return {
         distance: step.distance,
         duration: step.duration,
@@ -27,7 +27,7 @@ const osrmStepToResult = (step: osrm.RouteStep) => {
     };
 };
 
-const osrmLegToResult = (leg: osrm.RouteLeg) => {
+export const osrmLegToResult = (leg: osrm.RouteLeg) => {
     return {
         distance: leg.distance,
         duration: leg.duration,
@@ -35,14 +35,14 @@ const osrmLegToResult = (leg: osrm.RouteLeg) => {
     };
 };
 
-const osrmMatchingToResult = (matching: osrm.MatchRoute) => {
+export const osrmMatchingToResult = (matching: osrm.MatchRoute) => {
     return {
         ...matching,
         legs: matching.legs.map(osrmLegToResult)
     };
 };
 
-const osrmRouteToResult = (matching: osrm.Route) => {
+export const osrmRouteToResult = (matching: osrm.Route) => {
     return {
         distance: matching.distance,
         duration: matching.duration,
@@ -104,7 +104,7 @@ export default class OSRMRoutingService extends RoutingService.default {
     }
 
     private async callOsrmMap(
-        params: OSRMRoutingAPI.TransitionMatchOptions
+        params: RoutingAPI.OSRMMatchOptions
     ): Promise<Status.Status<osrm.MatchResults>> {
         //console.log("osrm params", params);
         return new Promise((resolve) => {
@@ -120,7 +120,7 @@ export default class OSRMRoutingService extends RoutingService.default {
     }
 
     private async callOsrmRoute(
-        params: OSRMRoutingAPI.TransitionRouteOptions
+        params: RoutingAPI.OSRMRouteOptions
     ): Promise<Status.Status<osrm.RouteResults>> {
         //console.log("osrm params", params);
         return new Promise((resolve) => {
@@ -213,5 +213,9 @@ export default class OSRMRoutingService extends RoutingService.default {
             ...params
         });
         return Status.unwrap(routingResult);
+    }
+
+    public async isochrone(_params: RoutingService.IsochroneParameters): Promise<RoutingService.IsochroneResults> {
+        throw new Error("OSRMRoutingService isochrone Method not implemented.")
     }
 }

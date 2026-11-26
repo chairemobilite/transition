@@ -7,8 +7,9 @@
 import type { RoutingService } from './RoutingService';
 import ManualRoutingService from './ManualRoutingService';
 import OSRMRoutingService from './OSRMRoutingService';
+import ValhallaRoutingService from './ValhallaRoutingService';
 
-export const DEFAULT_ROUTING_ENGINE = 'engine';
+export const DEFAULT_ROUTING_ENGINE = 'osrm';
 export interface RoutingServiceManager {
     getRoutingServiceForEngine: (engine: string) => RoutingService;
 }
@@ -25,9 +26,11 @@ class RoutingServiceManagerImpl implements RoutingServiceManager {
         // use different services for same engine, etc
         this._defaultService = new ManualRoutingService();
         const osrmService = new OSRMRoutingService();
+        const valhallaService = new ValhallaRoutingService();
         this._routingServices = {
             manual: this._defaultService,
-            engine: osrmService,
+            osrm: osrmService,
+            valhalla: valhallaService,
             engineCustom: osrmService
         };
     }

@@ -27,7 +27,8 @@ export const getRouteByMode = async (
     mode: RoutingMode = 'walking',
     routingAttributes?: TripRoutingQueryAttributes
 ): Promise<RouteResults> => {
-    const routingService = routingServiceManager.getRoutingServiceForEngine(DEFAULT_ROUTING_ENGINE);
+    const routingEngine = routingAttributes?.engine || DEFAULT_ROUTING_ENGINE;
+    const routingService = routingServiceManager.getRoutingServiceForEngine(routingEngine);
     const routingResult = await routingService.route({
         mode,
         points: { type: 'FeatureCollection', features: [origin, destination] },

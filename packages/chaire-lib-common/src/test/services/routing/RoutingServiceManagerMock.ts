@@ -11,7 +11,9 @@ import type {
     RouteResults,
     TableFromParameters,
     TableToParameters,
-    TableResults
+    TableResults,
+    IsochroneParameters,
+    IsochroneResults
 } from '../../../services/routing/RoutingService';
 import type { RoutingServiceManager } from '../../../services/routing/RoutingServiceManager';
 
@@ -69,11 +71,25 @@ const createTableToMock: () => mockTableToType = () => {
     return mockTableFrom;
 };
 
+type mockIsochroneType = jest.MockedFunction<
+    (params: IsochroneParameters) => Promise<IsochroneResults>
+>;
+
+const createIsochroneMock: () => mockIsochroneType = () => {
+    const mockIsochrone: mockIsochroneType = jest.fn();
+    mockIsochrone.mockImplementation(async (_params) => ({
+        query: '',
+        features: []
+    }));
+    return mockIsochrone;
+};
+
 interface MockRoutingService extends RoutingService {
     route: mockRouteType;
     mapMatch: mockMapMatchType;
     tableFrom: mockTableFromType;
     tableTo: mockTableToType;
+    isochrone: mockIsochroneType;
 }
 
 /**
@@ -93,13 +109,15 @@ class RoutingServiceManagerMock implements RoutingServiceManager {
             route: createRouteMock(),
             mapMatch: createMapMatchMock(),
             tableFrom: createTableFromMock(),
-            tableTo: createTableToMock()
+            tableTo: createTableToMock(),
+            isochrone: createIsochroneMock()
         };
         const osrmService = {
             route: createRouteMock(),
             mapMatch: createMapMatchMock(),
             tableFrom: createTableFromMock(),
-            tableTo: createTableToMock()
+            tableTo: createTableToMock(),
+            isochrone: createIsochroneMock()
         };
         this._routingServices = {
             manual: this._defaultService,
@@ -116,8 +134,10 @@ class RoutingServiceManagerMock implements RoutingServiceManager {
     public mockClear() {
         this._defaultService.route.mockClear();
         this._defaultService.mapMatch.mockClear();
+        this._defaultService.isochrone.mockClear();
         this._routingServices.engine.route.mockClear();
         this._routingServices.engine.mapMatch.mockClear();
+        this._routingServices.engine.isochrone.mockClear();
     }
 }
 

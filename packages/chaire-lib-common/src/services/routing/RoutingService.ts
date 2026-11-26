@@ -52,6 +52,14 @@ export interface TableToParameters {
     destination: GeoJSON.Feature<GeoJSON.Point>;
 }
 
+export type IsochroneParameters = {
+    mode: RoutingMode;
+    center: GeoJSON.Point;
+} & (
+    | { timeContours: number[]; distanceContours?: never }
+    | { distanceContours: number[]; timeContours?: never }
+);
+
 export interface MapLeg {
     /** Distance in meters */
     distance: number;
@@ -101,6 +109,21 @@ export interface TableResults {
     query: string;
     durations: number[];
     distances: number[];
+}
+
+export interface IsochroneResults {
+    features: GeoJSON.Feature<
+        GeoJSON.Polygon | GeoJSON.MultiPolygon,
+        IsochroneProperties
+    >[];
+}
+
+export interface IsochroneProperties {
+    /**
+     * The requested time or distance threshold.
+     */
+    contour: number;
+    metric: 'time' | 'distance';
 }
 
 export interface RoutingService {
@@ -170,6 +193,18 @@ export interface RoutingService {
      * @returns table results
      */
     tableTo(params: TableToParameters): Promise<TableResults>;
+
+    /**
+     * Compute the isochrone at the supplied center point
+     *
+     * The 'mode' parameter specifies the transportation mode to use to
+     * calculate this isochrone.
+     *
+     *
+     * @param params
+     * @returns isochrone results
+     */
+    isochrone(params: IsochroneParameters): Promise<IsochroneResults>;
 }
 
 /**
@@ -195,4 +230,6 @@ export default abstract class RoutingServiceBase implements RoutingService {
     public abstract tableFrom(params: TableFromParameters): Promise<TableResults>;
 
     public abstract tableTo(params: TableToParameters): Promise<TableResults>;
+
+    public abstract isochrone(params: IsochroneParameters): Promise<IsochroneResults>;
 }
