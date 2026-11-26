@@ -28,6 +28,7 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (p
               parameters: BatchCalculationParameters;
               demand: BatchRoutingOdDemandFromCsvAttributes;
               csvFields: string[];
+              name?: string;
           }
         | undefined
     >(undefined);
@@ -40,6 +41,7 @@ const CalculationPanel: React.FunctionComponent<CalculationPanelPanelProps> = (p
         parameters: BatchCalculationParameters;
         demand: BatchRoutingOdDemandFromCsvAttributes;
         csvFields: string[];
+        name?: string;
     }) => {
         setInitialValues(parameters);
         setIsNewAnalysis(true);

@@ -16,13 +16,15 @@ import type { BatchRoutingOdDemandFromCsvAttributes } from '../transitDemand/typ
 export class TransitBatchRoutingCalculator {
     private static async _calculate(
         params: BatchRoutingOdDemandFromCsvAttributes,
-        queryAttributes: BatchCalculationParameters
+        queryAttributes: BatchCalculationParameters,
+        jobName?: string
     ): Promise<any> {
         return new Promise((resolve, reject) => {
             serviceLocator.socketEventManager.emit(
                 TrRoutingConstants.BATCH_ROUTE,
                 params,
                 queryAttributes,
+                { name: jobName },
                 (routingStatus: Status.Status<TransitBatchCalculationResult>) => {
                     if (Status.isStatusOk(routingStatus)) {
                         resolve(Status.unwrap(routingStatus));
@@ -42,9 +44,21 @@ export class TransitBatchRoutingCalculator {
         });
     }
 
+    /**
+     * Start a batch routing calculation on the server.
+     *
+     * @param transitDemand The demand to route, from a csv file
+     * @param queryAttributes The routing parameters of the calculation
+     * @param jobName Name given by the user to the job that runs the
+     * calculation. The job has no name when it is undefined or blank.
+     * @returns The result of the calculation
+     * @throws A `TrError` when the demand or the routing parameters are
+     * invalid, or when the server returns an error.
+     */
     static async calculate(
         transitDemand: TransitOdDemandFromCsv,
-        queryAttributes: BatchCalculationParameters
+        queryAttributes: BatchCalculationParameters,
+        jobName?: string
     ): Promise<TransitBatchCalculationResult> {
         if (!transitDemand.isValid()) {
             const trError = new TrError(
@@ -75,7 +89,7 @@ export class TransitBatchRoutingCalculator {
         }
 
         try {
-            const batchResult = await TransitBatchRoutingCalculator._calculate(parameters, queryAttributes);
+            const batchResult = await TransitBatchRoutingCalculator._calculate(parameters, queryAttributes, jobName);
             return batchResult;
         } catch (error) {
             // TODO Better handle erroneous and success return statuses
@@ -98,6 +112,7 @@ export class TransitBatchRoutingCalculator {
         parameters: BatchCalculationParameters;
         demand: BatchRoutingOdDemandFromCsvAttributes;
         csvFields: string[];
+        name?: string;
     }> {
         return new Promise((resolve, reject) => {
             serviceLocator.socketEventManager.emit(
@@ -108,6 +123,7 @@ export class TransitBatchRoutingCalculator {
                         parameters: BatchCalculationParameters;
                         demand: BatchRoutingOdDemandFromCsvAttributes;
                         csvFields: string[];
+                        name?: string;
                     }>
                 ) => {
                     if (Status.isStatusOk(routingStatus)) {

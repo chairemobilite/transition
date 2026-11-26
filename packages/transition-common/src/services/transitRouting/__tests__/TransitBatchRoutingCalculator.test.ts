@@ -19,7 +19,7 @@ const defaultResponse = {
     warnings: [],
     errors: []
 };
-const batchRouteSocketMock = jest.fn().mockImplementation((parameters, transitRoutingAttributes, callback) => callback(Status.createOk(defaultResponse)));
+const batchRouteSocketMock = jest.fn().mockImplementation((parameters, transitRoutingAttributes, jobAttributes, callback) => callback(Status.createOk(defaultResponse)));
 
 socketMock.on(TrRoutingConstants.BATCH_ROUTE, batchRouteSocketMock);
 serviceLocator.addService('socketEventManager', socketMock);
@@ -68,17 +68,25 @@ describe('Test Calculate', () => {
         expect(result).toEqual(defaultResponse);
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
-        expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, expect.anything())
+        expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, { name: undefined }, expect.anything())
+    });
+
+    test('Calculate with a job name', async () => {
+        const result = await TransitBatchRoutingCalculator.calculate(defaultDemand, defaultQueryParams, 'My calculation');
+        expect(result).toEqual(defaultResponse);
+
+        expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
+        expect(batchRouteSocketMock).toHaveBeenCalledWith(defaultDemandAttributes, defaultQueryParams, { name: 'My calculation' }, expect.anything());
     });
 
     test('Calculate with valid values, but server error', async () => {
-        batchRouteSocketMock.mockImplementationOnce((_parameters, _transitRoutingAttributes, callback) => callback(Status.createError('arbitrary error')))
+        batchRouteSocketMock.mockImplementationOnce((_parameters, _transitRoutingAttributes, _jobAttributes, callback) => callback(Status.createError('arbitrary error')))
         await expect(async () => await TransitBatchRoutingCalculator.calculate(defaultDemand, defaultQueryParams))
             .rejects
             .toThrow('cannot calculate transit batch route with trRouting: arbitrary error');
 
         expect(batchRouteSocketMock).toHaveBeenCalledTimes(1);
-        expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, expect.anything())
+        expect(batchRouteSocketMock).toHaveBeenCalledWith( defaultDemandAttributes, defaultQueryParams, { name: undefined }, expect.anything())
     });
 
     test('Calculate with invalid demand parameters', async () => {

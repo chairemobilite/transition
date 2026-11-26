@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import _toString from 'lodash/toString';
 import type ScenarioCollection from 'transition-common/lib/services/scenario/ScenarioCollection';
 import { secondsToMinutes } from 'chaire-lib-common/lib/utils/DateTimeUtils';
+import InputString from 'chaire-lib-frontend/lib/components/input/InputString';
+import InputWrapper from 'chaire-lib-frontend/lib/components/input/InputWrapper';
 
 import type { BatchCalculationParameters } from 'transition-common/lib/services/batchCalculation/types';
 import type TransitOdDemandFromCsv from 'transition-common/lib/services/transitDemand/TransitOdDemandFromCsv';
@@ -18,6 +20,10 @@ export interface ConfirmCalculationFormProps {
     routingParameters: BatchCalculationParameters;
     scenarioCollection: ScenarioCollection;
     onUpdate: (routingParameters: BatchCalculationParameters, isValid: boolean) => void;
+    /** Name typed by the user for the job that will run the calculation. */
+    jobName: string;
+    /** Called with the name typed by the user each time it changes. */
+    onJobNameUpdate: (jobName: string) => void;
 }
 /**
  * Confirm the demand and scenario parameters before running the calculations
@@ -32,6 +38,16 @@ const ConfirmCalculationForm: React.FunctionComponent<ConfirmCalculationFormProp
     const demandAttributes = props.currentDemand.getCurrentFileAndMapping()!;
     return (
         <div className="tr__form-section">
+            <InputWrapper
+                label={t('transit:transitRouting:CalculationName')}
+                help={t('transit:batchCalculation:CalculationNameHelp')}
+            >
+                <InputString
+                    id={'formFieldTransitBatchRoutingCalculationName'}
+                    value={props.jobName}
+                    onValueUpdated={({ value }) => props.onJobNameUpdate(value)}
+                />
+            </InputWrapper>
             <table className="_statistics" key="confirmScenarioAnalysisProperties">
                 <tbody>
                     <tr>

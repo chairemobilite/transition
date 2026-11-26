@@ -24,6 +24,7 @@ export interface BatchCalculationFormProps {
     initialValues?: {
         parameters: BatchCalculationParameters;
         demand: BatchRoutingOdDemandFromCsvAttributes;
+        name?: string;
     };
     availableRoutingModes?: string[];
     onEnd: () => void;
@@ -59,6 +60,8 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
             : _cloneDeep(Preferences.get('transit.routing.transit', { routingModes: [], withAlternatives: false }))
     );
 
+    const [jobName, setJobName] = React.useState(props.initialValues?.name ?? '');
+
     const onScenarioCollectionUpdate = () => {
         setScenarioCollection(serviceLocator.collectionManager.get('scenarios'));
     };
@@ -79,7 +82,7 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
         if (currentStep === stepCount - 1) {
             if (demand !== undefined) {
                 // TODO Don't just return, wait for the return value to make sure the calculation is running
-                TransitBatchRoutingCalculator.calculate(demand, routingParameters);
+                TransitBatchRoutingCalculator.calculate(demand, routingParameters, jobName);
                 props.onEnd();
             }
         }
@@ -141,6 +144,8 @@ const BatchCalculationForm: React.FunctionComponent<BatchCalculationFormProps & 
                         routingParameters={routingParameters}
                         onUpdate={onParametersUpdate}
                         scenarioCollection={scenarioCollection}
+                        jobName={jobName}
+                        onJobNameUpdate={setJobName}
                     />
                 </React.Fragment>
             )}
