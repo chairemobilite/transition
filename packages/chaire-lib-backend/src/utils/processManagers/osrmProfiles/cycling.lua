@@ -214,7 +214,8 @@ function setup()
     },
 
     route_speeds = {
-      ferry = 5
+      -- Ferries should be added as standard transit modes in transition
+      ferry = 0
     },
 
     bridge_speeds = {
@@ -294,6 +295,11 @@ end
 function handle_bicycle_tags(profile,way,result,data)
     -- initial routability check, filters out buildings, boundaries, etc
   data.route = way:get_value_by_key("route")
+  -- Lua treats 0 as true, and a duration tag would still make the way routable
+  -- when route_speeds.ferry is 0. Ferry crossings are transit lines.
+  if data.route == 'ferry' then
+    return false
+  end
   data.man_made = way:get_value_by_key("man_made")
   data.railway = way:get_value_by_key("railway")
   data.amenity = way:get_value_by_key("amenity")
@@ -390,7 +396,7 @@ function speed_handler(profile,way,result,data)
     result.forward_speed = bridge_speed
     result.backward_speed = bridge_speed
     data.way_type_allows_pushing = true
-  elseif profile.route_speeds[data.route] then
+  elseif profile.route_speeds[data.route] and profile.route_speeds[data.route] > 0 then
     -- ferries (doesn't cover routes tagged using relations)
     result.forward_mode = mode.ferry
     result.backward_mode = mode.ferry

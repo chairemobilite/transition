@@ -161,7 +161,9 @@ function setup()
     },
 
     route_speeds = {
-      ferry = walking_speed
+      -- Speed 0: WayHandlers.ferries only applies a route speed when it is > 0.
+      -- Ferries should be added as standard transit modes in transition
+      ferry = 0
     },
 
     bridge_speeds = {
@@ -251,6 +253,12 @@ function process_way(profile, way, result)
   -- of the prefetched tags to be present, ie. the data table
   -- cannot be empty
   if next(data) == nil then     -- is the data table empty?
+    return
+  end
+
+  -- A ferry way often also has foot=yes. Without this, WayHandlers.speed would
+  -- still give it the default walking speed after the ferry speed of 0 is ignored.
+  if data.route == 'ferry' then
     return
   end
 
