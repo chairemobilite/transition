@@ -7,6 +7,7 @@
 import fs from 'fs';
 import type { EventEmitter } from 'events';
 import path from 'path';
+import moment from 'moment';
 
 import Job, {
     type JobAttributes,
@@ -19,6 +20,7 @@ import { directoryManager } from 'chaire-lib-backend/lib/utils/filesystem/direct
 import { execJob } from '../../tasks/serverWorkerPool';
 import { fileManager } from 'chaire-lib-backend/lib/utils/filesystem/fileManager';
 import clientEventManager from '../../utils/ClientEventManager';
+import { jobNameToFileNamePart } from './JobNameFilePart';
 import TrError from 'chaire-lib-common/lib/utils/TrError';
 
 export type InitialJobData<TData extends JobDataType> = {
@@ -82,10 +84,14 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
     protected static async createJobInternal<TData extends JobDataType>(
         {
             inputFiles,
+            name,
             ...attributes
         }: Omit<JobAttributes<TData>, 'id' | 'status' | 'internal_data'> & InitialJobData<TData>,
         jobListener?: EventEmitter
     ): Promise<ExecutableJob<TData>> {
+        // The name is typed by a user and comes from the client: a blank name
+        // or a value that is not a string is the same as no name
+        const jobName = typeof name === 'string' && name.trim() !== '' ? name.trim() : undefined;
         const jobProgressEmitter =
             jobListener !== undefined ? jobListener : clientEventManager.getUserEventEmitter(attributes.user_id);
 
@@ -117,9 +123,15 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
             attributes.resources = { ...(attributes.resources || {}), files: jobFiles };
         }
 
-        const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes });
+        const id = await jobsDbQueries.create({ status: 'pending', internal_data: {}, ...attributes, name: jobName });
         jobProgressEmitter.emit('executableJob.updated', { id, type: attributes.type });
-        const job = new ExecutableJob<TData>({ id, status: 'pending', internal_data: {}, ...attributes });
+        const job = new ExecutableJob<TData>({
+            id,
+            status: 'pending',
+            internal_data: {},
+            ...attributes,
+            name: jobName
+        });
         toCopy.forEach(({ filePath, jobFileName }) =>
             fileManager.copyFileAbsolute(filePath, `${job.getJobFileDirectory()}/${jobFileName}`, true)
         );
@@ -266,6 +278,30 @@ export class ExecutableJob<TData extends JobDataType> extends Job<TData> {
         }
         return filePath;
     };
+
+    /**
+     * Get the name to give to a file of this job when a user downloads it.
+     * It is the name of the file, followed by the date and time of creation
+     * of the job, so that the same file downloaded from two jobs gets two
+     * names. When the job has a name, the download name starts with it,
+     * converted by {@link jobNameToFileNamePart} to characters that are
+     * valid in file names.
+     *
+     * @param fileName The name of the file in the job directory, for example
+     * `results.csv`
+     * @returns The download name, for example `results_20220808_132134.csv`,
+     * or `My_job_results_20220808_132134.csv` for a job named `My job`. The
+     * date and time are added before the extension, if there is one.
+     */
+    getDownloadName(fileName: string): string {
+        const jobNamePart = this.attributes.name === undefined ? '' : jobNameToFileNamePart(this.attributes.name);
+        const prefix = jobNamePart === '' ? '' : `${jobNamePart}_`;
+        const match = fileName.match(/([^/]+)\.([^/]+)$/);
+        const formattedTime = moment(this.attributes.created_at || '').format('YYYYMMDD_HHmmss');
+        return match === null
+            ? `${prefix}${fileName}_${formattedTime}`
+            : `${prefix}${match[1]}_${formattedTime}.${match[2]}`;
+    }
 
     /** Check if the job has a input file specified */
     hasInputFile(): boolean {

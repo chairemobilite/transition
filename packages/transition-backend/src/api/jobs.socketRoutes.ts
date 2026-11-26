@@ -5,7 +5,6 @@
  * License text available at https://opensource.org/licenses/MIT
  */
 import type { EventEmitter } from 'events';
-import moment from 'moment';
 
 import { JobsConstants } from 'transition-common/lib/api/jobs';
 import * as Status from 'chaire-lib-common/lib/utils/Status';
@@ -80,15 +79,9 @@ export default function (socket: EventEmitter, userId: number) {
                 Object.keys(jobResourceFiles).forEach((file) => {
                     if (jobResourceFiles[file] && files?.includes(jobResourceFiles[file] as string)) {
                         const fileName = jobResourceFiles[file] as string;
-                        const match = fileName.match(/([^/]+)\.([^/]+)$/);
-                        const formattedTime = moment(job.attributes.created_at || '').format('YYYYMMDD_HHmmss');
-                        const downloadName =
-                            match === null
-                                ? `${fileName}_${formattedTime}`
-                                : `${match[1]}_${formattedTime}.${match[2]}`;
                         jobFiles[file] = {
                             url: `/job/${id}/${fileName}`,
-                            downloadName: downloadName,
+                            downloadName: job.getDownloadName(fileName),
                             title: { text: `transit:jobs:${job.attributes.type}:files:${file}`, fileName }
                         };
                     }

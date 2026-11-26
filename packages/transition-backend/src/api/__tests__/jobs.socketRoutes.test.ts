@@ -114,19 +114,23 @@ describe('Job files', () => {
         resources: { files: { testFile: 'file.csv', testFile2: 'noExtension', testFile3: 'doesNotExist.csv' } },
     };
 
-    test('Get job files properly', (done) => {
-        mockedRead.mockResolvedValue(jobAttributes);
+    test.each([
+        { description: 'job without name', name: undefined, prefix: '' },
+        { description: 'job with a name', name: 'My scenario: été 2026, with a long name', prefix: 'My_scenario_ete_2026_' },
+        { description: 'job with a name without valid characters', name: '/:*?', prefix: '' }
+    ])('Get job files properly: $description', ({ name, prefix }, done) => {
+        mockedRead.mockResolvedValue({ ...jobAttributes, name });
         socketStub.emit('executableJobs.getFiles', jobAttributes.id, async (status) => {
             expect(Status.isStatusOk(status)).toEqual(true);
             expect(Status.unwrap(status)).toEqual({ 
                 testFile: { 
                     url: `/job/${jobAttributes.id}/file.csv`, 
-                    downloadName: `file_20220808_132134.csv`,
+                    downloadName: `${prefix}file_20220808_132134.csv`,
                     title: { text: `transit:jobs:test:files:testFile`, fileName: `file.csv` }
                 }, 
                 testFile2: { 
                     url: `/job/${jobAttributes.id}/noExtension`, 
-                    downloadName: `noExtension_20220808_132134`,
+                    downloadName: `${prefix}noExtension_20220808_132134`,
                     title: { text: `transit:jobs:test:files:testFile2`, fileName: `noExtension` }
                 } 
             });
